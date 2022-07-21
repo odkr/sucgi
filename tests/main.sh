@@ -229,7 +229,7 @@ script="$RESTRICTED/script.sh"
 echo : > "$script"
 chown -R "$uid:$gid" "$RESTRICTED"
 chmod ug=,o=w "$script"
-DOCUMENT_ROOT="$PWD" PATH_TRANSLATED="$script" ./main #>"$fifo" 2>&1 & pid="$!"
+DOCUMENT_ROOT="$PWD" PATH_TRANSLATED="$script" ./main >"$fifo" 2>&1 & pid="$!"
 grep -Fq "$script: can be altered by users other than $user." <"$fifo" ||
 	abort 'wrong error for non-exclusively writable script.'
 wait "$pid" &&
