@@ -1,4 +1,4 @@
-
+|build|
 
 
 =====
@@ -75,13 +75,13 @@ Otherwise, generate *config.h* by::
 
     m4 config.h.in >config.h
 
-And a minimal *makefile* by:
+And a minimal *makefile* ...
 
-GNU/Linux-systems::
+on GNU/Linux-systems::
 
     m4 -D__CFLAGS__='-D_DEFAULT_SOURCE=1 -D_BSD_SOURCE=1 -DHAVE_OPENAT2=1 -DHAVE_SYSCALL=1 -O2 -s' makefile.in >makefile
 
-macOS::
+on macOS::
 
     m4 -D__CFLAGS__='-DHAVE_DARWIN_INITGROUPS=1 -O2 -s' makefile.in >makefile
 
@@ -242,11 +242,5 @@ GitHub: https://github.com/odkr/sucgi
 
 .. _`POSIX.1-2008`: https://pubs.opengroup.org/onlinepubs/9699919799.2008edition/
 
-.. |codacy| image:: https://app.codacy.com/project/badge/Grade/4a2d60d9902a4a2ea7e301a410665426
-            :target: https://www.codacy.com/gh/odkr/sucgi/dashboard
-
-.. |lgtm|   image:: https://img.shields.io/lgtm/grade/cpp/github/odkr/sucgi.svg?logo=lgtm
-            :target: https://lgtm.com/projects/g/odkr/sucgi
-
-.. |build|  image:: https://ci.appveyor.com/api/projects/status/3besl1g6c66llwax/branch/main?svg=true
-            :target: https://ci.appveyor.com/project/odkr/sucgi/branch/main
+.. |build|  image:: https://ci.appveyor.com/api/projects/status/m9y70tfy2g4ey31n/branch/main?svg=true
+            :target: https://ci.appveyor.com/project/odkr/sucgi
