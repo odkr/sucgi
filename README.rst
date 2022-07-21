@@ -246,5 +246,5 @@ GitHub: https://github.com/odkr/sucgi
 .. |build|  image:: https://ci.appveyor.com/api/projects/status/m9y70tfy2g4ey31n/branch/main?svg=true
             :target: https://ci.appveyor.com/project/odkr/sucgi
 
-.. |codacy| .. image:: https://app.codacy.com/project/badge/Grade/cb67a3bad615449589dfb242876600ac
+.. |codacy| image:: https://app.codacy.com/project/badge/Grade/cb67a3bad615449589dfb242876600ac
             :target: https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_source=github.com&amp;utm_content=odkr/sucgi
