@@ -26,13 +26,26 @@
 
 #include "err.h"
 
+/*
+ * Constants
+ */
+
+/* Maximum number of environment variables. */
+#define ENV_MAX 256
+
 
 /*
  * Functions
  */
 
-/* Clear the environment and store a pointer to the old environment in old. */
-void env_clear (char ***old);
+/*
+ * Clear the environment and store a pointer to the old environment in copy.
+ *
+ * Return code:
+ *      OK       Success.
+ *      ERR_SYS  System failure. errno(2) should be set.
+ */
+enum code env_clear (char ***copy);
 
 /* 
  * Safely read a filename from the environement variable name and store a
@@ -79,14 +92,14 @@ enum code env_get_fname (const char *const name,
  *      That said, suCGI should not be privy to any information that is not
  *      in the environment already, so such an attack should be pointless.
  *
- *      Moreover, if vars contains multiple assignments to the same name,
- *      then it depends on the system's libc whether how many and which of
- *      those assignments are kept. This is because some implementations of
- *      setenv(3), e.g., Darwin's, may store multiple assignments to the same
- *      variable name in environ(7), and there is no way of which of those
- *      assignments is the definitive one. Most CGI programmes are scripts,
- *      and script interpreters should provide a secure API to access environ,
- *      so this should not be a huge issue.
+ *      Moreover, if vars contains multiple assignments to the same name, it
+ *      depends on the system's libc how many and which of those assignments
+ *      are honoured. This is because some implementations of setenv(3), e.g.,
+ *      Darwin's, may store multiple assignments to the same variable name in
+ *      environ(7), and there is no way of knowing which of those assignments
+ *      is the definitive one. Most CGI programmes are scripts, and script
+ *      interpreters should provide a secure API to access environ, so this
+ *      should not be a huge issue.
  *
  * Return code:
  * 	OK               Success.

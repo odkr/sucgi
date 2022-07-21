@@ -45,7 +45,7 @@ env_restore_w (const char *keep, const char *toss)
 	char **vars;		/* Backup of the environment. */
 	char **keepv, **tossv;	/* Arrays of patterns. */
 
-	env_clear(&vars);
+	assert(env_clear(&vars) == OK);
 	assert(str_words(keep, &keepv) == OK);
 	assert(str_words(toss, &tossv) == OK);
 	return env_restore((const char *const *) vars, keepv, tossv);

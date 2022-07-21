@@ -39,19 +39,26 @@
 /* The environment. */
 extern char **environ;
 
-
+#include <stdio.h>
 /*
  * Functions
  */
 
-void
-env_clear (char ***old)
+enum code
+env_clear (char ***copy)
 {
-	static char *null;
+	char **vars = environ;	/* Backup of the environment. */
 
-	if (old) *old = environ;
-	null = NULL;
-	environ = &null;
+	environ = NULL;
+	environ = calloc(1, sizeof(char *));
+	if (!environ) return ERR_SYS;
+	*environ = NULL;
+	if (!copy) return OK;
+
+	*copy = calloc(ENV_MAX, sizeof(char *));
+	if (!copy) return ERR_SYS;
+	for (int i = 0; i < ENV_MAX && vars[i]; i++) (*copy)[i] = vars[i];
+	return OK;
 }
 
 enum code

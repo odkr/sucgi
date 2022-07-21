@@ -206,7 +206,9 @@ main (void) {
 	 * > info. Bad news if MALLOC_DEBUG_FILE is set to /etc/passwd.)
 	 */
 
-	env_clear(&env);
+	if (env_clear(&env) != OK) {
+		error("environment clean-up: %s.", strerror(errno));
+	}
 
 
 	/*

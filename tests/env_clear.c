@@ -21,7 +21,7 @@ main (void) {
 	env_clear(NULL);
 
 	assert(setenv("foo", "foo", 1) == 0);
-	env_clear(&env);
+	assert(env_clear(&env) == OK);
 	// flawfinder: ignore
 	assert(getenv("foo") == NULL);
 
