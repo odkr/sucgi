@@ -10,27 +10,31 @@
 # Get the UID of the user who invoked the script,
 # even if the script has been invoked via su or sudo.
 get_non_root_uid() (
-	pivot="$$"
-	fifo="$TMPDIR/pstab"
-	mkfifo "$fifo"
+        pivot="$$"
+        fifo="${TMP:?}/pstab"
+        mkfifo "$fifo"
 
-	while true
-	do
-		ps -Ao 'pid= ppid= user=' | sort -r >"$fifo" & sort=$!
-		while read -r pid ppid user
-		do
-			uid="$(id -u "$user")" && [ "$uid" ] || continue
-			if [ "$uid" -ne 0 ]
-			then
-				echo "$uid"
-				return 0
-			fi
-			
-			[ "$pid" -eq "$pivot" ] && pivot="$ppid"
-			[ "$pivot" -gt 1 ] || return 1 
-		done <"$fifo"
-		wait "$sort"
-	done
+        while true
+        do
+                ps -Ao 'pid= ppid= user=' | sort -r >"$fifo" & sort=$!
+                while read -r pid ppid user
+                do
+                        [ "$pid" -eq "$pivot" ] || continue
+
+                        uid="$(id -u "$user")" && [ "$uid" ] || continue
+                        if [ "$uid" -ne 0 ]
+                        then
+                                echo "$uid"
+                                return 0
+                        elif [ "$ppid" -gt 1 ]
+                        then
+                                pivot="$ppid"
+                        else
+                                return 1
+                        fi
+                done <"$fifo"
+                wait "$sort"
+        done
 )
 
 
@@ -225,7 +229,7 @@ script="$RESTRICTED/script.sh"
 echo : > "$script"
 chown -R "$uid:$gid" "$RESTRICTED"
 chmod ug=,o=w "$script"
-DOCUMENT_ROOT="$PWD" PATH_TRANSLATED="$script" ./main >"$fifo" 2>&1 & pid="$!"
+DOCUMENT_ROOT="$PWD" PATH_TRANSLATED="$script" ./main #>"$fifo" 2>&1 & pid="$!"
 grep -Fq "$script: can be altered by users other than $user." <"$fifo" ||
 	abort 'wrong error for non-exclusively writable script.'
 wait "$pid" &&
