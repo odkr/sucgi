@@ -44,9 +44,9 @@ trap 'exit 129' HUP
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
+rst='' bld='' grn='' red=''
 if [ -t 1 ]
 then
-	rst='' bld='' grn='' red=''
 	case ${TERM-} in (*color*)
 		if rst="$(tput sgr0 2>/dev/null)" && [ "$rst" ]
 		then

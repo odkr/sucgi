@@ -63,9 +63,9 @@ trap 'exit 143' TERM
 # shellcheck disable=1091
 . ./configure.env || exit
 
+rst='' bld='' grn='' red=''
 if [ -t 1 ] && [ -t 2 ]
 then
-	rst='' bld='' grn='' red=''
 	case ${TERM-} in (*color*)
 		if rst="$(tput sgr0 2>/dev/null)" && [ "$rst" ]
 		then
