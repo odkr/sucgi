@@ -1,0 +1,162 @@
+changequote([, ])dnl
+define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
+
+.POSIX:
+
+ifdef([__CC__], [ifelse(__CC__, [], [], [CC = __CC__
+])], [])dnl
+CFLAGS = default([__CFLAGS__], [-O2 -s])
+ARFLAGS = -r
+PREFIX = default([__PREFIX__], [/usr/local])
+ifdef([__DESTDIR__], [ifelse(__DESTDIR__, [], [], [DESTDIR = __DESTDIR__
+])], [])dnl
+
+WWW_GROUP = default([___WWW_GROUP__], [www-data])
+CGI_BIN = /usr/libexec/cgi-bin
+
+VERSION = 0
+PACKAGE = sucgi
+
+TEST_BINS = tests/error tests/env_clear tests/env_get_fname tests/env_restore tests/main tests/file_is_exec tests/file_is_wexcl tests/file_safe_open tests/file_safe_stat tests/path_check_len tests/path_check_wexcl tests/path_contains tests/reraise tests/run_script tests/str_cp tests/str_eq tests/str_split tests/str_vsplit
+TESTS = tests/error.sh tests/env_clear tests/env_get_fname.sh tests/env_restore tests/main.sh tests/file_is_exec.sh tests/file_is_wexcl.sh tests/file_safe_open.sh tests/file_safe_stat.sh tests/path_check_len tests/path_check_wexcl.sh tests/path_contains tests/reraise tests/run_script.sh tests/str_cp tests/str_eq tests/str_split tests/str_vsplit
+
+DIST_NAME = $(PACKAGE)-$(VERSION)
+DIST_ARCHIVE = $(DIST_NAME).tgz
+DIST_FILES = *.c *.h *.in configure configure.env tests/*.c tests/*.h tests/*.sh tests/check tests/data
+
+all: sucgi
+
+sucgi.a(env.o): env.c env.h err.h str.h
+	$(CC) -c $(CFLAGS) -o $% $<
+	$(AR) $(ARFLAGS) $@ $%
+	rm -f $%
+
+sucgi.a(err.o): err.c err.h
+	$(CC) -c $(CFLAGS) -o $% $<
+	$(AR) $(ARFLAGS) $@ $%
+	rm -f $%
+
+sucgi.a(file.o): file.c err.h path.h str.h
+	$(CC) -c $(CFLAGS) -o $% $<
+	$(AR) $(ARFLAGS) $@ $%
+	rm -f $%
+
+sucgi.a(path.o): path.c path.h err.h str.h
+	$(CC) -c $(CFLAGS) -o $% $<
+	$(AR) $(ARFLAGS) $@ $%
+	rm -f $%
+
+sucgi.a(str.o): str.c str.h err.h
+	$(CC) -c $(CFLAGS) -o $% $<
+	$(AR) $(ARFLAGS) $@ $%
+	rm -f $%
+
+sucgi.a(utils.o): utils.c utils.h err.h str.h
+	$(CC) -c $(CFLAGS) -o $% $<
+	$(AR) $(ARFLAGS) $@ $%
+	rm -f $%
+
+sucgi.a: sucgi.a(env.o) sucgi.a(err.o) sucgi.a(file.o) sucgi.a(path.o) sucgi.a(str.o) sucgi.a(utils.o)
+
+sucgi: main.c config.h sucgi.a
+	$(CC) -DPACKAGE=$(PACKAGE) -DVERSION=$(VERSION) $(LDFLAGS) $(CFLAGS) -o $@ $< sucgi.a $(LDLIBS)
+
+tests/utils.o: tests/utils.c tests/utils.h str.h
+	$(CC) -c $(CFLAGS) -o $@ $<
+
+tests/error: tests/error.c sucgi.a(err.o)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< sucgi.a $(LDLIBS)
+
+tests/env_clear: tests/env_clear.c sucgi.a(env.o) sucgi.a(err.o) sucgi.a(file.o) sucgi.a(path.o) sucgi.a(str.o)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< sucgi.a $(LDLIBS)
+
+tests/env_get_fname: tests/env_get_fname.c tests/utils.o sucgi.a(env.o) sucgi.a(err.o) sucgi.a(file.o) sucgi.a(path.o) sucgi.a(str.o)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/utils.o sucgi.a $(LDLIBS)
+
+tests/env_restore: tests/env_restore.c tests/utils.o sucgi.a(env.o) sucgi.a(err.o) sucgi.a(file.o) sucgi.a(path.o) sucgi.a(str.o)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/utils.o sucgi.a $(LDLIBS)
+
+tests/file_is_exec: tests/file_is_exec.c tests/utils.o sucgi.a(file.o)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/utils.o sucgi.a $(LDLIBS)
+
+tests/file_is_wexcl: tests/file_is_wexcl.c tests/utils.o sucgi.a(file.o)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/utils.o sucgi.a $(LDLIBS)
+
+tests/file_safe_open: tests/file_safe_open.c tests/utils.o sucgi.a(file.o)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/utils.o sucgi.a $(LDLIBS)
+
+tests/file_safe_stat: tests/file_safe_stat.c tests/utils.o sucgi.a(file.o)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/utils.o sucgi.a $(LDLIBS)
+
+tests/path_check_len: tests/path_check_len.c sucgi.a(err.o) sucgi.a(path.o) sucgi.a(str.o)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< sucgi.a $(LDLIBS)
+
+tests/path_check_wexcl: tests/path_check_wexcl.c tests/utils.o sucgi.a(err.o) sucgi.a(path.o)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/utils.o sucgi.a $(LDLIBS)
+
+tests/path_contains: tests/path_contains.c sucgi.a(err.o) sucgi.a(path.o) sucgi.a(str.o)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< sucgi.a $(LDLIBS)
+
+tests/reraise: tests/reraise.c sucgi.a(err.o)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< sucgi.a $(LDLIBS)
+
+tests/run_script: tests/run_script.c tests/utils.o sucgi.a(utils.o)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/utils.o sucgi.a $(LDLIBS)
+
+tests/str_cp: tests/str_cp.c sucgi.a(err.o) sucgi.a(str.o)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< sucgi.a $(LDLIBS)
+
+tests/str_eq: tests/str_eq.c sucgi.a(err.o) sucgi.a(str.o)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< sucgi.a $(LDLIBS)
+
+tests/str_split: tests/str_split.c sucgi.a(err.o) sucgi.a(str.o)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< sucgi.a $(LDLIBS)
+
+tests/str_vsplit: tests/str_vsplit.c sucgi.a(err.o) sucgi.a(str.o)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< sucgi.a $(LDLIBS)
+
+tests/main: main.c sucgi.a
+	$(CC) -D INCLUDED_CONFIG=1 -DTESTING=1 -DPACKAGE=fake-$(PACKAGE) -DVERSION=$(VERSION) $(LDFLAGS) $(CFLAGS) -Wno-unused-macros -o $@ $< sucgi.a $(LDLIBS)
+
+analysis:
+	cppcheck -f -q --error-exitcode=8 --enable=all --inconclusive --language=c --std=c99 --library=posix --platform=unix64 --suppress=missingIncludeSystem --inline-suppr -U LOG_PERROR -U O_NOFOLLOW_ANY .
+	cppcheck -f -q --error-exitcode=8 --enable=unusedFunction --inconclusive --language=c --std=c99 --library=posix --platform=unix64 --inline-suppr *.c
+	flawfinder --error-level=1 -m 0 -D -Q .
+	shellcheck configure tests/check tests/*.sh
+
+check: $(TEST_BINS)
+	tests/check $(TESTS)
+
+clean:
+	find . \( -name '*.a' -o -name '*.o' -o -name '*.tmp' \) -exec rm -f '{}' +
+	rm -f sucgi $(DIST_ARCHIVE) $(DIST_ARCHIVE).asc $(TEST_BINS)
+	rm -rf $(DIST_NAME)
+
+distclean: clean
+	rm config.h makefile
+
+$(DIST_ARCHIVE): $(DIST_FILES)
+	mkdir -m u=rwx,go= $(DIST_NAME)
+	cp -a $(DIST_FILES) $(DIST_NAME)/
+	chmod -R u=rw,go= $(DIST_NAME)/
+	tar -czf $(DIST_ARCHIVE) $(DIST_NAME)
+	rm -rf $(DIST_NAME)
+
+$(DIST_ARCHIVE).asc: $(DIST_ARCHIVE)
+	gpg -qab --batch --yes $(DIST_ARCHIVE)
+
+dist: clean check $(DIST_ARCHIVE) $(DIST_ARCHIVE).asc
+
+install: sucgi
+	mkdir -pm 0755 $(DESTDIR)$(PREFIX)/libexec
+	cp sucgi $(DESTDIR)$(PREFIX)/libexec
+	chown root:$(WWW_GROUP) $(DESTDIR)$(PREFIX)/libexec/cgi-bin/sucgi
+	chmod u=rws,g=x,o= $(DESTDIR)$(PREFIX)/libexec/cgi-bin/sucgi
+	ln -s $(DESTDIR)$(PREFIX)/libexec/sucgi $(CGI_BIN)
+
+uninstall:
+	rm $(CGI_BIN)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
+
+.PHONY: all analysis check clean distclean dist install uninstall 
+
+.IGNORE: analysis

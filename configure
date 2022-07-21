@@ -1,0 +1,288 @@
+#!/bin/sh
+
+set -eu
+
+
+#
+# Constants
+#
+
+readonly nchildren=4
+
+
+#
+# Functions
+#
+
+# Abort the script with an error message.
+abort() {
+	echo "${red-}$*${rst-}"
+	exit 8
+}
+
+# Clean up on exit.
+cleanup() {
+	status=$?
+	set +e
+	trap : EXIT HUP INT TERM
+	kill -15 -$$ >/dev/null 2>&1
+	[ "${TMP_FILE-}" ] && [ -e "$TMP_FILE" ] && rm -f "$TMP_FILE"
+	[ "${rst-}" ] && printf %s "$rst"
+	exit "$status"
+}
+
+# Add flags to cflags.
+add_cflags() {
+	cflags="${cflags-} $*"
+}
+
+# Add macro definitions to cflags.
+add_macros() {
+	while [ $# -gt 0 ]; do
+		cflags="${cflags-} -D$1"
+		shift
+	done
+}
+
+# Register a check for whether a header file is available.
+check_header() {
+	headers="${headers-} ${1:?}"
+	eval "hdr_fname_$1"='"${2:?}"';
+}
+
+
+#
+# Initialisation
+#
+
+trap cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+# shellcheck disable=1091
+. ./configure.env || exit
+
+if [ -t 1 ] && [ -t 2 ]
+then
+	rst='' bld='' grn='' red=''
+	case ${TERM-} in (*color*)
+		if rst="$(tput sgr0 2>/dev/null)" && [ "$rst" ]
+		then
+			bld="$(tput bold 2>/dev/null)" || :
+			grn="$(tput setaf 2 2>/dev/null)" || :
+			red="$(tput setaf 1 2>/dev/null)" || :
+		fi
+	esac
+fi
+
+
+#
+# Options
+#
+
+OPTIND=1 OPTARG='' opt=''
+force=''
+while getopts fh opt; do
+	case $opt in
+		(f) force=x ;;
+		(h) exec cat <<-EOF ;;
+			configure - Generate the makefile.
+
+			Options:
+			    -f  Overwrite existing files.
+			    -h  Show this help screen.
+			
+			Environment:
+			    CC          The C compiler.
+			    CFLAGS      Flags to pass to the C compiler.
+			    DESTDIR     Destination for staged installations.
+			    PREFIX      Prefix for the installation target.
+			    SAFE_PATH   A safe PATH.
+			    STR_LIMIT   Size limit for untrusted strings.
+			    WWW_GROUP   Group the webserver runs as.
+
+			See README.md for details.
+			EOF
+		(*) exit 8
+	esac
+done
+shift $((OPTIND - 1))
+
+
+#
+# Check if gcc or clang are available.
+#
+
+printf 'C compiler: '
+
+: "${CC:=}"
+if ! [ "$CC" ] || ! [ -x "$CC" ]; then
+	for cc in gcc clang c99 cc; do
+		if "$cc" -v 2>&1 | grep -q "$cc"; then
+			CC="$cc"
+			break
+		fi
+	done
+fi
+
+if [ "$CC" ] && command -v "$CC" >/dev/null 2>&1; then
+	echo "$CC"
+else
+	CC=
+	echo "\a${red}none found.${rst}"
+fi
+
+
+#
+# Check which flags the C compiler supports.
+#
+
+: "${CFLAGS="${cflags-}"}"
+if [ "$CC" ]; then
+	printf 'Compiler flags:'
+
+	# shellcheck disable=2086
+	set -- $CFLAGS
+	CFLAGS='' n=0 pids=''
+	while [ $# -gt 0 ]; do
+		case $1 in (-D*)
+			CFLAGS="$CFLAGS $1"
+			shift
+			continue
+		esac
+
+		"$CC" -xc -Werror "$1" -o/dev/null - <<-EOF >/dev/null 2>&1 &
+			int main(void) { return 0; }
+		EOF
+		pids="$pids $!"
+		eval "flag_$!"='$1'
+		shift
+
+		if [ $(($# % nchildren)) -eq 0 ]; then
+			for pid in $pids; do
+				if wait "$pid"; then
+					eval flag="\"\$flag_$pid\""
+					unset "flag_$pid"
+					[ "${flag-}" ] || continue;
+					CFLAGS="$CFLAGS $flag"
+					n=$((n + 1))
+					printf ' %s' "$flag"
+				fi
+			done
+			pids=
+		fi
+	done
+
+	if [ "$n" -eq 0 ]
+		then printf -- ' -\n'
+		else echo
+	fi
+
+	unset cflags flag n pid
+fi
+
+
+#
+# Check which header files are available.
+#
+
+if [ "$CC" ]; then
+	printf 'Headers:'
+
+	# shellcheck disable=2086
+	set -- ${headers-}
+
+	n=0 pids=''
+	while [ $# -gt 0 ]; do
+		eval file="\"\$hdr_fname_$1\""
+		[ "$file" ] || continue
+
+		"$CC" -xc -o/dev/null - <<-EOF >/dev/null 2>&1 &
+			#include <$file>
+			int main(void) { return 0; }
+		EOF
+		pids="$pids $!"
+		eval "hdr_pid_$!"='$1'
+		shift
+
+		if [ $(($# % nchildren)) -eq 0 ]; then
+			for pid in $pids; do
+				if wait "$pid"; then
+					eval hdr="\"\$hdr_pid_$pid\""
+					eval file="\"\$hdr_fname_$hdr\""
+					unset "hdr_fname_$pid" "hdr_pid_$pid"
+					[ "${hdr-}" ] || continue;
+					
+					CFLAGS="-D$hdr=1 ${CFLAGS-}"
+					n=$((n + 1))
+					printf ' %s' "$file"
+				fi
+			done
+			pids=
+		fi
+	done
+
+	if [ "$n" -eq 0 ]
+		then printf -- ' -\n'
+		else echo
+	fi
+
+	unset file headers hdr n pid
+fi
+
+
+#
+# System
+#
+
+printf 'Operating system: '
+
+if uname="$(uname)" && [ "$uname" ]
+then
+	echo "$uname"
+	case $uname in
+		(Darwin) CFLAGS="-DHAVE_DARWIN_INITGROUPS=1 ${CFLAGS-}" ;;
+	esac
+else
+	echo '\a-'
+fi
+
+
+#
+# Create files
+#
+
+errors=0
+for input in *.in; do
+	[ "$input" = '*.in' ] && break
+	output="${input%.in}"
+
+	[ -e "$output" ] && ! [ "$force" ] &&
+		abort "$bld$output$rst$red exists$rst," \
+		      "give $bld-f$rst to overwrite."
+
+	printf 'generating %s ... ' "$bld$output$rst"
+
+	TMP_FILE="$output.tmp"
+	if m4	-D__CC__="${CC-}"				\
+		-D__CFLAGS__="${CFLAGS# }"			\
+		-D__WWW_GROUP__="${WWW_GROUP-"www-data"}"	\
+		"$input" >"$TMP_FILE"
+	then
+		mv "$TMP_FILE" "$output"
+		echo 'done.'
+	else
+		rm -f "$TMP_FILE" >/dev/null 2>&1 || :
+		errors=$((errors + 1))
+		echo "\a${red}failed.$rst"
+	fi
+	unset TMP_FILE
+done
+
+case $errors in
+	(0) echo "${grn}all done.$rst" ;;
+	(*) echo "\a$red$errors file(s) could not be generated.$rst"
+esac
+
+exit $errors

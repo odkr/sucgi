@@ -1,0 +1,90 @@
+#!/bin/sh
+#shellcheck disable=2015
+
+set -u
+
+#
+# Constants
+#
+
+readonly nchildren=4
+
+
+#
+# Functions
+#
+
+# Print a warning to STDERR.
+warn() {
+	echo "check: $*"
+}
+
+# Print a warning to STDERR and abort the script.
+abort() {
+	warn "$red$*$rst"
+	exit 8
+}
+
+# Clean up on exit.
+cleanup() {
+	status=$?
+	trap : EXIT HUP INT TERM
+	kill -15 -$$ >/dev/null 2>&1
+	[ "${rst-}" ] && printf %s "$rst"
+	exit "$status"
+}
+
+
+#
+# Initialiation
+#
+
+trap cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+if [ -t 1 ]
+then
+	rst='' bld='' grn='' red=''
+	case ${TERM-} in (*color*)
+		if rst="$(tput sgr0 2>/dev/null)" && [ "$rst" ]
+		then
+			bld="$(tput bold 2>/dev/null)" || : 
+			grn="$(tput setaf 2 2>/dev/null)" || :
+			red="$(tput setaf 1 2>/dev/null)" || :
+		fi
+	esac
+fi
+
+
+#
+# Main
+#
+
+[ $# -eq 0 ] && abort "no tests given."
+
+errors=0 pids=
+while [ $# -gt 0 ]; do
+	name="$(basename "$1")" && [ "$name" ] || abort "basename $1 failed."
+
+	"./$1" >/dev/null 2>&1 &
+	pids="$pids $!"
+	eval "test_$!"='$name'
+	shift
+
+	if [ $(($# % nchildren)) -eq 0 ]; then
+		for pid in $pids; do
+			eval name="\"\$test_$pid\""
+			if ! wait "$pid"; then
+				warn "$red$bld$name$rst$red failed!$rst"
+				errors=$((errors + 1))
+			fi
+		done
+		pids=
+	fi
+done
+
+[ "$errors" -eq 0 ] && warn "${grn}all tests passed.$rst"
+
+exit "$errors"
