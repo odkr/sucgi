@@ -49,6 +49,8 @@ enum code {
 	/* Generic error. Should only be used to initialise variables. */
 	ERR = EXIT_FAILURE,
 	/* Too many environment variables. */
+	ERR_ENV_MAX,
+	/* A file is not exclusively writably by the given user/group. */
 	ERR_NOT_EXCLW,
 	/* A string is too long. */
 	ERR_STR_LEN,

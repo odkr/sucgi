@@ -45,19 +45,26 @@ extern char **environ;
  */
 
 enum code
-env_clear (char ***copy)
+env_clear (char ***vars)
 {
-	char **vars = environ;	/* Backup of the environment. */
+	char **env = environ;	/* Backup of the environment. */
+	size_t n = 0;
 
+	/* FIXME: Test if this works with the glibc. */
 	environ = NULL;
+
 	environ = calloc(1, sizeof(char *));
 	if (!environ) return ERR_SYS;
 	*environ = NULL;
-	if (!copy) return OK;
+	if (!vars) return OK;
 
-	*copy = calloc(ENV_MAX, sizeof(char *));
-	if (!copy) return ERR_SYS;
-	for (int i = 0; i < ENV_MAX && vars[i]; i++) (*copy)[i] = vars[i];
+	*vars = calloc(ENV_MAX, sizeof(char *));
+	if (!vars) return ERR_SYS;
+	for (n = 0; env[n]; n++) {
+		/* FIXME: Neither tested in env_clear nor main.sh. */
+		if (n == ENV_MAX) return ERR_ENV_MAX;
+		(*vars)[n] = env[n];
+	}
 	return OK;
 }
 

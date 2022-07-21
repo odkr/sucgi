@@ -39,13 +39,13 @@
  */
 
 /*
- * Clear the environment and store a pointer to the old environment in copy.
+ * Clear the environment and store a pointer to the old environment in vars.
  *
  * Return code:
  *      OK       Success.
  *      ERR_SYS  System failure. errno(2) should be set.
  */
-enum code env_clear (char ***copy);
+enum code env_clear (char ***vars);
 
 /* 
  * Safely read a filename from the environement variable name and store a
