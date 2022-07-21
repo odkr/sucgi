@@ -10,7 +10,7 @@ Run CGI programmes under the UID and GID of their owner.
 
 suCGI checks if the programme pointed to by the environment variable
 *PATH_TRANSLATED* is secure, sets the process' effective UID and GID 
-to that of the UID and GID of that programme's owner, cleans up the
+to the UID and the GID of that programme's owner, cleans up the
 environment, and then runs the programme.
 
 
@@ -29,8 +29,9 @@ More precisely:
   e.g., glibc_ ≥ v2.1.3 or macOS' libc ≥ v11.
 * The standard system utilities that POSIX.1-2008 mandates.
 
-Save for Linux ≥ v5.6 or macOS ≥ v11, any post-2015 system should meet those
-requirements. You may need to install the standard build tools, however.
+Save for a kernel ≥ v5.6 or macOS ≥ v11, any post-2015 GNU/Linux or
+macOS system should meet those requirements. You may need to install
+the standard build tools, however.
 
 Arch-based GNU/Linux systems::
 
@@ -86,14 +87,13 @@ macOS::
 
     m4 -D__CFLAGS__='-DHAVE_DARWIN_INITGROUPS=1 -O2 -s' makefile.in >makefile
 
-
 Alternatively, configure the build yourself (see "Build Process" below).
 
 
 ----
 
 Adapt *config.h* to your needs.
-Most importantly, adapt *DOCUMENT_ROOT*, *MIN_UID* and *MAX_UID*.
+Most importantly, adapt *DOC_ROOT*, *MIN_UID* and *MAX_UID*.
 suCGI is configured at compile-time, you cannot do this later.
 
 ----
@@ -111,12 +111,11 @@ Build Process
 Configuration
 -------------
 
-If you want to adapt suCGI's build settings, you can either
-edit *configure.env* and create a (new) makefile by calling
-``configure``; supply ``-f`` to overwrite existing files
-(e.g., ``CC=/opt/obscure/bin/occ ./configure -f``).
+If you want to adapt suCGI's build settings, edit *configure.env* and create
+a (new) makefile by calling ``configure``; supply ``-f`` to overwrite existing
+files (e.g., ``CC=/opt/obscure/bin/occ ./configure -f``).
 
-*configure* respects the following environment variables:
+*configure* also respects the following environment variables:
 
 CC
     The C compiler.
