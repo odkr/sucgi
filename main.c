@@ -190,8 +190,8 @@ main (void) {
 	char *doc_root = NULL;
 	/* $PATH_TRANSLATED. */
 	char *path_trans = NULL;
-	/* A pointer to the environment. */
-	char **env = NULL;
+	/* A backup of the environment. */
+	char **vars = NULL;
 	/* A return code. */
 	enum code rc = ERR;
 
@@ -206,8 +206,19 @@ main (void) {
 	 * > info. Bad news if MALLOC_DEBUG_FILE is set to /etc/passwd.)
 	 */
 
-	if (env_clear(&env) != OK) {
-		error("environment clean-up: %s.", strerror(errno));
+	rc = env_clear(&vars);
+	switch (rc) {
+		case OK:
+			break;
+		case ERR_SYS:
+			error("environment clean-up: %s.", strerror(errno));
+			break;
+		case ERR_ENV_MAX:
+			error("too many environment variables.");
+			break;
+		default:
+			error("%s:%d: env_clear returned %d.",
+			      __FILE__, __LINE__ - 12, rc);
 	}
 
 
@@ -249,7 +260,7 @@ main (void) {
 		char *env_keep[] = ENV_KEEP; /* Keep patterns. */
 		char *env_toss[] = ENV_TOSS; /* Toss patterns. */
 
-		rc = env_restore((const char *const *) env,
+		rc = env_restore((const char *const *) vars,
 		                 env_keep, env_toss);
 		switch (rc) {
 			case OK:
