@@ -76,13 +76,13 @@ Otherwise, generate *config.h* by::
 
     m4 config.h.in >config.h
 
-And a minimal *makefile* ...
+And a minimal *makefile* by:
 
-on GNU/Linux-systems::
+GNU/Linux-systems::
 
     m4 -D__CFLAGS__='-D_DEFAULT_SOURCE=1 -D_BSD_SOURCE=1 -DHAVE_OPENAT2=1 -DHAVE_SYSCALL=1 -O2 -s' makefile.in >makefile
 
-on macOS::
+macOS::
 
     m4 -D__CFLAGS__='-DHAVE_DARWIN_INITGROUPS=1 -O2 -s' makefile.in >makefile
 
