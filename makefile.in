@@ -59,7 +59,7 @@ sucgi.a(utils.o): utils.c utils.h err.h str.h
 sucgi.a: sucgi.a(env.o) sucgi.a(err.o) sucgi.a(file.o) sucgi.a(path.o) sucgi.a(str.o) sucgi.a(utils.o)
 
 sucgi: main.c config.h sucgi.a
-	$(CC) -DPACKAGE=$(PACKAGE) -DVERSION=$(VERSION) $(LDFLAGS) $(CFLAGS) -o $@ $< sucgi.a $(LDLIBS)
+	$(CC) -DTESTING=0 -DPACKAGE=$(PACKAGE) -DVERSION=$(VERSION) $(LDFLAGS) $(CFLAGS) -o $@ $< sucgi.a $(LDLIBS)
 
 tests/utils.o: tests/utils.c tests/utils.h str.h
 	$(CC) -c $(CFLAGS) -o $@ $<
