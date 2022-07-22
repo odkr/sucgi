@@ -2,6 +2,8 @@
 .vscode
 *.a
 *.o
+*.tgz
+*.tgz.asc
 config.h
 makefile
 tests/*
