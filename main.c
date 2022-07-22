@@ -397,70 +397,76 @@ main (void) {
 	{
 		// It is checked above whether user is a null pointer.
 		// cppcheck-suppress nullPointerRedundantCheck
-		const gid_t groups[] = {user->pw_gid};
-		int initgroups_rc = 0;
+		uid_t uid = user->pw_uid;
+		// It is checked above whether user is a null pointer.
+		// cppcheck-suppress nullPointerRedundantCheck
+		gid_t gid = user->pw_gid;
+
+		const gid_t groups[] = {gid};
 
 		if (setgroups(1, groups) != 0) {
 			error("supplementary group clean-up: %s.",
 			      strerror(errno));
 		}
 
-#if defined(HAVE_DARWIN_INITGROUPS) && HAVE_DARWIN_INITGROUPS
-		initgroups_rc = initgroups(user->pw_name, (int) user->pw_gid);
-#else
-		initgroups_rc = initgroups(user->pw_name, user->pw_gid);
-#endif /* HAVE_DARWIN_INITGROUPS. */
-
-		if (initgroups_rc != 0) {
+		/* 
+		 * Darwin's initgroups excpets the gid to be given as int.
+		 * This will cause a compilation warning.
+		 */
+		if (initgroups(user->pw_name, gid) != 0) {
 			error("supplementary groups initialisation: %s.",
 			      strerror(errno));
 		}
-	}
 
-	/*
-	 * The real UID and GID need to be set, too.
-	 * Or the user may call seteuid(2) to gain webserver priviliges. 
-	 */
-	if (setgid(user->pw_gid) != 0) {
-		error("failed to set real GID: %s", strerror(errno));
-	}
-	if (setuid(user->pw_uid) != 0) {
-		error("failed to set real UID: %s.", strerror(errno));
-	}
-	if (setegid(user->pw_gid) != 0) {
-		error("failed to set effective GID: %s", strerror(errno));
-	}
-	if (seteuid(user->pw_uid) != 0) {
-		error("failed to set effective UID: %s.", strerror(errno));
-	}
+		/*
+		* The real UID and GID need to be set, too.
+		* Or the user may call seteuid(2) to gain webserver priviliges. 
+		*/
+		if (setgid(gid) != 0) {
+			error("failed to set real GID: %s",
+			      strerror(errno));
+		}
+		if (setuid(uid) != 0) {
+			error("failed to set real UID: %s.",
+			      strerror(errno));
+		}
+		if (setegid(gid) != 0) {
+			error("failed to set effective GID: %s",
+			      strerror(errno));
+		}
+		if (seteuid(uid) != 0) {
+			error("failed to set effective UID: %s.",
+			      strerror(errno));
+		}
 
-	if (getuid() != user->pw_uid) {
-		error("real UID did not change to %d.", user->pw_uid);
-	}
-	if (getgid() != user->pw_gid) {
-		error("real GID did not change to %d.", user->pw_gid);
-	}
-	if (geteuid() != user->pw_uid) {
-		error("effective UID did not change to %d.", user->pw_uid);
-	}
-	if (getegid() != user->pw_gid) {
-		error("effective GID did not change to %d.", user->pw_gid);
-	}
+		if (getuid() != uid) {
+			error("real UID did not change to %d.", uid);
+		}
+		if (getgid() != gid) {
+			error("real GID did not change to %d.", gid);
+		}
+		if (geteuid() != uid) {
+			error("effective UID did not change to %d.", uid);
+		}
+		if (getegid() != gid) {
+			error("effective GID did not change to %d.", gid);
+		}
 
 #if !TESTING
-	if (setegid(0) == 0) {
-		error("could re-set process' effective GID to 0.");
-	}
-	if (seteuid(0) == 0) {
-		error("could re-set process' effective UID to 0.");
-	}
-	if (setgid(0) == 0) {
-		error("could re-set process' real GID to 0.");
-	}
-	if (setuid(0) == 0) {
-		error("could re-set process' real UID to 0.");
-	}
+		if (setegid(0) == 0) {
+			error("could re-set process' effective GID to 0.");
+		}
+		if (seteuid(0) == 0) {
+			error("could re-set process' effective UID to 0.");
+		}
+		if (setgid(0) == 0) {
+			error("could re-set process' real GID to 0.");
+		}
+		if (setuid(0) == 0) {
+			error("could re-set process' real UID to 0.");
+		}
 #endif /* !TESTING. */
+	}
 
 
 	/*
