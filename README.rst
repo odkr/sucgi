@@ -148,10 +148,6 @@ LDLIBS
     Flags or names to give to the compiler when it invokes the linker
     (default depends on *make*).
 
-ARFLAGS
-    Flags to give to the archiver
-    (default depends on *make*).
-
 DESTDIR
     Prefix for staged installations
     (default depends on *make*).
@@ -163,6 +159,16 @@ PREFIX
 WWW_GROUP
     Group the webserver runs as
     (defaults to "www-data").
+
+----
+
+The following macros govern compilation:
+
+HAVE_OPENAT2
+    Whether the *linux/openat2.h* header is available. Boolean value.
+
+HAVE_SYSCALL
+    Whether the *sys/syscall.h* header is available. Boolean value.
 
 
 Makefile targets
@@ -240,6 +246,8 @@ GitHub: https://github.com/odkr/sucgi
 .. _glibc: https://www.gnu.org/software/libc/
 
 .. _`POSIX.1-2008`: https://pubs.opengroup.org/onlinepubs/9699919799.2008edition/
+
+.. _openat2: https://lwn.net/Articles/796868/
 
 .. |build|  image:: https://ci.appveyor.com/api/projects/status/m9y70tfy2g4ey31n/branch/main?svg=true
             :target: https://ci.appveyor.com/project/odkr/sucgi
