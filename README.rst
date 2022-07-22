@@ -21,11 +21,11 @@ A GNU/Linux system running a kernel ≥ v5.6 or macOS ≥ v11.
 
 More precisely:
 
-* Linux ≥ v5.6 or macOS ≥ v11.
+* Linux ≥ v5.6 or Apple XNU ≥ v7195.50.7.100.1.
 * A C99 compiler that complies with `POSIX.1-2008`_;
-  e.g., gcc_ ≥ v5.1 or clang_ ≥ v3.5.
+  e.g., gcc_ ≥ v5.1, clang_ ≥ v3.5, or tcc_ ≥ v0.9.
 * A C standard library that complies with POSIX.1-2008 and 4.2BSD;
-  e.g., glibc_ ≥ v2.1.3 or Apple's XNU_ ≥ v7195.50.7.100.1.
+  e.g., glibc_ ≥ v2.1.3 or Apple's Libc.
 * The standard system utilities that POSIX.1-2008 mandates.
 
 Save for a kernel ≥ v5.6 or macOS ≥ v11, any post-2015 GNU/Linux or
@@ -256,9 +256,11 @@ GitHub: https://github.com/odkr/sucgi
 
 .. _glibc: https://www.gnu.org/software/libc/
 
-.. _`POSIX.1-2008`: https://pubs.opengroup.org/onlinepubs/9699919799.2008edition/
+.. _tcc: https://bellard.org/tcc/
 
 .. _XNU: https://github.com/apple-oss-distributions/xnu/
+
+.. _`POSIX.1-2008`: https://pubs.opengroup.org/onlinepubs/9699919799.2008edition/
 
 .. |build|  image:: https://ci.appveyor.com/api/projects/status/m9y70tfy2g4ey31n/branch/main?svg=true
             :target: https://ci.appveyor.com/project/odkr/sucgi
