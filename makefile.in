@@ -6,8 +6,9 @@ define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
 ifdef([__CC], [ifelse(__CC, [], [], [CC = __CC
 ])], [])dnl
 CFLAGS = default([__CFLAGS], [-D_DEFAULT_SOURCE=1 -D_BSD_SOURCE=1 -O2 -s])
-ARFLAGS = -r
 PREFIX = /usr/local
+
+CPPCHECKFLAGS = -f -q --error-exitcode=8 --inconclusive --language=c --std=c99 --library=posix --platform=unix64 --suppress=missingIncludeSystem --inline-suppr
 
 WWW_GROUP = default([___WWW_GROUP], [www-data])
 CGI_BIN = /usr/lib/cgi-bin
@@ -20,7 +21,7 @@ TESTS = tests/error.sh tests/env_clear tests/env_get_fname.sh tests/env_restore 
 
 DIST_NAME = $(PACKAGE)-$(VERSION)
 DIST_ARCHIVE = $(DIST_NAME).tgz
-DIST_FILES = *.c *.h *.in configure configure.env tests/*.c tests/*.h tests/*.sh tests/check tests/data
+DIST_FILES = attr.h config.h.in configure configure.env env.c env.h err.c err.h file.c file.h main.c makefile.in path.c path.h README.rst str.c str.h utils.c utils.h tests
 
 all: sucgi
 
@@ -103,8 +104,8 @@ tests/main: main.c env.o err.o file.o path.o str.o utils.o
 	$(CC) -D INCLUDED_CONFIG=1 -DTESTING=1 -DPACKAGE=fake-$(PACKAGE) -DVERSION=$(VERSION) $(LDFLAGS) $(CFLAGS) -Wno-unused-macros -o $@ $< env.o err.o file.o path.o str.o utils.o $(LDLIBS)
 
 analysis:
-	cppcheck -f -q --error-exitcode=8 --enable=all --inconclusive --language=c --std=c99 --library=posix --platform=unix64 --suppress=missingIncludeSystem --inline-suppr -U LOG_PERROR -U O_NOFOLLOW_ANY .
-	cppcheck -f -q --error-exitcode=8 --enable=unusedFunction --inconclusive --language=c --std=c99 --library=posix --platform=unix64 --inline-suppr *.c
+	cppcheck $(CPPCHECKFLAGS) --enable=all -U __NR_openat2 -U LOG_PERROR -U O_NOFOLLOW_ANY .
+	cppcheck $(CPPCHECKFLAGS) --enable=unusedFunction *.c
 	flawfinder --error-level=1 -m 0 -D -Q .
 	shellcheck configure tests/check tests/*.sh
 
@@ -112,24 +113,41 @@ check: $(TEST_BINS)
 	tests/check $(TESTS)
 
 clean:
-	find . \( -name '*.o' -o -name '*.tmp' \) -exec rm -f '{}' +
+	find . \( -name '*.o' -o -name '*.tmp' \) -exec rm -rf '{}' +
 	rm -f sucgi $(DIST_ARCHIVE) $(DIST_ARCHIVE).asc $(TEST_BINS)
 	rm -rf $(DIST_NAME)
 
 distclean: clean
 	rm config.h makefile
 
-$(DIST_ARCHIVE): $(DIST_FILES)
+$(DIST_ARCHIVE): distclean $(DIST_FILES)
 	mkdir -m u=rwx,go= $(DIST_NAME)
 	cp -a $(DIST_FILES) $(DIST_NAME)/
-	chmod -R u=rw,go= $(DIST_NAME)/
+	chmod -R u+rw,go= $(DIST_NAME)/
 	tar -czf $(DIST_ARCHIVE) $(DIST_NAME)
 	rm -rf $(DIST_NAME)
 
 $(DIST_ARCHIVE).asc: $(DIST_ARCHIVE)
 	gpg -qab --batch --yes $(DIST_ARCHIVE)
 
-dist: clean check $(DIST_ARCHIVE) $(DIST_ARCHIVE).asc
+dist: $(DIST_ARCHIVE) $(DIST_ARCHIVE).asc
+
+distcheck: dist
+	mkdir distcheck.tmp
+	cp $(DIST_ARCHIVE) $(DIST_ARCHIVE).asc distcheck.tmp
+	cd distcheck.tmp
+	gpg --verify $(DIST_ARCHIVE).asc $(DIST_ARCHIVE)
+	tar -xzf $(DIST_ARCHIVE)
+	cd $(DIST_NAME)
+	./configure
+	make
+	make check
+	make distclean
+	test ! -e sucgi -a ! -e config.h -a ! -e makefile
+	./configure
+	make dist
+	cd ../..
+	rm -rf distcheck.tmp
 
 install: sucgi
 	mkdir -pm 0755 $(DESTDIR)$(PREFIX)/libexec
@@ -141,6 +159,6 @@ install: sucgi
 uninstall:
 	rm -f $(CGI_BIN)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
 
-.PHONY: all analysis check clean distclean dist install uninstall 
+.PHONY: all analysis check clean dist distcheck distclean install uninstall 
 
 .IGNORE: analysis
