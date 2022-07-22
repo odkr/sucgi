@@ -51,6 +51,7 @@ file_is_wexcl(const uid_t uid, const gid_t gid,
 #include <linux/openat2.h>
 #include <sys/syscall.h>
 
+#if defined(__NR_openat2) and __NR_openat2
 enum code
 file_safe_open(const char *fname, const int flags, int *fd)
 {
@@ -65,6 +66,9 @@ file_safe_open(const char *fname, const int flags, int *fd)
 	if (*fd < 0) return ERR_SYS;
 	return OK;
 }
+#else
+#error openat2 is not available.
+#endif /* __NR_openat2. */
 
 #elif O_NOFOLLOW_ANY
 enum code
@@ -85,7 +89,7 @@ file_safe_open (const char *fname, const int flags, int *fd)
 	return OK;
 }
 #else
-#error O_NOFOLLOW_ANY not available.
+#error Neither openat2 nor O_NOFOLLOW_ANY are available.
 #endif /* HAVE_OPENAT2 or O_NOFOLLOW_ANY. */
 
 enum code
