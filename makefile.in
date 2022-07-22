@@ -10,7 +10,7 @@ ARFLAGS = -r
 PREFIX = /usr/local
 
 WWW_GROUP = default([___WWW_GROUP], [www-data])
-CGI_BIN = /usr/libexec/cgi-bin
+CGI_BIN = /usr/lib/cgi-bin
 
 VERSION = 0
 PACKAGE = sucgi

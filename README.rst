@@ -152,7 +152,7 @@ PREFIX
 
 CGI_BIN
     Path to your webserver's */cgi-bin* directory
-    (defaults to */usr/libexec/cgi-bin*).
+    (defaults to */usr/lib/cgi-bin*).
 
 WWW_GROUP
     Group the webserver runs as
