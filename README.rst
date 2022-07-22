@@ -72,10 +72,10 @@ Generate the makefile by::
 If ``configure`` succeeded and inferred the right settings,
 move on to the next step.
 
-Otherwise, generate *config.h* by ``m4 config.h.in >config.h`` and *makefile*
-by ``m4 -D__CFLAGS='-D_BSD_SOURCE=1 -D_DEFAULT_SOURCE=1 -DHAVE_OPENAT2=1
--DHAVE_SYSCALL=1 -O2 -s' makefile.in >makefile`` on GNU/Linux systems and
-``m4 makefile.in >makefile`` on macOS. Alternatively, configure the build
+Otherwise, generate *config.h* by ``m4 config.h.in >config.h`` and *makefile*,
+depending on your system, ``m4 -D__CFLAGS='-D_DEFAULT_SOURCE=1 -D_BSD_SOURCE=1
+-DHAVE_OPENAT2=1 -DHAVE_SYSCALL=1 -O2 -s' makefile.in >makefile`` on GNU/Linux
+or ``m4 makefile.in >makefile`` on macOS. Alternatively, configure the build
 yourself (see "Building suCGI" below).
 
 ----
@@ -168,7 +168,7 @@ HAVE_SYSCALL
 
 TESTING
     Whether to build a binary for testing. Boolean value.
-    Disables security checks that the test suite does not pass.
+    Disables security checks the test suite does not pass.
 
 
 Other *makefile* targets
