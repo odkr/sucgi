@@ -35,6 +35,29 @@
 
 
 /*
+ * Globals
+ */
+
+/*
+ * Environment variables to keep.
+ *
+ * Array of shell wildcard patterns; must be NULL-terminated.
+ * Variables are only kept if their name matches one of these patterns.
+ * The only exception to that rule is $PATH, which is always kept.
+ */
+extern char *const env_keep[];
+
+/*
+ * Environment variables to toss even if they match an ENV_KEEP pattern.
+ *
+ * Array of shell wildcard patterns; must be NULL-terminated.
+ * Variables are tossed if their name matches one of these patterns.
+ * The only exception to this rule is $PATH, which is never tossed.
+ */
+extern char *const env_toss[];
+
+
+/*
  * Functions
  */
 
@@ -45,7 +68,7 @@
  *      OK       Success.
  *      ERR_SYS  System failure. errno(2) should be set.
  */
-enum code env_clear (char ***vars);
+enum code env_clear(char ***vars);
 
 /* 
  * Safely read a filename from the environement variable name and store a
@@ -65,9 +88,7 @@ enum code env_clear (char ***vars);
  *      ERR_VAR_UNDEF  NAME is undefined.
  *      ERR_VAR_EMPTY  NAME is empty.
  */
-enum code env_get_fname (const char *const name,
-                         char **fname,
-                         struct stat **fstatus);
+enum code env_get_fname(const char *name, char **fname, struct stat **fstatus);
 
 /*
  * Repopulate the environment with any variable in vars the name of which
@@ -107,32 +128,9 @@ enum code env_get_fname (const char *const name,
  *	ERR_VAR_INVALID  A variable is not of the form key=value.
  * 	ERR_SYS          System error. errno(2) should be set.
  */
-enum code env_restore (const char *const *vars,
-                       char *const *const keep,
-                       char *const *const toss);
-
-
-/*
- * Globals
- */
-
-/*
- * Environment variables to keep.
- *
- * Array of shell wildcard patterns; must be NULL-terminated.
- * Variables are only kept if their name matches one of these patterns.
- * The only exception to that rule is $PATH, which is always kept.
- */
-extern char *env_keep[];
-
-/*
- * Environment variables to toss even if they match an ENV_KEEP pattern.
- *
- * Array of shell wildcard patterns; must be NULL-terminated.
- * Variables are tossed if their name matches one of these patterns.
- * The only exception to this rule is $PATH, which is never tossed.
- */
-extern char *env_toss[];
+enum code env_restore(const char *const *vars,
+                      char *const *const keep,
+                      char *const *const toss);
 
 
 #endif /* Include guard. */

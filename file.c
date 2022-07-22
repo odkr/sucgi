@@ -29,7 +29,7 @@
 #include "str.h"
 
 bool
-file_is_exec (const struct stat *const fstatus)
+file_is_exec(const struct stat *const fstatus)
 {
 	if (fstatus->st_uid != geteuid() && fstatus->st_gid != getegid()) {
 		return fstatus->st_mode & S_IXOTH;
@@ -38,9 +38,8 @@ file_is_exec (const struct stat *const fstatus)
 }
 
 bool
-file_is_wexcl (const uid_t uid,
-               const gid_t gid,
-	       const struct stat *const fstatus)
+file_is_wexcl(const uid_t uid, const gid_t gid,
+              const struct stat *const fstatus)
 {
 	return     fstatus->st_uid == uid
 		&& (fstatus->st_gid == gid || !(fstatus->st_mode & S_IWGRP))
@@ -53,7 +52,7 @@ file_is_wexcl (const uid_t uid,
 #include <sys/syscall.h>
 
 enum code
-file_safe_open (const char *fname, const int flags, int *fd)
+file_safe_open(const char *fname, const int flags, int *fd)
 {
 	struct open_how how = {
 		.flags = (long long unsigned int) flags,
@@ -69,7 +68,7 @@ file_safe_open (const char *fname, const int flags, int *fd)
 
 #elif O_NOFOLLOW_ANY
 enum code
-file_safe_open (const char * const fname, const int flags, int *fd)
+file_safe_open (const char *fname, const int flags, int *fd)
 {
 	// - O_NOFOLLOW_ANY ensures that fname contains no symlinks.
 	// - Whether files are regular is checked in main.
@@ -90,7 +89,7 @@ file_safe_open (const char * const fname, const int flags, int *fd)
 #endif /* HAVE_OPENAT2 or O_NOFOLLOW_ANY. */
 
 enum code
-file_safe_stat (const char * const fname, struct stat **fstatus)
+file_safe_stat(const char *fname, struct stat **fstatus)
 {
 	struct stat *buf = NULL;
 	int fd = -1;

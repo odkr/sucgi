@@ -27,6 +27,7 @@
 
 #include "err.h"
 
+
 /*
  * Check if path's length is within:
  * 	- PATH_MAX
@@ -38,7 +39,7 @@
  *      ERR_STR_LEN  PATH is too long.
  *      ERR_SYS      System failure. errno(2) should be set.
  */
-enum code path_check_len (const char *const path);
+enum code path_check_len(const char *const path);
 
 /*
  * Check if the given user has exclusive write access to every directory
@@ -51,10 +52,8 @@ enum code path_check_len (const char *const path);
  *      ERR_SYS        System failure. errno(2) should be set.
  */
 enum code
-path_check_wexcl (const uid_t uid,
-                  const gid_t gid,
-                  const char *const path,
-                  const char *const stop);
+path_check_wexcl(const uid_t uid, const gid_t gid,
+                 const char *const path, const char *const stop);
 
 /*
  * Check if the path super contains the path sub.
@@ -62,7 +61,7 @@ path_check_wexcl (const uid_t uid,
  * Caveats:
  *      This check is meaningless unless both paths are canonical.
  */
-bool path_contains (const char *const super, const char *const sub);
+bool path_contains(const char *const super, const char *const sub);
 
 
 #endif /* Include guard. */

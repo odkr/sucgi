@@ -442,9 +442,9 @@ main (void) {
 	 */
 
 	if (file_is_exec(path_trans_st)) {
-		char *handlers[] = SCRIPT_HANDLERS;
+		const char *handlers[] = SCRIPT_HANDLERS;
 		/* run_script only returns if prog could not be executed. */
-		run_script(path_trans, (char **) handlers);
+		run_script(path_trans, handlers);
 	} else {
 		// suCGI's whole point is to do this safely.
 		// flawfinder: ignore.

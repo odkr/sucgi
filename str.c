@@ -29,7 +29,7 @@
 
 
 enum code
-str_cp (const char *const restrict src, char **restrict dest)
+str_cp(const char *const restrict src, char **restrict dest)
 {
 	size_t len = 0;
 
@@ -48,21 +48,18 @@ str_cp (const char *const restrict src, char **restrict dest)
 }
 
 bool
-str_eq (const char *const s1, const char *const s2)
+str_eq(const char *const s1, const char *const s2)
 {
 	return (strcmp(s1, s2) == 0);
 }
 
 enum code
-str_split (const char *const restrict s,
-           const char *const sep,
-           const int max,
-           char ***subs,
-           int *restrict n)
+str_split(const char *const restrict s, const char *sep, const int max,
+          char ***subs, int *restrict n)
 {
 	char *str = NULL;	/* Copy of s. */
-	char **tokens = NULL;	/* Substrings. */
 	char *token = NULL;	/* Start of current substring. */
+	char **tokens = NULL;	/* Substrings. */
 	int ntokens = 0;	/* Number of substrings. */
 
 	reraise(str_cp(s, &str));
@@ -84,10 +81,7 @@ str_split (const char *const restrict s,
 }
 
 enum code
-str_vsplit (const char *const restrict s,
-            const char *const sep,
-	    const int n,
-	    ...)
+str_vsplit(const char *const restrict s, const char *sep, const int n, ...)
 {
 	va_list ap;		/* Current variadic argument. */
 	char **arg = NULL;	/* Alias for the current variadic argument. */

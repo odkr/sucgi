@@ -58,10 +58,10 @@
  *      ERR_STR_LEN  SRC is longer than STR_MAX_LEN.
  *      ERR_SYS      System error. errno(2) should be set.
  */
-enum code str_cp (const char *const restrict src, char **restrict dest);
+enum code str_cp(const char *const restrict src, char **restrict dest);
 
 /* Return true if s1 and s2 are equal and false otherwise. */
-bool str_eq (const char *const s1, const char *const s2);
+bool str_eq(const char *const s1, const char *const s2);
 
 /*
  * Split s at the first max occurrences of any character in sep and
@@ -75,8 +75,8 @@ bool str_eq (const char *const s1, const char *const s2);
  *      ERR_STR_LEN  s is longer than STR_MAX_LEN.
  *      ERR_SYS      System error. errno(2) should be set.
  */
-enum code str_split (const char *const restrict s, const char *const sep,
-                     const int max, char ***subs, int *restrict n);
+enum code str_split(const char *const restrict s, const char *sep,
+                    const int max, char ***subs, int *restrict n);
 
 /*
  * Split s at the first n - 1 occurrences of any character in sep
@@ -88,8 +88,8 @@ enum code str_split (const char *const restrict s, const char *const sep,
  *
  * Otherwise the same as str_split.
  */
-enum code str_vsplit (const char *const restrict s, const char *const sep,
-                      const int n, ...);
+enum code str_vsplit(const char *const restrict s, const char *sep,
+                     const int n, ...);
 
 
 #endif /* Include guard. */

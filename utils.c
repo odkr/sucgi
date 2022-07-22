@@ -30,11 +30,11 @@
 
 
 void
-run_script (const char *const script, char **pairs)
+run_script (const char *script, const char **pairs)
 {
-	char *suffix = NULL;	/* File suffix. */
-	char **pair = NULL;	/* Current pair. */
-	int i = 0;		/* No. of current pair. */
+	const char **pair = NULL;	/* Current pair. */
+	char *suffix = NULL;		/* Filename suffix. */
+	int i = 0;			/* Counter. */
 
 	suffix = strrchr(script, '.');
 	if (!suffix) error("%s: no filename suffix.", script);
@@ -64,7 +64,6 @@ run_script (const char *const script, char **pairs)
 		if (ftype[0] != '.' || str_eq(ftype, ".")) {
 			error("script type %d: weird filename suffix.", i);
 		} 
-
 		if (!inter || inter[0] == '\0') {
 			error("script type %d: no interpreter given.", i);
 		}

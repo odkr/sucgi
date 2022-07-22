@@ -29,12 +29,11 @@
 
 
 /* Check if fstatus indicates that the current has execute permissions. */
-bool file_is_exec (const struct stat *const fstatus);
+bool file_is_exec(const struct stat *const fstatus);
 
 /* Check if fstatus indicates that only uid and gid have write permissions. */
-bool file_is_wexcl (const uid_t uid,
-                    const gid_t gid,
-	            const struct stat *const fstatus);
+bool file_is_wexcl(const uid_t uid, const gid_t gid,
+	           const struct stat *const fstatus);
 
 /*
  * Open fname with flags and store its file descriptor in
@@ -49,7 +48,7 @@ bool file_is_wexcl (const uid_t uid,
  *      OK       Success.
  *      ERR_SYS  System failure. errno(2) should be set.
  */
-enum code file_safe_open (const char * const fname, const int flags, int *fd);
+enum code file_safe_open(const char *fname, const int flags, int *fd);
 
 /*
  * Store fname's filesystem status in the variable pointed to by fstatus.
@@ -64,7 +63,7 @@ enum code file_safe_open (const char * const fname, const int flags, int *fd);
  *      OK       Success.
  *      ERR_SYS  System failure. errno(2) should be set.
  */
-enum code file_safe_stat (const char * const fname, struct stat **fstatus);
+enum code file_safe_stat(const char *fname, struct stat **fstatus);
 
 
 #endif /* Include guard. */

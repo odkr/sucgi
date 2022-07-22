@@ -43,7 +43,7 @@ extern char **environ;
  * The patterns below have been adopted from Apache's suEXEC.
  * There should be no need to adapt them.
  */
-char *env_keep[] = {
+char *const env_keep[] = {
 	"AUTH_TYPE",
 	"CONTENT_LENGTH",
 	"CONTENT_TYPE",
@@ -99,7 +99,7 @@ char *env_keep[] = {
  * The pattern below has been adopted from Apache's suEXEC.
  * There should be no need to adapt this list.
  */
-char *env_toss[] = {
+char *const env_toss[] = {
 	"HTTP_PROXY",
 	NULL	/* Array terminator. DO NOT REMOVE. */
 };
@@ -110,7 +110,7 @@ char *env_toss[] = {
  */
 
 enum code
-env_clear (char ***vars)
+env_clear(char ***vars)
 {
 	char **env = environ;	/* Backup of the environment. */
 	size_t n = 0;
@@ -134,7 +134,7 @@ env_clear (char ***vars)
 }
 
 enum code
-env_get_fname (const char *const name, char **fname, struct stat **fstatus)
+env_get_fname(const char *name, char **fname, struct stat **fstatus)
 {
 	char *value = NULL;
 
@@ -151,9 +151,9 @@ env_get_fname (const char *const name, char **fname, struct stat **fstatus)
 }
 
 enum code
-env_restore (const char *const *vars,
-             char *const *const keep,
-	     char *const *const toss)
+env_restore(const char *const *vars,
+            char *const *const keep,
+	    char *const *const toss)
 {
 	for (; *vars; vars++) {
 		char *name, *value;	/* Variable name and value. */
@@ -161,11 +161,11 @@ env_restore (const char *const *vars,
 		reraise(str_vsplit(*vars, "=", 2, &name, &value));
 		if (name[0] == '\0' || !value) return ERR_VAR_INVALID;
 
-		for (char *const *kp = keep; *kp; kp++) {
-			if (fnmatch(*kp, name, FNM_PERIOD) != 0)
+		for (char *const *kv = keep; *kv; kv++) {
+			if (fnmatch(*kv, name, FNM_PERIOD) != 0)
 				continue;
-			for (char *const *tp = toss; *tp; tp++) {
-				if (fnmatch(*tp, name, FNM_PERIOD) == 0)
+			for (char *const *tv = toss; *tv; tv++) {
+				if (fnmatch(*tv, name, FNM_PERIOD) == 0)
 					goto next;
 			}
 

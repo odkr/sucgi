@@ -37,7 +37,7 @@
  * run_script only returns if an error occurred.
  * errno(2) should be set in this case.
  */
-void run_script (const char *const script, char **pairs);
+void run_script (const char *script, const char **pairs);
 
 
 #endif /* Include guard. */

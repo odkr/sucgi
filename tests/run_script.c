@@ -34,7 +34,7 @@ main (int argc, char **argv)
 	rc = str_words(pairs, &pairv);
 	if (rc != OK) die("run_script: str_words returned %d.", rc);
 
-	run_script(script, pairv);
+	run_script(script, (const char **) pairv);
 
 	return EXIT_FAILURE;
 }

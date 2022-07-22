@@ -36,12 +36,12 @@
 
 
 enum code
-path_check_len (const char *const path)
+path_check_len(const char *const path)
 {
 	size_t len = 0;			/* Length of current (sub-)dir. */
-	const char *pivot = NULL;	/* Current border. */	
 	const char *super = NULL;	/* Currot super-directory. */
 	const char *sub = NULL;		/* Current sub-direcotry. */
+	char *pivot = NULL;		/* Current super/sub border. */	
 
 	len = strnlen(path, STR_MAX_LEN + 1);
 	if (len > STR_MAX_LEN) return ERR_STR_LEN;
@@ -49,10 +49,8 @@ path_check_len (const char *const path)
 #if PATH_MAX > -1
 	if (len > PATH_MAX - 1) return ERR_STR_LEN;
 #endif
-
-	pivot = (const char *) path;
-	super = NULL;
-	sub = NULL;
+	
+	reraise(str_cp(path, &pivot));
 	while ((pivot = strpbrk(pivot, "/"))) {
 		if (super && sub) {
 			long max;
@@ -72,14 +70,12 @@ path_check_len (const char *const path)
 }
 
 enum code
-path_check_wexcl (const uid_t uid,
-                  const gid_t gid,
-                  const char *const path,
-                  const char *const stop)
+path_check_wexcl(const uid_t uid, const gid_t gid,
+                 const char *const path, const char *const stop)
 {
 	char *p = NULL;	/* Current path. */
-	reraise(str_cp(path, &p));
 
+	reraise(str_cp(path, &p));
 	while (true) {
 		struct stat fstatus;
 		if (stat(p, &fstatus) != 0) return ERR_SYS;
@@ -92,7 +88,7 @@ path_check_wexcl (const uid_t uid,
 }
 
 bool
-path_contains (const char *const super, const char *const sub)
+path_contains(const char *const super, const char *const sub)
 {
 	const size_t len = strnlen(super, STR_MAX_LEN);
 	if (super[0] == '\0') return false;
