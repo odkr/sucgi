@@ -15,7 +15,10 @@ trap 'CAUGHT=1' HUP
 trap 'CAUGHT=2' INT
 trap 'CAUGHT=15' TERM
 
-readonly TMP="${TMPDIR:-.}/check-$$"
+: "${PWD:=$(pwd)}"
+: "${PWD:?}"
+: "${TMPDIR:="$PWD"}"
+readonly TMP="$TMPDIR/check-$$"
 mkdir -m 0700 "$TMP" || exit
 # shellcheck disable=2034
 CLEANUP="[ \"${TMP-}\" ] && rm -rf \"\$TMP\""
