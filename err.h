@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "attr.h"
+
 
 /*
  * Macros
@@ -70,6 +72,7 @@ enum code {
  */
 
 /* Log message as an error and exit the programme with EXIT_FAILURE. */
+__attribute__((noreturn, format(printf, 1, 2)))
 void error (const char *const message, ...);
 
 

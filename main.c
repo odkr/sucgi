@@ -156,7 +156,7 @@ main (void) {
 			error("too many environment variables.");
 			break;
 		default:
-			error("%s:%d: env_clear returned %d.",
+			error("%s:%d: env_clear returned %u.",
 			      __FILE__, __LINE__ - 12, rc);
 	}
 
@@ -180,8 +180,6 @@ main (void) {
 				error("lookup of UID %lu: %s.",
 		                      (unsigned long) uid, strerror(errno));
 			}
-			// It is checked above whether pwd is a null pointer.
-			// cppcheck-suppress nullPointerRedundantCheck
 			if (!str_eq(pwd->pw_name, WWW_USER)) {
 				error("user %s: not permitted to run suCGI.",
 				      pwd->pw_name);
@@ -210,7 +208,7 @@ main (void) {
 			error("ill-formed environment variable.");
 			break;
 		default:
-			error("%s:%d: env_restore returned %d.",
+			error("%s:%d: env_restore returned %u.",
 			      __FILE__, __LINE__ - 17, rc);
 	}
 
@@ -240,7 +238,7 @@ main (void) {
 			error("DOCUMENT_ROOT: is the empty string.");
 			break;
 		default:
-			error("%s:%d: env_get_fname returned %d.",
+			error("%s:%d: env_get_fname returned %u.",
 			      __FILE__, __LINE__ - 18, rc);
 	}
 
@@ -274,7 +272,7 @@ main (void) {
 			error("PATH_TRANSLATED: is the empty string.");
 			break;
 		default:
-			error("%s:%d: path_check_len returned %d.",
+			error("%s:%d: path_check_len returned %u.",
 			      __FILE__, __LINE__ - 19, rc);
 	}
 
@@ -328,11 +326,7 @@ main (void) {
 
 	/* NB: This whole section is not checked by the test suite. */
 	{
-		// It is checked above whether user is a null pointer.
-		// cppcheck-suppress nullPointerRedundantCheck
 		uid_t uid = user->pw_uid;
-		// It is checked above whether user is a null pointer.
-		// cppcheck-suppress nullPointerRedundantCheck
 		gid_t gid = user->pw_gid;
 
 		const gid_t groups[] = {gid};
@@ -373,16 +367,16 @@ main (void) {
 		}
 
 		if (getuid() != uid) {
-			error("real UID did not change to %d.", uid);
+			error("real UID did not change.");
 		}
 		if (getgid() != gid) {
-			error("real GID did not change to %d.", gid);
+			error("real GID did not change.");
 		}
 		if (geteuid() != uid) {
-			error("effective UID did not change to %d.", uid);
+			error("effective UID did not change.");
 		}
 		if (getegid() != gid) {
-			error("effective GID did not change to %d.", gid);
+			error("effective GID did not change.");
 		}
 
 #if !TESTING
@@ -432,7 +426,7 @@ main (void) {
 			      path_trans, user->pw_name);
 			break;
 		default:
-			error("%s:%d: path_check_wexcl returned %d.",
+			error("%s:%d: path_check_wexcl returned %u.",
 			      __FILE__, __LINE__ - 13, rc);
 	}
 

@@ -32,7 +32,7 @@ main (int argc, char **argv)
 	}
 
 	rc = str_words(pairs, &pairv);
-	if (rc != OK) die("run_script: str_words returned %d.", rc);
+	if (rc != OK) die("run_script: str_words returned %u.", rc);
 
 	run_script(script, (const char **) pairv);
 

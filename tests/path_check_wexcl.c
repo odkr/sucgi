@@ -15,7 +15,7 @@ void
 str_to_id_f (char *s, id_t *id) {
 	unsigned long n;
 	if (str_to_ulong(s, &n) != OK) {
-		die("path_check_wexcl: %d is not a number.", s);
+		die("path_check_wexcl: %s is not a number.", s);
 	}
 	*id = (id_t) n;
 }

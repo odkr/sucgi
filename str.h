@@ -25,6 +25,7 @@
 #include <limits.h>
 #include <stdbool.h>
 
+#include "attr.h"
 #include "err.h"
 
 
@@ -58,9 +59,16 @@
  *      ERR_STR_LEN  SRC is longer than STR_MAX_LEN.
  *      ERR_SYS      System error. errno(2) should be set.
  */
+// This is not a call to access.
+// flawfinder: ignore
+__attribute__((access(read_only, 1), nonnull(1, 2)))
 enum code str_cp(const char *const restrict src, char **restrict dest);
 
 /* Return true if s1 and s2 are equal and false otherwise. */
+// This is not a call to access.
+// flawfinder: ignore
+__attribute__((access(read_only, 1), access(read_only, 2),
+               nonnull(1, 2), pure))
 bool str_eq(const char *const s1, const char *const s2);
 
 /*
@@ -75,6 +83,9 @@ bool str_eq(const char *const s1, const char *const s2);
  *      ERR_STR_LEN  s is longer than STR_MAX_LEN.
  *      ERR_SYS      System error. errno(2) should be set.
  */
+// This is not a call to access.
+// flawfinder: ignore
+__attribute__((access(read_only, 1), access(read_only, 2), nonnull(1, 2, 4)))
 enum code str_split(const char *const restrict s, const char *sep,
                     const int max, char ***subs, int *restrict n);
 
@@ -88,6 +99,9 @@ enum code str_split(const char *const restrict s, const char *sep,
  *
  * Otherwise the same as str_split.
  */
+// This is not a call to access.
+// flawfinder: ignore
+__attribute__((access(read_only, 1), access(read_only, 2), nonnull(1, 2)))
 enum code str_vsplit(const char *const restrict s, const char *sep,
                      const int n, ...);
 

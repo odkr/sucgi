@@ -24,7 +24,9 @@
 
 #include <sys/stat.h>
 
+#include "attr.h"
 #include "err.h"
+
 
 /*
  * Constants
@@ -62,7 +64,8 @@ extern char *const env_toss[];
  */
 
 /*
- * Clear the environment and store a pointer to the old environment in vars.
+ * Clear the environment and ssave a copy of the old environment to vars.
+ * If vars is NULL, the old environment is not saved.
  *
  * Return code:
  *      OK       Success.
@@ -88,6 +91,9 @@ enum code env_clear(char ***vars);
  *      ERR_VAR_UNDEF  NAME is undefined.
  *      ERR_VAR_EMPTY  NAME is empty.
  */
+// This is not a call to access.
+// flawfinder: ignore
+__attribute__((access(read_only, 1), nonnull(1, 2)))
 enum code env_get_fname(const char *name, char **fname, struct stat **fstatus);
 
 /*
@@ -128,6 +134,10 @@ enum code env_get_fname(const char *name, char **fname, struct stat **fstatus);
  *	ERR_VAR_INVALID  A variable is not of the form key=value.
  * 	ERR_SYS          System error. errno(2) should be set.
  */
+// This is not a call to access.
+// flawfinder: ignore
+__attribute__((access(read_only, 1), access(read_only, 2), access(read_only, 3),
+               nonnull(1, 2, 3)))
 enum code env_restore(const char *const *vars,
                       char *const *const keep,
                       char *const *const toss);

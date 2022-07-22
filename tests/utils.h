@@ -1,6 +1,9 @@
 /* Headers for utils.c */
 
+#include "../attr.h"
+
 /* Abort the programme with an error message. */
+__attribute__((noreturn, format(printf, 1, 2)))
 void die(const char *const message, ...);
 
 /*
@@ -12,6 +15,9 @@ void die(const char *const message, ...);
  *      ERR           Trailing nun-numeric characters.
  *      ERR_SYS       System error. errno(2) should be set.
  */
+// This is not a call to the access() function.
+// flawfinder: ignore
+__attribute__((access(read_only, 1), nonnull(1)))
 enum code str_to_ulong (const char *const s, unsigned long *n);
 
 /*
@@ -25,4 +31,7 @@ enum code str_to_ulong (const char *const s, unsigned long *n);
  *      ERR           s consists of more than STR_MAX_SUBS words.
  *      ERR_SYS       System error. errno(2) should be set.
  */
+// This is not a call to the access() function.
+// flawfinder: ignore
+__attribute__((access(read_only, 1), nonnull(1, 2)))
 enum code str_words (const char *const restrict s, char ***subs);

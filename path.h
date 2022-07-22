@@ -25,6 +25,7 @@
 #include <stdbool.h>
 #include <sys/types.h>
 
+#include "attr.h"
 #include "err.h"
 
 
@@ -39,6 +40,9 @@
  *      ERR_STR_LEN  PATH is too long.
  *      ERR_SYS      System failure. errno(2) should be set.
  */
+// This is not a call to access.
+// flawfinder: ignore
+__attribute__((access(read_only, 1), nonnull(1)))
 enum code path_check_len(const char *const path);
 
 /*
@@ -51,6 +55,9 @@ enum code path_check_len(const char *const path);
  *      ERR_STR_LEN    The path is longer than STR_MAX_LEN.
  *      ERR_SYS        System failure. errno(2) should be set.
  */
+// This is not a call to access.
+// flawfinder: ignore
+__attribute__((access(read_only, 3), access(read_only, 4), nonnull(3, 4)))
 enum code
 path_check_wexcl(const uid_t uid, const gid_t gid,
                  const char *const path, const char *const stop);
@@ -61,6 +68,10 @@ path_check_wexcl(const uid_t uid, const gid_t gid,
  * Caveats:
  *      This check is meaningless unless both paths are canonical.
  */
+// This is not a call to access.
+// flawfinder: ignore
+__attribute__((access(read_only, 1), access(read_only, 2),
+               nonnull(1, 2), pure))
 bool path_contains(const char *const super, const char *const sub);
 
 

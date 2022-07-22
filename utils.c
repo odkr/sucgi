@@ -54,7 +54,7 @@ run_script (const char *script, const char **pairs)
 				      i, strerror(errno));
 				break;
 			default:
-				error("%s: line %d: str_words returned %d.",
+				error("%s:%d: str_vsplit returned %u.",
 				      __FILE__, __LINE__ - 10, rc);
 		}
 

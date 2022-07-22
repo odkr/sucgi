@@ -22,6 +22,9 @@
 #if !defined(INCLUDED_UTILS)
 #define INCLUDED_UTILS
 
+#include "attr.h"
+
+
 /*
  * Run script with the first matching interpreter in pairs.
  *
@@ -37,6 +40,9 @@
  * run_script only returns if an error occurred.
  * errno(2) should be set in this case.
  */
+// This is not a call to access.
+// flawfinder: ignore
+__attribute__((access(read_only, 1), access(read_only, 2), nonnull(1, 2)))
 void run_script (const char *script, const char **pairs);
 
 

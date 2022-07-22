@@ -25,13 +25,20 @@
 #include <stdbool.h>
 #include <sys/stat.h>
 
+#include "attr.h"
 #include "err.h"
 
 
 /* Check if fstatus indicates that the current has execute permissions. */
+// This is not a call to access.
+// flawfinder: ignore
+__attribute__((access(read_only, 1), nonnull(1), pure))
 bool file_is_exec(const struct stat *const fstatus);
 
 /* Check if fstatus indicates that only uid and gid have write permissions. */
+// This is not a call to access.
+// flawfinder: ignore
+__attribute__((access(read_only, 3), nonnull(3), pure))
 bool file_is_wexcl(const uid_t uid, const gid_t gid,
 	           const struct stat *const fstatus);
 
@@ -48,6 +55,9 @@ bool file_is_wexcl(const uid_t uid, const gid_t gid,
  *      OK       Success.
  *      ERR_SYS  System failure. errno(2) should be set.
  */
+// This is not a call to access.
+// flawfinder: ignore
+__attribute__((access(read_only, 1), nonnull(1)))
 enum code file_safe_open(const char *fname, const int flags, int *fd);
 
 /*
@@ -63,6 +73,9 @@ enum code file_safe_open(const char *fname, const int flags, int *fd);
  *      OK       Success.
  *      ERR_SYS  System failure. errno(2) should be set.
  */
+// This is not a call to access.
+// flawfinder: ignore
+__attribute__((access(read_only, 1), nonnull(1)))
 enum code file_safe_stat(const char *fname, struct stat **fstatus);
 
 
