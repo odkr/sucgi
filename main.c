@@ -211,7 +211,7 @@ main (void) {
 			break;
 		default:
 			error("%s:%d: env_restore returned %d.",
-				__FILE__, __LINE__ - 17, rc);
+			      __FILE__, __LINE__ - 17, rc);
 	}
 
 	if (setenv("PATH", SECURE_PATH, 1) != 0) {
@@ -343,18 +343,18 @@ main (void) {
 		}
 
 		/* 
-		 * Darwin's initgroups excpets the gid to be given as int.
-		 * This will cause a compilation warning.
+		 * Darwin's initgroups expects the GID to be given as int.
+		 * This will trigger a (harmless) compiler warning.
 		 */
 		if (initgroups(user->pw_name, gid) != 0) {
-			error("supplementary groups initialisation: %s.",
+			error("supplementary group initialisation: %s.",
 			      strerror(errno));
 		}
 
 		/*
-		* The real UID and GID need to be set, too.
-		* Or the user may call seteuid(2) to gain webserver priviliges. 
-		*/
+		 * The real UID and GID need to be set, too. Or else the
+		 * user may call seteuid(2) to gain webserver priviliges. 
+		 */
 		if (setgid(gid) != 0) {
 			error("failed to set real GID: %s",
 			      strerror(errno));
