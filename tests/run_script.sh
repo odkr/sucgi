@@ -40,37 +40,37 @@ mkfifo -m 0700 "$fifo"
 #
 
 ./run_script foo >"$fifo" 2>&1 & pid="$!"
-grep -Fq 'foo: No filename suffix.' <"$fifo" ||
+grep -Fq 'foo: no filename suffix.' <"$fifo" ||
 	abort 'wrong error message for missing filename suffix.'
 wait "$pid" &&
 	abort 'no error for missing filename suffix.'
 
 ./run_script foo.sh "=sh .pl=perl" >"$fifo" 2>&1 & pid="$!"
-grep -Fq 'Script type 1: No filename suffix.' <"$fifo" ||
+grep -Fq 'script type 1: no filename suffix.' <"$fifo" ||
 	abort 'wrong error message for missing script type.'
 wait "$pid" &&
 	abort 'no error for missing script type.'
 
 ./run_script foo.sh ".pl=perl sh=sh" >"$fifo" 2>&1 & pid="$!"
-grep -Fq 'Script type 2: Weird filename suffix.' <"$fifo" ||
+grep -Fq 'script type 2: weird filename suffix.' <"$fifo" ||
 	abort 'wrong error message for missing leading dot.'
 wait "$pid" &&
 	abort 'no error for missing leading dot.'
 
 ./run_script foo.sh ".pl=perl .py=python .=sh" >"$fifo" 2>&1 & pid="$!"
-grep -Fq 'Script type 3: Weird filename suffix.' <"$fifo" ||
+grep -Fq 'script type 3: weird filename suffix.' <"$fifo" ||
 	abort 'wrong error message for dot-only filename suffix.'
 wait "$pid" &&
 	abort 'no error for dot-only filename suffix.'
 
 ./run_script foo.sh ".py=python .sh=" >"$fifo" 2>&1 & pid="$!"
-grep -Fq 'Script type 2: No interpreter given.' <"$fifo" ||
+grep -Fq 'script type 2: no interpreter given.' <"$fifo" ||
 	abort 'wrong error message for missing interpreter.'
 wait "$pid" &&
 	abort 'no error for missing interpreter.'
 
 ./run_script foo.nil '.sh=sh' >"$fifo" 2>&1 & pid="$!"
-grep -Fq 'Filename suffix .nil: No interpreter registered.' <"$fifo" ||
+grep -Fq 'filename suffix .nil: no interpreter registered.' <"$fifo" ||
 	abort 'wrong error message for undefined interpreter.'
 wait "$pid" &&
 	abort 'no error for undefined interpreter.'

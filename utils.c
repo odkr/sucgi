@@ -37,7 +37,7 @@ run_script (const char *const script, char **pairs)
 	int i = 0;		/* No. of current pair. */
 
 	suffix = strrchr(script, '.');
-	if (!suffix) error("%s: No filename suffix.", script);
+	if (!suffix) error("%s: no filename suffix.", script);
 
 	for (pair = pairs; *pair; pair++) {
 		enum code rc = ERR;	/* Return code. */
@@ -50,7 +50,7 @@ run_script (const char *const script, char **pairs)
 			case OK:
 				break;
 			case ERR_SYS:
-				error("Interpreter %d: %s.",
+				error("interpreter %d: %s.",
 				      i, strerror(errno));
 				break;
 			default:
@@ -59,14 +59,14 @@ run_script (const char *const script, char **pairs)
 		}
 
 		if (ftype[0] == '\0') {
-			error("Script type %d: No filename suffix.", i);
+			error("script type %d: no filename suffix.", i);
 		}
 		if (ftype[0] != '.' || str_eq(ftype, ".")) {
-			error("Script type %d: Weird filename suffix.", i);
+			error("script type %d: weird filename suffix.", i);
 		} 
 
 		if (!inter || inter[0] == '\0') {
-			error("Script type %d: No interpreter given.", i);
+			error("script type %d: no interpreter given.", i);
 		}
 
 		if (str_eq(suffix, ftype)) {
@@ -76,5 +76,5 @@ run_script (const char *const script, char **pairs)
 		};
 	}
 
-	error("Filename suffix %s: No interpreter registered.", suffix);
+	error("filename suffix %s: no interpreter registered.", suffix);
 }
