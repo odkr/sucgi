@@ -111,23 +111,6 @@ shift $((OPTIND - 1))
 
 
 #
-# System
-#
-
-printf 'Operating system: '
-
-if uname="$(uname)" && [ "$uname" ]
-then
-	echo "$uname"
-	case $uname in
-		(Darwin) cflags="-DHAVE_DARWIN_INITGROUPS=1 ${cflags-}" ;;
-	esac
-else
-	echo '\a-'
-fi
-
-
-#
 # Check if gcc or clang are available.
 #
 
@@ -278,9 +261,9 @@ do
 	printf 'generating %s ... ' "$bld$output$rst"
 
 	TMP_FILE="$output.tmp"
-	if m4	-D__CC__="${CC-}"				\
-		-D__CFLAGS__="${CFLAGS# }"			\
-		-D__WWW_GROUP__="${WWW_GROUP-"www-data"}"	\
+	if m4	-D__CC="${CC-}"				\
+		-D__CFLAGS="${CFLAGS# }"			\
+		-D__WWW_GROUP="${WWW_GROUP-"www-data"}"	\
 		"$input" >"$TMP_FILE"
 	then
 		mv "$TMP_FILE" "$output"
