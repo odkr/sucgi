@@ -3,15 +3,13 @@ define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
 
 .POSIX:
 
-ifdef([__CC__], [ifelse(__CC__, [], [], [CC = __CC__
+ifdef([__CC], [ifelse(__CC, [], [], [CC = __CC
 ])], [])dnl
-CFLAGS = default([__CFLAGS__], [-O2 -s])
+CFLAGS = default([__CFLAGS], [-D_DEFAULT_SOURCE=1 -D_BSD_SOURCE=1 -O2 -s])
 ARFLAGS = -r
-PREFIX = default([__PREFIX__], [/usr/local])
-ifdef([__DESTDIR__], [ifelse(__DESTDIR__, [], [], [DESTDIR = __DESTDIR__
-])], [])dnl
+PREFIX = /usr/local
 
-WWW_GROUP = default([___WWW_GROUP__], [www-data])
+WWW_GROUP = default([___WWW_GROUP], [www-data])
 CGI_BIN = /usr/libexec/cgi-bin
 
 VERSION = 0
