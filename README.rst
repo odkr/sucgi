@@ -247,8 +247,6 @@ GitHub: https://github.com/odkr/sucgi
 
 .. _`POSIX.1-2008`: https://pubs.opengroup.org/onlinepubs/9699919799.2008edition/
 
-.. _openat2: https://lwn.net/Articles/796868/
-
 .. |build|  image:: https://ci.appveyor.com/api/projects/status/m9y70tfy2g4ey31n/branch/main?svg=true
             :target: https://ci.appveyor.com/project/odkr/sucgi
 
