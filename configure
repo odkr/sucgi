@@ -119,7 +119,7 @@ printf 'C compiler: '
 : "${CC:=}"
 if ! [ "$CC" ]
 then
-	for cc in gcc clang c99 cc; do
+	for cc in gcc clang tcc c99 cc; do
 		if "$cc" -v 2>&1 | grep -q "$cc"; then
 			CC="$cc"
 			break
