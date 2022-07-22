@@ -112,7 +112,7 @@ check: $(TEST_BINS)
 	tests/check $(TESTS)
 
 clean:
-	find . \( -o -name '*.o' -o -name '*.tmp' \) -exec rm -f '{}' +
+	find . \( -name '*.o' -o -name '*.tmp' \) -exec rm -f '{}' +
 	rm -f sucgi $(DIST_ARCHIVE) $(DIST_ARCHIVE).asc $(TEST_BINS)
 	rm -rf $(DIST_NAME)
 
