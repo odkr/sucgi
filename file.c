@@ -51,7 +51,7 @@ file_is_wexcl(const uid_t uid, const gid_t gid,
 #include <linux/openat2.h>
 #include <sys/syscall.h>
 
-#if defined(__NR_openat2) and __NR_openat2
+#if defined(__NR_openat2) && __NR_openat2
 enum code
 file_safe_open(const char *fname, const int flags, int *fd)
 {
