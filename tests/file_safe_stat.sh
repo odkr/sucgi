@@ -23,7 +23,7 @@ TMPDIR="$(pwd)" && [ "$TMPDIR" ] ||
 	abort "failed to get canonical path of temporary directory."
 cd "$OWD" || exit
 
-readonly TMP="${TMPDIR:-.}/check-$$"
+readonly TMP="${TMPDIR:-.}/chk-$$.tmp"
 mkdir -m 0700 "$TMP" || exit
 # shellcheck disable=2034
 CLEANUP="[ \"${TMP-}\" ] && rm -rf \"\$TMP\""
