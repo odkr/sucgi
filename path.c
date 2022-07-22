@@ -34,7 +34,7 @@
 #include "err.h"
 #include "str.h"
 
-// rename to path_check_len
+
 enum code
 path_check_len (const char *const path)
 {
