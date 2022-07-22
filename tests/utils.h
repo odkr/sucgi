@@ -3,7 +3,9 @@
 #include "../attr.h"
 
 /* Abort the programme with an error message. */
-__attribute__((noreturn, format(printf, 1, 2)))
+// This is not a call to the access() function.
+// flawfinder: ignore
+__attribute__((noreturn, access(read_only, 1), format(printf, 1, 2)))
 void die(const char *const message, ...);
 
 /*

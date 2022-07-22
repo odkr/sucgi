@@ -72,7 +72,9 @@ enum code {
  */
 
 /* Log message as an error and exit the programme with EXIT_FAILURE. */
-__attribute__((noreturn, format(printf, 1, 2)))
+// This is not a call to the access() function.
+// flawfinder: ignore
+__attribute__((noreturn, access(read_only, 1), format(printf, 1, 2)))
 void error (const char *const message, ...);
 
 
