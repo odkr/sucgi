@@ -26,7 +26,7 @@ More precisely:
   e.g., gcc_ ≥ v5.1, clang_ ≥ v3.5, or tcc_ ≥ v0.9.
 * A C standard library that complies with POSIX.1-2008 and 4.2BSD;
   e.g., glibc_ ≥ v2.1.3 or Apple's Libc.
-* The standard system utilities that POSIX.1-2008 mandates.
+* The standard system utilities POSIX.1-2008 mandates.
 
 Save for a kernel ≥ v5.6 or macOS ≥ v11, any post-2015 GNU/Linux or
 macOS system should meet those requirements. You may need to install
@@ -72,11 +72,11 @@ Generate the makefile by::
 If ``configure`` succeeded and inferred the right settings,
 move on to the next step.
 
-Otherwise, generate *config.h* by ``m4 config.h.in >config.h`` and *makefile*
-by ``m4 -D__CFLAGS='-D_DEFAULT_SOURCE=1 -D_BSD_SOURCE=1 -DHAVE_OPENAT2=1
--DHAVE_SYSCALL=1 -O2 -s' makefile.in >makefile`` on GNU/Linux systems and
-``m4 makefile.in >makefile`` on macOS. Alternatively, configure the build
-yourself (see "Building suCGI" below).
+Otherwise, generate *config.h* by ``m4 config.h.in >config.h`` and a
+minimal *makefile* by ``m4 -D__CFLAGS='-D_DEFAULT_SOURCE=1 -D_BSD_SOURCE=1
+-DHAVE_OPENAT2=1 -DHAVE_SYSCALL=1 -O2 -s' makefile.in >makefile`` on GNU/Linux
+systems and ``m4 makefile.in >makefile`` on macOS. Alternatively, configure
+the build yourself (see "Building suCGI" below).
 
 ----
 
