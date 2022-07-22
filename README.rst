@@ -25,7 +25,7 @@ More precisely:
 * A C99 compiler that complies with `POSIX.1-2008`_;
   e.g., gcc_ ≥ v5.1 or clang_ ≥ v3.5.
 * A C standard library that complies with POSIX.1-2008 and 4.2BSD;
-  e.g., glibc_ ≥ v2.1.3 or macOS' libc ≥ v11.
+  e.g., glibc_ ≥ v2.1.3 or Apple's XNU_ ≥ v7195.50.7.100.1.
 * The standard system utilities that POSIX.1-2008 mandates.
 
 Save for a kernel ≥ v5.6 or macOS ≥ v11, any post-2015 GNU/Linux or
@@ -99,13 +99,14 @@ suCGI is configured at compile-time, you cannot do this later.
 
 Compile and install suCGI by::
 
-    make install
+    make
+    sudo make install
 
-You can uninstall suCGI by ``make uninstall``.
+You can uninstall suCGI by ``sudo make uninstall``.
 
 
-Build Process
-=============
+Compilation
+===========
 
 Configuration
 -------------
@@ -126,8 +127,39 @@ WWW_GROUP
     Group the webserver runs as.
 
 
-Compilation
------------
+Makefile targets
+----------------
+
+The makefile supports the following 'phony' targets:
+
+all
+    Synonym for "sucgi" and the default target.
+
+analysis
+    Analyse the code with cppcheck and flawfinder,
+    if they are installed.
+
+check
+    Perform tests. Must be run as the superuser to perform all tests.
+
+clean
+    Delete the compiled files.
+
+distclean
+    Delete the compiled files, *config.h*, and the *makefile*.
+
+dist
+    Make a distribution package.
+
+install
+    Install suCGI.
+
+uninstall
+    Uninstall suCGI.
+
+
+Makefile variables
+------------------
 
 You can pass any of the following variables to ``make`` to adapt
 the build process or the installation:
@@ -164,7 +196,9 @@ WWW_GROUP
     Group the webserver runs as
     (defaults to "www-data").
 
-The following macros govern compilation:
+
+Macros governing compilation
+----------------------------
 
 HAVE_OPENAT2
     Whether the *linux/openat2.h* header is available. Boolean value.
@@ -172,36 +206,9 @@ HAVE_OPENAT2
 HAVE_SYSCALL
     Whether the *sys/syscall.h* header is available. Boolean value.
 
-
-Makefile targets
-----------------
-
-The makefile supports the following 'phony' targets:
-
-all
-    Synonym for "sucgi" and the default target.
-
-analysis
-    Analyse the code with cppcheck and flawfinder,
-    if they are installed.
-
-check
-    Perform tests. Must be run as the superuser to perform all tests.
-
-clean
-    Delete the compiled files.
-
-distclean
-    Delete the compiled files, *config.h*, and the *makefile*.
-
-dist
-    Make a distribution package.
-
-install
-    Install suCGI.
-
-uninstall
-    Uninstall suCGI.
+TESTING
+    Whether to build a binary for testing. Boolean value.
+    Disables security checks that are difficult to meet by the test suite.
 
 
 Documentation
@@ -248,6 +255,8 @@ GitHub: https://github.com/odkr/sucgi
 .. _glibc: https://www.gnu.org/software/libc/
 
 .. _`POSIX.1-2008`: https://pubs.opengroup.org/onlinepubs/9699919799.2008edition/
+
+.. _XNU: https://github.com/apple-oss-distributions/xnu/
 
 .. |build|  image:: https://ci.appveyor.com/api/projects/status/m9y70tfy2g4ey31n/branch/main?svg=true
             :target: https://ci.appveyor.com/project/odkr/sucgi
