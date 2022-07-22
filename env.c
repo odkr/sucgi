@@ -39,7 +39,72 @@
 /* The environment. */
 extern char **environ;
 
-#include <stdio.h>
+/*
+ * The patterns below have been adopted from Apache's suEXEC.
+ * There should be no need to adapt them.
+ */
+char *env_keep[] = {
+	"AUTH_TYPE",
+	"CONTENT_LENGTH",
+	"CONTENT_TYPE",
+	"CONTEXT_DOCUMENT_ROOT",
+	"CONTEXT_PREFIX",
+	"DATE_GMT",
+	"DATE_LOCAL",
+	"DOCUMENT_NAME",
+	"DOCUMENT_PATH_INFO",
+	"DOCUMENT_ROOT",
+	"DOCUMENT_URI",
+	"GATEWAY_INTERFACE",
+	"HTTP_*",
+	"HTTPS",
+	"LAST_MODIFIED",
+	"PATH_INFO",
+	"PATH_TRANSLATED",
+	"QUERY_STRING",
+	"QUERY_STRING_UNESCAPED",
+	"REMOTE_ADDR",
+	"REMOTE_HOST",
+	"REMOTE_IDENT",
+	"REMOTE_PORT",
+	"REMOTE_USER",
+	"REDIRECT_ERROR_NOTES",
+	"REDIRECT_HANDLER",
+	"REDIRECT_QUERY_STRING",
+	"REDIRECT_REMOTE_USER",
+	"REDIRECT_SCRIPT_FILENAME",
+	"REDIRECT_STATUS REDIRECT_URL",
+	"REQUEST_METHOD",
+	"REQUEST_URI",
+	"REQUEST_SCHEME",
+	"SCRIPT_FILENAME",
+	"SCRIPT_NAME",
+	"SCRIPT_URI",
+	"SCRIPT_URL",
+	"SERVER_ADMIN",
+	"SERVER_NAME",
+	"SERVER_ADDR",
+	"SERVER_PORT",
+	"SERVER_PROTOCOL",
+	"SERVER_SIGNATURE",
+	"SERVER_SOFTWARE",
+	"SSL_*",
+	"UNIQUE_ID",
+	"USER_NAME",
+	"TZ",
+	NULL	/* Array terminator. DO NOT REMOVE. */
+};
+
+/*
+ * The pattern below has been adopted from Apache's suEXEC.
+ * There should be no need to adapt this list.
+ */
+char *env_toss[] = {
+	"HTTP_PROXY",
+	NULL	/* Array terminator. DO NOT REMOVE. */
+};
+
+
 /*
  * Functions
  */

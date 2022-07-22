@@ -112,4 +112,27 @@ enum code env_restore (const char *const *vars,
                        char *const *const toss);
 
 
+/*
+ * Globals
+ */
+
+/*
+ * Environment variables to keep.
+ *
+ * Array of shell wildcard patterns; must be NULL-terminated.
+ * Variables are only kept if their name matches one of these patterns.
+ * The only exception to that rule is $PATH, which is always kept.
+ */
+extern char *env_keep[];
+
+/*
+ * Environment variables to toss even if they match an ENV_KEEP pattern.
+ *
+ * Array of shell wildcard patterns; must be NULL-terminated.
+ * Variables are tossed if their name matches one of these patterns.
+ * The only exception to this rule is $PATH, which is never tossed.
+ */
+extern char *env_toss[];
+
+
 #endif /* Include guard. */

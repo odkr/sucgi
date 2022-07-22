@@ -12,9 +12,6 @@ define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
 #if !defined(INCLUDED_CONFIG)
 #define INCLUDED_CONFIG
 
-/****************************************************************************
- * PERMISSIONS
- ***************************************************************************/
 
 /*
  * Which document root directories are safe?
@@ -43,11 +40,6 @@ define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
  */
 #define MAX_UID 30000
 
-
-/****************************************************************************
- * SCRIPTS
- ***************************************************************************/
-
 /*
  * Interpreters to use to run scripts.
  *
@@ -56,7 +48,7 @@ define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
  * with a NULL-value.
  *
  * Filename endings must be given including the leading dot (".").
- * Interpreters are searched for in the given ENV_PATH (see below).
+ * Interpreters are searched for in the given SECURE_PATH (see below).
  *
  * If a script's owner has permission to execute that script, that is, if the
  * script's executable bits are set appropriately, then the script is called
@@ -67,98 +59,11 @@ define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
 	NULL	/* Array terminator. DO NOT REMOVE. */	\
 }
 
-
-/****************************************************************************
- * WEB SERVER
- ***************************************************************************/
-
 /* The user your webserver runs as. */
 #define WWW_USER "www-data"
 
-
-/****************************************************************************
- * ENVIRONMENT
- ***************************************************************************/
-
 /* A secure $PATH. */
-#define ENV_PATH "/usr/bin:/bin"
-
-/*
- * Environment variables to keep.
- *
- * Array of shell wildcard patterns; must be NULL-terminated.
- * Variables are only kept if their name matches one of these patterns.
- * The only exception to that rule is $PATH, which is always kept.
- *
- * The patterns below have been adopted from Apache's suEXEC.
- * There should be no need to adapt them.
- */
-#define ENV_KEEP {					\
-	"AUTH_TYPE",					\
-	"CONTENT_LENGTH",				\
-	"CONTENT_TYPE",					\
-	"CONTEXT_DOCUMENT_ROOT",			\
-	"CONTEXT_PREFIX",				\
-	"DATE_GMT",					\
-	"DATE_LOCAL",					\
-	"DOCUMENT_NAME",				\
-	"DOCUMENT_PATH_INFO",				\
-	"DOCUMENT_ROOT",				\
-	"DOCUMENT_URI",					\
-	"GATEWAY_INTERFACE",				\
-	"HTTP_*",					\
-	"HTTPS",					\
-	"LAST_MODIFIED",				\
-	"PATH_INFO",					\
-	"PATH_TRANSLATED",				\
-	"QUERY_STRING",					\
-	"QUERY_STRING_UNESCAPED",			\
-	"REMOTE_ADDR",					\
-	"REMOTE_HOST",					\
-	"REMOTE_IDENT",					\
-	"REMOTE_PORT",					\
-	"REMOTE_USER",					\
-	"REDIRECT_ERROR_NOTES",				\
-	"REDIRECT_HANDLER",				\
-	"REDIRECT_QUERY_STRING",			\
-	"REDIRECT_REMOTE_USER",				\
-	"REDIRECT_SCRIPT_FILENAME",			\
-	"REDIRECT_STATUS REDIRECT_URL",			\
-	"REQUEST_METHOD",				\
-	"REQUEST_URI",					\
-	"REQUEST_SCHEME",				\
-	"SCRIPT_FILENAME",				\
-	"SCRIPT_NAME",					\
-	"SCRIPT_URI",					\
-	"SCRIPT_URL",					\
-	"SERVER_ADMIN",					\
-	"SERVER_NAME",					\
-	"SERVER_ADDR",					\
-	"SERVER_PORT",					\
-	"SERVER_PROTOCOL",				\
-	"SERVER_SIGNATURE",				\
-	"SERVER_SOFTWARE",				\
-	"SSL_*",					\
-	"UNIQUE_ID",					\
-	"USER_NAME",					\
-	"TZ",						\
-	NULL	/* Array terminator. DO NOT REMOVE. */	\
-}
-
-/*
- * Environment variables to toss even if they match an ENV_KEEP pattern.
- *
- * Array of shell wildcard patterns; must be NULL-terminated.
- * Variables are tossed if their name matches one of these patterns.
- * The only exception to this rule is $PATH, which is never tossed.
- *
- * The pattern below has been adopted from Apache's suEXEC.
- * There should be no need to adapt this list.
- */
-#define ENV_TOSS { 					\
-	"HTTP_PROXY",					\
-	NULL	/* Array terminator. DO NOT REMOVE. */	\
-}
+#define SECURE_PATH "/usr/bin:/bin"
 
 
 /*

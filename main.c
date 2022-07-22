@@ -59,69 +59,8 @@
 #define DOC_ROOT "/home/*/public_html"
 #endif
 
-#if !defined(ENV_KEEP)
-#define ENV_KEEP {				\
-	"AUTH_TYPE",				\
-	"CONTENT_LENGTH",			\
-	"CONTENT_TYPE",				\
-	"CONTEXT_DOCUMENT_ROOT",		\
-	"CONTEXT_PREFIX",			\
-	"DATE_GMT",				\
-	"DATE_LOCAL",				\
-	"DOCUMENT_NAME",			\
-	"DOCUMENT_PATH_INFO",			\
-	"DOCUMENT_ROOT",			\
-	"DOCUMENT_URI",				\
-	"GATEWAY_INTERFACE",			\
-	"HTTP_*",				\
-	"HTTPS",				\
-	"LAST_MODIFIED",			\
-	"PATH_INFO",				\
-	"PATH_TRANSLATED",			\
-	"QUERY_STRING",				\
-	"QUERY_STRING_UNESCAPED",		\
-	"REMOTE_ADDR",				\
-	"REMOTE_HOST",				\
-	"REMOTE_IDENT",				\
-	"REMOTE_PORT",				\
-	"REMOTE_USER",				\
-	"REDIRECT_ERROR_NOTES",			\
-	"REDIRECT_HANDLER",			\
-	"REDIRECT_QUERY_STRING",		\
-	"REDIRECT_REMOTE_USER",			\
-	"REDIRECT_SCRIPT_FILENAME",		\
-	"REDIRECT_STATUS REDIRECT_URL",		\
-	"REQUEST_METHOD",			\
-	"REQUEST_URI",				\
-	"REQUEST_SCHEME",			\
-	"SCRIPT_FILENAME",			\
-	"SCRIPT_NAME",				\
-	"SCRIPT_URI",				\
-	"SCRIPT_URL",				\
-	"SERVER_ADMIN",				\
-	"SERVER_NAME",				\
-	"SERVER_ADDR",				\
-	"SERVER_PORT",				\
-	"SERVER_PROTOCOL",			\
-	"SERVER_SIGNATURE",			\
-	"SERVER_SOFTWARE",			\
-	"SSL_*",				\
-	"UNIQUE_ID",				\
-	"USER_NAME",				\
-	"TZ",					\
-	NULL					\
-}
-#endif
-
-#if !defined(ENV_TOSS)
-#define ENV_TOSS {				\
-	"HTTP_PROXY",				\
-	NULL					\
-}
-#endif
-
-#if !defined(ENV_PATH)
-#define ENV_PATH "/usr/bin:/bin"
+#if !defined(SECURE_PATH)
+#define SECURE_PATH "/usr/bin:/bin"
 #endif
 
 #if !defined(MIN_UID)
@@ -256,33 +195,27 @@ main (void) {
 	 * Re-populate the environment.
 	 */
 
-	{
-		char *env_keep[] = ENV_KEEP; /* Keep patterns. */
-		char *env_toss[] = ENV_TOSS; /* Toss patterns. */
+	rc = env_restore((const char *const *) vars, env_keep, env_toss);
+	switch (rc) {
+		case OK:
+			break;
+		case ERR_SYS:
+			error("environment restoration: %s.",
+			      strerror(errno));
+			break;
+		case ERR_STR_LEN:
+			error("environment variable too long.");
+			break;
+		case ERR_VAR_INVALID:
+			error("ill-formed environment variable.");
+			break;
+		default:
+			error("%s:%d: env_restore returned %d.",
+				__FILE__, __LINE__ - 17, rc);
+	}
 
-		rc = env_restore((const char *const *) vars,
-		                 env_keep, env_toss);
-		switch (rc) {
-			case OK:
-				break;
-			case ERR_SYS:
-				error("environment restoration: %s.",
-				      strerror(errno));
-				break;
-			case ERR_STR_LEN:
-				error("environment variable too long.");
-				break;
-			case ERR_VAR_INVALID:
-				error("ill-formed environment variable.");
-				break;
-			default:
-				error("%s:%d: env_restore returned %d.",
-				      __FILE__, __LINE__ - 17, rc);
-		}
-
-		if (setenv("PATH", ENV_PATH, 1) != 0) {
-			error("setenv PATH: %s", strerror(errno));
-		}
+	if (setenv("PATH", SECURE_PATH, 1) != 0) {
+		error("setenv PATH: %s", strerror(errno));
 	}
 
 
