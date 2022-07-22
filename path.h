@@ -47,6 +47,7 @@ enum code path_check_len (const char *const path);
  * Return code:
  *      OK             User has exclusive write access.
  *      ERR_NOT_EXCLW  User does not have exclusive write access.
+ *      ERR_STR_LEN    The path is longer than STR_MAX_LEN.
  *      ERR_SYS        System failure. errno(2) should be set.
  */
 enum code

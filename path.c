@@ -77,14 +77,15 @@ path_check_wexcl (const uid_t uid,
                   const char *const path,
                   const char *const stop)
 {
-	const char *p = (const char *) path;	/* Current path. */
+	char *p = NULL;	/* Current path. */
+	reraise(str_cp(path, &p));
 
 	while (true) {
 		struct stat fstatus;
 		if (stat(p, &fstatus) != 0) return ERR_SYS;
 		if (!file_is_wexcl(uid, gid, &fstatus)) return ERR_NOT_EXCLW;
 		if (str_eq(p, stop) || str_eq(p, "/") || str_eq(p, ".")) break;
-		p = (const char *) dirname((char *) p);
+		p = dirname(p);
 	}
 
 	return OK;
