@@ -134,8 +134,8 @@ dist: clean check $(DIST_ARCHIVE) $(DIST_ARCHIVE).asc
 install: sucgi
 	mkdir -pm 0755 $(DESTDIR)$(PREFIX)/libexec
 	cp sucgi $(DESTDIR)$(PREFIX)/libexec
-	chown root:$(WWW_GROUP) $(DESTDIR)$(PREFIX)/libexec/cgi-bin/sucgi
-	chmod u=rws,g=x,o= $(DESTDIR)$(PREFIX)/libexec/cgi-bin/sucgi
+	chown root:$(WWW_GROUP) $(DESTDIR)$(PREFIX)/libexec/sucgi
+	chmod u=rws,g=x,o= $(DESTDIR)$(PREFIX)/libexec/sucgi
 	ln -s $(DESTDIR)$(PREFIX)/libexec/sucgi $(CGI_BIN)
 
 uninstall:
