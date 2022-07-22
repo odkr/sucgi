@@ -43,15 +43,6 @@
 
 
 /*
- * System
- */
-
-#if PATH_MAX == -1
-#define PATH_MAX STR_MAX_LEN + 1
-#endif
-
-
-/*
  * Configuration
  */
 
@@ -75,19 +66,12 @@
 #error MAX_UID is too large.
 #endif
 
-#if MAX_UID < MIN_UID
-#error MAX_UID is smaller than MIN_UID.
-#endif
-
-#if MIN_UID > MAX_UID
-#error MIN_UID is greater than MAX_UID.
+#if MAX_UID <= MIN_UID
+#error MAX_UID is smaller than or equal to MIN_UID.
 #endif
 
 #if !defined(SCRIPT_HANDLERS)
-#define SCRIPT_HANDLERS	{	\
-	".php=php",		\
-	NULL			\
-}
+#define SCRIPT_HANDLERS	{".php=php", NULL}
 #endif
 
 #if !defined(WWW_USER)
@@ -121,9 +105,9 @@ int
 main (void) {
 	/* passwd database entry of the programme's owner. */
 	struct passwd *user = NULL;
-	/* Filesystem status of $DOCUMENT_ROOT. */
+	/* Filesystem entry of the file pointed to by $DOCUMENT_ROOT. */
 	struct stat *doc_root_st = NULL;
-	/* Filesystem status of $PATH_TRANSLATED, that is, the programme. */
+	/* Filesystem entry of the file pointed to by $PATH_TRANSLATED. */
 	struct stat *path_trans_st = NULL;
 	/* $DOCUMENT_ROOT. */
 	char *doc_root = NULL;
@@ -328,7 +312,6 @@ main (void) {
 	{
 		uid_t uid = user->pw_uid;
 		gid_t gid = user->pw_gid;
-
 		const gid_t groups[] = {gid};
 
 		if (setgroups(1, groups) != 0) {
@@ -337,7 +320,7 @@ main (void) {
 		}
 
 		/* 
-		 * Darwin's initgroups expects the GID to be given as int.
+		 * Darwin's initgroups(3) expects the GID to be given as int.
 		 * This will trigger a (harmless) compiler warning.
 		 */
 		if (initgroups(user->pw_name, gid) != 0) {
