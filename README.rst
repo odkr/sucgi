@@ -72,21 +72,11 @@ Generate the makefile by::
 If ``configure`` succeeded and inferred the right settings,
 move on to the next step.
 
-Otherwise, generate *config.h* by::
-
-    m4 config.h.in >config.h
-
-And a minimal *makefile* by:
-
-GNU/Linux-systems::
-
-    m4 -D__CFLAGS='-D_DEFAULT_SOURCE=1 -D_BSD_SOURCE=1 -DHAVE_OPENAT2=1 -DHAVE_SYSCALL=1 -O2 -s' makefile.in >makefile
-
-macOS::
-
-    m4 makefile.in >makefile
-
-Alternatively, configure the build yourself (see "Building suCGI" below).
+Otherwise, generate *config.h* by ``m4 config.h.in >config.h`` and *makefile*
+by ``m4 -D__CFLAGS='-D_DEFAULT_SOURCE=1 -D_BSD_SOURCE=1 -DHAVE_OPENAT2=1
+-DHAVE_SYSCALL=1 -O2 -s' makefile.in >makefile`` on GNU/Linux systems and
+``m4 makefile.in >makefile`` on macOS. Alternatively, configure the build
+yourself (see "Building suCGI" below).
 
 ----
 
