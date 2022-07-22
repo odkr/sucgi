@@ -24,8 +24,7 @@ More precisely:
 * Linux ≥ v5.6 or macOS ≥ v11.
 * A C99 compiler that complies with `POSIX.1-2008`_;
   e.g., gcc_ ≥ v5.1 or clang_ ≥ v3.5.
-* A C standard library that complies with POSIX.1-2008,
-  including the X/Open System Interface extension, and 4.2BSD;
+* A C standard library that complies with POSIX.1-2008 and 4.2BSD;
   e.g., glibc_ ≥ v2.1.3 or macOS' libc ≥ v11.
 * The standard system utilities that POSIX.1-2008 mandates.
 
@@ -81,11 +80,11 @@ And a minimal *makefile* by:
 
 GNU/Linux-systems::
 
-    m4 -D__CFLAGS__='-D_DEFAULT_SOURCE=1 -D_BSD_SOURCE=1 -DHAVE_OPENAT2=1 -DHAVE_SYSCALL=1 -O2 -s' makefile.in >makefile
+    m4 -D__CFLAGS='-D_DEFAULT_SOURCE=1 -D_BSD_SOURCE=1 -DHAVE_OPENAT2=1 -DHAVE_SYSCALL=1 -O2 -s' makefile.in >makefile
 
 macOS::
 
-    m4 -D__CFLAGS__='-DHAVE_DARWIN_INITGROUPS=1 -O2 -s' makefile.in >makefile
+    m4 makefile.in >makefile
 
 Alternatively, configure the build yourself (see "Build Process" below).
 
@@ -179,7 +178,7 @@ analysis
     if they are installed.
 
 check
-    Perform tests.
+    Perform tests. Must be run as the superuser to perform all tests.
 
 clean
     Delete the compiled files.
