@@ -28,7 +28,7 @@ More precisely:
   e.g., glibc_ ≥ v2.1.3 or Apple's Libc.
 * The standard system utilities POSIX.1-2008 mandates.
 
-Save for a kernel ≥ v5.6 or macOS ≥ v11, any post-2015 GNU/Linux or
+Save for Linux ≥ v5.6 or XNU ≥ v7195.50.7.100.1, any post-2015 GNU/Linux or
 macOS system should meet those requirements. You may need to install
 the standard build tools, however.
 
@@ -168,7 +168,7 @@ HAVE_SYSCALL
 
 TESTING
     Whether to build a binary for testing. Boolean value.
-    Disables security checks the test suite does not pass.
+    *Test builds are insecure!*
 
 
 Other *makefile* targets
@@ -189,11 +189,15 @@ check
 clean
     Delete the compiled files.
 
-distclean
-    Delete the compiled files, *config.h*, and the *makefile*.
-
 dist
     Make a distribution package.
+
+distcheck
+    Check if the distribution compiles,
+    passes the test suite, and is self-contained.
+
+distclean
+    Delete the compiled files, *config.h*, and the *makefile*.
 
 install
     Install suCGI.
