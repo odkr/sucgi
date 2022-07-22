@@ -46,10 +46,7 @@ bool file_is_wexcl(const uid_t uid, const gid_t gid,
  * Open fname with flags and store its file descriptor in
  * the variable pointed to by fd.
  *
- * Errors:
- *	- fname contains a symlink (macOS and Linux)
- *
- *	Plus every error that may occur when opening a file with open(2).
+ * Errors out if fname contains a symlink.
  *
  * Return code:
  *      OK       Success.
@@ -70,8 +67,7 @@ enum code file_safe_open(const char *fname, const int flags, int *fd);
  * 	The same as file_safe_open.
  *
  * Return code: 
- *      OK       Success.
- *      ERR_SYS  System failure. errno(2) should be set.
+ *      The same as file_safe_open.
  */
 // This is not a call to access.
 // flawfinder: ignore
