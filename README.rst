@@ -156,11 +156,13 @@ PREFIX
     Prefix for installation targets
     (defaults to */usr/local*).
 
+CGI_BIN
+    Path to your webserver's */cgi-bin* directory
+    (defaults to */usr/libexec/cgi-bin*).
+
 WWW_GROUP
     Group the webserver runs as
     (defaults to "www-data").
-
-----
 
 The following macros govern compilation:
 
