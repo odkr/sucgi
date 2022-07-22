@@ -69,8 +69,7 @@ Generate the makefile by::
 
     ./configure
 
-If ``configure`` succeeded and inferred the right settings,
-move on to the next step.
+If ``configure`` succeeded, move on to the next step.
 
 Otherwise, generate *config.h* by ``m4 config.h.in >config.h`` and *makefile*,
 depending on your operating system, by ``m4 -D__CFLAGS='-D_DEFAULT_SOURCE=1
@@ -167,7 +166,7 @@ HAVE_SYSCALL
     Whether the *sys/syscall.h* header is available. Boolean value.
 
 TESTING
-    Whether to build a binary for testing. Boolean value.
+    Whether to build for testing. Boolean value.
     *Test builds are insecure!*
 
 
