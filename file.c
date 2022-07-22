@@ -46,8 +46,7 @@ file_is_wexcl(const uid_t uid, const gid_t gid,
 		&& !(fstatus->st_mode & S_IWOTH);
 }
 
-#if defined(HAVE_OPENAT2) && HAVE_OPENAT2 && \
-    defined(HAVE_SYSCALL) && HAVE_SYSCALL
+#if defined(__linux__)
 #include <linux/openat2.h>
 #include <sys/syscall.h>
 
@@ -68,7 +67,7 @@ file_safe_open(const char *fname, const int flags, int *fd)
 }
 #else
 #error openat2 is not available.
-#endif /* __NR_openat2. */
+#endif /* __linux__. */
 
 #elif O_NOFOLLOW_ANY
 enum code
