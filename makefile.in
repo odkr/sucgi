@@ -136,10 +136,10 @@ install: sucgi
 	cp sucgi $(DESTDIR)$(PREFIX)/libexec
 	chown root:$(WWW_GROUP) $(DESTDIR)$(PREFIX)/libexec/sucgi
 	chmod u=rws,g=x,o= $(DESTDIR)$(PREFIX)/libexec/sucgi
-	ln -s $(DESTDIR)$(PREFIX)/libexec/sucgi $(CGI_BIN)
+	ln -s $(DESTDIR)$(PREFIX)/libexec/sucgi $(CGI_BIN)/sucgi
 
 uninstall:
-	rm $(CGI_BIN)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
+	rm -f $(CGI_BIN)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
 
 .PHONY: all analysis check clean distclean dist install uninstall 
 
