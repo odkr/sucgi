@@ -86,8 +86,7 @@ macOS::
 
     m4 makefile.in >makefile
 
-Alternatively, configure the build yourself (see "Build Process" below).
-
+Alternatively, configure the build yourself (see "Building suCGI" below).
 
 ----
 
@@ -100,16 +99,18 @@ suCGI is configured at compile-time, you cannot do this later.
 Compile and install suCGI by::
 
     make
-    sudo make install
+    make install
 
-You can uninstall suCGI by ``sudo make uninstall``.
+You can uninstall suCGI by ``make uninstall``.
 
 
-Compilation
-===========
+Building suCGI
+==============
 
 Configuration
 -------------
+
+Use *configure* to create *makefile* and *config.h*.
 
 If you want to adapt suCGI's build settings, edit *configure.env* and create
 a (new) makefile by calling ``configure``; supply ``-f`` to overwrite existing
@@ -127,39 +128,10 @@ WWW_GROUP
     Group the webserver runs as.
 
 
-Makefile targets
-----------------
+Compilation
+-----------
 
-The makefile supports the following 'phony' targets:
-
-all
-    Synonym for "sucgi" and the default target.
-
-analysis
-    Analyse the code with cppcheck and flawfinder,
-    if they are installed.
-
-check
-    Perform tests. Must be run as the superuser to perform all tests.
-
-clean
-    Delete the compiled files.
-
-distclean
-    Delete the compiled files, *config.h*, and the *makefile*.
-
-dist
-    Make a distribution package.
-
-install
-    Install suCGI.
-
-uninstall
-    Uninstall suCGI.
-
-
-Makefile variables
-------------------
+Compile suCGI by calling ``make``.
 
 You can pass any of the following variables to ``make`` to adapt
 the build process or the installation:
@@ -196,9 +168,7 @@ WWW_GROUP
     Group the webserver runs as
     (defaults to "www-data").
 
-
-Macros governing compilation
-----------------------------
+The following macros govern compilation:
 
 HAVE_OPENAT2
     Whether the *linux/openat2.h* header is available. Boolean value.
@@ -209,6 +179,38 @@ HAVE_SYSCALL
 TESTING
     Whether to build a binary for testing. Boolean value.
     Disables security checks that are difficult to meet by the test suite.
+
+
+Other *makefile* targets
+------------------------
+
+The *makefile* supports the following 'phony' targets:
+
+all
+    Synonym for "sucgi" and the default target.
+
+analysis
+    Analyse the code with cppcheck and flawfinder,
+    if they are installed.
+
+check
+    Perform tests. Must be run as the superuser to perform all tests.
+
+clean
+    Delete the compiled files.
+
+distclean
+    Delete the compiled files, *config.h*, and the *makefile*.
+
+dist
+    Make a distribution package.
+
+install
+    Install suCGI.
+
+uninstall
+    Uninstall suCGI.
+
 
 
 Documentation
