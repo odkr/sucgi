@@ -159,7 +159,7 @@ The following macros govern compilation:
 
 TESTING
     Whether to build for testing. Boolean value.
-    *Test builds are insecure!*
+    Test builds are insecure!
 
 
 Other *makefile* targets
@@ -178,7 +178,7 @@ check
     Perform tests. Must be run as the superuser to perform all tests.
 
 clean
-    Delete the compiled files.
+    Delete compiled files, temporary files, and the distribution files.
 
 dist
     Make a distribution package.
@@ -188,7 +188,7 @@ distcheck
     passes the test suite, and is self-contained.
 
 distclean
-    Delete the compiled files, *config.h*, and the *makefile*.
+    Delete *config.h*, *makefile* and everything ``make clean`` deletes.
 
 install
     Install suCGI.
