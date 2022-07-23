@@ -157,12 +157,6 @@ WWW_GROUP
 
 The following macros govern compilation:
 
-HAVE_OPENAT2
-    Whether the *linux/openat2.h* header is available. Boolean value.
-
-HAVE_SYSCALL
-    Whether the *sys/syscall.h* header is available. Boolean value.
-
 TESTING
     Whether to build for testing. Boolean value.
     *Test builds are insecure!*
