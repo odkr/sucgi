@@ -67,7 +67,7 @@ file_safe_open(const char *fname, const int flags, int *fd)
 }
 #else
 #error openat2 is not available.
-#endif /* __linux__. */
+#endif /* __NR_openat2. */
 
 #elif O_NOFOLLOW_ANY
 enum code
@@ -88,8 +88,8 @@ file_safe_open (const char *fname, const int flags, int *fd)
 	return OK;
 }
 #else
-#error Neither openat2 nor O_NOFOLLOW_ANY are available.
-#endif /* HAVE_OPENAT2 or O_NOFOLLOW_ANY. */
+#error O_NOFOLLOW_ANY is not available.
+#endif /* __linux__ or O_NOFOLLOW_ANY. */
 
 enum code
 file_safe_stat(const char *fname, struct stat **fstatus)
