@@ -44,12 +44,6 @@ add_macros() {
 	done
 }
 
-# Register a check for whether a header file is available.
-check_header() {
-	headers="${headers-} ${1:?}"
-	eval "hdr_fname_$1"='"${2:?}"';
-}
-
 
 #
 # Initialisation
@@ -187,60 +181,6 @@ then
 	fi
 
 	unset cflags flag n pid
-fi
-
-
-#
-# Check which header files are available.
-#
-
-if [ "$CC" ]
-then
-	printf 'Headers:'
-
-	# shellcheck disable=2086
-	set -- ${headers-}
-
-	n=0 pids=''
-	while [ $# -gt 0 ]
-	do
-		eval file="\"\$hdr_fname_$1\""
-		[ "$file" ] || continue
-
-		"$CC" -xc -o/dev/null - <<-EOF >/dev/null 2>&1 &
-			#include <$file>
-			int main (void) { return 0; }
-		EOF
-		pids="$pids $!"
-		eval "hdr_pid_$!"='$1'
-		shift
-
-		if [ $(($# % nchildren)) -eq 0 ]
-		then
-			for pid in $pids
-			do
-				if wait "$pid"
-				then
-					eval hdr="\"\$hdr_pid_$pid\""
-					eval file="\"\$hdr_fname_$hdr\""
-					unset "hdr_fname_$pid" "hdr_pid_$pid"
-					[ "${hdr-}" ] || continue;
-					
-					CFLAGS="-D$hdr=1 ${CFLAGS-}"
-					n=$((n + 1))
-					printf ' %s' "$file"
-				fi
-			done
-			pids=
-		fi
-	done
-
-	if [ "$n" -eq 0 ]
-		then printf -- ' -\n'
-		else echo
-	fi
-
-	unset file headers hdr n pid
 fi
 
 
