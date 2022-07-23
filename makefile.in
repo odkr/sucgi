@@ -104,7 +104,7 @@ tests/main: main.c env.o err.o file.o path.o str.o utils.o
 	$(CC) -D INCLUDED_CONFIG=1 -DTESTING=1 -DPACKAGE=fake-$(PACKAGE) -DVERSION=$(VERSION) $(LDFLAGS) $(CFLAGS) -Wno-unused-macros -o $@ $< env.o err.o file.o path.o str.o utils.o $(LDLIBS)
 
 analysis:
-	cppcheck $(CPPCHECKFLAGS) --enable=all -U __NR_openat2 -U LOG_PERROR -U O_NOFOLLOW_ANY .
+	cppcheck $(CPPCHECKFLAGS) --enable=all -U__NR_openat2 -DO_NOFOLLOW_ANY=1 .
 	cppcheck $(CPPCHECKFLAGS) --enable=unusedFunction *.c
 	flawfinder --error-level=1 -m 0 -D -Q .
 	shellcheck configure tests/check tests/*.sh

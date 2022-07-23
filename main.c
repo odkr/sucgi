@@ -67,6 +67,8 @@
 #endif
 
 #if MAX_UID <= MIN_UID
+// Flawfinder thinks this is a function ¯\_(ツ)_/¯.
+// flawfinder: ignore
 #error MAX_UID is smaller than or equal to MIN_UID.
 #endif
 
