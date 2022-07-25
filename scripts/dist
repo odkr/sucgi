@@ -13,13 +13,52 @@ init || exit
 
 
 #
-# Main
+# Options
 #
 
-[ $# -lt 2 ] && abort "not enough operands."
+OPTIND=1 OPTARG='' opt=''
+while getopts a:h opt; do
+	case $opt in
+		(a) export arch="$OPTARG" ;;
+		(h) exec cat <<-EOF ;;
+			dist - Create a tarball for distribution.
 
-readonly name="$1"
+			Synopsis:
+			    dist [-a ARCH] NAME FILE [FILE [...]]
+			    dist -h
+
+			Operands:
+			    NAME  Name of the directory to place files in.
+			    FILE  A file to add to the distribution.
+
+			Options:
+			    -a ARCH  Use ARCH as archive filename
+			             (by default ".tgz" is appended to NAME).
+			    -h       Show this help screen.
+			
+			See README.md for details.
+			EOF
+		(*) exit 8
+	esac
+done
+shift $((OPTIND - 1))
+unset opt
+
+if [ $# -lt 2 ]
+then
+	echo 'usage: dist [-a ARCH] NAME FILE [FILE [...]]' >&2
+	exit 8
+fi
+
+name="${1:?}"
 shift
+
+: "${arch:="$name.tgz"}"
+
+
+#
+# Prelude
+#
 
 catch=
 mkdir -m u=rwx,go= "$name"
@@ -28,6 +67,11 @@ cleanup="rm -rf \"\$name\"; ${cleanup-}"
 catch=x
 [ "${caught-}" ] && exit "$((caught + 128))"
 
+
+#
+# Main
+#
+
 cp -a "$@" "$name/"
 chmod -R u+rw,go= "$name/"
-tar -czf "$name.tgz" "$name"
+tar -czf "$arch" "$name"

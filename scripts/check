@@ -52,12 +52,16 @@ done
 shift $((OPTIND - 1))
 unset opt
 
+if [ $# -eq 0 ]
+then
+	echo 'usage: check [-t DIR] TEST [TEST [...]]' >&2
+	exit 8
+fi
+
 
 #
 # Main
 #
-
-[ $# -eq 0 ] && abort "no tests given."
 
 errors=0 pids=
 while [ $# -gt 0 ]; do

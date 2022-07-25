@@ -1,5 +1,5 @@
 #!/bin/sh
-# Check whether the distribution works.
+# Test a distribution.
 
 #
 # Initialiation
@@ -14,18 +14,62 @@ tmpdir dchk
 
 
 #
+# Options
+#
+
+OPTIND=1 OPTARG='' opt=''
+while getopts a:h opt; do
+	case $opt in
+		(a) export ARCH="$OPTARG" ;;
+		(h) exec cat <<-EOF ;;
+			distcheck - Check if the tarball works
+
+			Synopsis:
+			    distcheck [-a ARCH] NAME
+			    distcheck -h
+
+			Operands:
+			    NAME  Name of the directory to place files in.
+
+			Options:
+			    -a ARCH  Use ARCH as archive filename
+			             (by default ".tgz" is appended to NAME).
+			    -h       Show this help screen.
+			
+			See README.md for details.
+			EOF
+		(*) exit 8
+	esac
+done
+shift $((OPTIND - 1))
+unset opt
+
+if [ $# -lt 1 ]
+then
+	echo 'usage: distcheck [-a ARCH] NAME' >&2
+	exit 8
+elif [ $# -gt 1 ]
+then
+	abort 'too many operands.'
+fi
+
+name="${1:?}"
+: "${arch:="$name.tgz"}"
+
+
+#
 # Main
 #
 
 [ $# -gt 0 ] || abort "not enough operands." 
 
-cp "$1.tgz" "$TMPDIR"
+cp "$arch" "$TMPDIR"
 cd "$TMPDIR" || exit
 tar -xzf "$1.tgz"
 cleanup="chmod -R u+w \"\$TMPDIR\"; ${cleanup-}"
 chmod -R ugo-w "$1"
-"$1/configure"
-make "$1.tgz"
+"$name/configure"
+make "$arch"
 make
 make check || sh
 chmod -R u+w .
