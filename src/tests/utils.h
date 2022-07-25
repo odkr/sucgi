@@ -24,6 +24,7 @@
 #include "../attr.h"
 #include "../err.h"
 
+
 /* Abort the programme with an error message. */
 // This is not a call to the access() function.
 // flawfinder: ignore

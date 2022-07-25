@@ -22,8 +22,17 @@
 #if !defined(SRC_UTILS_H)
 #define SRC_UTILS_H
 
+#include <pwd.h>
+
 #include "attr.h"
 
+/*
+ * Assume the UID and GID of user.
+ *
+ * Aborts the programme if an error occurred.
+ */
+__attribute__((ACCESS_RO(1)))
+void drop_privs(struct passwd *user);
 
 /*
  * Run script with the first matching interpreter in pairs.
@@ -41,7 +50,7 @@
  * errno(2) should be set in this case.
  */
 __attribute__((ACCESS_RO(1), ACCESS_RO(2)))
-void run_script (const char *script, const char **pairs);
+void run_script(const char *const script, const char **const pairs);
 
 
 #endif /* !defined(SRC_UTILS_H) */

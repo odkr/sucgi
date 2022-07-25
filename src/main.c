@@ -278,78 +278,8 @@ main (void) {
 	 * Drop privileges.
 	 */
 
-	/* NB: This whole section is not checked by the test suite. */
-	{
-		uid_t uid = user->pw_uid;
-		gid_t gid = user->pw_gid;
-		const gid_t groups[] = {gid};
-		int groups_init = 0;
-
-		if (setgroups(1, groups) != 0) {
-			fail("supplementary group clean-up: %s.",
-			     strerror(errno));
-		}
-
-#if defined(__APPLE__) && defined(__MACH__)
-		groups_init = initgroups(user->pw_name, (int) gid) != 0;
-#else
-		groups_init = initgroups(user->pw_name, gid) != 0;
-#endif /* defined(__APPLE__) && defined(__MACH__) */
-		if (groups_init != 0) {
-			fail("supplementary group initialisation: %s.",
-			     strerror(errno));
-		}
-
-
-		/*
-		 * The real UID and GID need to be set, too. Or else the
-		 * user may call seteuid(2) to gain webserver priviliges. 
-		 */
-		if (setgid(gid) != 0) {
-			fail("failed to set real GID: %s",
-			     strerror(errno));
-		}
-		if (setuid(uid) != 0) {
-			fail("failed to set real UID: %s.",
-			     strerror(errno));
-		}
-		if (setegid(gid) != 0) {
-			fail("failed to set effective GID: %s",
-			     strerror(errno));
-		}
-		if (seteuid(uid) != 0) {
-			fail("failed to set effective UID: %s.",
-			     strerror(errno));
-		}
-
-		if (getuid() != uid) {
-			fail("real UID did not change.");
-		}
-		if (getgid() != gid) {
-			fail("real GID did not change.");
-		}
-		if (geteuid() != uid) {
-			fail("effective UID did not change.");
-		}
-		if (getegid() != gid) {
-			fail("effective GID did not change.");
-		}
-
-#if defined(TESTING) && TESTING
-		if (setegid(0) == 0) {
-			fail("could re-set process' effective GID to 0.");
-		}
-		if (seteuid(0) == 0) {
-			fail("could re-set process' effective UID to 0.");
-		}
-		if (setgid(0) == 0) {
-			fail("could re-set process' real GID to 0.");
-		}
-		if (setuid(0) == 0) {
-			fail("could re-set process' real UID to 0.");
-		}
-#endif /* defined(TESTING) && TESTING */
-	}
+	/* NB: This call is not checked by the test suite. */
+	drop_privs(user);
 
 
 	/*

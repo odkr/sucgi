@@ -35,7 +35,8 @@ COVDIR = coverage
 # Tests
 #
 
-CHECKBINS = $(BUILDDIR)/tests/fail $(BUILDDIR)/tests/env_clear \
+CHECKBINS = $(BUILDDIR)/tests/drop_privs
+            $(BUILDDIR)/tests/fail $(BUILDDIR)/tests/env_clear \
             $(BUILDDIR)/tests/env_get_fname \
             $(BUILDDIR)/tests/env_restore \
             $(BUILDDIR)/tests/main \
@@ -169,6 +170,16 @@ $(BUILDDIR)/tests/utils.o:	$(SRCDIR)/tests/utils.c \
 				$(SRCDIR)/str.h \
 				$(BUILDDIR)/tests/.sentinel
 	$(CC) -I . -c $(CFLAGS) -o $@ $<
+
+$(BUILDDIR)/tests/drop_privs:	$(SRCDIR)/tests/drop_privs.c \
+				$(BUILDDIR)/tests/utils.o \
+				$(BUILDDIR)/err.o $(BUILDDIR)/utils.o \
+				$(BUILDDIR)/tests/.sentinel
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+		-o $@ $< \
+		$(BUILDDIR)/tests/utils.o \
+		$(BUILDDIR)/err.o $(BUILDDIR)/utils.o \
+		$(LDLIBS)
 
 $(BUILDDIR)/tests/fail:		$(SRCDIR)/tests/fail.c \
 				$(BUILDDIR)/err.o \
