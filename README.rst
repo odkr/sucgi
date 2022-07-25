@@ -110,17 +110,13 @@ CC
 CFLAGS
     Flags to give to the compiler.
 
-WWW_GROUP
-    Group the webserver runs as.
-
 
 Compilation
 -----------
 
 Compile suCGI by calling ``make``.
 
-You can pass any of the following variables to ``make`` to adapt
-the build process or the installation:
+You can pass the following variables to ``make`` to configure compilation:
 
 CC
     The C compiler
@@ -146,6 +142,20 @@ PREFIX
     Prefix for installation targets
     (defaults to */usr/local*).
 
+The following macros govern compilation:
+
+TESTING
+    Whether to build for testing. Boolean value.
+    Test builds are insecure!
+
+
+Installation
+------------
+
+Install suCGI by ``make install``.
+
+You can pass the following variables to ``make`` to adapt the installation:
+
 CGI_BIN
     Path to your webserver's */cgi-bin* directory
     (defaults to */usr/lib/cgi-bin*).
@@ -153,12 +163,6 @@ CGI_BIN
 WWW_GROUP
     Group the webserver runs as
     (defaults to "www-data").
-
-The following macros govern compilation:
-
-TESTING
-    Whether to build for testing. Boolean value.
-    Test builds are insecure!
 
 
 Other *makefile* targets

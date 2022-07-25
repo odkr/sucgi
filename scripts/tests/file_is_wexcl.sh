@@ -2,31 +2,23 @@
 # Test if file_is_wexcl correctly identifies exclusive write access.
 # shellcheck disable=1091,2015
 
+#
+# Initialisation
+#
+
 set -Cefu
+readonly script_dir="${0%/*}"
+# shellcheck disable=1091
+. "$script_dir/../utils.sh" || exit
+init || exit
+PATH="${TESTSDIR:-./build/tests}:$PATH"
 
-dir="$(dirname "$0")" && [ "$dir" ]
-cd -P "$dir" || exit
-. ./utils.sh || exit
-PATH="../../build/tests:$PATH"
+tmpdir chk
 
-trap cleanup EXIT
 
-CAUGHT=0
-trap 'CAUGHT=1' HUP
-trap 'CAUGHT=2' INT
-trap 'CAUGHT=15' TERM
-
-readonly TMP="${TMPDIR:-.}/chk-$$.tmp"
-mkdir -m 0700 "$TMP" || exit
-# shellcheck disable=2034
-CLEANUP="[ \"${TMP-}\" ] && rm -rf \"\$TMP\""
-export TMPDIR="$TMP"
-
-trap 'exit 129' HUP
-trap 'exit 130' INT
-trap 'exit 143' TERM
-
-[ "$CAUGHT" -gt 0 ] && exit $((CAUGHT + 128))
+#
+# Main
+#
 
 umask 0777
 fname="$TMP/file"
@@ -37,25 +29,25 @@ uid="$(id -u)" && [ "$uid" ] ||
 gid="$(id -g)" && [ "$gid" ] ||
 	abort "failed to get process' effective GID."
 
-no="o=w uo=w go=w ugo=w"
+no="g=w o=w ug=w uo=w go=w ugo=w"
 for mode in $no
 do
 	chown "$uid:$gid" "$fname"
 	chmod "$mode" "$fname"
-	file_is_wexcl "$uid" "$gid" "$fname" &&
+	file_is_wexcl "$uid" "$fname" &&
 		abort "file_is_wexcl reports $mode as exclusively writable."
 	chmod ugo= "$fname"
 done
 
-yes="ug=w u=w g=w"
+yes="u=w ugo="
 for mode in $yes
 do
 	chown "$uid:$gid" "$fname"
 	chmod "$mode" "$fname"
-	file_is_wexcl "$uid" "$gid" "$fname" ||
+	file_is_wexcl "$uid" "$fname" ||
 		abort "file_is_wexcl reports $mode as not exclusively writable."
 	chmod ugo= "$fname"
 done
 
-file_is_wexcl 0 0 /bin/sh ||
+file_is_wexcl 0 /bin/sh ||
 	abort "file_is_wexcl reports /bin/sh as not exclusively writable."

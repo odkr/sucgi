@@ -57,9 +57,9 @@ error path_check_len(const char *const path);
  */
 // This is not a call to access.
 // flawfinder: ignore
-__attribute__((access(read_only, 3), access(read_only, 4), nonnull(3, 4)))
-error path_check_wexcl(const uid_t uid, const gid_t gid,
-                       const char *const path, const char *const stop);
+__attribute__((access(read_only, 2), access(read_only, 2), nonnull(2, 3)))
+error path_check_wexcl(const uid_t uid, const char *const path,
+                       const char *const stop);
 
 /*
  * Check if the path super contains the path sub.

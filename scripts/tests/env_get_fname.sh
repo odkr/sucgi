@@ -2,43 +2,28 @@
 # Test if env_get_fname only returns safe filenames.
 # shellcheck disable=1091,2015
 
+#
+# Initialisation
+#
+
 set -Cefu
+readonly script_dir="${0%/*}"
+# shellcheck disable=1091
+. "$script_dir/../utils.sh" || exit
+init || exit
+PATH="${TESTSDIR:-./build/tests}:$PATH"
 
-dir="$(dirname "$0")" && [ "$dir" ]
-cd -P "$dir" || exit
-. ./utils.sh || exit
-PATH="../../build/tests:$PATH"
-
-trap cleanup EXIT
-
-CAUGHT=0
-trap 'CAUGHT=1' HUP
-trap 'CAUGHT=2' INT
-trap 'CAUGHT=15' TERM
-
-: "${TMPDIR:=.}"
-OWD="$(pwd)" && [ "$OWD" ] ||
-	abort "failed to save working directory."
-cd -P "$TMPDIR" || exit
-TMPDIR="$(pwd)" && [ "$TMPDIR" ] ||
+tmpdir chk
+TMPDIR="$(realdir "$TMPDIR")" && [ "$TMPDIR" ] ||
 	abort "failed to get canonical path of temporary directory."
-cd "$OWD" || exit
 
-readonly TMP="${TMPDIR:-.}/check-$$"
-mkdir -m 0700 "$TMP" || exit
-# shellcheck disable=2034
-CLEANUP="[ \"${TMP-}\" ] && rm -rf \"\$TMP\""
-export TMPDIR="$TMP"
 
-trap 'exit 129' HUP
-trap 'exit 130' INT
-trap 'exit 143' TERM
+#
+# Main
+#
 
-[ "$CAUGHT" -gt 0 ] && exit $((CAUGHT + 128))
-
-umask 077
-touch "$TMP/file"
-ln -s "$TMP" "$TMP/symlink"
+touch "$TMPDIR/file"
+ln -s "$TMPDIR" "$TMPDIR/symlink"
 
 str_max="$(getconf PATH_MAX .)" && [ "$str_max" ] && 
 	[ "$str_max" -ge 4096 ] || str_max=4096
@@ -72,11 +57,11 @@ var="$long_str" env_get_fname var &&
 var="$long_path" env_get_fname var &&
 	abort "env_get_fname accepted an overly long path."
 
-var="$TMP/symlink/file" env_get_fname var &&
-	abort "env_get_fname does not refuse $TMP/symlink/file."
+var="$TMPDIR/symlink/file" env_get_fname var &&
+	abort "env_get_fname does not refuse $TMPDIR/symlink/file."
 
-var="$TMP/file" env_get_fname var ||
-	abort "env_get_fname refuses $TMP/file."
+var="$TMPDIR/file" env_get_fname var ||
+	abort "env_get_fname refuses $TMPDIR/file."
 
 
 exit 0

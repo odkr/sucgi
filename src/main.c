@@ -39,7 +39,7 @@
 #include "path.h"
 #include "str.h"
 #include "utils.h"
-#include "../config.h"
+#include "config.h"
 
 
 /*
@@ -76,16 +76,12 @@
 #define SCRIPT_HANDLERS	{".php=php", NULL}
 #endif
 
-#if !defined(WWW_USER)
-#define WWW_USER "www-data"
-#endif
-
 
 /*
  * Test suite
  */
 
-#if TESTING
+#if defined(TESTING) && TESTING
 
 #undef DOC_ROOT
 #define DOC_ROOT "/*"
@@ -96,7 +92,7 @@
 #undef SCRIPT_HANDLERS
 #define SCRIPT_HANDLERS {".sh=sh", NULL}
 
-#endif /* TESTING. */
+#endif /* !defined(TESTING) && TESTING */
 
 
 /*
@@ -145,34 +141,6 @@ main (void) {
 			fail("%s:%d: env_clear returned %u.",
 			      __FILE__, __LINE__ - 12, rc);
 	}
-
-
-	/*
-	 * Check if run by the webserver.
-	 */
-
-	/*
-	 * Guard against a system operator leaving suCGI world-executable.
-	 * NB: The test suite does not check whether this check works.
-	 */
-#if !TESTING
-	{
-		uid_t uid = getuid();
-		if (uid != 0) {
-			// suCGI does not aim to be thread-safe.
-			// cppcheck-suppress getpwuidCalled
-			struct passwd *pwd = getpwuid(uid);
-			if (!pwd) {
-				fail("lookup of UID %lu: %s.",
-		                     (unsigned long) uid, strerror(errno));
-			}
-			if (!str_eq(pwd->pw_name, WWW_USER)) {
-				fail("user %s: not permitted to run suCGI.",
-				     pwd->pw_name);
-			}
-		}
-	}
-#endif /* !TESTING. */
 
 
 	/*
@@ -367,7 +335,7 @@ main (void) {
 			fail("effective GID did not change.");
 		}
 
-#if !TESTING
+#if defined(TESTING) && TESTING
 		if (setegid(0) == 0) {
 			fail("could re-set process' effective GID to 0.");
 		}
@@ -380,7 +348,7 @@ main (void) {
 		if (setuid(0) == 0) {
 			fail("could re-set process' real UID to 0.");
 		}
-#endif /* !TESTING. */
+#endif /* defined(TESTING) && TESTING */
 	}
 
 
@@ -404,8 +372,7 @@ main (void) {
 	 * run arbitrary code as that user. This check guards against this.
 	 */
 
-	rc = path_check_wexcl(user->pw_uid, user->pw_gid,
-	                      path_trans, user->pw_dir);
+	rc = path_check_wexcl(user->pw_uid, path_trans, user->pw_dir);
 	switch (rc) {
 		case OK:
 			break;

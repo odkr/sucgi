@@ -69,8 +69,8 @@ path_check_len(const char *const path)
 }
 
 error
-path_check_wexcl(const uid_t uid, const gid_t gid,
-                 const char *const path, const char *const stop)
+path_check_wexcl(const uid_t uid, const char *const path,
+                 const char *const stop)
 {
 	char *p = NULL;	/* Current path. */
 
@@ -78,7 +78,7 @@ path_check_wexcl(const uid_t uid, const gid_t gid,
 	while (true) {
 		struct stat fstatus;
 		if (stat(p, &fstatus) != 0) return ERR_SYS;
-		if (!file_is_wexcl(uid, gid, &fstatus)) return ERR_NOT_EXCLW;
+		if (!file_is_wexcl(uid, &fstatus)) return ERR_NOT_EXCLW;
 		if (str_eq(p, stop) || str_eq(p, "/") || str_eq(p, ".")) break;
 		p = dirname(p);
 	}

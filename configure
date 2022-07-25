@@ -1,35 +1,32 @@
 #!/bin/sh
+# shellcheck disable=1091,2015
 
-set -eu
+#
+# Initialisation
+#
+
+set -Ceu
+readonly script_dir="${0%/*}"
+[ "$script_dir" ] || {
+	echo "configure: failed to find myself." >&2
+	exit 8
+}
+. "$script_dir/scripts/utils.sh" || exit
+init
+tmpdir tmp .
 
 
 #
 # Constants
 #
 
+# Number of child processes to spawn.
 readonly nchildren=4
 
 
 #
 # Functions
 #
-
-# Abort the script with an error message.
-abort() {
-	echo "${red-}$*${rst-}"
-	exit 8
-}
-
-# Clean up on exit.
-cleanup() {
-	status=$?
-	set +e
-	trap : EXIT HUP INT TERM
-	kill -15 -$$ >/dev/null 2>&1
-	[ "${TMP_FILE-}" ] && [ -e "$TMP_FILE" ] && rm -f "$TMP_FILE"
-	[ "${rst-}" ] && printf %s "$rst"
-	exit "$status"
-}
 
 # Add flags to cflags.
 add_cflags() {
@@ -38,7 +35,8 @@ add_cflags() {
 
 # Add macro definitions to cflags.
 add_macros() {
-	while [ $# -gt 0 ]; do
+	while [ $# -gt 0 ]
+	do
 		cflags="${cflags-} -D$1"
 		shift
 	done
@@ -46,34 +44,11 @@ add_macros() {
 
 
 #
-# Initialisation
-#
-
-trap cleanup EXIT
-trap 'exit 129' HUP
-trap 'exit 130' INT
-trap 'exit 143' TERM
-
-# shellcheck disable=1091
-. ./configure.env || exit
-
-rst='' bld='' grn='' red=''
-if [ -t 1 ] && [ -t 2 ]
-then
-	case ${TERM-} in (*color*)
-		if rst="$(tput sgr0 2>/dev/null)" && [ "$rst" ]
-		then
-			bld="$(tput bold 2>/dev/null)" || :
-			grn="$(tput setaf 2 2>/dev/null)" || :
-			red="$(tput setaf 1 2>/dev/null)" || :
-		fi
-	esac
-fi
-
-
-#
 # Options
 #
+
+# shellcheck disable=1091
+. "$script_dir/configure.env" || exit
 
 OPTIND=1 OPTARG='' opt=''
 force=''
@@ -90,11 +65,7 @@ while getopts fh opt; do
 			Environment:
 			    CC          The C compiler.
 			    CFLAGS      Flags to pass to the C compiler.
-			    DESTDIR     Destination for staged installations.
-			    PREFIX      Prefix for the installation target.
-			    SAFE_PATH   A safe PATH.
-			    STR_LIMIT   Size limit for untrusted strings.
-			    WWW_GROUP   Group the webserver runs as.
+			    PROJECTDIR  Root directory of the repository.
 
 			See README.md for details.
 			EOF
@@ -102,6 +73,44 @@ while getopts fh opt; do
 	esac
 done
 shift $((OPTIND - 1))
+unset opt
+
+
+#
+# Base directory.
+#
+
+printf 'Project directory: '
+
+if [ "${PROJECTDIR-}" ]
+then
+	if ! isportable "$PROJECTDIR"
+	then
+		# shellcheck disable=2154
+		printf '\a%s' "(${red}given name is not portable$reset) "
+		unset PROJECTDIR
+	elif ! [ -e "$PROJECTDIR" ]
+	then
+		# shellcheck disable=2154
+		printf '\a%s' "(${red}given directory does not exist)$reset "
+		unset PROJECTDIR
+	elif ! [ -d "$PROJECTDIR" ]
+	then
+		# shellcheck disable=2154
+		printf '\a%s' "(${red}given file is not a directory)$reset "
+		unset PROJECTDIR
+	fi
+fi
+
+if ! [ "${PROJECTDIR-}" ]
+then
+	if isportable "$script_dir"
+		then PROJECTDIR="$script_dir"
+		else PROJECTDIR=.
+	fi
+fi
+
+echo "$PROJECTDIR"
 
 
 #
@@ -126,7 +135,8 @@ then
 	echo "$CC"
 else
 	CC=
-	echo "\a${red}none found.${rst}"
+	# shellcheck disable=2154
+	echo "\a${red}none found.$reset"
 fi
 
 
@@ -189,36 +199,41 @@ fi
 #
 
 errors=0
-for input in *.in
+for input in "$PROJECTDIR/"*.in
 do
-	[ "$input" = '*.in' ] && break
-	output="${input%.in}"
+	[ "$input" = "$PROJECTDIR/*.in" ] && break
+	name="$(basename "$input")" ||
+		abort "$input: failed to get basename."
+	output="${name%.in}"
 
+	# shellcheck disable=2154
 	[ -e "$output" ] && ! [ "$force" ] &&
-		abort "$bld$output$rst$red exists$rst," \
-		      "give $bld-f$rst to overwrite."
+		abort "$bold$output$reset$red exists$reset," \
+		"give $bold-f$reset to overwrite."
 
-	printf 'generating %s ... ' "$bld$output$rst"
+	# shellcheck disable=2154
+	printf 'generating %s ... ' "$bold$output$reset"
 
-	TMP_FILE="$output.tmp"
+	swap="$TMPDIR/$output"
 	if m4	-D__CC="${CC-}"				\
-		-D__CFLAGS="${CFLAGS# }"			\
-		-D__WWW_GROUP="${WWW_GROUP-"www-data"}"	\
-		"$input" >"$TMP_FILE"
+		-D__CFLAGS="${CFLAGS# }"		\
+		-D__PROJECTDIR="${PROJECTDIR%/}"	\
+		"$input" >"$swap"
 	then
-		mv "$TMP_FILE" "$output"
+		mv "$swap" "$output"
 		echo 'done.'
 	else
-		rm -f "$TMP_FILE" >/dev/null 2>&1 || :
+		rm -f "$swap" >/dev/null 2>&1 || :
 		errors=$((errors + 1))
-		echo "\a${red}failed.$rst"
+		echo "\a${red}failed.$reset"
 	fi
-	unset TMP_FILE
+	unset swap
 done
 
+# shellcheck disable=2154
 case $errors in
-	(0) echo "${grn}all done.$rst" ;;
-	(*) echo "\a$red$errors file(s) could not be generated.$rst"
+	(0) echo "${green}all done.$reset" ;;
+	(*) echo "\a$red$errors file(s) could not be generated.$reset"
 esac
 
 exit $errors

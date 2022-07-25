@@ -1,61 +1,56 @@
 #!/bin/sh
-#shellcheck disable=2015
-
-set -u
-
-#
-# Constants
-#
-
-readonly nchildren=4
-
-
-#
-# Functions
-#
-
-# Print a warning to STDERR.
-warn() {
-	echo "check: $*"
-}
-
-# Print a warning to STDERR and abort the script.
-abort() {
-	warn "$red$*$rst"
-	exit 8
-}
-
-# Clean up on exit.
-cleanup() {
-	status=$?
-	trap : EXIT HUP INT TERM
-	kill -15 -$$ >/dev/null 2>&1
-	[ "${rst-}" ] && printf %s "$rst"
-	exit "$status"
-}
-
+# Run the test suite.
+# shellcheck disable=2015
 
 #
 # Initialiation
 #
 
-trap cleanup EXIT
-trap 'exit 129' HUP
-trap 'exit 130' INT
-trap 'exit 143' TERM
+set -u
+readonly script_dir="${0%/*}"
+# shellcheck disable=1091
+. "$script_dir/utils.sh" || exit
+init || exit
 
-rst='' bld='' grn='' red=''
-if [ -t 1 ]
-then
-	case ${TERM-} in (*color*)
-		if rst="$(tput sgr0 2>/dev/null)" && [ "$rst" ]
-		then
-			bld="$(tput bold 2>/dev/null)" || : 
-			grn="$(tput setaf 2 2>/dev/null)" || :
-			red="$(tput setaf 1 2>/dev/null)" || :
-		fi
+
+#
+# Constants
+#
+
+# Number of child processes to spawn.
+readonly nchildren=4
+
+
+
+#
+# Options
+#
+
+OPTIND=1 OPTARG='' opt=''
+while getopts t:h opt; do
+	case $opt in
+		(t) export TESTSDIR="$OPTARG" ;;
+		(h) exec cat <<-EOF ;;
+			check - Run the test suite.
+
+			Synopsis:
+			    check [-t DIR] TEST [TEST [...]]
+			    check -h
+
+			Operands:
+			    TEST  A test.
+
+			Options:
+			    -t DIR  Set \$TESTSDIR to DIR.
+			    -h      Show this help screen.
+			
+			See README.md for details.
+			EOF
+		(*) exit 8
 	esac
-fi
+done
+shift $((OPTIND - 1))
+unset opt
 
 
 #
@@ -66,9 +61,10 @@ fi
 
 errors=0 pids=
 while [ $# -gt 0 ]; do
-	name="$(basename "$1")" && [ "$name" ] || abort "basename $1 failed."
+	name="$(basename "$1")" && [ "$name" ] ||
+		abort "failed to get basename of $1."
 
-	"./$1" >/dev/null 2>&1 &
+	"$1" >/dev/null 2>&1 &
 	pids="$pids $!"
 	eval "test_$!"='$name'
 	shift
@@ -77,7 +73,8 @@ while [ $# -gt 0 ]; do
 		for pid in $pids; do
 			eval name="\"\$test_$pid\""
 			if ! wait "$pid"; then
-				warn "$red$bld$name$rst$red failed!$rst"
+				# shellcheck disable=2154
+				warn "$red$bold$name$reset$red failed!$reset"
 				errors=$((errors + 1))
 			fi
 		done
@@ -85,6 +82,7 @@ while [ $# -gt 0 ]; do
 	fi
 done
 
-[ "$errors" -eq 0 ] && warn "${grn}all tests passed.$rst"
+# shellcheck disable=2154
+[ "$errors" -eq 0 ] && warn "${green}all tests passed.$reset"
 
 exit "$errors"

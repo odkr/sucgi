@@ -1,0 +1,33 @@
+#!/bin/sh
+# Check whether the distribution works.
+
+#
+# Initialiation
+#
+
+set -Cefu
+readonly script_dir="${0%/*}"
+# shellcheck disable=1091
+. "$script_dir/utils.sh" || exit
+init || exit
+tmpdir dchk
+
+
+#
+# Main
+#
+
+[ $# -gt 0 ] || abort "not enough operands." 
+
+cp "$1.tgz" "$TMPDIR"
+cd "$TMPDIR" || exit
+tar -xzf "$1.tgz"
+cleanup="chmod -R u+w \"\$TMPDIR\"; ${cleanup-}"
+chmod -R ugo-w "$1"
+"$1/configure"
+make "$1.tgz"
+make
+make check || sh
+chmod -R u+w .
+make distclean
+test ! -e makefile -a ! -e config.h -a ! -e build

@@ -2,34 +2,27 @@
 # Check if fail prints a message to STDERR that contains "foo"
 # and exits with a non-zero status.
 # shellcheck disable=1091
-set -x
+
+#
+# Initialisation
+#
+
 set -Cefu
+readonly script_dir="${0%/*}"
+# shellcheck disable=1091
+. "$script_dir/../utils.sh" || exit
+init || exit
+PATH="${TESTSDIR:-./build/tests}:$PATH"
 
-dir="$(dirname "$0")" && [ "$dir" ]
-cd -P "$dir" || exit
-. ./utils.sh || exit
-PATH="../../build/tests:$PATH"
+tmpdir chk
 
-trap cleanup EXIT
 
-CAUGHT=0
-trap 'CAUGHT=1' HUP
-trap 'CAUGHT=2' INT
-trap 'CAUGHT=15' TERM
+#
+# Main
+#
 
-readonly TMP="${TMPDIR:-.}/chk-$$.tmp"
-mkdir -m 0700 "$TMP" || exit
-# shellcheck disable=2034
-CLEANUP="[ \"${TMP-}\" ] && rm -rf \"\$TMP\""
-export TMPDIR="$TMP"
 
-trap 'exit 129' HUP
-trap 'exit 130' INT
-trap 'exit 143' TERM
-
-[ "$CAUGHT" -gt 0 ] && exit $((CAUGHT + 128))
-
-fifo="$TMP/fifo"
+fifo="$TMPDIR/fifo"
 mkfifo -m 0700 "$fifo"
 
 fail >"$fifo" 2>&1 & pid=$!

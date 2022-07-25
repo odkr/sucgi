@@ -26,21 +26,19 @@ main (int argc, char **argv)
 	const char *fname = NULL;
 	const char *stop = NULL;
 	uid_t uid = 0;
-	gid_t gid = 0;
 
 	errno = 0;
 
 	switch (argc) {
-		case 5:
+		case 4:
 			str_to_id_f(argv[1], &uid);
-			str_to_id_f(argv[2], &gid);
-			fname = argv[3];
-			stop = argv[4];
+			fname = argv[2];
+			stop = argv[3];
 			break;
 		default:
 			die("usage: path_check_wexcl UID GID FNAME STOP");
 			break;
 	}
 
-	return (int) path_check_wexcl(uid, gid, fname, stop);
+	return (int) path_check_wexcl(uid, fname, stop);
 }

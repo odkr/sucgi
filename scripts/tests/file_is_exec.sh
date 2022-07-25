@@ -2,34 +2,26 @@
 # Test if file_is_exec correctly identifies executables.
 # shellcheck disable=1091,2015
 
+#
+# Initialisation
+#
+
 set -Cefu
+readonly script_dir="${0%/*}"
+# shellcheck disable=1091
+. "$script_dir/../utils.sh" || exit
+init || exit
+PATH="${TESTSDIR:-./build/tests}:$PATH"
 
-dir="$(dirname "$0")" && [ "$dir" ]
-cd -P "$dir" || exit
-. ./utils.sh || exit
-PATH="../../build/tests:$PATH"
+tmpdir chk
 
-trap cleanup EXIT
 
-CAUGHT=0
-trap 'CAUGHT=1' HUP
-trap 'CAUGHT=2' INT
-trap 'CAUGHT=15' TERM
-
-readonly TMP="${TMPDIR:-.}/chk-$$.tmp"
-mkdir -m 0700 "$TMP" || exit
-# shellcheck disable=2034
-CLEANUP="[ \"${TMP-}\" ] && rm -rf \"\$TMP\""
-export TMPDIR="$TMP"
-
-trap 'exit 129' HUP
-trap 'exit 130' INT
-trap 'exit 143' TERM
-
-[ "$CAUGHT" -gt 0 ] && exit $((CAUGHT + 128))
+#
+# Main
+#
 
 umask 0777
-fname="$TMP/file"
+fname="$TMPDIR/file"
 touch "$fname"
 
 no="ugo= ug=,o=x"

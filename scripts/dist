@@ -1,0 +1,33 @@
+#!/bin/sh
+# Create a distribution.
+
+#
+# Initialiation
+#
+
+set -Cefu
+readonly script_dir="${0%/*}"
+# shellcheck disable=1091
+. "$script_dir/utils.sh" || exit
+init || exit
+
+
+#
+# Main
+#
+
+[ $# -lt 2 ] && abort "not enough operands."
+
+readonly name="$1"
+shift
+
+catch=
+mkdir -m u=rwx,go= "$name"
+cleanup="rm -rf \"\$name\"; ${cleanup-}"
+# shellcheck disable=2034
+catch=x
+[ "${caught-}" ] && exit "$((caught + 128))"
+
+cp -a "$@" "$name/"
+chmod -R u+rw,go= "$name/"
+tar -czf "$name.tgz" "$name"

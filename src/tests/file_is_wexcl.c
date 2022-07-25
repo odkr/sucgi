@@ -27,15 +27,13 @@ main (int argc, char **argv)
 	struct stat fstatus;
 	const char *fname = NULL;
 	id_t uid = 0;
-	id_t gid = 0;
 
 	errno = 0;
 
 	switch (argc) {
-		case 4:
+		case 3:
 			str_to_id_f(argv[1], &uid);
-			str_to_id_f(argv[2], &gid);
-			fname = argv[3];
+			fname = argv[2];
 			break;
 		default:
 			die("usage: file_is_wexcl UID GID FNAME");
@@ -46,6 +44,6 @@ main (int argc, char **argv)
 		die("file_is_wexcl: stat %s: %s.", fname, strerror(errno));
 	}
 
-	if (file_is_wexcl(uid, gid, &fstatus)) return EXIT_SUCCESS;
+	if (file_is_wexcl(uid, &fstatus)) return EXIT_SUCCESS;
 	return EXIT_FAILURE;
 }

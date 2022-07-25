@@ -14,23 +14,29 @@ define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
 
 
 /*
- * A shell wildcard pattern that matches safe document root directories.
+ * Which document root directories are safe?
+ *
+ * Shell wildcard pattern.
  * CGI programmes are only run if they are inside a matching document root.
+ *
  * This definition should correspond to the UserDir directive of your
  * Apache configuration (or the equivalent of your webserver).
  */
 #define DOC_ROOT "/home/*/public_html"
 
 /*
- * The smallest UID that may have been assigned to a regular user.
+ * Smallest UID that may be assigned to a regular user.
+ *
  * On most systems, this will be 500 (e.g., macOS) or 1000 (e.g, Debian).
  */
 #define MIN_UID 1000
 
 /*
- * The largest UID that may have been assigned to a regular user.
+ * Largest UID that may be assigned to a regular user.
+ *
+ * Some privileged users (e.g., nobody) tend to be assigned high user IDs.
  * On most systems, the largest UID of a regular user will be 60,000.
- * However, some systems use 32,767 for nobody.
+ * Note, some systems use 32,767 for nobody.
  */
 #define MAX_UID 30000
 
@@ -53,15 +59,8 @@ define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
 	NULL	/* Array terminator. DO NOT REMOVE. */	\
 }
 
-/*
- * A secure $PATH. 
- * Set before the CGI programme is run.
- */
+/* A secure $PATH. */
 #define SECURE_PATH "/usr/bin:/bin"
-
-/* The user your webserver runs as. */
-#define WWW_USER "www-data"
-
 
 
 /*

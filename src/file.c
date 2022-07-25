@@ -48,11 +48,10 @@ file_is_exec(const struct stat *const fstatus)
 }
 
 bool
-file_is_wexcl(const uid_t uid, const gid_t gid,
-              const struct stat *const fstatus)
+file_is_wexcl(const uid_t uid, const struct stat *const fstatus)
 {
 	return     fstatus->st_uid == uid
-		&& (fstatus->st_gid == gid || !(fstatus->st_mode & S_IWGRP))
+		&& !(fstatus->st_mode & S_IWGRP)
 		&& !(fstatus->st_mode & S_IWOTH);
 }
 
