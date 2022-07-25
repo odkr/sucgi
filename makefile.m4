@@ -105,8 +105,8 @@ DISTFILES = $(PROJECTDIR)/config.h.m4 \
 #
 
 PREFIX = /usr/local
-WWW_GROUP = default([___WWW_GROUP], [www-data])
-CGI_BIN = /usr/lib/cgi-bin
+WWWGRP = www-data
+CGIBIN = /usr/lib/cgi-bin
 
 
 #
@@ -408,10 +408,10 @@ $(DISTAR).asc: $(DISTAR)
 
 install: $(BUILDDIR)/sucgi
 	$(SCRIPTDIR)/install -b $(BUILDDIR) -d $(DESTDIR) -p $(PREFIX) \
-		-c $(CGI_BIN) -w $(WWW_DATA)
+		-c $(CGIBIN) -w $(WWWGRP)
 
 uninstall:
-	rm -f $(CGI_BIN)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
+	rm -f $(CGIBIN)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
 
 .PHONY: all analysis cov check clean dist distcheck distclean \
 	install uninstall

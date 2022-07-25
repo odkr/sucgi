@@ -176,11 +176,11 @@ PREFIX
     Prefix for installation targets
     (defaults to */usr/local*).
 
-CGI_BIN
+CGIBIN
     Path to your webserver's */cgi-bin* directory
     (defaults to */usr/lib/cgi-bin*).
 
-WWW_GROUP
+WWWGRP
     Group the webserver runs as
     (defaults to "www-data").
 
