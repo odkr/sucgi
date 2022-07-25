@@ -15,35 +15,26 @@ PATH="${TESTSDIR:-./build/tests}:$script_dir/../../build/tests:$PATH"
 tmpdir chk
 : "${LOGNAME:?}"
 
-
-#
-# Non-root test
-#
-
-checkerr 'Operation not permitted.' drop_privs "$LOGNAME"
-
-
-#
-# Interlude
-#
-
-uid="$(id -u)" && [ "$uid" ] ||
+euid="$(id -u)" && [ "$euid" ] ||
 	abort "failed to get process' effective UID."
 
-# The checks below only work if drop_privs.sh is invoked as root.
-[ "$uid" -ne 0 ] && exit
-
-uid="$(regularuid)" && [ "$uid" ] ||
-	abort "failed to get non-root user ID of caller."
-user="$(id -un "$uid")" && [ "$user" ] ||
-	abort "failed to name of user with ID $uid."
-gid="$(id -g "$user")" && [ "$gid" ] ||
-	abort "failed to get ID of $user's primary group."
 
 #
-# Root test
+# Test
 #
 
-checkok "effective: $uid:$gid; real: $uid:$gid." drop_privs "$user"
+if [ "$euid" -eq 0 ]
+then
+	uid="$(regularuid)" && [ "$uid" ] ||
+		abort "failed to get non-root user ID of caller."
+	user="$(id -un "$uid")" && [ "$user" ] ||
+		abort "failed to name of user with ID $uid."
+	gid="$(id -g "$user")" && [ "$gid" ] ||
+		abort "failed to get ID of $user's primary group."
+
+	checkok "effective: $uid:$gid; real: $uid:$gid." drop_privs "$user"
+else
+	checkerr 'Operation not permitted.' drop_privs "$LOGNAME"
+fi
 
 exit 0
