@@ -9,10 +9,6 @@ set -Ceu
 exec >&2
 
 readonly script_dir="${0%/*}"
-[ "$script_dir" ] || {
-	echo "failed to locate $0."
-	exit 8
-}
 . "$script_dir/scripts/utils.sh" || exit
 init
 tmpdir tmp .
