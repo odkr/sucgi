@@ -8,7 +8,7 @@
 *.tgz
 *.tgz.asc
 build
-coverage
+cov
 config.h
 makefile
 tests/*

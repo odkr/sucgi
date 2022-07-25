@@ -28,7 +28,7 @@ PROJECTDIR = default([__PROJECTDIR], .)
 SRCDIR = $(PROJECTDIR)/src
 SCRIPTDIR = $(PROJECTDIR)/scripts
 BUILDDIR = build
-COVDIR = coverage
+COVDIR = cov
 
 
 #
@@ -384,14 +384,26 @@ clean:
 	rm -f $(DISTAR) $(DISTAR).asc lcov.info
 	find . -type d -name 'tmp-*' -exec rm '{}' +
 
-$(COVDIR):
+$(COVDIR)/.sentinel:
 	mkdir $(COVDIR)
+	touch $(COVDIR)/.sentinel
 
-lcov.info: clean coverage
+$(COVDIR)/data/.sentinel: $(COVDIR)/.sentinel
+	mkdir $(COVDIR)/data
+	touch $(COVDIR)/data/.sentinel
+
+lcov.info: clean $(COVDIR)/data/.sentinel
 	make CC=gcc GCOVFLAGS='-fprofile-arcs -ftest-coverage' check
 	chmod -R u=rw *.gcno *.gcda
 	mv *.gcno *.gcda coverage
 	lcov --directory coverage --capture --output-file lcov.info
+
+$(COVDIR)/html/.sentinel: $(COVDIR)/.sentinel
+	mkdir $(COVDIR)/html
+	touch $(COVDIR)/html/.sentinel
+
+$(COVDIR)/html/index.html: lcov.info $(COVDIR)/html/.sentinel
+	genhtml -o $(COVDIR)/html lcov.info
 
 dist: $(DISTAR) $(DISTAR).asc
 
