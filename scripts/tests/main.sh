@@ -182,7 +182,7 @@ mkfifo "$fifo"
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$grpw" \
 	checkerr "$grpw: can be altered by users other than $user." main
 
-DOCUMENT_ROOT="$HOME" PATH_TRANSLATED="$tmpdir/script.sh" \
+DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/script.sh" \
 	checkok 'This is a test script for main.sh and run_script.sh.' main
 
 user="$tmpdir/user.sh"
