@@ -110,6 +110,11 @@ CC
 CFLAGS
     Flags to give to the compiler.
 
+PROJECTDIR
+    Top-level directory of the repository
+    (defaults to the directory that *configure* is in).
+    Must comprise alphanumeric characters plus '/', '.', '-', and '_' only.
+
 
 Compilation
 -----------
@@ -134,13 +139,19 @@ LDLIBS
     Flags or names to give to the compiler when it invokes the linker
     (default depends on *make*).
 
-DESTDIR
-    Prefix for staged installations
-    (default depends on *make*).
+PROJECTDIR
+    Top-level directory of the repository
+    (defaults to the directory that *configure* is in).
 
-PREFIX
-    Prefix for installation targets
-    (defaults to */usr/local*).
+SRCDIR
+    Location of the source files
+    (defaults to ``$(PROJECTDIR)/src``).
+    Must not contain whitespace of magic characters!
+
+BUILDDIR
+    Directory to place built files in
+    (defaults to *build* in the current working directory).
+    Must not contain whitespace of magic characters!
 
 The following macros govern compilation:
 
@@ -155,6 +166,14 @@ Installation
 Install suCGI by ``make install``.
 
 You can pass the following variables to ``make`` to adapt the installation:
+
+DESTDIR
+    Prefix for staged installations
+    (default depends on *make*).
+
+PREFIX
+    Prefix for installation targets
+    (defaults to */usr/local*).
 
 CGI_BIN
     Path to your webserver's */cgi-bin* directory
