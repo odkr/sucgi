@@ -205,9 +205,12 @@ do
 	output="${name%.m4}"
 
 	# shellcheck disable=2154
-	[ -e "$output" ] && ! [ "$force" ] &&
-		abort "$bold$output$reset$red exists$reset," \
-		"give $bold-f$reset to overwrite."
+	if [ -e "$output" ] && ! [ "$force" ]
+	then
+		warn "$bold$output$reset$red exists$reset," \
+		     "give $bold-f$reset to overwrite."
+		continue
+	fi
 
 	# shellcheck disable=2154
 	printf 'generating %s ... ' "$bold$output$reset"
