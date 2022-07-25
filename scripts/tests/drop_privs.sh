@@ -17,9 +17,33 @@ tmpdir chk
 
 
 #
-# Tests
+# Non-root test
 #
 
 checkerr 'Operation not permitted.' drop_privs "$LOGNAME"
+
+
+#
+# Interlude
+#
+
+uid="$(id -u)" && [ "$uid" ] ||
+	abort "failed to get process' effective UID."
+
+# The checks below only work if drop_privs.sh is invoked as root.
+[ "$uid" -ne 0 ] && exit
+
+uid="$(regularuid)" && [ "$uid" ] ||
+	abort "failed to get non-root user ID of caller."
+user="$(id -un "$uid")" && [ "$user" ] ||
+	abort "failed to name of user with ID $uid."
+gid="$(id -g "$user")" && [ "$gid" ] ||
+	abort "failed to get ID of $user's primary group."
+
+#
+# Root test
+#
+
+checkok "effective: $uid:$gid; real: $uid:$gid." drop_privs "$user"
 
 exit 0

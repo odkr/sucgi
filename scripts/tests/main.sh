@@ -19,43 +19,6 @@ TMPDIR="$(realdir "$TMPDIR")" && [ "$TMPDIR" ] ||
 
 
 #
-# Functions
-#
-
-# Get the UID of the user who invoked the script,
-# even if the script has been invoked via su or sudo.
-regularuid() (
-        pivot="$$"
-        fifo="${TMPDIR:?}/ps.fifo"
-        mkfifo "$fifo"
-
-        while true
-        do
-                ps -Ao 'pid= ppid= user=' | sort -r >"$fifo" & sort=$!
-                while read -r pid ppid user
-                do
-                        [ "$pid" -eq "$pivot" ] || continue
-
-                        uid="$(id -u "$user")" && [ "$uid" ] || continue
-                        if [ "$uid" -ne 0 ]
-                        then
-                                echo "$uid"
-                                return 0
-                        elif [ "$ppid" -gt 1 ]
-                        then
-                                pivot="$ppid"
-                        else
-                                return 1
-                        fi
-                done <"$fifo"
-                wait "$sort"
-        done
-)
-
-
-
-
-#
 # Prelude
 #
 
