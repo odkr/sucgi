@@ -9,7 +9,8 @@ on:
 jobs:
   codacy-coverage-reporter:
     permissions:
-      contents: read # for actions/checkout to fetch code
+      contents: read
+      security-events: read
     runs-on: macos-latest
     name: codacy-coverage-reporter
     steps:
@@ -24,6 +25,4 @@ jobs:
         uses: codacy/codacy-coverage-reporter-action@v1
         with:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          # or
-          # api-token: ${{ secrets.CODACY_API_TOKEN }}
           coverage-reports: lcov.info
