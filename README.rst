@@ -146,12 +146,12 @@ PROJECTDIR
 SRCDIR
     Location of the source files
     (defaults to ``$(PROJECTDIR)/src``).
-    Must not contain whitespace of magic characters!
 
 BUILDDIR
     Directory to place built files in
     (defaults to *build* in the current working directory).
-    Must not contain whitespace of magic characters!
+
+Filenames given to *make* must not comprise whitespace or magic characters!
 
 The following macros govern compilation:
 
@@ -182,6 +182,8 @@ CGI_BIN
 WWW_GROUP
     Group the webserver runs as
     (defaults to "www-data").
+
+Filenames given to *make* must not comprise whitespace or magic characters!
 
 
 Other *makefile* targets
