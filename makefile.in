@@ -115,10 +115,10 @@ build/tests/main: $(SRCDIR)/main.c build/env.o build/err.o build/file.o build/pa
 	$(CC) -I . -D TESTING=1 -D PACKAGE=fake-$(PACKAGE) -D VERSION=$(VERSION) $(LDFLAGS) $(CFLAGS) -Wno-unused-macros -o $@ $< build/env.o build/err.o build/file.o build/path.o build/str.o build/utils.o $(LDLIBS)
 
 analysis:
-	cppcheck $(CPPCHECKFLAGS) --enable=all -U __NR_openat2 -D O_NOFOLLOW_ANY=1 $(SRCDIR)
-	cppcheck $(CPPCHECKFLAGS) --enable=unusedFunction $(SRCDIR)/*.c
+	cppcheck $(CPPCHECKFLAGS) --enable=all -I . -U __NR_openat2 -D O_NOFOLLOW_ANY=1 $(SRCDIR)
+	cppcheck $(CPPCHECKFLAGS) --enable=unusedFunction -I . $(SRCDIR)/*.c
 	flawfinder --error-level=1 -m 0 -D -Q .
-	shellcheck configure $(SCRIPTDIR)/* $(SCRIPTDIR)/tests/*
+	find $(SCRIPTDIR) -type f | xargs shellcheck configure
 
 check: $(TEST_BINS)
 	$(SCRIPTDIR)/check -t build/tests $(TESTS)
