@@ -201,12 +201,12 @@ fi
 #
 
 errors=0
-for input in "$PROJECTDIR/"*.in
+for input in "$PROJECTDIR/"*.m4
 do
 	[ "$input" = "$PROJECTDIR/*.in" ] && break
 	name="$(basename "$input")" ||
 		abort "$input: failed to get basename."
-	output="${name%.in}"
+	output="${name%.m4}"
 
 	# shellcheck disable=2154
 	[ -e "$output" ] && ! [ "$force" ] &&

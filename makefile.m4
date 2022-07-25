@@ -24,7 +24,7 @@ TESTS = $(SCRIPTDIR)/tests/fail.sh build/tests/env_clear $(SCRIPTDIR)/tests/env_
 
 DIST_NAME = $(PACKAGE)-$(VERSION)
 DIST_ARCHIVE = $(DIST_NAME).tgz
-DIST_FILES = $(PROJECTDIR)/config.h.in $(PROJECTDIR)/configure $(PROJECTDIR)/configure.env $(PROJECTDIR)/makefile.in $(PROJECTDIR)/README.rst $(SCRIPTDIR) $(SRCDIR)
+DIST_FILES = $(PROJECTDIR)/config.h.m4 $(PROJECTDIR)/configure $(PROJECTDIR)/configure.env $(PROJECTDIR)/makefile.m4 $(PROJECTDIR)/README.rst $(SCRIPTDIR) $(SRCDIR)
 
 all: build/sucgi
 
@@ -151,4 +151,5 @@ uninstall:
 	rm -f $(CGI_BIN)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
 
 .PHONY: all analysis check clean dist distcheck distclean install uninstall
+
 .IGNORE: analysis
