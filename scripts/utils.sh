@@ -21,6 +21,7 @@ checkerr() (
 	err="${1:?}"
 	shift
 	: "${1:?no programme given}"
+	: "${__tmpdir_tmpdir:?checkok needs a temporary directory}"
 	fifo="$TMPDIR/${1##*/}.fifo"
 	mkfifo "$fifo"
 	"${@:?}" >/dev/null 2>"$fifo" & pid="$!"
@@ -36,6 +37,7 @@ checkok() (
 	msg="${1:?}"
 	shift
 	: "${1:?no programme given}"
+	: "${__tmpdir_tmpdir:?checkok needs a temporary directory}"
 	fifo="$TMPDIR/${1##*/}.fifo"
 	mkfifo "$fifo"
 	"${@:?}" >"$fifo" 2>&1 & pid="$!"
