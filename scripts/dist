@@ -75,3 +75,6 @@ catch=x
 cp -a "$@" "$name/"
 chmod -R u+rw,go= "$name/"
 tar -czf "$arch" "$name"
+
+# shellcheck disable=2154
+warn "$green$bold$arch$reset$green created.$reset"

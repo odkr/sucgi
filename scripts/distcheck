@@ -75,3 +75,6 @@ make check || sh
 chmod -R u+w .
 make distclean
 test ! -e makefile -a ! -e config.h -a ! -e build
+
+# shellcheck disable=2154
+warn "$green$bold$arch$reset$green passed.$reset"

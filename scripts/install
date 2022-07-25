@@ -90,3 +90,5 @@ catch=x
 [ "${caught-}" ] && exit "$((caught + 128))"
 
 unset cleanup
+# shellcheck disable=2154
+warn "${green}installation succeeded.$reset"
