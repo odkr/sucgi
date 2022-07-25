@@ -10,6 +10,7 @@
 build
 cov
 config.h
+lcov.info
 makefile
 tests/*
 !tests/*.c
