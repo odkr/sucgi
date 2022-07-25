@@ -289,6 +289,10 @@ main (void) {
 	 *	cp -a /home/doe/public_html/wp-plugins/acme ./acme
 	 *	chown -R smith:smith acme
 	 */
+
+	// user is checked above.
+	// cppcheck-suppress unmatchedSuppression
+	// cppcheck-suppress nullPointer
 	if (!path_contains(user->pw_dir, doc_root)) {
 		fail("document root %s is not in %s's home directory.",
 		     doc_root, user->pw_name);
@@ -302,6 +306,9 @@ main (void) {
 	 * run arbitrary code as that user. This check guards against this.
 	 */
 
+	// user is checked above.
+	// cppcheck-suppress unmatchedSuppression
+	// cppcheck-suppress nullPointer
 	rc = path_check_wexcl(user->pw_uid, path_trans, user->pw_dir);
 	switch (rc) {
 		case OK:
