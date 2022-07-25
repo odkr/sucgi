@@ -382,6 +382,7 @@ check: $(CHECKBINS)
 clean:
 	rm -rf $(BUILDDIR) $(COVDIR) $(DISTNAME)
 	rm -f $(DISTAR) $(DISTAR).asc lcov.info
+	find . -type d -name 'tmp-*' -exec rm '{}' +
 
 $(COVDIR):
 	mkdir $(COVDIR)
