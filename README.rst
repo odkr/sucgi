@@ -66,7 +66,7 @@ Please take the time to read and evaluate the source code.
 
 ----
 
-Generate the makefile by::
+Generate *config.h* and *makefile* by::
 
     ./configure
 
@@ -114,7 +114,6 @@ CFLAGS
 PROJECTDIR
     Top-level directory of the repository
     (defaults to the directory that *configure* is in).
-    Must comprise alphanumeric characters plus '/', '.', '-', and '_' only.
 
 
 Compilation
@@ -152,7 +151,7 @@ BUILDDIR
     Directory to place built files in
     (defaults to *build* in the current working directory).
 
-Filenames given to *make* must not comprise whitespace or magic characters!
+Filenames must *not* comprise whitespace or magic characters!
 
 The following macros govern compilation:
 
@@ -184,8 +183,7 @@ WWWGRP
     Group the webserver runs as
     (defaults to "www-data").
 
-Filenames given to *make* must not comprise whitespace or magic characters!
-
+Filenames must *not* comprise whitespace or magic characters!
 
 Other *makefile* targets
 ------------------------
