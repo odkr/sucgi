@@ -11,7 +11,7 @@ readonly script_dir="${0%/*}"
 # shellcheck disable=1091
 . "$script_dir/../utils.sh" || exit
 init || exit
-PATH="${TESTSDIR:-./build/tests}:$PATH"
+PATH="${TESTSDIR:-./build/tests}:$script_dir/../../build/tests:$PATH"
 tmpdir chk
 
 
