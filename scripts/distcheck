@@ -65,7 +65,7 @@ name="${1:?}"
 
 cp "$arch" "$TMPDIR"
 cd "$TMPDIR" || exit
-tar -xzf "$1.tgz"
+tar -xzf "$arch"
 cleanup="chmod -R u+w \"\$TMPDIR\"; ${cleanup-}"
 chmod -R ugo-w "$1"
 "$name/configure"
