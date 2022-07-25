@@ -39,5 +39,5 @@ main (int argc, char **argv)
 	       (unsigned long) geteuid(), (unsigned long) getegid(),
 	       (unsigned long) getuid(), (unsigned long) getgid());
 
-	return EXIT_FAILURE;
+	return EXIT_SUCCESS;
 }
