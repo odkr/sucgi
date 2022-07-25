@@ -1,0 +1,25 @@
+name: codacy-coverage-reporter
+
+on:
+  push:
+    branches: [ "main", "release-*" ]
+  pull_request:
+    branches: [ "main", "release-*" ]
+
+jobs:
+  codacy-coverage-reporter:
+    runs-on: ubuntu-latest
+    name: codacy-coverage-reporter
+    steps:
+      - uses: actions/checkout@v3
+      - name: configure
+        run: ./configure -f
+      - name: make sucgi.info
+        run: make sucgi.info
+      - name: Run codacy-coverage-reporter
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          # or
+          # api-token: ${{ secrets.CODACY_API_TOKEN }}
+          coverage-reports: sucgi.info
