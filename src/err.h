@@ -72,9 +72,7 @@ typedef enum {
  */
 
 /* Log message as an fail and exit the programme with EXIT_FAILURE. */
-// This is not a call to the access() function.
-// flawfinder: ignore
-__attribute__((noreturn, access(read_only, 1), format(printf, 1, 2)))
+__attribute__((noreturn, ACCESS_RO(1), format(printf, 1, 2)))
 void fail(const char *const message, ...);
 
 

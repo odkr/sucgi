@@ -22,8 +22,12 @@
 #if !defined(SRC_ATTR_H)
 #define SRC_ATTR_H
 
+/* Excise function attributes unless the compiler understands GNU C. */
 #if !defined(__GNUC__)
-#define __atribute__(attr) /* Excise function attributes. */
+#define __atribute__(attr)
 #endif /* !defined(__GNUC__) */
+
+/* Shorthand for access(read_only, ...). */
+#define ACCESS_RO(...) access(read_only, __VA_ARGS__)
 
 #endif /* !defined(SRC_ATTR_H) */

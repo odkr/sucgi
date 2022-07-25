@@ -40,9 +40,7 @@
  *      ERR_STR_LEN  PATH is too long.
  *      ERR_SYS      System failure. errno(2) should be set.
  */
-// This is not a call to access.
-// flawfinder: ignore
-__attribute__((access(read_only, 1)))
+__attribute__((ACCESS_RO(1)))
 error path_check_len(const char *const path);
 
 /*
@@ -55,9 +53,7 @@ error path_check_len(const char *const path);
  *      ERR_STR_LEN    The path is longer than STR_MAX_LEN.
  *      ERR_SYS        System failure. errno(2) should be set.
  */
-// This is not a call to access.
-// flawfinder: ignore
-__attribute__((access(read_only, 2), access(read_only, 2)))
+__attribute__((ACCESS_RO(2), ACCESS_RO(3)))
 error path_check_wexcl(const uid_t uid, const char *const path,
                        const char *const stop);
 
@@ -67,9 +63,7 @@ error path_check_wexcl(const uid_t uid, const char *const path,
  * Caveats:
  *      This check is meaningless unless both paths are canonical.
  */
-// This is not a call to access.
-// flawfinder: ignore
-__attribute__((access(read_only, 1), access(read_only, 2), pure))
+__attribute__((ACCESS_RO(1), ACCESS_RO(2), pure))
 bool path_contains(const char *const super, const char *const sub);
 
 
