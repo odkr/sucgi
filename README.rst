@@ -1,4 +1,5 @@
 |build|
+|coverage|
 |codacy|
 
 
@@ -276,3 +277,6 @@ GitHub: https://github.com/odkr/sucgi
 
 .. |codacy| image:: https://app.codacy.com/project/badge/Grade/cb67a3bad615449589dfb242876600ac
             :target: https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_source=github.com&amp;utm_content=odkr/sucgi
+
+.. |coverage| image:: https://app.codacy.com/project/badge/Coverage/cb67a3bad615449589dfb242876600ac
+              :target: https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_source=github.com&amp;utm_content=odkr/sucgi
