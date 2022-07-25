@@ -368,16 +368,16 @@ check: $(CHECKBINS)
 
 clean:
 	rm -rf $(BUILDDIR) $(COVDIR) \
-		$(DISTNAME) $(DISTAR) $(DISTAR).asc sucgi.info
+		$(DISTNAME) $(DISTAR) $(DISTAR).asc lcov.info
 
 $(COVDIR):
 	mkdir $(COVDIR)
 
-sucgi.info: clean coverage
+lcov.info: clean coverage
 	make CC=gcc GCOVFLAGS='-fprofile-arcs -ftest-coverage' check
 	chmod -R u=rw *.gcno *.gcda
 	mv *.gcno *.gcda coverage
-	lcov --directory coverage --capture --output-file sucgi.info
+	lcov --directory coverage --capture --output-file lcov.info
 
 dist: $(DISTAR) $(DISTAR).asc
 
