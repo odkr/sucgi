@@ -179,7 +179,7 @@ mkfifo "$fifo"
 # Root checks
 #
 
-DOCUMENT_ROOT="$HOME" PATH_TRANSLATED="$grpw" \
+DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$grpw" \
 	checkerr "$grpw: can be altered by users other than $user." main
 
 DOCUMENT_ROOT="$HOME" PATH_TRANSLATED="$tmpdir/script.sh" \
@@ -189,10 +189,10 @@ user="$tmpdir/user.sh"
 chown "$uid:$gid" "$user"
 chmod u=rwx,go= "$user"
 
-DOCUMENT_ROOT="$HOME" PATH_TRANSLATED="$user" \
+DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$user" \
 	checkok "$uid:$gid" main
 
-DOCUMENT_ROOT="$HOME" PATH_TRANSLATED="$tmpdir/env.sh" FOO=bar \
+DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/env.sh" FOO=bar \
 	main >"$fifo" 2>&1 & pid="$!"
 grep -Fq 'FOO=bar' <"$fifo" && abort 'environment was not cleared.'
 wait "$pid" || abort "./env.sh exited with non-status $?."

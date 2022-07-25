@@ -107,7 +107,7 @@ match() (
 		esac
 		file="$file$line$lf"
 	done
-	abort "'$bold$string$reset$red' not matched in:$lf${file%"$lf"}"
+	abort "'$bold$string$reset$red' not in:$lf$bold${file%"$lf"}$reset"
 )
 
 # Print the canonical path of a directory.
