@@ -6,9 +6,11 @@
 #
 
 set -Ceu
+exec >&2
+
 readonly script_dir="${0%/*}"
 [ "$script_dir" ] || {
-	echo "configure: failed to find myself." >&2
+	echo "failed to locate $0."
 	exit 8
 }
 . "$script_dir/scripts/utils.sh" || exit
@@ -65,7 +67,7 @@ while getopts fh opt; do
 			Environment:
 			    CC          The C compiler.
 			    CFLAGS      Flags to pass to the C compiler.
-			    PROJECTDIR  Root directory of the repository.
+			    PROJECTDIR  Top-level directory of the repository.
 
 			See README.md for details.
 			EOF
@@ -77,28 +79,30 @@ unset opt
 
 
 #
-# Base directory.
+# Base directory
 #
-
-printf 'Project directory: '
 
 if [ "${PROJECTDIR-}" ]
 then
+	printf 'Project directory: '
+
 	if ! isportable "$PROJECTDIR"
 	then
 		# shellcheck disable=2154
-		printf '\a%s' "(${red}given name is not portable$reset) "
+		echo "${red}name is not portable.$reset"
 		unset PROJECTDIR
 	elif ! [ -e "$PROJECTDIR" ]
 	then
 		# shellcheck disable=2154
-		printf '\a%s' "(${red}given directory does not exist)$reset "
+		echo "${red}directory does not exist.$reset"
 		unset PROJECTDIR
 	elif ! [ -d "$PROJECTDIR" ]
 	then
 		# shellcheck disable=2154
-		printf '\a%s' "(${red}given file is not a directory)$reset "
+		echo "${red}not a directory.$reset"
 		unset PROJECTDIR
+	else
+		echo "$PROJECTDIR"
 	fi
 fi
 
@@ -109,8 +113,6 @@ then
 		else PROJECTDIR=.
 	fi
 fi
-
-echo "$PROJECTDIR"
 
 
 #
