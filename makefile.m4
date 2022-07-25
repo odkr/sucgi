@@ -174,12 +174,13 @@ $(BUILDDIR)/tests/utils.o:	$(SRCDIR)/tests/utils.c \
 
 $(BUILDDIR)/tests/drop_privs:	$(SRCDIR)/tests/drop_privs.c \
 				$(BUILDDIR)/tests/utils.o \
-				$(BUILDDIR)/err.o $(BUILDDIR)/utils.o \
+				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
+				$(BUILDDIR)/utils.o \
 				$(BUILDDIR)/tests/.sentinel
 	$(CC) -I . $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/tests/utils.o \
-		$(BUILDDIR)/err.o $(BUILDDIR)/utils.o \
+		$(BUILDDIR)/err.o $(BUILDDIR)/str.o $(BUILDDIR)/utils.o \
 		$(LDLIBS)
 
 $(BUILDDIR)/tests/fail:		$(SRCDIR)/tests/fail.c \
