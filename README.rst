@@ -28,9 +28,9 @@ More precisely:
   e.g., glibc_ ≥ v2.1.3 or Apple's Libc.
 * The standard system utilities POSIX.1-2008 mandates.
 
-Save for Linux ≥ v5.6 or XNU ≥ v7195.50.7.100.1, any post-2015 GNU/Linux or
-macOS system should meet those requirements. You may need to install
-the standard build tools, however.
+Save for Linux ≥ v5.6 and XNU ≥ v7195.50.7.100.1 respectively, any
+post-2015 GNU/Linux or macOS system should meet those requirements.
+You may need to install the standard build tools, however.
 
 Arch-based GNU/Linux systems::
 
@@ -85,7 +85,6 @@ suCGI is configured at compile-time, you cannot do this later.
 
 Compile and install suCGI by::
 
-    make
     make install
 
 You can uninstall suCGI by ``make uninstall``.

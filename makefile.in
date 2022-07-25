@@ -16,119 +16,112 @@ CGI_BIN = /usr/lib/cgi-bin
 VERSION = 0
 PACKAGE = sucgi
 
-TEST_BINS = tests/error tests/env_clear tests/env_get_fname tests/env_restore tests/main tests/file_is_exec tests/file_is_wexcl tests/file_safe_open tests/file_safe_stat tests/path_check_len tests/path_check_wexcl tests/path_contains tests/reraise tests/run_script tests/str_cp tests/str_eq tests/str_split tests/str_vsplit
-TESTS = tests/error.sh tests/env_clear tests/env_get_fname.sh tests/env_restore tests/main.sh tests/file_is_exec.sh tests/file_is_wexcl.sh tests/file_safe_open.sh tests/file_safe_stat.sh tests/path_check_len tests/path_check_wexcl.sh tests/path_contains tests/reraise tests/run_script.sh tests/str_cp tests/str_eq tests/str_split tests/str_vsplit
+TEST_BINS = build/tests/error build/tests/env_clear build/tests/env_get_fname build/tests/env_restore build/tests/main build/tests/file_is_exec build/tests/file_is_wexcl build/tests/file_safe_open build/tests/file_safe_stat build/tests/path_check_len build/tests/path_check_wexcl build/tests/path_contains build/tests/reraise build/tests/run_script build/tests/str_cp build/tests/str_eq build/tests/str_split build/tests/str_vsplit
+TESTS = scripts/tests/error.sh build/tests/env_clear scripts/tests/env_get_fname.sh build/tests/env_restore scripts/tests/main.sh scripts/tests/file_is_exec.sh scripts/tests/file_is_wexcl.sh scripts/tests/file_safe_open.sh scripts/tests/file_safe_stat.sh build/tests/path_check_len scripts/tests/path_check_wexcl.sh build/tests/path_contains build/tests/reraise scripts/tests/run_script.sh build/tests/str_cp build/tests/str_eq build/tests/str_split build/tests/str_vsplit
 
 DIST_NAME = $(PACKAGE)-$(VERSION)
 DIST_ARCHIVE = $(DIST_NAME).tgz
-DIST_FILES = attr.h config.h.in configure configure.env env.c env.h err.c err.h file.c file.h main.c makefile.in path.c path.h README.rst str.c str.h utils.c utils.h tests
+DIST_FILES = config.h.in configure configure.env makefile.in README.rst scripts src
 
-all: sucgi
+all: build/sucgi
 
-env.o: env.c env.h attr.h err.h str.h
+build/.sentinel:
+	mkdir build
+	touch build/.sentinel
+
+build/tests/.sentinel: build/.sentinel
+	mkdir build/tests
+	touch build/tests/.sentinel
+
+build/env.o: src/env.c src/env.h src/attr.h src/err.h src/str.h build/.sentinel
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-err.o: err.c err.h attr.h
+build/err.o: src/err.c src/err.h src/attr.h build/.sentinel
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-file.o: file.c file.h attr.h err.h path.h str.h
+build/file.o: src/file.c src/file.h src/attr.h src/err.h src/path.h src/str.h build/.sentinel
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-path.o: path.c path.h attr.h err.h str.h
+build/path.o: src/path.c src/path.h src/attr.h src/err.h src/str.h build/.sentinel
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-str.o: str.c str.h attr.h err.h
+build/str.o: src/str.c src/str.h src/attr.h src/err.h build/.sentinel
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-utils.o: utils.c utils.h attr.h err.h str.h
+build/utils.o: src/utils.c src/utils.h src/attr.h src/err.h src/str.h build/.sentinel
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-sucgi: main.c config.h env.o err.o file.o path.o str.o utils.o
-	$(CC) -DTESTING=0 -DPACKAGE=$(PACKAGE) -DVERSION=$(VERSION) $(LDFLAGS) $(CFLAGS) -o $@ $< env.o err.o file.o path.o str.o utils.o $(LDLIBS)
+build/sucgi: src/main.c config.h build/env.o build/err.o build/file.o build/path.o build/str.o build/utils.o build/.sentinel
+	$(CC) -DPACKAGE=$(PACKAGE) -DVERSION=$(VERSION) $(LDFLAGS) $(CFLAGS) -o $@ $< build/env.o build/err.o build/file.o build/path.o build/str.o build/utils.o $(LDLIBS)
 
-tests/utils.o: tests/utils.c tests/utils.h str.h
+build/tests/utils.o: src/tests/utils.c src/tests/utils.h src/str.h build/tests/.sentinel
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-tests/error: tests/error.c err.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< err.o $(LDLIBS)
+build/tests/error: src/tests/error.c build/err.o build/tests/.sentinel
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< build/err.o $(LDLIBS)
 
-tests/env_clear: tests/env_clear.c env.o err.o file.o path.o str.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< env.o err.o file.o path.o str.o $(LDLIBS)
+build/tests/env_clear: src/tests/env_clear.c build/env.o build/err.o build/file.o build/path.o build/str.o build/tests/.sentinel
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< build/env.o build/err.o build/file.o build/path.o build/str.o $(LDLIBS)
 
-tests/env_get_fname: tests/env_get_fname.c tests/utils.o env.o err.o file.o path.o str.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/utils.o env.o err.o file.o path.o str.o $(LDLIBS)
+build/tests/env_get_fname: src/tests/env_get_fname.c build/tests/utils.o build/env.o build/err.o build/file.o build/path.o build/str.o build/tests/.sentinel
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< build/tests/utils.o build/env.o build/err.o build/file.o build/path.o build/str.o $(LDLIBS)
 
-tests/env_restore: tests/env_restore.c tests/utils.o env.o err.o file.o path.o str.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/utils.o env.o err.o file.o path.o str.o $(LDLIBS)
+build/tests/env_restore: src/tests/env_restore.c build/tests/utils.o build/env.o build/err.o build/file.o build/path.o build/str.o build/tests/.sentinel
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< build/tests/utils.o build/env.o build/err.o build/file.o build/path.o build/str.o $(LDLIBS)
 
-tests/file_is_exec: tests/file_is_exec.c tests/utils.o file.o str.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/utils.o file.o str.o $(LDLIBS)
+build/tests/file_is_exec: src/tests/file_is_exec.c build/tests/utils.o build/file.o build/str.o build/tests/.sentinel
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< build/tests/utils.o build/file.o build/str.o $(LDLIBS)
 
-tests/file_is_wexcl: tests/file_is_wexcl.c tests/utils.o file.o str.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/utils.o file.o str.o $(LDLIBS)
+build/tests/file_is_wexcl: src/tests/file_is_wexcl.c build/tests/utils.o build/file.o build/str.o build/tests/.sentinel
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< build/tests/utils.o build/file.o build/str.o $(LDLIBS)
 
-tests/file_safe_open: tests/file_safe_open.c tests/utils.o file.o str.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/utils.o file.o str.o $(LDLIBS)
+build/tests/file_safe_open: src/tests/file_safe_open.c build/tests/utils.o build/file.o build/str.o build/tests/.sentinel
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< build/tests/utils.o build/file.o build/str.o $(LDLIBS)
 
-tests/file_safe_stat: tests/file_safe_stat.c tests/utils.o file.o str.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/utils.o file.o str.o $(LDLIBS)
+build/tests/file_safe_stat: src/tests/file_safe_stat.c build/tests/utils.o build/file.o build/str.o build/tests/.sentinel
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< build/tests/utils.o build/file.o build/str.o $(LDLIBS)
 
-tests/path_check_len: tests/path_check_len.c err.o file.o path.o str.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< err.o file.o path.o str.o $(LDLIBS)
+build/tests/path_check_len: src/tests/path_check_len.c build/err.o build/file.o build/path.o build/str.o build/tests/.sentinel
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< build/err.o build/file.o build/path.o build/str.o $(LDLIBS)
 
-tests/path_check_wexcl: tests/path_check_wexcl.c tests/utils.o err.o file.o path.o str.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/utils.o err.o file.o path.o str.o $(LDLIBS)
+build/tests/path_check_wexcl: src/tests/path_check_wexcl.c build/tests/utils.o build/err.o build/file.o build/path.o build/str.o build/tests/.sentinel
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< build/tests/utils.o build/err.o build/file.o build/path.o build/str.o $(LDLIBS)
 
-tests/path_contains: tests/path_contains.c err.o file.o path.o str.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< err.o file.o path.o str.o $(LDLIBS)
+build/tests/path_contains: src/tests/path_contains.c build/err.o build/file.o build/path.o build/str.o build/tests/.sentinel
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< build/err.o build/file.o build/path.o build/str.o $(LDLIBS)
 
-tests/reraise: tests/reraise.c err.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< err.o $(LDLIBS)
+build/tests/reraise: src/tests/reraise.c build/err.o build/tests/.sentinel
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< build/err.o $(LDLIBS)
 
-tests/run_script: tests/run_script.c tests/utils.o err.o str.o utils.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/utils.o err.o str.o utils.o $(LDLIBS)
+build/tests/run_script: src/tests/run_script.c build/tests/utils.o build/err.o build/str.o build/utils.o build/tests/.sentinel
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< build/tests/utils.o build/err.o build/str.o build/utils.o $(LDLIBS)
 
-tests/str_cp: tests/str_cp.c err.o str.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< err.o str.o $(LDLIBS)
+build/tests/str_cp: src/tests/str_cp.c build/err.o build/str.o build/tests/.sentinel
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< build/err.o build/str.o $(LDLIBS)
 
-tests/str_eq: tests/str_eq.c err.o str.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< err.o str.o $(LDLIBS)
+build/tests/str_eq: src/tests/str_eq.c build/err.o build/str.o build/tests/.sentinel
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< build/err.o build/str.o $(LDLIBS)
 
-tests/str_split: tests/str_split.c err.o str.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< err.o str.o $(LDLIBS)
+build/tests/str_split: src/tests/str_split.c build/err.o build/str.o build/tests/.sentinel
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< build/err.o build/str.o $(LDLIBS)
 
-tests/str_vsplit: tests/str_vsplit.c err.o str.o
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< err.o str.o $(LDLIBS)
+build/tests/str_vsplit: src/tests/str_vsplit.c build/err.o build/str.o build/tests/.sentinel
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< build/err.o build/str.o $(LDLIBS)
 
-tests/main: main.c env.o err.o file.o path.o str.o utils.o
-	$(CC) -D INCLUDED_CONFIG=1 -DTESTING=1 -DPACKAGE=fake-$(PACKAGE) -DVERSION=$(VERSION) $(LDFLAGS) $(CFLAGS) -Wno-unused-macros -o $@ $< env.o err.o file.o path.o str.o utils.o $(LDLIBS)
+build/tests/main: src/main.c build/env.o build/err.o build/file.o build/path.o build/str.o build/utils.o build/tests/.sentinel
+	$(CC) -D INCLUDED_CONFIG=1 -DTESTING=1 -DPACKAGE=fake-$(PACKAGE) -DVERSION=$(VERSION) $(LDFLAGS) $(CFLAGS) -Wno-unused-macros -o $@ $< build/env.o build/err.o build/file.o build/path.o build/str.o build/utils.o $(LDLIBS)
 
 analysis:
-	cppcheck $(CPPCHECKFLAGS) --enable=all -U__NR_openat2 -DO_NOFOLLOW_ANY=1 .
-	cppcheck $(CPPCHECKFLAGS) --enable=unusedFunction *.c
+	cppcheck $(CPPCHECKFLAGS) --enable=all -U__NR_openat2 -DO_NOFOLLOW_ANY=1 src
+	cppcheck $(CPPCHECKFLAGS) --enable=unusedFunction src/*.c
 	flawfinder --error-level=1 -m 0 -D -Q .
-	shellcheck configure tests/check tests/*.sh
+	shellcheck configure scripts/* scripts/tests/*
 
 check: $(TEST_BINS)
-	tests/check $(TESTS)
+	scripts/check $(TESTS)
 
 clean:
-	find . \( -name '*.o' -o -name '*.tmp' \) -exec rm -rf '{}' +
-	rm -f sucgi $(DIST_ARCHIVE) $(DIST_ARCHIVE).asc $(TEST_BINS)
-	rm -rf $(DIST_NAME)
-
-distclean: clean
-	rm config.h makefile
-
-$(DIST_ARCHIVE): distclean $(DIST_FILES)
-	mkdir -m u=rwx,go= $(DIST_NAME)
-	cp -a $(DIST_FILES) $(DIST_NAME)/
-	chmod -R u+rw,go= $(DIST_NAME)/
-	tar -czf $(DIST_ARCHIVE) $(DIST_NAME)
-	rm -rf $(DIST_NAME)
-
-$(DIST_ARCHIVE).asc: $(DIST_ARCHIVE)
-	gpg -qab --batch --yes $(DIST_ARCHIVE)
+	rm -rf build $(DIST_NAME) $(DIST_ARCHIVE) $(DIST_ARCHIVE).asc
 
 dist: $(DIST_ARCHIVE) $(DIST_ARCHIVE).asc
 
@@ -136,9 +129,11 @@ distcheck: dist
 	mkdir distcheck.tmp
 	cp $(DIST_ARCHIVE) $(DIST_ARCHIVE).asc distcheck.tmp
 	cd distcheck.tmp
+	pwd
 	gpg --verify $(DIST_ARCHIVE).asc $(DIST_ARCHIVE)
 	tar -xzf $(DIST_ARCHIVE)
 	cd $(DIST_NAME)
+	pwd
 	./configure
 	make
 	make check
@@ -149,9 +144,22 @@ distcheck: dist
 	cd ../..
 	rm -rf distcheck.tmp
 
-install: sucgi
+distclean: clean
+	rm config.h makefile
+
+$(DIST_ARCHIVE): $(DIST_FILES)
+	mkdir -m u=rwx,go= $(DIST_NAME)
+	cp -a $(DIST_FILES) $(DIST_NAME)/
+	chmod -R u+rw,go= $(DIST_NAME)/
+	tar -czf $(DIST_ARCHIVE) $(DIST_NAME)
+	rm -rf $(DIST_NAME)
+
+$(DIST_ARCHIVE).asc: $(DIST_ARCHIVE)
+	gpg -qab --batch --yes $(DIST_ARCHIVE)
+
+install: build/sucgi
 	mkdir -pm 0755 $(DESTDIR)$(PREFIX)/libexec
-	cp sucgi $(DESTDIR)$(PREFIX)/libexec
+	cp build/sucgi $(DESTDIR)$(PREFIX)/libexec
 	chown root:$(WWW_GROUP) $(DESTDIR)$(PREFIX)/libexec/sucgi
 	chmod u=rws,g=x,o= $(DESTDIR)$(PREFIX)/libexec/sucgi
 	ln -s $(DESTDIR)$(PREFIX)/libexec/sucgi $(CGI_BIN)/sucgi
@@ -159,6 +167,5 @@ install: sucgi
 uninstall:
 	rm -f $(CGI_BIN)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
 
-.PHONY: all analysis check clean dist distcheck distclean install uninstall 
-
+.PHONY: all analysis check clean dist distcheck distclean install uninstall
 .IGNORE: analysis
