@@ -35,7 +35,7 @@ COVDIR = coverage
 # Tests
 #
 
-CHECKBINS = $(BUILDDIR)/tests/drop_privs
+CHECKBINS = $(BUILDDIR)/tests/drop_privs \
             $(BUILDDIR)/tests/fail $(BUILDDIR)/tests/env_clear \
             $(BUILDDIR)/tests/env_get_fname \
             $(BUILDDIR)/tests/env_restore \
@@ -54,7 +54,8 @@ CHECKBINS = $(BUILDDIR)/tests/drop_privs
             $(BUILDDIR)/tests/str_split \
             $(BUILDDIR)/tests/str_vsplit
 
-CHECKS = $(SCRIPTDIR)/tests/fail.sh \
+CHECKS = $(SCRIPTDIR)/tests/drop_privs.sh \
+         $(SCRIPTDIR)/tests/fail.sh \
          $(BUILDDIR)/tests/env_clear \
          $(SCRIPTDIR)/tests/env_get_fname.sh \
          $(BUILDDIR)/tests/env_restore \
