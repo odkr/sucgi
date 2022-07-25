@@ -1,10 +1,14 @@
 .DS_Store
 .vscode
 *.a
+*.gcda
+*.gcdo
+*.gcov
 *.o
 *.tgz
 *.tgz.asc
 build
+coverage
 config.h
 makefile
 tests/*
