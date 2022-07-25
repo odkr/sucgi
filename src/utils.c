@@ -41,8 +41,6 @@ drop_privs(struct passwd *user)
 
 	uid = user->pw_uid;
 	gid = user->pw_gid;
-	assert(uid);
-	assert(gid);
 
 	{
 		const gid_t groups[] = {gid};
