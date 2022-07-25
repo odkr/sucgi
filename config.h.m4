@@ -9,8 +9,8 @@ define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
  * This is config.h's include guard.
  * Leave it alone. It's on duty.
  */
-#if !defined(INCLUDED_CONFIG)
-#define INCLUDED_CONFIG
+#if !defined(CONFIG_H)
+#define CONFIG_H
 
 
 /*
@@ -67,5 +67,5 @@ define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
  * That's all folks. Don't go beyond this line.
  */
 
-#endif /* Include guard. */
+#endif /* !defined(CONFIG_H). */
 ]
