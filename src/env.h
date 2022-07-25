@@ -71,7 +71,7 @@ extern char *const env_toss[];
  *      OK       Success.
  *      ERR_SYS  System failure. errno(2) should be set.
  */
-enum code env_clear(char ***vars);
+error env_clear(char ***vars);
 
 /* 
  * Safely read a filename from the environement variable name and store a
@@ -94,7 +94,7 @@ enum code env_clear(char ***vars);
 // This is not a call to access.
 // flawfinder: ignore
 __attribute__((access(read_only, 1), nonnull(1, 2)))
-enum code env_get_fname(const char *name, char **fname, struct stat **fstatus);
+error env_get_fname(const char *name, char **fname, struct stat **fstatus);
 
 /*
  * Repopulate the environment with any variable in vars the name of which
@@ -141,9 +141,9 @@ enum code env_get_fname(const char *name, char **fname, struct stat **fstatus);
 // flawfinder: ignore
 __attribute__((access(read_only, 1), access(read_only, 2), access(read_only, 3),
                nonnull(1, 2, 3)))
-enum code env_restore(const char *const *vars,
-                      char *const *const keep,
-                      char *const *const toss);
+error env_restore(const char *const *vars,
+                  char *const *const keep,
+                  char *const *const toss);
 
 
 #endif /* Include guard. */

@@ -35,7 +35,7 @@
 #include "str.h"
 
 
-enum code
+error
 path_check_len(const char *const path)
 {
 	size_t len = 0;			/* Length of current (sub-)dir. */
@@ -68,7 +68,7 @@ path_check_len(const char *const path)
 	return OK;
 }
 
-enum code
+error
 path_check_wexcl(const uid_t uid, const gid_t gid,
                  const char *const path, const char *const stop)
 {

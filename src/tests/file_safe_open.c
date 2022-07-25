@@ -18,7 +18,7 @@ main (int argc, char **argv)
 {
 	int fd;
 	const char *fname = NULL;
-	enum code rc = ERR;
+	error rc = ERR;
 
 	switch (argc) {
 		case 2:

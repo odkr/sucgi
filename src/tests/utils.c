@@ -22,7 +22,7 @@ die (const char *const message, ...)
 	exit(EXIT_FAILURE);
 }
 
-enum code
+error
 str_to_ulong (const char *const s, unsigned long *n)
 {
 	long long m = 0;
@@ -36,7 +36,7 @@ str_to_ulong (const char *const s, unsigned long *n)
 	return OK;
 }
 
-enum code
+error
 str_words (const char *const restrict s, char ***subs)
 {
 	int n = 0;

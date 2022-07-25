@@ -109,7 +109,7 @@ char *const env_toss[] = {
  * Functions
  */
 
-enum code
+error
 env_clear(char ***vars)
 {
 	char **env = environ;	/* Backup of the environment. */
@@ -133,7 +133,7 @@ env_clear(char ***vars)
 	return OK;
 }
 
-enum code
+error
 env_get_fname(const char *name, char **fname, struct stat **fstatus)
 {
 	char *value = NULL;
@@ -150,7 +150,7 @@ env_get_fname(const char *name, char **fname, struct stat **fstatus)
 	return OK;
 }
 
-enum code
+error
 env_restore(const char *const *vars,
             char *const *const keep,
 	    char *const *const toss)

@@ -8,7 +8,7 @@
 #include "../err.h"
 
 /* reraise wrapper that should always fail. */
-enum code
+error
 reraise_ok (void)
 {
 	reraise(OK);
@@ -17,7 +17,7 @@ reraise_ok (void)
 }
 
 /* reraise wrapper that should always fail. */
-enum code
+error
 reraise_err (void)
 {
 	reraise(ERR_SYS);

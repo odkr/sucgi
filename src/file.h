@@ -55,7 +55,7 @@ bool file_is_wexcl(const uid_t uid, const gid_t gid,
 // This is not a call to access.
 // flawfinder: ignore
 __attribute__((access(read_only, 1), nonnull(1)))
-enum code file_safe_open(const char *fname, const int flags, int *fd);
+error file_safe_open(const char *fname, const int flags, int *fd);
 
 /*
  * Store fname's filesystem status in the variable pointed to by fstatus.
@@ -72,7 +72,7 @@ enum code file_safe_open(const char *fname, const int flags, int *fd);
 // This is not a call to access.
 // flawfinder: ignore
 __attribute__((access(read_only, 1), nonnull(1)))
-enum code file_safe_stat(const char *fname, struct stat **fstatus);
+error file_safe_stat(const char *fname, struct stat **fstatus);
 
 
 #endif /* Include guard. */

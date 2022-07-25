@@ -20,7 +20,7 @@ void die(const char *const message, ...);
 // This is not a call to the access() function.
 // flawfinder: ignore
 __attribute__((access(read_only, 1), nonnull(1)))
-enum code str_to_ulong (const char *const s, unsigned long *n);
+error str_to_ulong (const char *const s, unsigned long *n);
 
 /*
  * Split s at each occurrence of a whitespace character and
@@ -36,4 +36,4 @@ enum code str_to_ulong (const char *const s, unsigned long *n);
 // This is not a call to the access() function.
 // flawfinder: ignore
 __attribute__((access(read_only, 1), nonnull(1, 2)))
-enum code str_words (const char *const restrict s, char ***subs);
+error str_words (const char *const restrict s, char ***subs);

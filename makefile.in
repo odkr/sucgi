@@ -16,8 +16,8 @@ CGI_BIN = /usr/lib/cgi-bin
 VERSION = 0
 PACKAGE = sucgi
 
-TEST_BINS = build/tests/error build/tests/env_clear build/tests/env_get_fname build/tests/env_restore build/tests/main build/tests/file_is_exec build/tests/file_is_wexcl build/tests/file_safe_open build/tests/file_safe_stat build/tests/path_check_len build/tests/path_check_wexcl build/tests/path_contains build/tests/reraise build/tests/run_script build/tests/str_cp build/tests/str_eq build/tests/str_split build/tests/str_vsplit
-TESTS = scripts/tests/error.sh build/tests/env_clear scripts/tests/env_get_fname.sh build/tests/env_restore scripts/tests/main.sh scripts/tests/file_is_exec.sh scripts/tests/file_is_wexcl.sh scripts/tests/file_safe_open.sh scripts/tests/file_safe_stat.sh build/tests/path_check_len scripts/tests/path_check_wexcl.sh build/tests/path_contains build/tests/reraise scripts/tests/run_script.sh build/tests/str_cp build/tests/str_eq build/tests/str_split build/tests/str_vsplit
+TEST_BINS = build/tests/fail build/tests/env_clear build/tests/env_get_fname build/tests/env_restore build/tests/main build/tests/file_is_exec build/tests/file_is_wexcl build/tests/file_safe_open build/tests/file_safe_stat build/tests/path_check_len build/tests/path_check_wexcl build/tests/path_contains build/tests/reraise build/tests/run_script build/tests/str_cp build/tests/str_eq build/tests/str_split build/tests/str_vsplit
+TESTS = scripts/tests/fail.sh build/tests/env_clear scripts/tests/env_get_fname.sh build/tests/env_restore scripts/tests/main.sh scripts/tests/file_is_exec.sh scripts/tests/file_is_wexcl.sh scripts/tests/file_safe_open.sh scripts/tests/file_safe_stat.sh build/tests/path_check_len scripts/tests/path_check_wexcl.sh build/tests/path_contains build/tests/reraise scripts/tests/run_script.sh build/tests/str_cp build/tests/str_eq build/tests/str_split build/tests/str_vsplit
 
 DIST_NAME = $(PACKAGE)-$(VERSION)
 DIST_ARCHIVE = $(DIST_NAME).tgz
@@ -57,7 +57,7 @@ build/sucgi: src/main.c config.h build/env.o build/err.o build/file.o build/path
 build/tests/utils.o: src/tests/utils.c src/tests/utils.h src/str.h build/tests/.sentinel
 	$(CC) -c $(CFLAGS) -o $@ $<
 
-build/tests/error: src/tests/error.c build/err.o build/tests/.sentinel
+build/tests/fail: src/tests/fail.c build/err.o build/tests/.sentinel
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< build/err.o $(LDLIBS)
 
 build/tests/env_clear: src/tests/env_clear.c build/env.o build/err.o build/file.o build/path.o build/str.o build/tests/.sentinel

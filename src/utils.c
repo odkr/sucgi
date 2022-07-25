@@ -37,10 +37,10 @@ run_script (const char *script, const char **pairs)
 	int i = 0;			/* Counter. */
 
 	suffix = strrchr(script, '.');
-	if (!suffix) error("%s: no filename suffix.", script);
+	if (!suffix) fail("%s: no filename suffix.", script);
 
 	for (pair = pairs; *pair; pair++) {
-		enum code rc = ERR;	/* Return code. */
+		error rc = ERR;	/* Return code. */
 		char *inter = NULL;	/* Interpreter .*/
 		char *ftype = NULL;	/* Suffix associated with inter. */
 
@@ -50,22 +50,22 @@ run_script (const char *script, const char **pairs)
 			case OK:
 				break;
 			case ERR_SYS:
-				error("interpreter %d: %s.",
-				      i, strerror(errno));
+				fail("interpreter %d: %s.",
+				     i, strerror(errno));
 				break;
 			default:
-				error("%s:%d: str_vsplit returned %u.",
+				fail("%s:%d: str_vsplit returned %u.",
 				      __FILE__, __LINE__ - 10, rc);
 		}
 
 		if (ftype[0] == '\0') {
-			error("script type %d: no filename suffix.", i);
+			fail("script type %d: no filename suffix.", i);
 		}
 		if (ftype[0] != '.' || str_eq(ftype, ".")) {
-			error("script type %d: weird filename suffix.", i);
+			fail("script type %d: weird filename suffix.", i);
 		} 
 		if (!inter || inter[0] == '\0') {
-			error("script type %d: no interpreter given.", i);
+			fail("script type %d: no interpreter given.", i);
 		}
 
 		if (str_eq(suffix, ftype)) {
@@ -75,5 +75,5 @@ run_script (const char *script, const char **pairs)
 		};
 	}
 
-	error("filename suffix %s: no interpreter registered.", suffix);
+	fail("filename suffix %s: no interpreter registered.", suffix);
 }

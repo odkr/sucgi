@@ -25,7 +25,7 @@ extern char **environ;
  */
 
 /* Create a new environment. */
-enum code
+error
 env_create (size_t n)
 {
 	environ = malloc(sizeof(char *) * n);
@@ -39,7 +39,7 @@ env_create (size_t n)
  * env_restore wrapper that clears the environment and
  * accepts strings as arguments.
  */
-enum code
+error
 env_restore_w (const char *keep, const char *toss)
 {
 	char **vars;		/* Backup of the environment. */

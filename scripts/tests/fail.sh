@@ -1,5 +1,5 @@
 #!/bin/sh
-# Check if error prints a message to STDERR that contains "foo"
+# Check if fail prints a message to STDERR that contains "foo"
 # and exits with a non-zero status.
 # shellcheck disable=1091
 set -x
@@ -32,12 +32,12 @@ trap 'exit 143' TERM
 fifo="$TMP/fifo"
 mkfifo -m 0700 "$fifo"
 
-error >"$fifo" 2>&1 & pid=$!
+fail >"$fifo" 2>&1 & pid=$!
 
 # Fail if the error message does not contain "foo".
 grep -q foo <"$fifo" || exit 1
 
-# Fail if ./error did not exit with a non-zero status.
+# Fail if fail did not exit with a non-zero status.
 wait $pid && exit 2
 
 # All good.

@@ -43,7 +43,7 @@
 // This is not a call to access.
 // flawfinder: ignore
 __attribute__((access(read_only, 1), nonnull(1)))
-enum code path_check_len(const char *const path);
+error path_check_len(const char *const path);
 
 /*
  * Check if the given user has exclusive write access to every directory
@@ -58,9 +58,8 @@ enum code path_check_len(const char *const path);
 // This is not a call to access.
 // flawfinder: ignore
 __attribute__((access(read_only, 3), access(read_only, 4), nonnull(3, 4)))
-enum code
-path_check_wexcl(const uid_t uid, const gid_t gid,
-                 const char *const path, const char *const stop);
+error path_check_wexcl(const uid_t uid, const gid_t gid,
+                       const char *const path, const char *const stop);
 
 /*
  * Check if the path super contains the path sub.

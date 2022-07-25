@@ -28,7 +28,7 @@
 #include "str.h"
 
 
-enum code
+error
 str_cp(const char *const restrict src, char **restrict dest)
 {
 	size_t len = 0;
@@ -53,7 +53,7 @@ str_eq(const char *const s1, const char *const s2)
 	return (strcmp(s1, s2) == 0);
 }
 
-enum code
+error
 str_split(const char *const restrict s, const char *sep, const int max,
           char ***subs, int *restrict n)
 {
@@ -80,7 +80,7 @@ str_split(const char *const restrict s, const char *sep, const int max,
 	return OK;
 }
 
-enum code
+error
 str_vsplit(const char *const restrict s, const char *sep, const int n, ...)
 {
 	va_list ap;		/* Current variadic argument. */

@@ -62,7 +62,7 @@
 // This is not a call to access.
 // flawfinder: ignore
 __attribute__((access(read_only, 1), nonnull(1, 2)))
-enum code str_cp(const char *const restrict src, char **restrict dest);
+error str_cp(const char *const restrict src, char **restrict dest);
 
 /* Return true if s1 and s2 are equal and false otherwise. */
 // This is not a call to access.
@@ -86,8 +86,8 @@ bool str_eq(const char *const s1, const char *const s2);
 // This is not a call to access.
 // flawfinder: ignore
 __attribute__((access(read_only, 1), access(read_only, 2), nonnull(1, 2, 4)))
-enum code str_split(const char *const restrict s, const char *sep,
-                    const int max, char ***subs, int *restrict n);
+error str_split(const char *const restrict s, const char *sep,
+                const int max, char ***subs, int *restrict n);
 
 /*
  * Split s at the first n - 1 occurrences of any character in sep
@@ -102,8 +102,8 @@ enum code str_split(const char *const restrict s, const char *sep,
 // This is not a call to access.
 // flawfinder: ignore
 __attribute__((access(read_only, 1), access(read_only, 2), nonnull(1, 2)))
-enum code str_vsplit(const char *const restrict s, const char *sep,
-                     const int n, ...);
+error str_vsplit(const char *const restrict s, const char *sep,
+                 const int n, ...);
 
 
 #endif /* Include guard. */

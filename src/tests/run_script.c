@@ -16,7 +16,7 @@ main (int argc, char **argv)
 	const char *script = NULL;
 	const char *pairs = NULL;
 	char **pairv = NULL;
-	enum code rc = ERR;
+	error rc = ERR;
 
 	switch (argc) {
 		case 2:

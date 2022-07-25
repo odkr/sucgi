@@ -57,7 +57,7 @@ file_is_wexcl(const uid_t uid, const gid_t gid,
 }
 
 #if defined(__NR_openat2) && __NR_openat2
-enum code
+error
 file_safe_open(const char *fname, const int flags, int *fd)
 {
 	struct open_how how = {
@@ -72,7 +72,7 @@ file_safe_open(const char *fname, const int flags, int *fd)
 	return OK;
 }
 #elif defined(TARGET_OS_MAC) && TARGET_OS_MAC && O_NOFOLLOW_ANY
-enum code
+error
 file_safe_open (const char *fname, const int flags, int *fd)
 {
 	// - O_NOFOLLOW_ANY ensures that fname contains no symlinks.
@@ -94,7 +94,7 @@ file_safe_open (const char *fname, const int flags, int *fd)
 #endif /* __NR_openat2 or (TARGET_OS_MAC and O_NOFOLLOW_ANY). */
 
 
-enum code
+error
 file_safe_stat(const char *fname, struct stat **fstatus)
 {
 	struct stat *buf = NULL;

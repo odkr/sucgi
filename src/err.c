@@ -1,5 +1,5 @@
 /*
- * Functions for error handling.
+ * Functions for fail handling.
  *
  * Copyright 2022 Odin Kroeger
  * 
@@ -34,7 +34,7 @@
 
 
 void
-error(const char *const message, ...)
+fail(const char *const message, ...)
 {
 	va_list ap;
 	

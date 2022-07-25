@@ -118,7 +118,7 @@ main (void) {
 	/* A backup of the environment. */
 	char **vars = NULL;
 	/* A return code. */
-	enum code rc = ERR;
+	error rc = ERR;
 
 	errno = 0;
 
@@ -136,13 +136,13 @@ main (void) {
 		case OK:
 			break;
 		case ERR_SYS:
-			error("environment clean-up: %s.", strerror(errno));
+			fail("environment clean-up: %s.", strerror(errno));
 			break;
 		case ERR_ENV_MAX:
-			error("too many environment variables.");
+			fail("too many environment variables.");
 			break;
 		default:
-			error("%s:%d: env_clear returned %u.",
+			fail("%s:%d: env_clear returned %u.",
 			      __FILE__, __LINE__ - 12, rc);
 	}
 
@@ -163,12 +163,12 @@ main (void) {
 			// cppcheck-suppress getpwuidCalled
 			struct passwd *pwd = getpwuid(uid);
 			if (!pwd) {
-				error("lookup of UID %lu: %s.",
-		                      (unsigned long) uid, strerror(errno));
+				fail("lookup of UID %lu: %s.",
+		                     (unsigned long) uid, strerror(errno));
 			}
 			if (!str_eq(pwd->pw_name, WWW_USER)) {
-				error("user %s: not permitted to run suCGI.",
-				      pwd->pw_name);
+				fail("user %s: not permitted to run suCGI.",
+				     pwd->pw_name);
 			}
 		}
 	}
@@ -184,22 +184,22 @@ main (void) {
 		case OK:
 			break;
 		case ERR_SYS:
-			error("environment restoration: %s.",
-			      strerror(errno));
+			fail("environment restoration: %s.",
+			     strerror(errno));
 			break;
 		case ERR_STR_LEN:
-			error("environment variable too long.");
+			fail("environment variable too long.");
 			break;
 		case ERR_VAR_INVALID:
-			error("ill-formed environment variable.");
+			fail("ill-formed environment variable.");
 			break;
 		default:
-			error("%s:%d: env_restore returned %u.",
-			      __FILE__, __LINE__ - 17, rc);
+			fail("%s:%d: env_restore returned %u.",
+			     __FILE__, __LINE__ - 17, rc);
 	}
 
 	if (setenv("PATH", SECURE_PATH, 1) != 0) {
-		error("setenv PATH: %s", strerror(errno));
+		fail("setenv PATH: %s", strerror(errno));
 	}
 
 
@@ -212,28 +212,28 @@ main (void) {
 		case OK:
 			break;
 		case ERR_SYS:
-			error("$DOCUMENT_ROOT: %s.", strerror(errno));
+			fail("$DOCUMENT_ROOT: %s.", strerror(errno));
 			break;
 		case ERR_STR_LEN:
-			error("$DOCUMENT_ROOT: too long.");
+			fail("$DOCUMENT_ROOT: too long.");
 			break;
 		case ERR_VAR_UNDEF:
-			error("DOCUMENT_ROOT: not set.");
+			fail("DOCUMENT_ROOT: not set.");
 			break;
 		case ERR_VAR_EMPTY:
-			error("DOCUMENT_ROOT: is the empty string.");
+			fail("DOCUMENT_ROOT: is the empty string.");
 			break;
 		default:
-			error("%s:%d: env_get_fname returned %u.",
+			fail("%s:%d: env_get_fname returned %u.",
 			      __FILE__, __LINE__ - 18, rc);
 	}
 
 	if (!S_ISDIR(doc_root_st->st_mode)) {
-		error("$DOCUMENT_ROOT: not a directory.");
+		fail("$DOCUMENT_ROOT: not a directory.");
 	}
 
 	if (fnmatch(DOC_ROOT, doc_root, FNM_PERIOD) != 0) {
-		error("$DOCUMENT_ROOT: does not match %s.", DOC_ROOT);
+		fail("$DOCUMENT_ROOT: does not match %s.", DOC_ROOT);
 	}
 
 
@@ -246,28 +246,28 @@ main (void) {
 		case OK:
 			break;
 		case ERR_SYS:
-			error("$PATH_TRANSLATED: %s.", strerror(errno));
+			fail("$PATH_TRANSLATED: %s.", strerror(errno));
 			break;
 		case ERR_STR_LEN:
-			error("$PATH_TRANSLATED: too long.");
+			fail("$PATH_TRANSLATED: too long.");
 			break;
 		case ERR_VAR_UNDEF:
-			error("PATH_TRANSLATED: not set.");
+			fail("PATH_TRANSLATED: not set.");
 			break;
 		case ERR_VAR_EMPTY:
-			error("PATH_TRANSLATED: is the empty string.");
+			fail("PATH_TRANSLATED: is the empty string.");
 			break;
 		default:
-			error("%s:%d: path_check_len returned %u.",
+			fail("%s:%d: path_check_len returned %u.",
 			      __FILE__, __LINE__ - 19, rc);
 	}
 
 	if (!path_contains(doc_root, path_trans)) {
-		error("$PATH_TRANSLATED: not in document root %s.", doc_root);
+		fail("$PATH_TRANSLATED: not in document root %s.", doc_root);
 	}
 
 	if (!S_ISREG(path_trans_st->st_mode)) {
-		error("$PATH_TRANSLATED: not a regular file.");
+		fail("$PATH_TRANSLATED: not a regular file.");
 	}
 
 
@@ -276,17 +276,17 @@ main (void) {
 	 */
 
 	if (path_trans_st->st_uid == 0) {
-		error("%s: owned by the superuser.", path_trans);
+		fail("%s: owned by the superuser.", path_trans);
 	}
 	if (path_trans_st->st_gid == 0) {
-		error("%s: owned by the supergroup.", path_trans);
+		fail("%s: owned by the supergroup.", path_trans);
 	}
 
 	/* NB: The test suite does not check whether this check works. */
 	if (path_trans_st->st_uid < MIN_UID ||
 	    path_trans_st->st_uid > MAX_UID)
 	{
-		error("%s: owned by non-regular UID %lu.",
+		fail("%s: owned by non-regular UID %lu.",
 		      path_trans, (unsigned long) path_trans_st->st_uid);
 	}
 
@@ -301,8 +301,8 @@ main (void) {
 	user = getpwuid(path_trans_st->st_uid);
 	/* NB: The test suite does not check whether this check works. */
 	if (!user) {
-		error("%s: lookup of UID %lu: %s.", path_trans,
-		      (unsigned long) path_trans_st->st_uid, strerror(errno));
+		fail("%s: lookup of UID %lu: %s.", path_trans,
+		     (unsigned long) path_trans_st->st_uid, strerror(errno));
 	}
 
 
@@ -318,8 +318,8 @@ main (void) {
 		int groups_init = 0;
 
 		if (setgroups(1, groups) != 0) {
-			error("supplementary group clean-up: %s.",
-			      strerror(errno));
+			fail("supplementary group clean-up: %s.",
+			     strerror(errno));
 		}
 
 #if defined(__APPLE__) && defined(__MACH__)
@@ -328,8 +328,8 @@ main (void) {
 		groups_init = initgroups(user->pw_name, gid) != 0;
 #endif
 		if (groups_init != 0) {
-			error("supplementary group initialisation: %s.",
-			      strerror(errno));
+			fail("supplementary group initialisation: %s.",
+			     strerror(errno));
 		}
 
 
@@ -338,47 +338,47 @@ main (void) {
 		 * user may call seteuid(2) to gain webserver priviliges. 
 		 */
 		if (setgid(gid) != 0) {
-			error("failed to set real GID: %s",
-			      strerror(errno));
+			fail("failed to set real GID: %s",
+			     strerror(errno));
 		}
 		if (setuid(uid) != 0) {
-			error("failed to set real UID: %s.",
-			      strerror(errno));
+			fail("failed to set real UID: %s.",
+			     strerror(errno));
 		}
 		if (setegid(gid) != 0) {
-			error("failed to set effective GID: %s",
-			      strerror(errno));
+			fail("failed to set effective GID: %s",
+			     strerror(errno));
 		}
 		if (seteuid(uid) != 0) {
-			error("failed to set effective UID: %s.",
-			      strerror(errno));
+			fail("failed to set effective UID: %s.",
+			     strerror(errno));
 		}
 
 		if (getuid() != uid) {
-			error("real UID did not change.");
+			fail("real UID did not change.");
 		}
 		if (getgid() != gid) {
-			error("real GID did not change.");
+			fail("real GID did not change.");
 		}
 		if (geteuid() != uid) {
-			error("effective UID did not change.");
+			fail("effective UID did not change.");
 		}
 		if (getegid() != gid) {
-			error("effective GID did not change.");
+			fail("effective GID did not change.");
 		}
 
 #if !TESTING
 		if (setegid(0) == 0) {
-			error("could re-set process' effective GID to 0.");
+			fail("could re-set process' effective GID to 0.");
 		}
 		if (seteuid(0) == 0) {
-			error("could re-set process' effective UID to 0.");
+			fail("could re-set process' effective UID to 0.");
 		}
 		if (setgid(0) == 0) {
-			error("could re-set process' real GID to 0.");
+			fail("could re-set process' real GID to 0.");
 		}
 		if (setuid(0) == 0) {
-			error("could re-set process' real UID to 0.");
+			fail("could re-set process' real UID to 0.");
 		}
 #endif /* !TESTING. */
 	}
@@ -392,8 +392,8 @@ main (void) {
 	 *	chown -R smith:smith acme
 	 */
 	if (!path_contains(user->pw_dir, doc_root)) {
-		error("document root %s is not in %s's home directory.",
-		      doc_root, user->pw_name);
+		fail("document root %s is not in %s's home directory.",
+		     doc_root, user->pw_name);
 	}
 
 
@@ -410,15 +410,15 @@ main (void) {
 		case OK:
 			break;
 		case ERR_SYS:
-			error("%s: %s.", path_trans, strerror(errno));
+			fail("%s: %s.", path_trans, strerror(errno));
 			break;
 		case ERR_NOT_EXCLW:
-		        error("%s: can be altered by users other than %s.",
-			      path_trans, user->pw_name);
+		        fail("%s: can be altered by users other than %s.",
+			     path_trans, user->pw_name);
 			break;
 		default:
-			error("%s:%d: path_check_wexcl returned %u.",
-			      __FILE__, __LINE__ - 13, rc);
+			fail("%s:%d: path_check_wexcl returned %u.",
+			     __FILE__, __LINE__ - 13, rc);
 	}
 
 
@@ -437,5 +437,5 @@ main (void) {
 	}
 
 	/* If this point is reached, execution has failed. */
-	error("failed to execute %s: %s.", path_trans, strerror(errno));
+	fail("failed to execute %s: %s.", path_trans, strerror(errno));
 }

@@ -9,7 +9,7 @@
 #include "../err.h"
 
 int main (void) {
-	error("foo.");
+	fail("foo.");
 
 	/* This point should not be reached. */
 	return EXIT_SUCCESS;

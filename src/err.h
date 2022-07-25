@@ -1,5 +1,5 @@
 /*
- * Marcros for error handling.
+ * Marcros for fail handling.
  *
  * Copyright 2022 Odin Kroeger
  * 
@@ -32,11 +32,11 @@
  * Macros
  */
 
-/* Return with rc from the current function if rc is not OK. */
-#define reraise(rc) 						\
+/* Return with err from the current function unless err is OK. */
+#define reraise(err) 						\
 	do {							\
-		enum code _reraise_rc = (rc);			\
-		if (_reraise_rc != OK) return _reraise_rc;	\
+		error _reraise_err = (err);			\
+		if (_reraise_err != OK) return _reraise_err;	\
 	} while (0)
 
 
@@ -45,10 +45,10 @@
  * Data types
  */
 
-enum code {
+typedef enum {
 	/* Success. */
 	OK = EXIT_SUCCESS,
-	/* Generic error. Should only be used to initialise variables. */
+	/* Generic fail. Should only be used to initialise variables. */
 	ERR = EXIT_FAILURE,
 	/* Too many environment variables. */
 	ERR_ENV_MAX,
@@ -64,18 +64,18 @@ enum code {
 	ERR_VAR_INVALID,
 	/* An environment variable is undefined. */
 	ERR_VAR_UNDEF
-};
+} error;
 
 
 /*
  * Functions
  */
 
-/* Log message as an error and exit the programme with EXIT_FAILURE. */
+/* Log message as an fail and exit the programme with EXIT_FAILURE. */
 // This is not a call to the access() function.
 // flawfinder: ignore
 __attribute__((noreturn, access(read_only, 1), format(printf, 1, 2)))
-void error(const char *const message, ...);
+void fail(const char *const message, ...);
 
 
 #endif /* Include guard. */
