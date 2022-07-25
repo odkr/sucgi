@@ -19,7 +19,7 @@ init || exit
 builddir=build destdir='' prefix=/usr/local
 cgi_bin=/usr/lib/cgi-bin www_group=www-data
 OPTIND=1 OPTARG='' opt=''
-while getopts b:c:p:w:h opt; do
+while getopts b:c:d:p:w:h opt; do
 	case $opt in
 		(b) builddir="$OPTARG" ;;
 		(c) cgi_bin="$OPTARG" ;;

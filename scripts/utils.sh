@@ -1,5 +1,6 @@
 #!/bin/sh
 # Common functions for scripts.
+# shellcheck disable=2015
 
 # Print a message to STDERR and exit with a non-zero status.
 abort() {
