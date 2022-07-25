@@ -42,7 +42,7 @@
  */
 // This is not a call to access.
 // flawfinder: ignore
-__attribute__((access(read_only, 1), nonnull(1)))
+__attribute__((access(read_only, 1)))
 error path_check_len(const char *const path);
 
 /*
@@ -57,7 +57,7 @@ error path_check_len(const char *const path);
  */
 // This is not a call to access.
 // flawfinder: ignore
-__attribute__((access(read_only, 2), access(read_only, 2), nonnull(2, 3)))
+__attribute__((access(read_only, 2), access(read_only, 2)))
 error path_check_wexcl(const uid_t uid, const char *const path,
                        const char *const stop);
 
@@ -69,8 +69,7 @@ error path_check_wexcl(const uid_t uid, const char *const path,
  */
 // This is not a call to access.
 // flawfinder: ignore
-__attribute__((access(read_only, 1), access(read_only, 2),
-               nonnull(1, 2), pure))
+__attribute__((access(read_only, 1), access(read_only, 2), pure))
 bool path_contains(const char *const super, const char *const sub);
 
 

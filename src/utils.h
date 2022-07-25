@@ -42,7 +42,7 @@
  */
 // This is not a call to access.
 // flawfinder: ignore
-__attribute__((access(read_only, 1), access(read_only, 2), nonnull(1, 2)))
+__attribute__((access(read_only, 1), access(read_only, 2)))
 void run_script (const char *script, const char **pairs);
 
 

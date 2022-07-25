@@ -19,6 +19,7 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <assert.h>
 #include <fcntl.h>
 #include <libgen.h>
 #include <stdbool.h>
@@ -41,6 +42,8 @@
 bool
 file_is_exec(const struct stat *const fstatus)
 {
+	assert(fstatus);
+
 	if (fstatus->st_uid != geteuid() && fstatus->st_gid != getegid()) {
 		return fstatus->st_mode & S_IXOTH;
 	}
@@ -50,6 +53,8 @@ file_is_exec(const struct stat *const fstatus)
 bool
 file_is_wexcl(const uid_t uid, const struct stat *const fstatus)
 {
+	assert(fstatus);
+
 	return     fstatus->st_uid == uid
 		&& !(fstatus->st_mode & S_IWGRP)
 		&& !(fstatus->st_mode & S_IWOTH);
@@ -64,6 +69,8 @@ file_safe_open(const char *fname, const int flags, int *fd)
         	.resolve = RESOLVE_NO_SYMLINKS
 	};
 
+	assert(fname);
+
 	/* RESOLVE_NO_SYMLINKS ensures that fname contains no symlinks. */
 	*fd = (int) syscall(__NR_openat2, AT_FDCWD, fname,
 	                    &how, sizeof(struct open_how));
@@ -74,6 +81,8 @@ file_safe_open(const char *fname, const int flags, int *fd)
 error
 file_safe_open (const char *fname, const int flags, int *fd)
 {
+	assert(fname);
+
 	// - O_NOFOLLOW_ANY ensures that fname contains no symlinks.
 	// - Whether files are regular is checked in main.
 	// - By using file descriptors,
@@ -99,6 +108,8 @@ file_safe_stat(const char *fname, struct stat **fstatus)
 	struct stat *buf = NULL;
 	int fd = -1;
 	int rc = -1;
+
+	assert(fname);
 
 	buf = malloc(sizeof(struct stat));
 	if (!buf) return ERR_SYS;

@@ -19,6 +19,7 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <libgen.h>
@@ -43,6 +44,7 @@ path_check_len(const char *const path)
 	const char *sub = NULL;		/* Current sub-direcotry. */
 	char *pivot = NULL;		/* Current super/sub border. */	
 
+	assert(path);
 	len = strnlen(path, STR_MAX_LEN + 1);
 	if (len > STR_MAX_LEN) return ERR_STR_LEN;
 
@@ -74,6 +76,9 @@ path_check_wexcl(const uid_t uid, const char *const path,
 {
 	char *p = NULL;	/* Current path. */
 
+	assert(path);
+	assert(stop);
+
 	reraise(str_cp(path, &p));
 	while (true) {
 		struct stat fstatus;
@@ -90,6 +95,10 @@ bool
 path_contains(const char *const super, const char *const sub)
 {
 	const size_t len = strnlen(super, STR_MAX_LEN);
+
+	assert(super);
+	assert(sub);
+
 	if (super[0] == '\0') return false;
 	if (str_eq(sub, "/")) return false;
 	if (sub[len] != '/' && !str_eq(super, "/")) return false;

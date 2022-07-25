@@ -19,6 +19,7 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <assert.h>
 #include <errno.h>
 #include <fnmatch.h>
 #include <stdbool.h>
@@ -138,6 +139,9 @@ env_get_fname(const char *name, char **fname, struct stat **fstatus)
 {
 	char *value = NULL;
 
+	assert(name);
+	assert(fname);
+
 	// The value is checked below, extensively.
 	// flawfinder: ignore
 	value = getenv(name);
@@ -155,6 +159,10 @@ env_restore(const char *const *vars,
             char *const *const keep,
 	    char *const *const toss)
 {
+	assert(vars);
+	assert(keep);
+	assert(toss);
+
 	for (; *vars; vars++) {
 		char *name, *value;	/* Variable name and value. */
 

@@ -19,6 +19,7 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <assert.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -32,6 +33,9 @@ error
 str_cp(const char *const restrict src, char **restrict dest)
 {
 	size_t len = 0;
+
+	assert(src);
+	assert(dest);
 
 	len = strnlen(src, STR_MAX_LEN + 1);
 	if (len > STR_MAX_LEN) return ERR_STR_LEN;
@@ -50,6 +54,9 @@ str_cp(const char *const restrict src, char **restrict dest)
 bool
 str_eq(const char *const s1, const char *const s2)
 {
+	assert(s1);
+	assert(s2);
+
 	return (strcmp(s1, s2) == 0);
 }
 
@@ -61,6 +68,10 @@ str_split(const char *const restrict s, const char *sep, const int max,
 	char *token = NULL;	/* Start of current substring. */
 	char **tokens = NULL;	/* Substrings. */
 	int ntokens = 0;	/* Number of substrings. */
+
+	assert(s);
+	assert(sep);
+	assert(subs);
 
 	reraise(str_cp(s, &str));
 	tokens = calloc((size_t) max + 2, sizeof(char *));
@@ -88,17 +99,22 @@ str_vsplit(const char *const restrict s, const char *sep, const int n, ...)
 	char **tokens = NULL;	/* Substrings. */
 	int ntokens = 0;	/* Number of substrings. */
 
+	assert(s);
+	assert(sep);
+
 	reraise(str_split(s, sep, n - 1, &tokens, &ntokens));
 
 	va_start(ap, n);
 
 	for (int i = 0; i < ntokens; i++) {
 		arg = va_arg(ap, char**);
+		assert(arg);
 		reraise(str_cp(tokens[i], arg));
 	}
 
 	for (int i = ntokens; i < n; i++) {
 		arg = va_arg(ap, char**);
+		assert(arg);
 		*arg = NULL;
 	}
 

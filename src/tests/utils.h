@@ -1,6 +1,7 @@
 /* Headers for utils.c */
 
 #include "../attr.h"
+#include "../err.h"
 
 /* Abort the programme with an error message. */
 // This is not a call to the access() function.
@@ -19,7 +20,7 @@ void die(const char *const message, ...);
  */
 // This is not a call to the access() function.
 // flawfinder: ignore
-__attribute__((access(read_only, 1), nonnull(1)))
+__attribute__((access(read_only, 1)))
 error str_to_ulong (const char *const s, unsigned long *n);
 
 /*
@@ -35,5 +36,5 @@ error str_to_ulong (const char *const s, unsigned long *n);
  */
 // This is not a call to the access() function.
 // flawfinder: ignore
-__attribute__((access(read_only, 1), nonnull(1, 2)))
+__attribute__((access(read_only, 1)))
 error str_words (const char *const restrict s, char ***subs);

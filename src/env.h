@@ -93,7 +93,7 @@ error env_clear(char ***vars);
  */
 // This is not a call to access.
 // flawfinder: ignore
-__attribute__((access(read_only, 1), nonnull(1, 2)))
+__attribute__((access(read_only, 1)))
 error env_get_fname(const char *name, char **fname, struct stat **fstatus);
 
 /*
@@ -139,8 +139,8 @@ error env_get_fname(const char *name, char **fname, struct stat **fstatus);
  */
 // This is not a call to access.
 // flawfinder: ignore
-__attribute__((access(read_only, 1), access(read_only, 2), access(read_only, 3),
-               nonnull(1, 2, 3)))
+__attribute__((access(read_only, 1), access(read_only, 2),
+               access(read_only, 3)))
 error env_restore(const char *const *vars,
                   char *const *const keep,
                   char *const *const toss);

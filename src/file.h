@@ -32,13 +32,13 @@
 /* Check if fstatus indicates that the current has execute permissions. */
 // This is not a call to access.
 // flawfinder: ignore
-__attribute__((access(read_only, 1), nonnull(1), pure))
+__attribute__((access(read_only, 1), pure))
 bool file_is_exec(const struct stat *const fstatus);
 
 /* Check if fstatus indicates that only uid and gid have write permissions. */
 // This is not a call to access.
 // flawfinder: ignore
-__attribute__((access(read_only, 2), nonnull(2), pure))
+__attribute__((access(read_only, 2), pure))
 bool file_is_wexcl(const uid_t uid, const struct stat *const fstatus);
 
 /*
@@ -53,7 +53,7 @@ bool file_is_wexcl(const uid_t uid, const struct stat *const fstatus);
  */
 // This is not a call to access.
 // flawfinder: ignore
-__attribute__((access(read_only, 1), nonnull(1)))
+__attribute__((access(read_only, 1)))
 error file_safe_open(const char *fname, const int flags, int *fd);
 
 /*
@@ -70,7 +70,7 @@ error file_safe_open(const char *fname, const int flags, int *fd);
  */
 // This is not a call to access.
 // flawfinder: ignore
-__attribute__((access(read_only, 1), nonnull(1)))
+__attribute__((access(read_only, 1)))
 error file_safe_stat(const char *fname, struct stat **fstatus);
 
 

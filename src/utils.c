@@ -19,6 +19,7 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <assert.h>
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
@@ -35,6 +36,9 @@ run_script (const char *script, const char **pairs)
 	const char **pair = NULL;	/* Current pair. */
 	char *suffix = NULL;		/* Filename suffix. */
 	int i = 0;			/* Counter. */
+
+	assert(script);
+	assert(pairs);
 
 	suffix = strrchr(script, '.');
 	if (!suffix) fail("%s: no filename suffix.", script);
