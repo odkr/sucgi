@@ -395,8 +395,8 @@ $(COVDIR)/data/.sentinel: $(COVDIR)/.sentinel
 lcov.info: clean $(COVDIR)/data/.sentinel
 	make CC=gcc GCOVFLAGS='-fprofile-arcs -ftest-coverage' check
 	chmod -R u=rw *.gcno *.gcda
-	mv *.gcno *.gcda coverage
-	lcov --directory coverage --capture --output-file lcov.info
+	mv *.gcno *.gcda $(COVDIR)/data
+	lcov --directory $(COVDIR)/data --capture --output-file lcov.info
 
 $(COVDIR)/html/.sentinel: $(COVDIR)/.sentinel
 	mkdir $(COVDIR)/html
