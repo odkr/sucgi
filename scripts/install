@@ -1,0 +1,92 @@
+#!/bin/sh
+# Install suCGI.
+
+#
+# Initialiation
+#
+
+set -Cefu
+readonly script_dir="${0%/*}"
+# shellcheck disable=1091
+. "$script_dir/utils.sh" || exit
+init || exit
+
+
+#
+# Options
+#
+
+builddir=build destdir='' prefix=/usr/local
+cgi_bin=/usr/lib/cgi-bin www_group=www-data
+OPTIND=1 OPTARG='' opt=''
+while getopts b:c:p:w:h opt; do
+	case $opt in
+		(b) builddir="$OPTARG" ;;
+		(c) cgi_bin="$OPTARG" ;;
+		(d) destdir="$OPTARG" ;;
+		(p) prefix="$OPTARG" ;;
+		(w) www_group="$OPTARG" ;;
+		(h) exec cat <<-EOF ;;
+			install - Install suCGI
+
+			Synopsis:
+			    install [-b DIR] [-c DIR] [-p PREFIX] [-w GROUP]
+			    install -h
+
+			Options:
+			    -b DIR     The sucgi binary is in DIR
+			               (defaults to build).
+			    -c DIR     /cgi-bin is DIR.
+			               (defaults to /usr/lib/cgi-bin).
+			    -d DIR     Prefix PREFIX with DIR
+			               (empty by default).
+			    -p PREFIX  Prefix installation target with PREFIX
+			               (defaults to /usr/local).
+			    -w GROUP   Webserver runs as GROUP
+			               (defaults to www-data).
+			    -h         Show this help screen.
+			
+			See README.md for details.
+			EOF
+		(*) exit 8
+	esac
+done
+shift $((OPTIND - 1))
+unset opt
+
+[ $# -gt 0 ] && abort 'too many operands.'
+
+
+#
+# Main
+#
+
+catch=
+
+readonly installdir="$destdir$prefix/libexec"
+cleanup="rmdir -p \"\$target\" >/dev/null 2>&1; ${cleanup-}"
+# shellcheck disable=2174
+( set -x; mkdir -pm 0755; )
+[ "${caught-}" ] && exit "$((caught + 128))"
+
+readonly target="$installdir/sucgi"
+# shellcheck disable=2154
+[ -e "$target" ] || abort "$bold$target$reset$red: is already installed."
+cleanup="rm -f \"\$target\"; ${cleanup-}"
+( set -x; cp "$builddir/sucgi" "$target"; )
+[ "${caught-}" ] && exit "$((caught + 128))"
+
+( set -x; chown "root:$www_group" "$target"; )
+( set -x; chmod u=rws,g=x,o= "$target"; )
+
+symlink="$cgi_bin/sucgi"
+[ -L "$symlink" ] || [ -f "$symlink" ] || [ -d "$symlink" ] &&
+	abort "$bold$symlink$reset$red: exists."
+cleanup="rm -f \"\$symlink\"; ${cleanup-}"
+( set -x; ln -s "$destdir$prefix/libexec/sucgi" "$cgi_bin/sucgi"; )
+
+# shellcheck disable=2034
+catch=x
+[ "${caught-}" ] && exit "$((caught + 128))"
+
+unset cleanup

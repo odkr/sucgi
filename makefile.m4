@@ -86,7 +86,7 @@ CPPCHECKFLAGS =	-f -q --error-exitcode=8 --inconclusive \
 #
 
 DIST_NAME = $(PACKAGE)-$(VERSION)
-DIST_ARCHIVE = $(DIST_NAME).tgz
+DIST_ARCH = $(DIST_NAME).tgz
 
 DIST_FILES = $(PROJECTDIR)/config.h.m4 \
              $(PROJECTDIR)/configure \
@@ -346,9 +346,9 @@ check: $(CHECK_BINS)
 	$(SCRIPTDIR)/check -t $(BUILDDIR)/tests $(CHECKS)
 
 clean:
-	rm -rf $(BUILDDIR) $(DIST_NAME) $(DIST_ARCHIVE) $(DIST_ARCHIVE).asc
+	rm -rf $(BUILDDIR) $(DIST_NAME) $(DIST_ARCH) $(DIST_ARCH).asc
 
-dist: $(DIST_ARCHIVE) $(DIST_ARCHIVE).asc
+dist: $(DIST_ARCH) $(DIST_ARCH).asc
 
 distcheck: dist
 	$(SCRIPTDIR)/distcheck $(DIST_NAME)
@@ -356,18 +356,15 @@ distcheck: dist
 distclean: clean
 	rm -f makefile config.h
 
-$(DIST_ARCHIVE): $(DIST_FILES)
-	$(SCRIPTDIR)/dist $(DIST_NAME) $(DIST_FILES)
+$(DIST_ARCH): $(DIST_FILES)
+	$(SCRIPTDIR)/dist -a $(DIST_ARCH) $(DIST_NAME) $(DIST_FILES)
 
-$(DIST_ARCHIVE).asc: $(DIST_ARCHIVE)
-	gpg -qab --batch --yes $(DIST_ARCHIVE)
+$(DIST_ARCH).asc: $(DIST_ARCH)
+	gpg -qab --batch --yes $(DIST_ARCH)
 
 install: $(BUILDDIR)/sucgi
-	mkdir -pm 0755 $(DESTDIR)$(PREFIX)/libexec
-	cp $(BUILDDIR)/sucgi $(DESTDIR)$(PREFIX)/libexec
-	chown root:$(WWW_GROUP) $(DESTDIR)$(PREFIX)/libexec/sucgi
-	chmod u=rws,g=x,o= $(DESTDIR)$(PREFIX)/libexec/sucgi
-	ln -s $(DESTDIR)$(PREFIX)/libexec/sucgi $(CGI_BIN)/sucgi
+	$(SCRIPTDIR)/install -b $(BUILDDIR) -d $(DESTDIR) -p $(PREFIX) \
+		-c $(CGI_BIN) -w $(WWW_DATA)
 
 uninstall:
 	rm -f $(CGI_BIN)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
