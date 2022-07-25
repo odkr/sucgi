@@ -44,7 +44,7 @@ run_script (const char *script, const char **pairs)
 	if (!suffix) fail("%s: no filename suffix.", script);
 
 	for (pair = pairs; *pair; pair++) {
-		error rc = ERR;	/* Return code. */
+		error rc = ERR;		/* Return code. */
 		char *inter = NULL;	/* Interpreter .*/
 		char *ftype = NULL;	/* Suffix associated with inter. */
 

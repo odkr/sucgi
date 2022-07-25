@@ -19,8 +19,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(INCLUDED_FILE)
-#define INCLUDED_FILE
+#if !defined(SRC_FILE_H)
+#define SRC_FILE_H
 
 #include <stdbool.h>
 #include <sys/stat.h>
@@ -74,4 +74,4 @@ __attribute__((access(read_only, 1)))
 error file_safe_stat(const char *fname, struct stat **fstatus);
 
 
-#endif /* Include guard. */
+#endif /* !defined(SRC_FILE_H) */

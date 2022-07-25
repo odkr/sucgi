@@ -19,8 +19,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(INCLUDED_ERR)
-#define INCLUDED_ERR
+#if !defined(SRC_ERR_H)
+#define SRC_ERR_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,7 +48,7 @@
 typedef enum {
 	/* Success. */
 	OK = EXIT_SUCCESS,
-	/* Generic fail. Should only be used to initialise variables. */
+	/* Generic error. Should only be used to initialise variables. */
 	ERR = EXIT_FAILURE,
 	/* Too many environment variables. */
 	ERR_ENV_MAX,
@@ -78,4 +78,4 @@ __attribute__((noreturn, access(read_only, 1), format(printf, 1, 2)))
 void fail(const char *const message, ...);
 
 
-#endif /* Include guard. */
+#endif /* !defined(SRC_ERR_H) */

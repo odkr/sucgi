@@ -31,10 +31,10 @@
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0)
 #include <linux/openat2.h>
 #include <sys/syscall.h>
-#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0). */
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0) */
 #elif defined(__APPLE__) && defined(__MACH__)
 #include <TargetConditionals.h>
-#endif /* defined(__linux__) or defined(__APPLE__) && defined(__MACH__). */
+#endif /* defined(__linux__) ... defined(__APPLE__) && defined(__MACH__) */
 
 #include "err.h"
 #include "str.h"
@@ -99,7 +99,8 @@ file_safe_open (const char *fname, const int flags, int *fd)
 }
 #else
 #error suCGI requires Linux v5.6 or macOS v11.
-#endif /* __NR_openat2 or (TARGET_OS_MAC and O_NOFOLLOW_ANY). */
+#endif /* defined(__NR_openat2) && __NR_openat2 ... 
+          defined(TARGET_OS_MAC) && TARGET_OS_MAC && O_NOFOLLOW_ANY */
 
 
 error

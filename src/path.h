@@ -19,8 +19,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(INCLUDED_PATH)
-#define INCLUDED_PATH
+#if !defined(SRC_PATH_H)
+#define SRC_PATH_H
 
 #include <stdbool.h>
 #include <sys/types.h>
@@ -73,4 +73,4 @@ __attribute__((access(read_only, 1), access(read_only, 2), pure))
 bool path_contains(const char *const super, const char *const sub);
 
 
-#endif /* Include guard. */
+#endif /* !defined(SRC_PATH_H) */

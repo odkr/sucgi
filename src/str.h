@@ -19,8 +19,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(INCLUDED_STR)
-#define INCLUDED_STR
+#if !defined(SRC_STR_H)
+#define SRC_STR_H
 
 #include <limits.h>
 #include <stdbool.h>
@@ -105,4 +105,4 @@ error str_vsplit(const char *const restrict s, const char *sep,
                  const int n, ...);
 
 
-#endif /* Include guard. */
+#endif /* !defined(SRC_STR_H) */

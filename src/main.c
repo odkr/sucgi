@@ -294,7 +294,7 @@ main (void) {
 		groups_init = initgroups(user->pw_name, (int) gid) != 0;
 #else
 		groups_init = initgroups(user->pw_name, gid) != 0;
-#endif
+#endif /* defined(__APPLE__) && defined(__MACH__) */
 		if (groups_init != 0) {
 			fail("supplementary group initialisation: %s.",
 			     strerror(errno));

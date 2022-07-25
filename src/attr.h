@@ -19,12 +19,11 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(INCLUDED_ATTR)
-#define INCLUDED_ATTR
+#if !defined(SRC_ATTR_H)
+#define SRC_ATTR_H
 
 #if !defined(__GNUC__)
 #define __atribute__(attr) /* Excise function attributes. */
-#endif
+#endif /* !defined(__GNUC__) */
 
-#endif /* Include guard. */
-
+#endif /* !defined(SRC_ATTR_H) */

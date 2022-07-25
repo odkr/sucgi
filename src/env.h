@@ -19,8 +19,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(INCLUDED_ENV)
-#define INCLUDED_ENV
+#if !defined(SRC_ENV_H)
+#define SRC_ENV_H
 
 #include <sys/stat.h>
 
@@ -146,4 +146,4 @@ error env_restore(const char *const *vars,
                   char *const *const toss);
 
 
-#endif /* Include guard. */
+#endif /* !defined(SRC_ENV_H) */

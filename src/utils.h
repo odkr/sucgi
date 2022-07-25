@@ -19,8 +19,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(INCLUDED_UTILS)
-#define INCLUDED_UTILS
+#if !defined(SRC_UTILS_H)
+#define SRC_UTILS_H
 
 #include "attr.h"
 
@@ -46,4 +46,4 @@ __attribute__((access(read_only, 1), access(read_only, 2)))
 void run_script (const char *script, const char **pairs);
 
 
-#endif /* Include guard. */
+#endif /* !defined(SRC_UTILS_H) */
