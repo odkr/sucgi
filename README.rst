@@ -203,7 +203,7 @@ check
     Perform tests. Must be run as the superuser to perform all tests.
 
 clean
-    Delete compiled files, temporary files, and the distribution files.
+    Delete binaries, coverage reports, temporary files, and distribution files.
 
 dist
     Make a distribution package.
