@@ -7,7 +7,6 @@ abort() {
 	exit 8
 }
 
-
 # Exit the with $signo + 128 if $catch. Otherwise set $caught to $signo. 
 catch() {
 	signo="${1:?}"
@@ -32,7 +31,6 @@ checkerr() (
 	rm "$fifo"
 )
 
-
 # Abort if a programme doesn't print $msg or exits with a non-zero status.
 checkok() (
 	msg="${1:?}"
@@ -47,7 +45,6 @@ checkok() (
 	rm "$fifo"
 )
 
-
 # Send TERM to all children, eval $cleanup and exit with status $?.
 cleanup() {
 	status=$?
@@ -58,7 +55,6 @@ cleanup() {
 	[ "${reset-}" ] && printf %s "$reset"
 	exit "$status"
 }
-
 
 # Register signal handlers, set global variables, a umask, and enable colours.
 init() {
@@ -90,7 +86,6 @@ init() {
 "
 }
 
-
 # Check if a path is portable.
 isportable() (
 	path="${1:?}"
@@ -100,7 +95,6 @@ isportable() (
 	esac
 	return 0
 )
-
 
 # Abort if no line on STDIN contains $string.
 match() (
@@ -116,14 +110,12 @@ match() (
 	abort "'$bold$string$reset$red' not matched in:$lf${file%"$lf"}"
 )
 
-
 # Print the canonical path of a directory.
 realdir() (
 	dir="${1:?}"
 	cd -P "$dir" || exit
 	pwd
 )
-
 
 # Create a directory with the filename $prefix-$$ in $dir,
 # register it for deletion via $cleanup, and set it as $TMPDIR.
@@ -139,7 +131,6 @@ tmpdir() {
 	[ "${caught-}" ] && exit $((caught + 128))
 	export TMPDIR="$__tmpdir_tmpdir"
 }
-
 
 # Print a message to STDERR.
 warn() {
