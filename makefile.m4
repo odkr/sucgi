@@ -379,8 +379,8 @@ check: $(CHECKBINS)
 	$(SCRIPTDIR)/check -t $(BUILDDIR)/tests $(CHECKS)
 
 clean:
-	rm -rf $(BUILDDIR) $(COVDIR) \
-		$(DISTNAME) $(DISTAR) $(DISTAR).asc lcov.info
+	rm -rf $(BUILDDIR) $(COVDIR) $(DISTNAME)
+	rm -f $(DISTAR) $(DISTAR).asc lcov.info
 
 $(COVDIR):
 	mkdir $(COVDIR)
