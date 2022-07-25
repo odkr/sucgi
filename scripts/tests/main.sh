@@ -134,9 +134,9 @@ echo : > "$grpw"
 chown -R "$uid:$gid" "$tmpdir"
 chmod ug=w "$grpw"
 
-user="$tmpdir/user.sh"
-chown "$uid:$gid" "$user"
-chmod u=rwx,go= "$user"
+reportuser="$tmpdir/user.sh"
+chown "$uid:$gid" "$reportuser"
+chmod u=rwx,go= "$reportuser"
 
 fifo="$tmpdir/fifo"
 mkfifo "$fifo"
@@ -152,7 +152,7 @@ DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$grpw" \
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/script.sh" \
 	checkok 'This is a test script for main.sh and run_script.sh.' main
 
-DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$user" \
+DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$reportuser" \
 	checkok "$uid:$gid" main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/env.sh" FOO=bar \
