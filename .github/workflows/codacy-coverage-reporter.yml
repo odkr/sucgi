@@ -1,4 +1,4 @@
-name: codacy-coverage-reporter
+name: Codacy Coverage Reporter
 
 on:
   push:
@@ -8,12 +8,12 @@ on:
 
 jobs:
   codacy-coverage-reporter:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     name: codacy-coverage-reporter
     steps:
       - uses: actions/checkout@v3
       - name: configure
-        run: ./configure -f
+        run: CFLAGS= ./configure -f
       - name: make sucgi.info
         run: make sucgi.info
       - name: Run codacy-coverage-reporter
