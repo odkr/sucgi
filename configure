@@ -207,8 +207,7 @@ do
 	# shellcheck disable=2154
 	if [ -e "$output" ] && ! [ "$force" ]
 	then
-		warn "$bold$output$reset$red exists$reset," \
-		     "give $bold-f$reset to overwrite."
+		warn "not overwriting $bold$output$reset."
 		continue
 	fi
 
