@@ -4,6 +4,7 @@
 *.o
 *.tgz
 *.tgz.asc
+build
 config.h
 makefile
 tests/*
