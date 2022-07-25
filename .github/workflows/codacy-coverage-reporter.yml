@@ -8,6 +8,8 @@ on:
 
 jobs:
   codacy-coverage-reporter:
+    permissions:
+      contents: read # for actions/checkout to fetch code
     runs-on: macos-latest
     name: codacy-coverage-reporter
     steps:
