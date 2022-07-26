@@ -116,51 +116,51 @@ CGIBIN = /usr/lib/cgi-bin
 all: $(BUILDDIR)/sucgi
 
 $(BUILDDIR)/.sentinel:
-	mkdir -p $(BUILDDIR)
+	mkdir -p $(BUILDDIR) || :
 	touch $(BUILDDIR)/.sentinel
 
 $(BUILDDIR)/tests/.sentinel: $(BUILDDIR)/.sentinel
-	mkdir $(BUILDDIR)/tests
+	mkdir $(BUILDDIR)/tests || :
 	touch $(BUILDDIR)/tests/.sentinel
 
 $(BUILDDIR)/env.o:	$(SRCDIR)/env.c $(SRCDIR)/env.h	\
 			$(SRCDIR)/attr.h $(SRCDIR)/err.h $(SRCDIR)/str.h \
 			$(BUILDDIR)/.sentinel
-	$(CC) -I . -c $(CFLAGS) $(GCOVFLAGS) -o $@ $<
+	$(CC) -I $(PROJECTDIR) -c $(CFLAGS) -o $@ $<
 
 $(BUILDDIR)/err.o:	$(SRCDIR)/err.c $(SRCDIR)/err.h \
 			$(SRCDIR)/attr.h \
 			$(BUILDDIR)/.sentinel
-	$(CC) -I . -c $(CFLAGS) $(GCOVFLAGS) -o $@ $<
+	$(CC) -I $(PROJECTDIR) -c $(CFLAGS) -o $@ $<
 
 $(BUILDDIR)/file.o:	$(SRCDIR)/file.c $(SRCDIR)/file.h \
 			$(SRCDIR)/attr.h $(SRCDIR)/err.h \
 			$(SRCDIR)/path.h $(SRCDIR)/str.h \
 			$(BUILDDIR)/.sentinel
-	$(CC) -I . -c $(CFLAGS) $(GCOVFLAGS) -o $@ $<
+	$(CC) -I $(PROJECTDIR) -c $(CFLAGS) -o $@ $<
 
 $(BUILDDIR)/path.o:	$(SRCDIR)/path.c $(SRCDIR)/path.h \
 			$(SRCDIR)/attr.h $(SRCDIR)/err.h $(SRCDIR)/str.h \
 			$(BUILDDIR)/.sentinel
-	$(CC) -I . -c $(CFLAGS) $(GCOVFLAGS) -o $@ $<
+	$(CC) -I $(PROJECTDIR) -c $(CFLAGS) -o $@ $<
 
 $(BUILDDIR)/str.o:	$(SRCDIR)/str.c $(SRCDIR)/str.h \
 			$(SRCDIR)/attr.h $(SRCDIR)/err.h \
 			$(BUILDDIR)/.sentinel
-	$(CC) -I . -c $(CFLAGS) $(GCOVFLAGS) -o $@ $<
+	$(CC) -I $(PROJECTDIR) -c $(CFLAGS) -o $@ $<
 
 $(BUILDDIR)/utils.o:	$(SRCDIR)/utils.c $(SRCDIR)/utils.h \
 			$(SRCDIR)/attr.h $(SRCDIR)/err.h $(SRCDIR)/str.h \
 			$(BUILDDIR)/.sentinel
-	$(CC) -I . -c $(CFLAGS) $(GCOVFLAGS) -o $@ $<
+	$(CC) -I $(PROJECTDIR) -c $(CFLAGS) -o $@ $<
 
 $(BUILDDIR)/sucgi:	$(SRCDIR)/main.c config.h \
 			$(BUILDDIR)/env.o $(BUILDDIR)/err.o \
 			$(BUILDDIR)/file.o $(BUILDDIR)/path.o \
 			$(BUILDDIR)/str.o $(BUILDDIR)/utils.o \
 			$(BUILDDIR)/.sentinel
-	$(CC) -I . -DPACKAGE=$(PACKAGE) -DVERSION=$(VERSION) \
-		$(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+	$(CC) -I $(PROJECTDIR) -DPACKAGE=$(PACKAGE) -DVERSION=$(VERSION) \
+		$(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/env.o $(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 		$(BUILDDIR)/path.o $(BUILDDIR)/str.o $(BUILDDIR)/utils.o \
@@ -170,14 +170,14 @@ $(BUILDDIR)/tests/utils.o:	$(SRCDIR)/tests/utils.c \
 				$(SRCDIR)/tests/utils.h \
 				$(SRCDIR)/str.h \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . -c $(CFLAGS) -o $@ $<
+	$(CC) -I $(PROJECTDIR) -c $(CFLAGS) -o $@ $<
 
 $(BUILDDIR)/tests/drop_privs:	$(SRCDIR)/tests/drop_privs.c \
 				$(BUILDDIR)/tests/utils.o \
 				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/utils.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
+	$(CC) -I $(PROJECTDIR) $(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/err.o $(BUILDDIR)/str.o $(BUILDDIR)/utils.o \
@@ -186,7 +186,7 @@ $(BUILDDIR)/tests/drop_privs:	$(SRCDIR)/tests/drop_privs.c \
 $(BUILDDIR)/tests/fail:		$(SRCDIR)/tests/fail.c \
 				$(BUILDDIR)/err.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
+	$(CC) -I $(PROJECTDIR) $(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/err.o \
 		$(LDLIBS)
@@ -196,7 +196,7 @@ $(BUILDDIR)/tests/env_clear:	$(SRCDIR)/tests/env_clear.c \
 				$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 				$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
+	$(CC) -I $(PROJECTDIR) $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
 		$(BUILDDIR)/env.o $(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 		$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
@@ -210,7 +210,7 @@ $(BUILDDIR)/tests/env_get_fname:	$(SRCDIR)/tests/env_get_fname.c \
 					$(BUILDDIR)/path.o \
 					$(BUILDDIR)/str.o \
 					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
+	$(CC) -I $(PROJECTDIR) $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/env.o $(BUILDDIR)/err.o $(BUILDDIR)/file.o \
@@ -223,7 +223,7 @@ $(BUILDDIR)/tests/env_restore:	$(SRCDIR)/tests/env_restore.c \
 				$(BUILDDIR)/file.o $(BUILDDIR)/path.o \
 				$(BUILDDIR)/str.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
+	$(CC) -I $(PROJECTDIR) $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/env.o $(BUILDDIR)/err.o $(BUILDDIR)/file.o \
@@ -235,7 +235,7 @@ $(BUILDDIR)/tests/file_is_exec:	$(SRCDIR)/tests/file_is_exec.c \
 				$(BUILDDIR)/file.o \
 				$(BUILDDIR)/str.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
+	$(CC) -I $(PROJECTDIR) $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
@@ -245,7 +245,7 @@ $(BUILDDIR)/tests/file_is_wexcl:	$(SRCDIR)/tests/file_is_wexcl.c \
 					$(BUILDDIR)/tests/utils.o \
 					$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
 					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
+	$(CC) -I $(PROJECTDIR) $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
@@ -256,7 +256,7 @@ $(BUILDDIR)/tests/file_safe_open:	$(SRCDIR)/tests/file_safe_open.c \
 					$(BUILDDIR)/file.o \
 					$(BUILDDIR)/str.o \
 					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
+	$(CC) -I $(PROJECTDIR) $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
@@ -266,7 +266,7 @@ $(BUILDDIR)/tests/file_safe_stat:	$(SRCDIR)/tests/file_safe_stat.c \
 					$(BUILDDIR)/tests/utils.o \
 					$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
 					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
+	$(CC) -I $(PROJECTDIR) $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
@@ -276,7 +276,7 @@ $(BUILDDIR)/tests/path_check_len:	$(SRCDIR)/tests/path_check_len.c \
 					$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 					$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
 					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
+	$(CC) -I $(PROJECTDIR) $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
 		$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 		$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
@@ -287,7 +287,7 @@ $(BUILDDIR)/tests/path_check_wexcl:	$(SRCDIR)/tests/path_check_wexcl.c \
 					$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 					$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
 					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
+	$(CC) -I $(PROJECTDIR) $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
@@ -298,7 +298,7 @@ $(BUILDDIR)/tests/path_contains:	$(SRCDIR)/tests/path_contains.c \
 					$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 					$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
 					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
+	$(CC) -I $(PROJECTDIR) $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
 		$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 		$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
@@ -307,7 +307,7 @@ $(BUILDDIR)/tests/path_contains:	$(SRCDIR)/tests/path_contains.c \
 $(BUILDDIR)/tests/reraise:	$(SRCDIR)/tests/reraise.c \
 				$(BUILDDIR)/err.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
+	$(CC) -I $(PROJECTDIR) $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
 		$(BUILDDIR)/err.o \
 		$(LDLIBS)
@@ -317,7 +317,7 @@ $(BUILDDIR)/tests/run_script:	$(SRCDIR)/tests/run_script.c \
 				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/utils.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
+	$(CC) -I $(PROJECTDIR) $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/err.o $(BUILDDIR)/str.o $(BUILDDIR)/utils.o \
@@ -326,7 +326,7 @@ $(BUILDDIR)/tests/run_script:	$(SRCDIR)/tests/run_script.c \
 $(BUILDDIR)/tests/str_cp:	$(SRCDIR)/tests/str_cp.c \
 				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
+	$(CC) -I $(PROJECTDIR) $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
 		$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 		$(LDLIBS)
@@ -334,7 +334,7 @@ $(BUILDDIR)/tests/str_cp:	$(SRCDIR)/tests/str_cp.c \
 $(BUILDDIR)/tests/str_eq:	$(SRCDIR)/tests/str_eq.c \
 				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
+	$(CC) -I $(PROJECTDIR) $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
 		$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 		$(LDLIBS)
@@ -342,7 +342,7 @@ $(BUILDDIR)/tests/str_eq:	$(SRCDIR)/tests/str_eq.c \
 $(BUILDDIR)/tests/str_split:	$(SRCDIR)/tests/str_split.c \
 				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
+	$(CC) -I $(PROJECTDIR) $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
 		$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 		$(LDLIBS)
@@ -350,7 +350,7 @@ $(BUILDDIR)/tests/str_split:	$(SRCDIR)/tests/str_split.c \
 $(BUILDDIR)/tests/str_vsplit:	$(SRCDIR)/tests/str_vsplit.c \
 				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
+	$(CC) -I $(PROJECTDIR) $(LDFLAGS) $(CFLAGS)   \
 		-o $@ $< \
 		$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 		$(LDLIBS)
@@ -360,8 +360,8 @@ $(BUILDDIR)/tests/main:	$(SRCDIR)/main.c \
 			$(BUILDDIR)/file.o $(BUILDDIR)/path.o \
 			$(BUILDDIR)/str.o $(BUILDDIR)/utils.o \
 			$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . -D TESTING=1 -D PACKAGE=fake-$(PACKAGE) \
-		-D VERSION=$(VERSION) $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+	$(CC) -I $(PROJECTDIR) -D TESTING=1 -D PACKAGE=fake-$(PACKAGE) \
+		-D VERSION=$(VERSION) $(LDFLAGS) $(CFLAGS) \
 		-Wno-unused-macros \
 		-o $@ $< \
 		$(BUILDDIR)/env.o $(BUILDDIR)/err.o $(BUILDDIR)/file.o \
@@ -369,9 +369,14 @@ $(BUILDDIR)/tests/main:	$(SRCDIR)/main.c \
 		$(LDLIBS)
 
 analysis:
-	cppcheck $(CPPCHECKFLAGS) --enable=all -I . \
-		-U __NR_openat2 -D O_NOFOLLOW_ANY=1 $(SRCDIR)
-	cppcheck $(CPPCHECKFLAGS) --enable=unusedFunction -I . \
+	cppcheck $(CPPCHECKFLAGS) \
+		--enable=all \
+		-I $(PROJECTDIR) \
+		-U __NR_openat2 -D O_NOFOLLOW_ANY=1 \
+		$(SRCDIR)
+	cppcheck $(CPPCHECKFLAGS) \
+		--enable=unusedFunction \
+		-I $(PROJECTDIR) \
 		$(SRCDIR)/*.c
 	flawfinder --error-level=1 -m 0 -D -Q .
 	find $(SCRIPTDIR) -type f | xargs shellcheck configure
@@ -385,25 +390,30 @@ clean:
 	find . -type d -name 'tmp-*' -exec rm '{}' +
 
 $(COVDIR)/.sentinel:
-	mkdir $(COVDIR)
+	mkdir $(COVDIR) || :
 	touch $(COVDIR)/.sentinel
 
-$(COVDIR)/data/.sentinel: $(COVDIR)/.sentinel
-	mkdir $(COVDIR)/data
-	touch $(COVDIR)/data/.sentinel
+$(COVDIR)/build/.sentinel: $(COVDIR)/.sentinel
+	mkdir $(COVDIR)/build || :
+	touch $(COVDIR)/build/.sentinel
 
-lcov.info: clean $(COVDIR)/data/.sentinel
-	make CC=gcc GCOVFLAGS='-fprofile-arcs -ftest-coverage' check
-	chmod -R u=rw *.gcno *.gcda
-	mv *.gcno *.gcda $(COVDIR)/data
-	lcov --directory $(COVDIR)/data --capture --output-file lcov.info
+lcov.info: $(COVDIR)/build/.sentinel
+	wd=$$(pwd) && test -n "$$wd" && cd $(COVDIR)/build && \
+		make -f "$$wd/makefile" \
+		        CC=gcc CFLAGS=--coverage PROJECTDIR="$$wd" check
+	chmod -R u+rw,go= $(COVDIR)/build
+	lcov --directory $(COVDIR)/build \
+		--capture --exclude '*/tests/*' \
+		--output-file lcov.info
 
 $(COVDIR)/html/.sentinel: $(COVDIR)/.sentinel
-	mkdir $(COVDIR)/html
+	mkdir $(COVDIR)/html || :
 	touch $(COVDIR)/html/.sentinel
 
 $(COVDIR)/html/index.html: lcov.info $(COVDIR)/html/.sentinel
 	genhtml -o $(COVDIR)/html lcov.info
+
+cov: $(COVDIR)/html/index.html
 
 dist: $(DISTAR) $(DISTAR).asc
 
@@ -426,7 +436,7 @@ install: $(BUILDDIR)/sucgi
 uninstall:
 	rm -f $(CGIBIN)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
 
-.PHONY: all analysis cov check clean dist distcheck distclean \
-	install uninstall
+.PHONY: all analysis check clean lcov.info cov \
+	dist distcheck distclean install uninstall
 
 .IGNORE: analysis
