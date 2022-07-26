@@ -73,7 +73,7 @@
 #endif
 
 #if !defined(SCRIPT_HANDLERS)
-#define SCRIPT_HANDLERS	{".php=php", NULL}
+#define SCRIPT_HANDLERS {{.key = ".php", .value = "php"}, {NULL, NULL}}
 #endif
 
 
@@ -90,7 +90,7 @@
 #define MIN_UID 500
 
 #undef SCRIPT_HANDLERS
-#define SCRIPT_HANDLERS {".sh=sh", NULL}
+#define SCRIPT_HANDLERS {{.key = ".sh", .value = "sh"}, {NULL, NULL}}
 
 #endif /* !defined(TESTING) && TESTING */
 
@@ -156,7 +156,7 @@ main (void) {
 			     strerror(errno));
 			break;
 		case ERR_STR_LEN:
-			fail("environment variable too long.");
+			fail("environment variable is too long.");
 			break;
 		case ERR_VAR_INVALID:
 			fail("ill-formed environment variable.");
@@ -269,7 +269,7 @@ main (void) {
 	user = getpwuid(path_trans_st->st_uid);
 	/* NB: The test suite does not check whether this check works. */
 	if (!user) {
-		fail("%s: lookup of UID %lu: %s.", path_trans,
+		fail("%s: getpwuid %lu: %s.", path_trans,
 		     (unsigned long) path_trans_st->st_uid, strerror(errno));
 	}
 
@@ -325,9 +325,8 @@ main (void) {
 	 */
 
 	if (file_is_exec(path_trans_st)) {
-		const char *handlers[] = SCRIPT_HANDLERS;
-		/* run_script only returns if prog could not be executed. */
-		run_script(path_trans, handlers);
+		/* run_script never returns. */
+		run_script(path_trans, (struct pair []) SCRIPT_HANDLERS);
 	} else {
 		// suCGI's whole point is to do this safely.
 		// flawfinder: ignore.
@@ -335,5 +334,5 @@ main (void) {
 	}
 
 	/* If this point is reached, execution has failed. */
-	fail("failed to execute %s: %s.", path_trans, strerror(errno));
+	fail("exec %s: %s.", path_trans, strerror(errno));
 }

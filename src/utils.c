@@ -106,53 +106,37 @@ drop_privs(struct passwd *user)
 #endif /* defined(TESTING) && TESTING */
 }
 
+#include <stdio.h>
 void
-run_script(const char *const script, const char **const pairs)
+run_script(const char *const script, struct pair pairs[])
 {
-	const char **pair = NULL;	/* Current pair. */
 	char *suffix = NULL;		/* Filename suffix. */
-	int i = 0;			/* Counter. */
 
 	assert(script);
-	assert(pairs);
-
 	suffix = strrchr(script, '.');
 	if (!suffix) fail("%s: no filename suffix.", script);
 
-	for (pair = pairs; *pair; pair++) {
-		error rc = ERR;		/* Return code. */
-		char *inter = NULL;	/* Interpreter .*/
-		char *ftype = NULL;	/* Suffix associated with inter. */
+	for (int i = 0; pairs[i].key; i++) {
+		const char *const filetype = pairs[i].key;
+		const char *const interpreter = pairs[i].value;
 
-		i++;
-		rc = str_vsplit(*pair, "=", 2, &ftype, &inter);
-		switch (rc) {
-			case OK:
-				break;
-			case ERR_SYS:
-				fail("interpreter %d: %s.",
-				     i, strerror(errno));
-				break;
-			default:
-				fail("%s:%d: str_vsplit returned %u.",
-				      __FILE__, __LINE__ - 10, rc);
+		if (!str_eq(suffix, filetype)) continue;
+
+		if (!interpreter) {
+			fail("script handler %d: "
+			     "no interpreter given.",
+			     i + 1);
+		}
+		if (interpreter[0] == '\0') {
+			fail("script handler %d: "
+			     "path to interpreter is the empty string.",
+			     i + 1);
 		}
 
-		if (ftype[0] == '\0') {
-			fail("script type %d: no filename suffix.", i);
-		}
-		if (ftype[0] != '.' || str_eq(ftype, ".")) {
-			fail("script type %d: weird filename suffix.", i);
-		} 
-		if (!inter || inter[0] == '\0') {
-			fail("script type %d: no interpreter given.", i);
-		}
-
-		if (str_eq(suffix, ftype)) {
-			// suCGI's whole point is to do this safely.
-			// flawfinder: ignore.
-			execlp(inter, inter, script, NULL);
-		};
+		// suCGI's whole point is to do this safely.
+		// flawfinder: ignore.
+		execlp(interpreter, interpreter, script, NULL);
+		fail("%s: exec %s: %s.", script, interpreter, strerror(errno));
 	}
 
 	fail("filename suffix %s: no interpreter registered.", suffix);

@@ -26,19 +26,34 @@
 
 #include "attr.h"
 
+
+/*
+ * Data types
+ */
+
+/* A simple key-value store. */
+struct pair {
+        char *key;
+        char *value;
+};
+
+
+/*
+ * Functions
+ */
+
 /*
  * Assume the UID and GID of user.
  *
  * Aborts the programme if an error occurred.
  */
-__attribute__((ACCESS_RO(1)))
+__attribute__((RO(1)))
 void drop_privs(struct passwd *user);
 
 /*
  * Run script with the first matching interpreter in pairs.
  *
- * pairs is a list of filename ending-interpreter pairs, where filename
- * endings and interpreters are separated by an equals sign ("=").
+ * pairs is an array of filename ending-interpreter pairs.
  *
  * Filename endings must be given including the leading dot (".").
  * Interpreters are searched for in $PATH.
@@ -46,11 +61,9 @@ void drop_privs(struct passwd *user);
  * The first interpreter that is associated with the script's filename ending
  * is executed with execlp(3) and given the script as first and only argument.
  * 
- * run_script only returns if an error occurred.
- * errno(2) should be set in this case.
+ * run_script never returns.
  */
-__attribute__((ACCESS_RO(1), ACCESS_RO(2)))
-void run_script(const char *const script, const char **const pairs);
-
+__attribute__((RO(1), RO(2)))
+void run_script(const char *const script, struct pair pairs[]);
 
 #endif /* !defined(SRC_UTILS_H) */

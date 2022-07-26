@@ -6,35 +6,48 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../err.h"
 #include "../str.h"
 #include "../utils.h"
 #include "utils.h"
 
+#include <stdio.h>
+
 int
 main (int argc, char **argv)
 {
-	const char *script = NULL;
-	const char *pairs = NULL;
-	char **pairv = NULL;
-	error rc = ERR;
+	struct pair handlers[argc];
+	int i = 0;
 
-	switch (argc) {
-		case 2:
-			script = argv[1];
-			pairs = ".sh=sh";
-			break;
-		case 3:
-			script = argv[1];
-			pairs = argv[2];
-			break;
-		default:
-			die("usage: run_script SCRIPT [HANDLER]");
+	if (argc < 2) {
+		die("usage: run_script SCRIPT "
+		    "[SUFFIX=HANDLER [SUFFIX=HANDLER [...]]]");
 	}
 
-	rc = str_words(pairs, &pairv);
-	if (rc != OK) die("run_script: str_words returned %u.", rc);
+	for (i = 2; i < argc; i++) {
+		char *suffix = NULL;
+		char *handler = NULL;
+		error rc = ERR;
+		
+		rc = str_vsplit(argv[i], "=", 2, &suffix, &handler);
+		if (rc != OK) {
+			die("run_script: str_vsplit returned %d.", rc);
+		}
+		if (suffix[0] == '\0') {
+			die("run_script: suffix %d is empty.", i - 1);
+		}
+		if (!handler) {
+			die("run_script: %s: no handler given.", argv[i]);
+		}
 
-	run_script(script, (const char **) pairv);
+		handlers[i - 2] = (struct pair) {
+			.key = suffix,
+			.value = handler
+		};
+	}
+	handlers[i - 2] = (struct pair) {NULL, NULL};
+
+	run_script(argv[1], handlers);
 
 	return EXIT_FAILURE;
 }
