@@ -398,13 +398,10 @@ $(COVDIR)/build/.sentinel: $(COVDIR)/.sentinel
 	touch $(COVDIR)/build/.sentinel
 
 lcov.info: $(COVDIR)/build/.sentinel
-	wd=$$(pwd) && test -n "$$wd" && cd $(COVDIR)/build && \
-		make -f "$$wd/makefile" \
-		        CC=gcc CFLAGS=--coverage PROJECTDIR="$$wd" check
+	wd=$$(pwd) && cd $(COVDIR)/build && make -f "$$wd/makefile" \
+		CC=$(CC) CFLAGS=--coverage PROJECTDIR="$$wd" check
 	chmod -R u+rw,go= $(COVDIR)/build
-	lcov --directory $(COVDIR)/build \
-		--capture --exclude '*/tests/*' \
-		--output-file lcov.info
+	lcov -c -d $(COVDIR)/build -o lcov.info --exclude '*/tests/*'
 
 $(COVDIR)/html/.sentinel: $(COVDIR)/.sentinel
 	mkdir $(COVDIR)/html || :
