@@ -64,31 +64,41 @@ unset opt
 catch=
 
 readonly installdir="$destdir$prefix/libexec"
+# shellcheck disable=2154
+warn "making directory $bold$installdir$reset ..."
 cleanup="rmdir -p \"\$target\" >/dev/null 2>&1; ${cleanup-}"
-# shellcheck disable=2174
-( set -x; mkdir -pm 0755; )
+mkdir -pm 0755
 [ "${caught-}" ] && exit "$((caught + 128))"
 
 readonly target="$installdir/sucgi"
+warn "copying $bold$builddir/sucgi$reset to $bold$target$reset ..."
 # shellcheck disable=2154
 [ -e "$target" ] || abort "$bold$target$reset$red: is already installed."
 cleanup="rm -f \"\$target\"; ${cleanup-}"
-( set -x; cp "$builddir/sucgi" "$target"; )
+cp "$builddir/sucgi" "$target"
+catch=x
 [ "${caught-}" ] && exit "$((caught + 128))"
 
-( set -x; chown "root:$www_group" "$target"; )
-( set -x; chmod u=rws,g=x,o= "$target"; )
+warn "changing ownership of $bold$target$reset to " \
+     "${bold}root$reset:$bold$www_group$reset ..."
+chown "root:$www_group" "$target"
+warn "setting permissions of $bold$target$reset to " \
+     "${bold}u=rws,g=x,o=$reset ..."
+chmod u=rws,g=x,o= "$target"
 
-symlink="$cgi_bin/sucgi"
+catch=
+readonly symlink="$cgi_bin/sucgi"
+warn "symlinking $bold$symlink$reset to $bold$target$reset ..."
 [ -L "$symlink" ] || [ -f "$symlink" ] || [ -d "$symlink" ] &&
 	abort "$bold$symlink$reset$red: exists."
 cleanup="rm -f \"\$symlink\"; ${cleanup-}"
-( set -x; ln -s "$destdir$prefix/libexec/sucgi" "$cgi_bin/sucgi"; )
+ln -s "$destdir$prefix/libexec/sucgi" "$cgi_bin/sucgi"
 
 # shellcheck disable=2034
 catch=x
 [ "${caught-}" ] && exit "$((caught + 128))"
 
 unset cleanup
+
 # shellcheck disable=2154
 warn "${green}installation succeeded.$reset"
