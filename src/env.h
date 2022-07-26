@@ -91,7 +91,7 @@ error env_clear(char ***vars);
  *      ERR_VAR_UNDEF  NAME is undefined.
  *      ERR_VAR_EMPTY  NAME is empty.
  */
-__attribute__((ACCESS_RO(1)))
+__attribute__((RO(1)))
 error env_get_fname(const char *name, char **fname, struct stat **fstatus);
 
 /*
@@ -135,7 +135,7 @@ error env_get_fname(const char *name, char **fname, struct stat **fstatus);
  *	ERR_VAR_INVALID  A variable is not of the form key=value.
  * 	ERR_SYS          System error. errno(2) should be set.
  */
-__attribute__((ACCESS_RO(1), ACCESS_RO(2), ACCESS_RO(3)))
+__attribute__((RO(1), RO(2), RO(3)))
 error env_restore(const char *const *vars,
                   char *const *const keep,
                   char *const *const toss);

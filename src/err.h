@@ -74,7 +74,7 @@ typedef enum {
 /* Log message as an fail and exit the programme with EXIT_FAILURE. */
 // message is declared constant.
 // flawfinder: igore.
-__attribute__((noreturn, ACCESS_RO(1), format(printf, 1, 2)))
+__attribute__((noreturn, RO(1), format(printf, 1, 2)))
 void fail(const char *const message, ...);
 
 
