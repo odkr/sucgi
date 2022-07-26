@@ -164,7 +164,8 @@ env_restore(const char *const *vars,
 	assert(toss);
 
 	for (; *vars; vars++) {
-		char *name, *value;	/* Variable name and value. */
+		char *name = NULL;
+		char *value = NULL;
 
 		reraise(str_vsplit(*vars, "=", 2, &name, &value));
 		if (name[0] == '\0' || !value) return ERR_VAR_INVALID;
