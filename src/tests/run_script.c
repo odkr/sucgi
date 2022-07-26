@@ -31,7 +31,7 @@ main (int argc, char **argv)
 		
 		rc = str_vsplit(argv[i], "=", 2, &suffix, &handler);
 		if (rc != OK) {
-			die("run_script: str_vsplit returned %d.", rc);
+			die("run_script: str_vsplit returned %u.", rc);
 		}
 		if (suffix[0] == '\0') {
 			die("run_script: suffix %d is empty.", i - 1);
