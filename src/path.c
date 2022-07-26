@@ -94,9 +94,10 @@ path_check_wexcl(const uid_t uid, const char *const path,
 bool
 path_contains(const char *const super, const char *const sub)
 {
-	const size_t len = strnlen(super, STR_MAX_LEN);
+	size_t len = 0;
 
 	assert(super && sub);
+	len = strnlen(super, STR_MAX_LEN);
 	if (super[0] == '\0') return false;
 	if (str_eq(sub, "/")) return false;
 	if (sub[len] != '/' && !str_eq(super, "/")) return false;
