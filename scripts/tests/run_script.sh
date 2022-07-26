@@ -22,25 +22,16 @@ tmpdir chk
 checkerr 'foo: no filename suffix.' \
 	run_script foo
 
-checkerr 'script type 1: no filename suffix.' \
-	run_script foo.sh "=sh .pl=perl"
-
-checkerr 'script type 2: weird filename suffix.' \
-	run_script foo.sh ".pl=perl sh=sh"
-
-checkerr 'script type 3: weird filename suffix.' \
-	run_script foo.sh ".pl=perl .py=python .=sh"
-
-checkerr 'script type 2: no interpreter given.' \
-	run_script foo.sh ".py=python .sh="
+checkerr 'script handler 2: path to interpreter is the empty string.' \
+	run_script foo.sh .py=python .sh=
 
 checkerr 'filename suffix .nil: no interpreter registered.' \
-	run_script foo.nil '.sh=sh'
+	run_script foo.nil .sh=sh
 
-checkerr 'script type 2: weird filename suffix.' \
+checkerr 'foo.sh: exec /::no such file!!: No such file or directory.' \
 	run_script foo.sh '.sh=/::no such file!!'
 
 checkok 'This is a test script for main.sh and run_script.sh.' \
-	run_script "$script_dir/scripts/script.sh" '.sh=sh'
+	run_script "$script_dir/scripts/script.sh" .sh=sh
 
 exit 0

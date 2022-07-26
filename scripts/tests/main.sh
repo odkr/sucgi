@@ -58,7 +58,7 @@ DOCUMENT_ROOT='' \
 	checkerr 'DOCUMENT_ROOT: is the empty string.' main
 
 DOCUMENT_ROOT="$long_str" \
-	checkerr 'environment variable too long.' main
+	checkerr 'environment variable is too long.' main
 
 if [ "$long_path" ]
 then
@@ -82,7 +82,7 @@ DOCUMENT_ROOT="$HOME" PATH_TRANSLATED='' \
 	checkerr 'PATH_TRANSLATED: is the empty string.' main
 
 DOCUMENT_ROOT=/ PATH_TRANSLATED="$long_str" \
-	checkerr 'environment variable too long.' main
+	checkerr 'environment variable is too long.' main
 
 [ "$long_path" ] &&
 	DOCUMENT_ROOT=/ PATH_TRANSLATED="$long_path" \
