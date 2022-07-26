@@ -69,7 +69,7 @@ init() {
 
 	umask 077
 
-	reset='' bold='' green='' red=''
+	reset='' bold='' green='' red='' yellow=''
 	if [ -t 2 ]
 	then
 		case ${TERM-} in (*color*)
@@ -77,8 +77,9 @@ init() {
 			if reset="$(tput sgr0 2>/dev/null)" && [ "$reset" ]
 			then
 				bold="$(tput bold 2>/dev/null)" || : 
-				green="$(tput setaf 2 2>/dev/null)" || :
 				red="$(tput setaf 1 2>/dev/null)" || :
+				green="$(tput setaf 2 2>/dev/null)" || :
+				yellow="$(tput setaf 3 2>/dev/null)" || :
 			fi
 		esac
 	fi
