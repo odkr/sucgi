@@ -177,7 +177,7 @@ $(BUILDDIR)/tests/drop_privs:	$(SRCDIR)/tests/drop_privs.c \
 				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/utils.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/err.o $(BUILDDIR)/str.o $(BUILDDIR)/utils.o \
@@ -186,7 +186,7 @@ $(BUILDDIR)/tests/drop_privs:	$(SRCDIR)/tests/drop_privs.c \
 $(BUILDDIR)/tests/fail:		$(SRCDIR)/tests/fail.c \
 				$(BUILDDIR)/err.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/err.o \
 		$(LDLIBS)
@@ -196,7 +196,7 @@ $(BUILDDIR)/tests/env_clear:	$(SRCDIR)/tests/env_clear.c \
 				$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 				$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/env.o $(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 		$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
@@ -210,7 +210,7 @@ $(BUILDDIR)/tests/env_get_fname:	$(SRCDIR)/tests/env_get_fname.c \
 					$(BUILDDIR)/path.o \
 					$(BUILDDIR)/str.o \
 					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/env.o $(BUILDDIR)/err.o $(BUILDDIR)/file.o \
@@ -223,7 +223,7 @@ $(BUILDDIR)/tests/env_restore:	$(SRCDIR)/tests/env_restore.c \
 				$(BUILDDIR)/file.o $(BUILDDIR)/path.o \
 				$(BUILDDIR)/str.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/env.o $(BUILDDIR)/err.o $(BUILDDIR)/file.o \
@@ -235,7 +235,7 @@ $(BUILDDIR)/tests/file_is_exec:	$(SRCDIR)/tests/file_is_exec.c \
 				$(BUILDDIR)/file.o \
 				$(BUILDDIR)/str.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
@@ -245,7 +245,7 @@ $(BUILDDIR)/tests/file_is_wexcl:	$(SRCDIR)/tests/file_is_wexcl.c \
 					$(BUILDDIR)/tests/utils.o \
 					$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
 					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
@@ -256,7 +256,7 @@ $(BUILDDIR)/tests/file_safe_open:	$(SRCDIR)/tests/file_safe_open.c \
 					$(BUILDDIR)/file.o \
 					$(BUILDDIR)/str.o \
 					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
@@ -266,7 +266,7 @@ $(BUILDDIR)/tests/file_safe_stat:	$(SRCDIR)/tests/file_safe_stat.c \
 					$(BUILDDIR)/tests/utils.o \
 					$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
 					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
@@ -276,7 +276,7 @@ $(BUILDDIR)/tests/path_check_len:	$(SRCDIR)/tests/path_check_len.c \
 					$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 					$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
 					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 		$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
@@ -287,7 +287,7 @@ $(BUILDDIR)/tests/path_check_wexcl:	$(SRCDIR)/tests/path_check_wexcl.c \
 					$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 					$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
 					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
@@ -298,7 +298,7 @@ $(BUILDDIR)/tests/path_contains:	$(SRCDIR)/tests/path_contains.c \
 					$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 					$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
 					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 		$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
@@ -307,7 +307,7 @@ $(BUILDDIR)/tests/path_contains:	$(SRCDIR)/tests/path_contains.c \
 $(BUILDDIR)/tests/reraise:	$(SRCDIR)/tests/reraise.c \
 				$(BUILDDIR)/err.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/err.o \
 		$(LDLIBS)
@@ -317,7 +317,7 @@ $(BUILDDIR)/tests/run_script:	$(SRCDIR)/tests/run_script.c \
 				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/utils.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/err.o $(BUILDDIR)/str.o $(BUILDDIR)/utils.o \
@@ -326,7 +326,7 @@ $(BUILDDIR)/tests/run_script:	$(SRCDIR)/tests/run_script.c \
 $(BUILDDIR)/tests/str_cp:	$(SRCDIR)/tests/str_cp.c \
 				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 		$(LDLIBS)
@@ -334,7 +334,7 @@ $(BUILDDIR)/tests/str_cp:	$(SRCDIR)/tests/str_cp.c \
 $(BUILDDIR)/tests/str_eq:	$(SRCDIR)/tests/str_eq.c \
 				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 		$(LDLIBS)
@@ -342,7 +342,7 @@ $(BUILDDIR)/tests/str_eq:	$(SRCDIR)/tests/str_eq.c \
 $(BUILDDIR)/tests/str_split:	$(SRCDIR)/tests/str_split.c \
 				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) $(GCOVFLAGS) \
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) \
 		-o $@ $< \
 		$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 		$(LDLIBS)
@@ -350,7 +350,7 @@ $(BUILDDIR)/tests/str_split:	$(SRCDIR)/tests/str_split.c \
 $(BUILDDIR)/tests/str_vsplit:	$(SRCDIR)/tests/str_vsplit.c \
 				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS)  $(GCOVFLAGS) \
+	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
 		$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 		$(LDLIBS)
