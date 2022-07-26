@@ -6,7 +6,6 @@
 #
 
 set -Ceu
-exec >&2
 
 readonly script_dir="${0%/*}"
 . "$script_dir/scripts/utils.sh" || exit
@@ -54,12 +53,12 @@ while getopts fh opt; do
 	case $opt in
 		(f) force=x ;;
 		(h) exec cat <<-EOF ;;
-			configure - Generate the makefile.
+			configure - Generate build configuration.
 
 			Options:
 			    -f  Overwrite existing files.
 			    -h  Show this help screen.
-			
+
 			Environment:
 			    CC          The C compiler.
 			    CFLAGS      Flags to pass to the C compiler.
@@ -196,23 +195,23 @@ fi
 # Create files
 #
 
-errors=0
+errc=0 filec=0 genc=0
 for input in "$PROJECTDIR/"*.m4
 do
 	[ "$input" = "$PROJECTDIR/*.in" ] && break
 	name="$(basename "$input")" ||
 		abort "$input: failed to get basename."
 	output="${name%.m4}"
+	filec=$((filec + 1))
 
 	# shellcheck disable=2154
 	if [ -e "$output" ] && ! [ "$force" ]
 	then
-		warn "not overwriting $bold$output$reset."
+		printf '\a' >&2
+		warn "${yellow}not overwriting $bold$output$reset," \
+		     "give $bold-f$reset to force."
 		continue
 	fi
-
-	# shellcheck disable=2154
-	printf 'generating %s ... ' "$bold$output$reset"
 
 	swap="$TMPDIR/$output"
 	if m4	-D__CC="${CC-}"				\
@@ -221,19 +220,31 @@ do
 		"$input" >"$swap"
 	then
 		mv "$swap" "$output"
-		echo 'done.'
+		genc=$((genc + 1))
+		warn "generated $bold$output$reset."
 	else
-		rm -f "$swap" >/dev/null 2>&1 || :
-		errors=$((errors + 1))
-		echo "\a${red}failed.$reset"
+		rm -f "$swap" || :
+		errc=$((errc + 1))
+		printf '\a' >&2
+		warn "${red}failed to generate$bold$output$reset$red."
 	fi
 	unset swap
 done
 
 # shellcheck disable=2154
-case $errors in
-	(0) echo "${green}all done.$reset" ;;
-	(*) echo "\a$red$errors file(s) could not be generated.$reset"
-esac
+if [ $errc -gt 0 ]
+then
+	printf '\a' >&2
+	warn "$red$bold$errc$reset$red of $bold$filec$reset$red" \
+	     "file(s) could not be generated.$reset"
+elif [ $genc -lt $filec ]
+then
+	printf '\a' >&2
+	warn "$yellow$bold$genc$reset$yellow of $bold$filec$reset$yellow" \
+	     "file(s) generated.$reset"
+else
+	warn "$green$bold$genc$reset$green of $bold$filec$reset$green" \
+	     "file(s) generated.$reset"
+fi
 
-exit $errors
+exit $errc
