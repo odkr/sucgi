@@ -5,7 +5,7 @@ Building suCGI
 Configuration
 =============
 
-Use *configure* to create *makefile* and *config.h*.
+Use *configure* to Generate *makefile* and *config.h*.
 
 If you want to adapt suCGI's build settings, edit *configure.env* and create
 a (new) makefile by calling ``configure``; supply ``-f`` to overwrite existing
@@ -116,6 +116,10 @@ analysis
 check
     Perform tests. Must be run as the superuser to perform all tests.
 
+cov
+    Store a human-readable coverage report to *cov/html/index.html*.
+    Must be run as the superuser in order to be accurate.
+
 clean
     Delete binaries, coverage reports, temporary files, and distribution files.
 
@@ -128,6 +132,10 @@ distcheck
 
 distclean
     Delete *config.h*, *makefile* and everything ``make clean`` deletes.
+
+lcov.info
+    Store a machine-readable coverage report to *lcov.info*.
+    Must be run as the superuser in order to be accurate.
 
 install
     Install suCGI.
