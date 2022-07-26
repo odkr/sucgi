@@ -30,6 +30,6 @@
 /* Shorthand for access(read_only, ...). */
 // This is not a call to the access() function.
 // flawfinder: ignore.
-#define ACCESS_RO(...) access(read_only, __VA_ARGS__)
+#define RO(...) access(read_only, __VA_ARGS__)
 
 #endif /* !defined(SRC_ATTR_H) */
