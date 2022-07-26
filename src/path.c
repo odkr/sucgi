@@ -96,9 +96,7 @@ path_contains(const char *const super, const char *const sub)
 {
 	const size_t len = strnlen(super, STR_MAX_LEN);
 
-	assert(super);
-	assert(sub);
-
+	assert(super && sub);
 	if (super[0] == '\0') return false;
 	if (str_eq(sub, "/")) return false;
 	if (sub[len] != '/' && !str_eq(super, "/")) return false;

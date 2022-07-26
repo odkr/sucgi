@@ -99,9 +99,7 @@ str_vsplit(const char *const restrict s, const char *sep, const int n, ...)
 	char **tokens = NULL;	/* Substrings. */
 	int ntokens = 0;	/* Number of substrings. */
 
-	assert(s);
-	assert(sep);
-
+	assert(s && sep);
 	reraise(str_split(s, sep, n - 1, &tokens, &ntokens));
 
 	va_start(ap, n);

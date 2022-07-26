@@ -139,9 +139,7 @@ env_get_fname(const char *name, char **fname, struct stat **fstatus)
 {
 	char *value = NULL;
 
-	assert(name);
-	assert(fname);
-
+	assert(name && fname);
 	// The value is checked below, extensively.
 	// flawfinder: ignore
 	value = getenv(name);
@@ -159,9 +157,7 @@ env_restore(const char *const *vars,
             char *const *const keep,
 	    char *const *const toss)
 {
-	assert(vars);
-	assert(keep);
-	assert(toss);
+	assert(vars && keep && toss);
 
 	for (; *vars; vars++) {
 		char *name = NULL;

@@ -111,7 +111,6 @@ file_safe_stat(const char *fname, struct stat **fstatus)
 	int rc = -1;
 
 	assert(fname);
-
 	buf = malloc(sizeof(struct stat));
 	if (!buf) return ERR_SYS;
 	reraise(file_safe_open(fname, O_RDONLY | O_CLOEXEC, &fd));
