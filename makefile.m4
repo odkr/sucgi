@@ -116,11 +116,11 @@ CGIBIN = /usr/lib/cgi-bin
 all: $(BUILDDIR)/sucgi
 
 $(BUILDDIR)/.sentinel:
-	mkdir -p $(BUILDDIR) || :
+	test -e $(BUILDDIR) || mkdir -p $(BUILDDIR)
 	touch $(BUILDDIR)/.sentinel
 
 $(BUILDDIR)/tests/.sentinel: $(BUILDDIR)/.sentinel
-	mkdir $(BUILDDIR)/tests || :
+	test -e $(BUILDDIR)/tests || mkdir -p $(BUILDDIR)/tests
 	touch $(BUILDDIR)/tests/.sentinel
 
 $(BUILDDIR)/env.o:	$(SRCDIR)/env.c $(SRCDIR)/env.h	\
@@ -390,13 +390,13 @@ clean:
 	find . -type d -name 'tmp-*' -exec rm '{}' +
 
 lcov.info:
-	mkdir cov || :
-	cd cov && CC=$(CC) CFLAGS=--coverage "../configure" && make check
+	test -e cov || mkdir cov
+	cd cov && CC=$(CC) CFLAGS=--coverage ../configure && make check
 	chmod -R u+rw,go= cov
 	lcov -c -d cov -o lcov.info --exclude '*/tests/*'
 
 cov/html/index.html: lcov.info
-	mkdir cov/html || :
+	test -e cov/html || mkdir cov/html
 	genhtml -o cov/html lcov.info
 
 cov: cov/html/index.html
