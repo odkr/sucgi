@@ -51,6 +51,7 @@ CHECKBINS = $(BUILDDIR)/tests/drop_privs \
             $(BUILDDIR)/tests/run_script \
             $(BUILDDIR)/tests/str_cp \
             $(BUILDDIR)/tests/str_eq \
+            $(BUILDDIR)/tests/str_len \
             $(BUILDDIR)/tests/str_split \
             $(BUILDDIR)/tests/str_vsplit
 
@@ -71,6 +72,7 @@ CHECKS = $(SCRIPTDIR)/tests/drop_privs.sh \
          $(SCRIPTDIR)/tests/run_script.sh \
          $(BUILDDIR)/tests/str_cp \
          $(BUILDDIR)/tests/str_eq \
+         $(BUILDDIR)/tests/str_len \
          $(BUILDDIR)/tests/str_split \
          $(BUILDDIR)/tests/str_vsplit
 
@@ -332,6 +334,14 @@ $(BUILDDIR)/tests/str_cp:	$(SRCDIR)/tests/str_cp.c \
 		$(LDLIBS)
 
 $(BUILDDIR)/tests/str_eq:	$(SRCDIR)/tests/str_eq.c \
+				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
+				$(BUILDDIR)/tests/.sentinel
+	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
+		-o $@ $< \
+		$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
+		$(LDLIBS)
+
+$(BUILDDIR)/tests/str_len:	$(SRCDIR)/tests/str_len.c \
 				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/tests/.sentinel
 	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
