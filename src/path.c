@@ -37,35 +37,63 @@
 
 
 error
-path_check_len(const char *const path)
+path_check_len(const char *path)
 {
-	size_t len = 0;			/* Length of current (sub-)dir. */
-	const char *super = NULL;	/* Currot super-directory. */
-	const char *sub = NULL;		/* Current sub-direcotry. */
-	char *pivot = NULL;		/* Current super/sub border. */	
+	size_t path_len = PATH_MAX + 1;
+	const char *sep = NULL;
+	const char *sub = NULL;
 
 	assert(path);
-	len = strnlen(path, STR_MAX_LEN + 1);
-	if (len > STR_MAX_LEN) return ERR_STR_LEN;
-
+	reraise(str_len(path, &path_len));
 #if PATH_MAX > -1
-	if (len > PATH_MAX - 1) return ERR_STR_LEN;
+	if (path_len > PATH_MAX - 1) return ERR_STR_LEN;
 #endif
 
-	reraise(str_cp(path, &pivot));
-	while ((pivot = strpbrk(pivot, "/"))) {
-		if (super && sub) {
-			long max = pathconf(super, _PC_PATH_MAX);
+	sub = path;
+	do {
+		size_t super_len = 0;
+		size_t fname_len = 0;
+		size_t sub_len = 0;
+		const char *super = NULL;
 
-			if (max < 0) {
+		if (sep) {
+			super_len = (size_t) (sep - path + 1);
+			super = strndup(path, super_len);
+			if (!super) return ERR_SYS;
+		}
+
+		sep = strpbrk(sub, "/");
+		if (sep) {
+			fname_len = (size_t) (sep - sub) + 1;
+			sub = sep + 1;
+		} else {
+			fname_len = path_len - super_len;
+			sub = NULL;
+		}
+		sub_len = path_len - (super_len + fname_len);
+
+		if (fname_len > FILENAME_MAX) return ERR_FNAME_LEN;
+#if defined(NAME_MAX) && NAME_MAX > -1
+		if (fname_len > NAME_MAX) return ERR_FNAME_LEN;
+#endif
+
+		if (super) {
+ 			long name_max = pathconf(super, _PC_NAME_MAX);
+			long path_max = pathconf(super, _PC_PATH_MAX);
+
+			if (name_max < 0) {
 				if (errno > 0) return ERR_SYS;
-			} else if (strnlen(sub, STR_MAX_LEN) > (size_t) max) {
+			} else if (fname_len > (size_t) name_max) {
+				return ERR_FNAME_LEN;
+			}
+
+			if (path_max < 0) {
+				if (errno > 0) return ERR_SYS;
+			} else if (sub_len > (size_t) path_max) {
 				return ERR_STR_LEN;
 			}
 		}
-		super = strndup(path, (size_t) (pivot - path + 1));
-		sub = ++pivot;
-	}
+	} while (sep);
 
 	return OK;
 }

@@ -13,52 +13,39 @@
 #include "../str.h"
 
 
+/* FIXME Undocumented. */
+static error
+test_longer_than(size_t len)
+{
+	size_t n = len + 1;
+	// flawfinder: ignore
+	char path[n + 1];
+
+	memset(path, 'c', n);
+	path[n] = '\0';
+	assert(strnlen(path, n) > len);
+
+	return path_check_len(path);
+}
+
 int
 main (void) {
-	/*
-	 * Test errors.
-	 */
+	// flawfinder: ignore
+	char cwd[STR_MAX_LEN];
 	
-	{
-		char *path = NULL;
-		path = calloc((size_t) STR_MAX_LEN + 2, sizeof (char));
-		assert(path);
-		memset(path, 'x', (size_t) STR_MAX_LEN + 1);
-		assert(strnlen(path, STR_MAX_LEN + 2) > STR_MAX_LEN);
-		assert(path_check_len(path) == ERR_STR_LEN);
-		free(path);
-	}
+	assert(test_longer_than(STR_MAX_LEN) == ERR_STR_LEN);
 
 #if PATH_MAX > -1
-	{
-		char *path = NULL;
-		path = calloc(PATH_MAX + 2, sizeof (char));
-		assert(path);
-		memset(path, 'x', PATH_MAX + 1);
-		assert(strnlen(path, PATH_MAX + 2) > PATH_MAX);
-		assert(path_check_len(path) == ERR_STR_LEN);
-		free(path);
-	}
+	assert(test_longer_than(PATH_MAX) == ERR_STR_LEN);
 #endif
 
+#if NAME_MAX > -1
+	assert(test_longer_than(NAME_MAX) == ERR_FNAME_LEN);
+#endif
 
-	/*
-	 * Simple tests.
-	 */
-
-	{
-		char *path = NULL;
-		path = calloc(STR_MAX_LEN, sizeof(char));
-		assert(path);
-		assert(getcwd(path, STR_MAX_LEN));
-		path_check_len(path);
-		free(path);
-	}
-
-
-	/*
-	 * All good.
-	 */
+	assert(getcwd(cwd, STR_MAX_LEN));
+	assert(cwd);
+	assert(path_check_len(cwd) == OK);
 
 	return EXIT_SUCCESS;
 }

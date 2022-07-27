@@ -30,15 +30,19 @@
 
 
 /*
- * Check if path's length is within:
- * 	- PATH_MAX
- *	- pathconf(dir, _PC_PATH_MAX) for each directory in path.
- *	- STR_MAX_LEN
+ * Check whether:
+ *      - path's length is within PATH_MAX and STR_MAX_LEN.
+ *      - each sub-path in path is within pathconf(parent, _PC_PATH_MAX).
+ *      - each segment of the given path is within NAME_MAX, FILENAME_MAX,
+ *        STR_MAX_LEN, and pathconf(parent, _PC_NAME_MAX).
  *
  * Return code:
- *      OK           PATH is within limits.
- *      ERR_STR_LEN  PATH is too long.
- *      ERR_SYS      System failure. errno(2) should be set.
+ *      OK             The path is within limits.
+ *      ERR_FNAME_LEN  The filename of a path segment is too long.
+ *      ERR_STR_LEN    The path or a path segment is too long.
+ *      ERR_SYS        System failure. errno(2) should be set.
+ *
+ * FIXME: separate out error messages.
  */
 __attribute__((RO(1)))
 error path_check_len(const char *const path);
@@ -63,7 +67,7 @@ error path_check_wexcl(const uid_t uid, const char *const path,
  * Caveats:
  *      This check is meaningless unless both paths are canonical.
  */
-__attribute__((RO(1), RO(2), pure))
+__attribute__((RO(1), RO(2)))
 bool path_contains(const char *const super, const char *const sub);
 
 

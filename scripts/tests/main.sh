@@ -22,25 +22,34 @@ TMPDIR="$(realdir "$TMPDIR")" && [ "$TMPDIR" ] ||
 # Prelude
 #
 
-: "${HOME:?}"
-
 str_max="$(getconf PATH_MAX .)" && [ "$str_max" ] && 
 	[ "$str_max" -ge 4096 ] || str_max=4096
-long_str="$HOME"
-while [ "${#long_str}" -lt "$str_max" ]
-	do long_str="$long_str/$long_str"
+long_str="$PWD/"
+while [ "${#long_str}" -le "$str_max" ]
+	do long_str="$long_str/x"
 done
-long_str="$long_str/foo"
+long_str="$long_str/x"
 
 if	path_max="$(getconf PATH_MAX .)" &&
 	[ "$path_max" ] &&
 	[ "$path_max" -gt -1 ]
 then
-	long_path="$HOME"
-	while [ "${#long_path}" -lt "$path_max" ]
-		do long_path="$long_path/foo"
+	long_path="$PWD/"
+	while [ "${#long_path}" -le "$path_max" ]
+		do long_path="$long_path/x"
 	done
-	long_path="$long_path/foo"
+	long_path="$long_path/x"
+fi
+
+if	name_max="$(getconf NAME_MAX .)" &&
+	[ "$name_max" ] &&
+	[ "$name_max" -gt -1 ]
+then
+	long_name="x"
+	while [ "${#long_name}" -le "$name_max" ]
+		do long_name="${long_name}x"
+	done
+	long_name="$PWD/${long_name}x/x"
 fi
 
 true="$(command -v true >/dev/null 2>&1 || :)" || :
@@ -60,11 +69,13 @@ DOCUMENT_ROOT='' \
 DOCUMENT_ROOT="$long_str" \
 	checkerr 'environment variable is too long.' main
 
-if [ "$long_path" ]
-then
+[ "$long_path" ] &&
 	DOCUMENT_ROOT="$long_path" \
-	checkerr 'too long.' main
-fi
+		checkerr '$DOCUMENT_ROOT: too long.' main
+
+[ "$long_name" ] &&
+	DOCUMENT_ROOT="$long_name" \
+		checkerr '$DOCUMENT_ROOT: filename too long.' main
 
 DOCUMENT_ROOT='/::no-such-file!!' \
 	checkerr '$DOCUMENT_ROOT: No such file or directory.' main
@@ -86,7 +97,7 @@ DOCUMENT_ROOT=/ PATH_TRANSLATED="$long_str" \
 
 [ "$long_path" ] &&
 	DOCUMENT_ROOT=/ PATH_TRANSLATED="$long_path" \
-		checkerr 'too long.' main
+		checkerr '$PATH_TRANSLATED: too long.' main
 
 DOCUMENT_ROOT=/ PATH_TRANSLATED='/::no-such-file!!' \
 	checkerr '$PATH_TRANSLATED: No such file or directory.' main
@@ -118,7 +129,10 @@ user="$(id -un "$uid")" && [ "$user" ] ||
 gid="$(id -g "$user")" && [ "$gid" ] ||
 	abort "failed to get ID of $user's primary group."
 
-tmpdir="${HOME:?}/.tmp-$$"
+home="$(homedir "$user")" && [ "$home" ] ||
+	abort "failed to get $user's home directory."
+
+tmpdir="${home:?}/.tmp-$$"
 readonly tmpdir
 
 catch=
