@@ -117,7 +117,11 @@ check
     Perform tests. Must be run as the superuser to perform all tests.
 
 cov
-    Store a human-readable coverage report to *cov/html/index.html*.
+    Generate coverage data in *cov*.
+    Must be run subsequently as regular and as superuser to be accurate.
+
+covhtml
+    Generate a human-readable coverage report in *cov/html*.
 
 clean
     Delete binaries, coverage reports, temporary files, and distribution files.
@@ -131,10 +135,6 @@ distcheck
 
 distclean
     Delete *config.h*, *makefile* and everything ``make clean`` deletes.
-
-lcov.info
-    Store a machine-readable coverage report to *lcov.info*.
-    Must be run subsequently as regular and as superuser to be accurate.
 
 install
     Install suCGI.

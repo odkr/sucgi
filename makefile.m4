@@ -397,17 +397,19 @@ clean:
 	rm -f $(DISTAR) $(DISTAR).asc lcov.info
 	find . -type d -name 'tmp-*' -exec rm '{}' +
 
-lcov.info:
+cov:
 	test -e cov || mkdir cov
 	cd cov && CC=$(CC) CFLAGS=--coverage ../configure -q && make check
 	chmod -R u+rw,go= cov
+
+lcov.info: cov
 	lcov -c -d cov -o lcov.info --exclude '*/tests/*'
 
 cov/html/index.html: lcov.info
 	test -e cov/html || mkdir cov/html
 	genhtml -o cov/html lcov.info
 
-cov: cov/html/index.html
+covhtml: cov/html/index.html
 
 dist: $(DISTAR) $(DISTAR).asc
 
