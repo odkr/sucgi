@@ -67,7 +67,7 @@ readonly installdir="$destdir$prefix/libexec"
 # shellcheck disable=2154
 warn "making directory $bold$installdir$reset ..."
 cleanup="rmdir -p \"\$target\" >/dev/null 2>&1; ${cleanup-}"
-mkdir -pm 0755
+mkdir -pm 0755 "$installdir"
 [ "${caught-}" ] && exit "$((caught + 128))"
 
 readonly target="$installdir/sucgi"
