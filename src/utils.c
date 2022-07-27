@@ -34,12 +34,14 @@
 #include "str.h"
 #include "utils.h"
 
+#include "config.h"
+
 
 void
 drop_privs(struct passwd *user)
 {
-	uid_t uid = UID_MAX;
-	gid_t gid = GID_MAX;
+	uid_t uid = MAX_UID;
+	gid_t gid = MAX_GID;
 
 	assert(user);
 

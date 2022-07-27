@@ -51,7 +51,7 @@ path_check_len(const char *const path)
 #if PATH_MAX > -1
 	if (len > PATH_MAX - 1) return ERR_STR_LEN;
 #endif
-	
+
 	reraise(str_cp(path, &pivot));
 	while ((pivot = strpbrk(pivot, "/"))) {
 		if (super && sub) {
@@ -66,8 +66,6 @@ path_check_len(const char *const path)
 		super = strndup(path, (size_t) (pivot - path + 1));
 		sub = ++pivot;
 	}
-
-	return OK;
 }
 
 error
