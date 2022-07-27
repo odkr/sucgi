@@ -79,10 +79,10 @@ cp "$builddir/sucgi" "$target"
 catch=x
 [ "${caught-}" ] && exit "$((caught + 128))"
 
-warn "changing ownership of $bold$target$reset to " \
+warn "changing owner of $bold$target$reset to" \
      "${bold}root$reset:$bold$www_group$reset ..."
 chown "root:$www_group" "$target"
-warn "setting permissions of $bold$target$reset to " \
+warn "changing mode of $bold$target$reset to" \
      "${bold}u=rws,g=x,o=$reset ..."
 chmod u=rws,g=x,o= "$target"
 
