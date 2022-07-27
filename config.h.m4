@@ -25,33 +25,29 @@ define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
 #define DOC_ROOT "/home/*/public_html"
 
 /*
- * Smallest UID that may be assigned to a regular user.
+ * Smallest UID that may have been assigned to a regular user.
  *
  * On most systems, this will be 500 (e.g., macOS) or 1000 (e.g, Debian).
  */
 #define MIN_UID 1000
 
 /*
- * Largest UID that may be assigned to a regular user.
+ * Largest UID that may have been assigned to a regular user.
  *
- * Some privileged users (e.g., nobody) tend to be assigned high user IDs.
+ * Some privileged users (e.g., nobody) may have been assigned high user IDs.
  * On most systems, the largest UID of a regular user will be 60,000.
- * That said, some systems use 32,767 for nobody.
+ * Although some systems use 32,767 for nobody.
  */
 #define MAX_UID 30000
 
 /*
- * Interpreters to run scripts.
+ * Interpreters to run scripts the executable bit of which is NOT set.
  *
  * Array of key-value pairs, where filename endings are given as keys and
  * interpreters as values; must be terminated with a pair of NULLs.
  *
  * Filename endings must be given including the leading dot (".").
  * Interpreters are searched for in SECURE_PATH (see below).
- *
- * If a script's owner has permission to execute that script, that is, if the
- * script's executable bits are set appropriately, then the script is called
- * directly, not via an interpreter, and this setting does not apply.
  */
 #define SCRIPT_HANDLERS	{					\
 	{.key = ".php", .value = "php"},			\
