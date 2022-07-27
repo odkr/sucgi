@@ -66,6 +66,8 @@ path_check_len(const char *const path)
 		super = strndup(path, (size_t) (pivot - path + 1));
 		sub = ++pivot;
 	}
+
+	return OK;
 }
 
 error
