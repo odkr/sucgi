@@ -90,7 +90,10 @@ file_safe_open (const char *fname, const int flags, int *fd)
 	// - Changes to the path or the file's content are either permitted
 	//   (the user may run whatever code they wish) or outside the scope
 	//   of suCGI's threat model (suCGI is insecure if an attacker can
-	//   change user's files. FIXME: Discuss this in the threat model.)
+	//   change user's files). 
+	//
+	// TODO: Discuss that suCGI is insecure if an attacker can change user
+	// files in the threat model.
 	//
 	// flawfinder: ignore
 	*fd = open(fname, flags | O_NOFOLLOW_ANY);
