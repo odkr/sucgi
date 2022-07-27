@@ -180,6 +180,9 @@ main (void) {
 		case ERR_SYS:
 			fail("$DOCUMENT_ROOT: %s.", strerror(errno));
 			break;
+		case ERR_FNAME_LEN:
+			fail("$DOCUMENT_ROOT: filename too long.");
+			break;
 		case ERR_STR_LEN:
 			fail("$DOCUMENT_ROOT: too long.");
 			break;
@@ -191,7 +194,7 @@ main (void) {
 			break;
 		default:
 			fail("%s:%d: env_get_fname returned %u.",
-			      __FILE__, __LINE__ - 18, rc);
+			      __FILE__, __LINE__ - 21, rc);
 	}
 
 	if (!S_ISDIR(doc_root_st->st_mode)) {
@@ -214,6 +217,9 @@ main (void) {
 		case ERR_SYS:
 			fail("$PATH_TRANSLATED: %s.", strerror(errno));
 			break;
+		case ERR_FNAME_LEN:
+			fail("$PATH_TRANSLATED: filename too long.");
+			break;
 		case ERR_STR_LEN:
 			fail("$PATH_TRANSLATED: too long.");
 			break;
@@ -225,7 +231,7 @@ main (void) {
 			break;
 		default:
 			fail("%s:%d: path_check_len returned %u.",
-			      __FILE__, __LINE__ - 19, rc);
+			      __FILE__, __LINE__ - 22, rc);
 	}
 
 	if (!path_contains(doc_root, path_trans)) {
