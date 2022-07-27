@@ -19,6 +19,8 @@ jobs:
         run: CFLAGS= ./configure -f
       - name: make lcov.info
         run: make lcov.info
+      - name: make lcov.info
+        run: sudo make lcov.info
       - name: Run codacy-coverage-reporter
         uses: codacy/codacy-coverage-reporter-action@v1
         with:
