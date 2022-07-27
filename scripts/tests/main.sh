@@ -71,7 +71,7 @@ DOCUMENT_ROOT="$long_str" \
 
 [ "$long_path" ] &&
 	DOCUMENT_ROOT="$long_path" \
-		checkerr '$DOCUMENT_ROOT: too long.' main
+		checkerr 'too long.' main
 
 [ "$long_name" ] &&
 	DOCUMENT_ROOT="$long_name" \
@@ -97,7 +97,7 @@ DOCUMENT_ROOT=/ PATH_TRANSLATED="$long_str" \
 
 [ "$long_path" ] &&
 	DOCUMENT_ROOT=/ PATH_TRANSLATED="$long_path" \
-		checkerr '$PATH_TRANSLATED: too long.' main
+		checkerr 'too long.' main
 
 DOCUMENT_ROOT=/ PATH_TRANSLATED='/::no-such-file!!' \
 	checkerr '$PATH_TRANSLATED: No such file or directory.' main
