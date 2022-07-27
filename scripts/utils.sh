@@ -59,6 +59,54 @@ cleanup() {
 	exit "$status"
 }
 
+# Try to get a user's homedirectory.
+homedir() (
+	set -x
+	user="${1:?}"
+
+	# This should work in all POSIX.1-2018-compliant shells,
+	# if the username is portable.
+	if	isportable "$user" &&
+		eval home="~$user" &&
+		[ "${home-}" ] &&
+		[ "$home" != "~$user" ]
+	then
+		echo "$home"
+		return
+	fi
+
+	# This should work on Linux.
+	if	command -v getent &&
+		home="$(getent passwd "$user" | cut -d: -f6)" &&
+		[ "${home-}" ]
+	then
+		echo "$home"
+		return
+	fi
+
+	# This should work if $user is stored /etc/passwd.
+	if	home="$(awk -F: -vu="$user" \
+		        '$1 == u {print $6}' /etc/passwd)" &&
+		[ "$home" ]
+	then
+		echo "$home"
+		return
+	fi
+
+	# This should work if the home directory is at a usual location.
+	letter="${user%"${user#[A-Za-z]}"}"
+	for dir in "/home/$user" "/home/$letter/$user" "/Users/$user"
+	do
+		if [ -d "$dir" ] && [ "$(owner "$dir")" = "$user" ]
+		then
+			echo "$dir"
+			return
+		fi
+	done
+
+	return 1
+)
+
 # Register signal handlers, set global variables, a umask, and enable colours.
 init() {
 	trap cleanup EXIT;
@@ -113,6 +161,12 @@ match() (
 	done
 	abort "'$bold$string$reset$red' not in:$lf$bold${file%"$lf"}$reset"
 )
+
+# Print the owner of a file.
+owner() {
+	# shellcheck disable=2012
+	ls -dl "${1:?}" | awk '{print $3}'
+}
 
 # Print the canonical path of a directory.
 realdir() (
