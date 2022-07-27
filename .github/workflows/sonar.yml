@@ -36,20 +36,18 @@ jobs:
           curl -sSLo $HOME/.sonar/build-wrapper-macosx-x86.zip ${{ env.BUILD_WRAPPER_DOWNLOAD_URL }}
           unzip -o $HOME/.sonar/build-wrapper-macosx-x86.zip -d $HOME/.sonar/
           echo "$HOME/.sonar/build-wrapper-macosx-x86" >> $GITHUB_PATH
-      - name: configure
+      - name: Configure build
         run: CFLAGS="--coverage -fprofile-abs-path" ./configure -f
-      - name: make check 
-        run: make check 
-      - name: sudo make check
-        run: sudo make check
-      - name: sudo chmod -R o+r .
-        run: sudo chmod -R o+r .
-      - name: gcov --preserve-paths main build/*
-        run: gcov --preserve-paths main build/*
-      - name: mkdir gcov
-        run: mkdir gcov
-      - name: find . -type f -name '*.gcov' -exec mv '{}' gcov ';'
-        run: find . -type f -name '*.gcov' -exec mv '{}' gcov ';'
+      - name: Run tests
+        run: |
+          make check 
+          sudo make check
+          sudo chmod -R o+r .
+      - name: Generate coverage reports    
+        run: |
+          gcov --preserve-paths main build/*
+          mkdir gcov
+          find . -type f -name '*.gcov' -exec mv '{}' gcov ';'
       - name: Run build-wrapper
         run: |
           build-wrapper-macosx-x86 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make
