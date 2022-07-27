@@ -1,8 +1,8 @@
-|build|
 |coverage|
 |codacy|
 |security|
 |reliability|
+|maintainability|
 
 
 =====
@@ -145,9 +145,6 @@ GitHub: https://github.com/odkr/sucgi
 
 .. _`BUILDING.rst`: BUILDING.rst
 
-.. |build|  image:: https://ci.appveyor.com/api/projects/status/m9y70tfy2g4ey31n/branch/main?svg=true
-            :target: https://ci.appveyor.com/project/odkr/sucgi
-
 .. |codacy| image:: https://app.codacy.com/project/badge/Grade/cb67a3bad615449589dfb242876600ac
             :target: https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_source=github.com&amp;utm_content=odkr/sucgi
 
@@ -158,4 +155,7 @@ GitHub: https://github.com/odkr/sucgi
               :target: https://sonarcloud.io/summary/new_code?id=odkr_sucgi
 
 .. |reliability| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=reliability_rating
+                    :target: https://sonarcloud.io/summary/new_code?id=odkr_sucgi
+
+.. |maintainability| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=squal_rating
                     :target: https://sonarcloud.io/summary/new_code?id=odkr_sucgi
