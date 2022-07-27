@@ -39,5 +39,14 @@ main (void) {
 	}
 	assert(n == 1);
 
+	assert(env_clear(NULL) == OK);
+	for (int i = 0; i <= ENV_MAX; i++) {
+		char name[STR_MAX_LEN];
+		assert(snprintf(name, STR_MAX_LEN, "foo%d", i) > 0);
+		assert(setenv(name, "foo", true) == 0);
+	}
+
+	assert(env_clear(&var) == ERR_ENV_MAX);
+
 	return EXIT_SUCCESS;
 }

@@ -61,6 +61,19 @@ true="$(command -v true >/dev/null 2>&1 || :)" || :
 # Non-root checks
 #
 
+i=0 vars=''
+while [ $i -lt 1024 ]
+do
+	eval "export var$i=foo"
+	vars="$vars var$i"
+	i=$((i + 1))
+done
+
+checkerr 'too many environment variables.' main	
+
+# shellcheck disable=2086
+unset $vars
+
 checkerr 'DOCUMENT_ROOT: not set.' main
 
 DOCUMENT_ROOT='' \

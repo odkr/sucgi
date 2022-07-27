@@ -125,7 +125,6 @@ env_clear(char ***vars)
 	*vars = calloc(ENV_MAX, sizeof(char *));
 	if (!*vars) return ERR_SYS;
 	for (size_t n = 0; env[n]; n++) {
-		/* FIXME: Neither tested in env_clear nor main.sh. */
 		if (n == ENV_MAX) return ERR_ENV_MAX;
 		(*vars)[n] = env[n];
 	}
