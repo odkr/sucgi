@@ -118,7 +118,6 @@ check
 
 cov
     Store a human-readable coverage report to *cov/html/index.html*.
-    Must be run subsequently as regular and as superuser to be accurate.
 
 clean
     Delete binaries, coverage reports, temporary files, and distribution files.
