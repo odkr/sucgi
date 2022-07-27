@@ -41,7 +41,9 @@ main (void) {
 
 	assert(env_clear(NULL) == OK);
 	for (int i = 0; i <= ENV_MAX; i++) {
+		// flawfinder: ignore
 		char name[STR_MAX_LEN];
+		// flawfinder: ignore
 		assert(snprintf(name, STR_MAX_LEN, "foo%d", i) > 0);
 		assert(setenv(name, "foo", true) == 0);
 	}
