@@ -1,6 +1,6 @@
 |build|
-|coverage|
 |sonar|
+|coverage|
 |codacy|
 
 
@@ -154,4 +154,4 @@ GitHub: https://github.com/odkr/sucgi
               :target: https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_source=github.com&amp;utm_content=odkr/sucgi
 
 .. |sonar| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=alert_status
-           :target:https://sonarcloud.io/summary/new_code?id=odkr_sucgi
+           :target: https://sonarcloud.io/summary/new_code?id=odkr_sucgi
