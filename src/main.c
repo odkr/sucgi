@@ -131,13 +131,11 @@ main (void) {
 			break;
 		case ERR_SYS:
 			fail("environment clean-up: %s.", strerror(errno));
-			break;
 		case ERR_ENV_MAX:
 			fail("too many environment variables.");
-			break;
 		default:
 			fail("%s:%d: env_clear returned %u.",
-			      __FILE__, __LINE__ - 12, rc);
+			      __FILE__, __LINE__ - 10, rc);
 	}
 
 
@@ -150,18 +148,14 @@ main (void) {
 		case OK:
 			break;
 		case ERR_SYS:
-			fail("environment restoration: %s.",
-			     strerror(errno));
-			break;
+			fail("environment restoration: %s.", strerror(errno));
 		case ERR_STR_LEN:
 			fail("environment variable is too long.");
-			break;
 		case ERR_VAR_INVALID:
 			fail("ill-formed environment variable.");
-			break;
 		default:
 			fail("%s:%d: env_restore returned %u.",
-			     __FILE__, __LINE__ - 17, rc);
+			     __FILE__, __LINE__ - 13, rc);
 	}
 
 	if (setenv("PATH", SECURE_PATH, 1) != 0) {
@@ -179,22 +173,17 @@ main (void) {
 			break;
 		case ERR_SYS:
 			fail("$DOCUMENT_ROOT: %s.", strerror(errno));
-			break;
 		case ERR_FNAME_LEN:
 			fail("$DOCUMENT_ROOT: filename too long.");
-			break;
 		case ERR_STR_LEN:
 			fail("$DOCUMENT_ROOT: too long.");
-			break;
 		case ERR_VAR_UNDEF:
 			fail("DOCUMENT_ROOT: not set.");
-			break;
 		case ERR_VAR_EMPTY:
 			fail("DOCUMENT_ROOT: is the empty string.");
-			break;
 		default:
 			fail("%s:%d: env_get_fname returned %u.",
-			      __FILE__, __LINE__ - 21, rc);
+			      __FILE__, __LINE__ - 16, rc);
 	}
 
 	if (!S_ISDIR(doc_root_st->st_mode)) {
@@ -216,22 +205,17 @@ main (void) {
 			break;
 		case ERR_SYS:
 			fail("$PATH_TRANSLATED: %s.", strerror(errno));
-			break;
 		case ERR_FNAME_LEN:
 			fail("$PATH_TRANSLATED: filename too long.");
-			break;
 		case ERR_STR_LEN:
 			fail("$PATH_TRANSLATED: too long.");
-			break;
 		case ERR_VAR_UNDEF:
 			fail("PATH_TRANSLATED: not set.");
-			break;
 		case ERR_VAR_EMPTY:
 			fail("PATH_TRANSLATED: is the empty string.");
-			break;
 		default:
 			fail("%s:%d: path_check_len returned %u.",
-			      __FILE__, __LINE__ - 22, rc);
+			      __FILE__, __LINE__ - 17, rc);
 	}
 
 	if (!path_contains(doc_root, path_trans)) {
@@ -313,14 +297,12 @@ main (void) {
 			break;
 		case ERR_SYS:
 			fail("%s: %s.", path_trans, strerror(errno));
-			break;
 		case ERR_NOT_EXCLW:
 		        fail("%s: can be altered by users other than %s.",
 			     path_trans, user->pw_name);
-			break;
 		default:
 			fail("%s:%d: path_check_wexcl returned %u.",
-			     __FILE__, __LINE__ - 13, rc);
+			     __FILE__, __LINE__ - 11, rc);
 	}
 
 
