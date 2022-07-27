@@ -430,6 +430,8 @@ install: $(BUILDDIR)/sucgi
 uninstall:
 	rm -f $(CGIBIN)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
 
+.SILENT: analysis check cov dist distcheck
+
 .PHONY: all analysis check clean lcov.info cov \
 	dist distcheck distclean install uninstall
 
