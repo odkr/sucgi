@@ -424,8 +424,8 @@ $(DISTAR).asc: $(DISTAR)
 	gpg -qab --batch --yes $(DISTAR)
 
 install: $(BUILDDIR)/sucgi
-	$(SCRIPTDIR)/install -b $(BUILDDIR) -d $(DESTDIR) -p $(PREFIX) \
-		-c $(CGIBIN) -w $(WWWGRP)
+	$(SCRIPTDIR)/install -b "$(BUILDDIR)" -d "$(DESTDIR)" -p "$(PREFIX)" \
+		-c "$(CGIBIN)" -w "$(WWWGRP)"
 
 uninstall:
 	rm -f $(CGIBIN)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
