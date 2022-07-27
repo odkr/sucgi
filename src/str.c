@@ -34,9 +34,7 @@ str_cp(const char *const src, char **dest)
 {
 	size_t len = 0;
 
-	assert(src);
-	assert(dest);
-
+	assert(src && dest);
 	reraise(str_len(src, &len));
 	*dest = malloc(len + 1);
 	if (!*dest) return ERR_SYS;
