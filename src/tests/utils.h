@@ -25,10 +25,22 @@
 #include "../err.h"
 
 
+/*
+ * Constants
+ */
+
+/* Maximum number of substrings to split up a string into. */
+#define STR_MAX_SUBS 512
+
+
+/*
+ * Functions
+ */
+
 /* Abort the programme with an error message. */
-// This is not a call to the access() function.
+// This is not a call to printf.
 // flawfinder: ignore
-__attribute__((noreturn, access(read_only, 1), format(printf, 1, 2)))
+__attribute__((noreturn, RO(1), format(printf, 1, 2)))
 void die(const char *const message, ...);
 
 /*
@@ -40,9 +52,7 @@ void die(const char *const message, ...);
  *      ERR           Trailing nun-numeric characters.
  *      ERR_SYS       System error. errno(2) should be set.
  */
-// This is not a call to the access() function.
-// flawfinder: ignore
-__attribute__((access(read_only, 1)))
+__attribute__((RO(1)))
 error str_to_ulong (const char *const s, unsigned long *n);
 
 /*
@@ -56,9 +66,7 @@ error str_to_ulong (const char *const s, unsigned long *n);
  *      ERR           s consists of more than STR_MAX_SUBS words.
  *      ERR_SYS       System error. errno(2) should be set.
  */
-// This is not a call to the access() function.
-// flawfinder: ignore
-__attribute__((access(read_only, 1)))
+__attribute__((RO(1)))
 error str_words (const char *const restrict s, char ***subs);
 
 #endif /* !defined(SRC_TESTS_UTILS_H) */
