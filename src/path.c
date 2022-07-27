@@ -51,15 +51,18 @@ path_check_len(const char *path)
 
 	sub = path;
 	do {
+		// At this point, path can at most be STR_MAX_LEN bytes long.
+		// flawfinder: ignore
+		char super[STR_MAX_LEN + 1] = {0};
 		size_t super_len = 0;
 		size_t fname_len = 0;
 		size_t sub_len = 0;
-		const char *super = NULL;
 
 		if (sep) {
 			super_len = (size_t) (sep - path + 1);
-			super = strndup(path, super_len);
-			if (!super) return ERR_SYS;
+			// super_len cannot be longer than STR_MAX_LEN.
+			// flawfinder: ignore
+			memcpy(super, path, super_len);
 		}
 
 		sep = strpbrk(sub, "/");
@@ -77,7 +80,7 @@ path_check_len(const char *path)
 		if (fname_len > NAME_MAX) return ERR_FNAME_LEN;
 #endif
 
-		if (super) {
+		if (super[0] != '\0') {
  			long name_max = pathconf(super, _PC_NAME_MAX);
 			long path_max = pathconf(super, _PC_PATH_MAX);
 
