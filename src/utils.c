@@ -39,7 +39,7 @@ drop_privs(struct passwd *user)
 {
 	uid_t uid = 0;
 	gid_t gid = 0;
-	gid_t groups[1] = {};
+	gid_t groups[1] = {0};
 	int groups_init = 0;
 
 	assert(user);
