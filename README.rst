@@ -157,5 +157,5 @@ GitHub: https://github.com/odkr/sucgi
 .. |reliability| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=reliability_rating
                     :target: https://sonarcloud.io/summary/new_code?id=odkr_sucgi
 
-.. |maintainability| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=squal_rating
+.. |maintainability| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=sqale_rating
                     :target: https://sonarcloud.io/summary/new_code?id=odkr_sucgi
