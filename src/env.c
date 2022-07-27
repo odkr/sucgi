@@ -114,7 +114,6 @@ error
 env_clear(char ***vars)
 {
 	char **env = environ;	/* Backup of the environment. */
-	size_t n = 0;
 
 	environ = NULL;
 
@@ -125,7 +124,7 @@ env_clear(char ***vars)
 
 	*vars = calloc(ENV_MAX, sizeof(char *));
 	if (!*vars) return ERR_SYS;
-	for (n = 0; env[n]; n++) {
+	for (size_t n = 0; env[n]; n++) {
 		/* FIXME: Neither tested in env_clear nor main.sh. */
 		if (n == ENV_MAX) return ERR_ENV_MAX;
 		(*vars)[n] = env[n];
