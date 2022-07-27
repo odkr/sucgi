@@ -48,16 +48,18 @@ add_macros() {
 . "$script_dir/configure.env" || exit
 
 OPTIND=1 OPTARG='' opt=''
-force=''
-while getopts fh opt; do
+force='' quiet=''
+while getopts fqh opt; do
 	case $opt in
 		(f) force=x ;;
+		(q) quiet=x ;;
 		(h) exec cat <<-EOF ;;
 			configure - Generate build configuration.
 
 			Options:
 			    -f  Overwrite existing files.
 			    -h  Show this help screen.
+			    -q  Be quiet.
 
 			Environment:
 			    CC          The C compiler.
@@ -71,6 +73,8 @@ while getopts fh opt; do
 done
 shift $((OPTIND - 1))
 unset opt
+
+[ "$quiet" ] && exec >/dev/null
 
 
 #
@@ -207,9 +211,12 @@ do
 	# shellcheck disable=2154
 	if [ -e "$output" ] && ! [ "$force" ]
 	then
-		printf '\a' >&2
-		warn "${yellow}not overwriting $bold$output$reset," \
-		     "give $bold-f$reset to force."
+		if ! [ "$quiet" ]
+		then
+			printf '\a' >&2
+			warn "${yellow}not overwriting $bold$output$reset," \
+			"give $bold-f$reset to force."
+		fi
 		continue
 	fi
 
@@ -221,7 +228,7 @@ do
 	then
 		mv "$swap" "$output"
 		genc=$((genc + 1))
-		warn "generated $bold$output$reset."
+		[ "$quiet" ] || warn "generated $bold$output$reset."
 	else
 		rm -f "$swap" || :
 		errc=$((errc + 1))
@@ -232,19 +239,22 @@ do
 done
 
 # shellcheck disable=2154
-if [ $errc -gt 0 ]
+if ! [ "$quiet" ]
 then
-	printf '\a' >&2
-	warn "$red$bold$errc$reset$red of $bold$filec$reset$red" \
-	     "file(s) could not be generated.$reset"
-elif [ $genc -lt $filec ]
-then
-	printf '\a' >&2
-	warn "$yellow$bold$genc$reset$yellow of $bold$filec$reset$yellow" \
-	     "file(s) generated.$reset"
-else
-	warn "$green$bold$genc$reset$green of $bold$filec$reset$green" \
-	     "file(s) generated.$reset"
+	if [ $errc -gt 0 ]
+	then
+		printf '\a' >&2
+		warn "$red$bold$errc$reset$red of $bold$filec$reset" \
+		"${red}file(s) could not be generated.$reset"
+	elif [ $genc -lt $filec ]
+	then
+		printf '\a' >&2
+		warn "$yellow$bold$genc$reset$yellow of $bold$filec$reset" \
+		"${yellow}file(s) generated.$reset"
+	else
+		warn "$green$bold$genc$reset$green of $bold$filec$reset" \
+		"${green}file(s) generated.$reset"
+	fi
 fi
 
 exit $errc
