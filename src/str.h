@@ -40,9 +40,6 @@
 #define STR_MAX_LEN 4096
 #endif
 
-/* Maximum number of substrings to split up a string into. */
-#define STR_MAX_SUBS 512
-
 
 /*
  * Functions
@@ -56,15 +53,25 @@
  *
  * Return code:
  *      OK           Success.
- *      ERR_STR_LEN  SRC is longer than STR_MAX_LEN.
+ *      ERR_STR_LEN  src is longer than STR_MAX_LEN.
  *      ERR_SYS      System error. errno(2) should be set.
  */
 __attribute__((RO(1)))
 error str_cp(const char *const restrict src, char **restrict dest);
 
 /* Return true if s1 and s2 are equal and false otherwise. */
-__attribute__((RO(1), RO(2), pure))
+__attribute__((RO(1), RO(2)))
 bool str_eq(const char *const s1, const char *const s2);
+
+/*
+ * Calculate the length of a string.
+ *
+ * Return code:
+ *      OK           Success.
+ *      ERR_STR_LEN  The string is longer than STR_MAX_LEN.
+ */
+__attribute__((RO(1)))
+error str_len(const char *const s, size_t *len);
 
 /*
  * Split s at the first max occurrences of any character in sep and

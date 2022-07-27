@@ -37,8 +37,7 @@ str_cp(const char *const restrict src, char **restrict dest)
 	assert(src);
 	assert(dest);
 
-	len = strnlen(src, STR_MAX_LEN + 1);
-	if (len > STR_MAX_LEN) return ERR_STR_LEN;
+	reraise(str_len(src, &len));
 	*dest = malloc(len + 1);
 	if (!*dest) return ERR_SYS;
 	// - dest is guaranteed to be large enough to hold SRC.
@@ -58,6 +57,17 @@ str_eq(const char *const s1, const char *const s2)
 	assert(s2);
 
 	return (strcmp(s1, s2) == 0);
+}
+
+/* FIXME: Untested. */
+error
+str_len(const char *const s, size_t *len)
+{
+	size_t n = strnlen(s, STR_MAX_LEN + 2);
+	if (n > STR_MAX_LEN) return ERR_STR_LEN;
+
+	*len = n;
+	return OK;
 }
 
 error
