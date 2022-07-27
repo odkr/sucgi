@@ -22,13 +22,13 @@ TMPDIR="$(realdir "$TMPDIR")" && [ "$TMPDIR" ] ||
 # Main
 #
 
-touch "$TMP/file"
-ln -s "$TMP" "$TMP/symlink"
+touch "$TMPDIR/file"
+ln -s "$TMPDIR" "$TMPDIR/symlink"
 
-file_safe_stat "$TMP/file" ||
-	abort "file_safe_stat refuses to stat $TMP/file."
+file_safe_stat "$TMPDIR/file" ||
+	abort "file_safe_stat refuses to stat $TMPDIR/file."
 
-file_safe_stat "$TMP/symlink/file" &&
-	abort "file_safe_stat does not refuse to stat $TMP/symlink/file."
+file_safe_stat "$TMPDIR/symlink/file" &&
+	abort "file_safe_stat does not refuse to stat $TMPDIR/symlink/file."
 
 exit 0

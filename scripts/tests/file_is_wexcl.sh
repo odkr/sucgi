@@ -21,7 +21,7 @@ tmpdir chk
 #
 
 umask 0777
-fname="$TMP/file"
+fname="$TMPDIR/file"
 touch "$fname"
 
 uid="$(id -u)" && [ "$uid" ] ||

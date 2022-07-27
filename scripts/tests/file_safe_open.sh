@@ -22,13 +22,13 @@ TMPDIR="$(realdir "$TMPDIR")" && [ "$TMPDIR" ] ||
 # Main
 #
 
-touch "$TMP/file"
-ln -s "$TMP" "$TMP/symlink"
+touch "$TMPDIR/file"
+ln -s "$TMPDIR" "$TMPDIR/symlink"
 
-file_safe_open "$TMP/file" ||
+file_safe_open "$TMPDIR/file" ||
 	abort "file_safe_open refuses to open $TMP/file."
 
-file_safe_open "$TMP/symlink/file" &&
+file_safe_open "$TMPDIR/symlink/file" &&
 	abort "file_safe_open does not refuse to open $TMP/symlink/file."
 
 exit 0
