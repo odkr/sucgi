@@ -36,8 +36,16 @@ jobs:
           curl -sSLo $HOME/.sonar/build-wrapper-macosx-x86.zip ${{ env.BUILD_WRAPPER_DOWNLOAD_URL }}
           unzip -o $HOME/.sonar/build-wrapper-macosx-x86.zip -d $HOME/.sonar/
           echo "$HOME/.sonar/build-wrapper-macosx-x86" >> $GITHUB_PATH
-      - name: Configure build
-        run: CFLAGS= ./configure
+      - name: configure
+        run: CFLAGS= ./configure -f
+      - name: make cov
+        run: make cov
+      - name: sudo make cov
+        run: sudo make cov
+      - name: sudo chmod -R o+r cov
+        run: sudo chmod -R o+r cov
+      - name: make gcov
+        run: make gcov
       - name: Run build-wrapper
         run: |
           build-wrapper-macosx-x86 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make
@@ -46,4 +54,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          sonar-scanner --define sonar.host.url="${{ env.SONAR_SERVER_URL }}" --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}"
+          sonar-scanner --define sonar.host.url="${{ env.SONAR_SERVER_URL }}" \
+                        --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
+                        --define sonar.cfamily.gcov.reportsPath="cov/gcov"
+

@@ -399,8 +399,13 @@ clean:
 
 cov:
 	test -e cov || mkdir cov
-	cd cov && CC=$(CC) CFLAGS=--coverage ../configure -q && make check
+	cd cov && CC=$(CC) CFLAGS='--coverage -fprofile-abs-path' ../configure -q && make check
 	chmod -R u+rw,go= cov
+
+gcov: cov
+	cd cov && gcov --preserve-paths main build/*
+	test -e cov/gcov || mkdir cov/gcov
+	find cov -type f -name '*.gcov' -exec mv '{}' cov/gcov ';'
 
 lcov.info: cov
 	lcov -c -d cov -o lcov.info --exclude '*/tests/*'
@@ -434,7 +439,7 @@ uninstall:
 
 .SILENT: analysis check cov dist distcheck install
 
-.PHONY: all analysis check clean lcov.info cov \
+.PHONY: all analysis check clean cov covhtml gcov lcov.info \
 	dist distcheck distclean install uninstall
 
 .IGNORE: analysis

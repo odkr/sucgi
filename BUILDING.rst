@@ -123,6 +123,9 @@ cov
 covhtml
     Generate a human-readable coverage report in *cov/html*.
 
+gcov
+    Generate GNU coverage reports in *cov/gcov*.
+
 clean
     Delete binaries, coverage reports, temporary files, and distribution files.
 
