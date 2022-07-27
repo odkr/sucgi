@@ -29,24 +29,27 @@
 #include <syslog.h>
 #include <sys/types.h>
 
-
 #include "err.h"
 #include "str.h"
 #include "utils.h"
-
-#include "config.h"
 
 
 void
 drop_privs(struct passwd *user)
 {
-	uid_t uid = MAX_UID;
-	gid_t gid = MAX_GID;
+	uid_t uid = 0;
+	gid_t gid = 0;
 
 	assert(user);
-
 	uid = user->pw_uid;
 	gid = user->pw_gid;
+
+	if (uid == 0) {
+		fail("%s is the superuser.", user->pw_name);
+	}
+	if (gid == 0) {
+		fail("%s's primary group is the supergroup.", user->pw_name);
+	}
 
 	{
 		const gid_t groups[] = {gid};
