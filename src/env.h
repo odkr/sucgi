@@ -86,10 +86,11 @@ error env_clear(char ***vars);
  *
  * Return code:
  *      OK             Success.
- *      ERR_STR_LEN    PATH is too long.
+ *      ERR_FNAME_LEN  A filename in the path is too long.
+ *      ERR_STR_LEN    The value of the variable is too long.
  *      ERR_SYS        System failure. errno(2) should be set.
- *      ERR_VAR_UNDEF  NAME is undefined.
- *      ERR_VAR_EMPTY  NAME is empty.
+ *      ERR_VAR_UNDEF  The variable is undefined.
+ *      ERR_VAR_EMPTY  The variable is empty.
  */
 __attribute__((RO(1)))
 error env_get_fname(const char *name, char **fname, struct stat **fstatus);
