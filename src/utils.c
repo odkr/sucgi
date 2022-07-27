@@ -21,10 +21,14 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <limits.h>
+#include <grp.h>
 #include <pwd.h>
 #include <string.h>
 #include <unistd.h>
 #include <syslog.h>
+#include <sys/types.h>
+
 
 #include "err.h"
 #include "str.h"

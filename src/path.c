@@ -76,9 +76,7 @@ path_check_wexcl(const uid_t uid, const char *const path,
 {
 	char *p = NULL;	/* Current path. */
 
-	assert(path);
-	assert(stop);
-
+	assert(path && stop);
 	reraise(str_cp(path, &p));
 	while (true) {
 		struct stat fstatus;
