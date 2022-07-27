@@ -64,11 +64,14 @@ unset opt
 catch=
 
 readonly installdir="$destdir$prefix/libexec"
-# shellcheck disable=2154
-warn "making directory $bold$installdir$reset ..."
-cleanup="rmdir -p \"\$target\" >/dev/null 2>&1; ${cleanup-}"
-mkdir -p "$installdir"
-[ "${caught-}" ] && exit "$((caught + 128))"
+if ! [ -e "$installdir" ]
+then
+	# shellcheck disable=2154
+	warn "making directory $bold$installdir$reset ..."
+	cleanup="rmdir -p \"\$target\" >/dev/null 2>&1; ${cleanup-}"
+	mkdir -p "$installdir"
+	[ "${caught-}" ] && exit "$((caught + 128))"
+fi
 
 readonly target="$installdir/sucgi"
 warn "copying $bold$builddir/sucgi$reset to $bold$installdir$reset ..."
@@ -76,6 +79,7 @@ warn "copying $bold$builddir/sucgi$reset to $bold$installdir$reset ..."
 [ -e "$target" ] && abort "$bold$target$reset$red: already installed."
 cleanup="rm -f \"\$target\"; ${cleanup-}"
 cp "$builddir/sucgi" "$target"
+
 catch=x
 [ "${caught-}" ] && exit "$((caught + 128))"
 
