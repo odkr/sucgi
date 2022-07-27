@@ -2,7 +2,7 @@
 |coverage|
 |codacy|
 |security|
-|maintanability|
+|reliability|
 
 
 =====
@@ -157,5 +157,5 @@ GitHub: https://github.com/odkr/sucgi
 .. |security| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=security_rating
               :target: https://sonarcloud.io/summary/new_code?id=odkr_sucgi
 
-.. |maintanability| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=sqale_rating
+.. |reliability| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=reliability_rating
                     :target: https://sonarcloud.io/summary/new_code?id=odkr_sucgi
