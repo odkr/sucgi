@@ -1,5 +1,6 @@
 |build|
 |coverage|
+|sonar|
 |codacy|
 
 
@@ -27,8 +28,8 @@ More precisely:
   e.g., gcc_ ≥ v5.1, clang_ ≥ v3.5, or tcc_ ≥ v0.9.
 * A C standard library that complies with POSIX.1-2008 and 4.2BSD;
   e.g., glibc_ ≥ v2.1.3 or Apple's Libc.
-* The standard utilities POSIX.1-2008, including
-  the X/Open system interface extension, mandates.
+* The standard utilities that POSIX.1-2008, including
+  its X/Open system interface extension, mandates.
 
 Save for Linux ≥ v5.6 and XNU ≥ v7195.50.7.100.1 respectively, any
 post-2015 GNU/Linux or macOS system should meet those requirements.
@@ -151,3 +152,6 @@ GitHub: https://github.com/odkr/sucgi
 
 .. |coverage| image:: https://app.codacy.com/project/badge/Coverage/cb67a3bad615449589dfb242876600ac
               :target: https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_source=github.com&amp;utm_content=odkr/sucgi
+
+.. |sonar| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=alert_status
+           :target:https://sonarcloud.io/summary/new_code?id=odkr_sucgi
