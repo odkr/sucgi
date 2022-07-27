@@ -30,7 +30,7 @@
 
 
 error
-str_cp(const char *const restrict src, char **restrict dest)
+str_cp(const char *const src, char **dest)
 {
 	size_t len = 0;
 
@@ -71,18 +71,15 @@ str_len(const char *const s, size_t *len)
 }
 
 error
-str_split(const char *const restrict s, const char *sep, const int max,
-          char ***subs, int *restrict n)
+str_split(const char *const s, const char *sep, const int max,
+          char ***subs, int *n)
 {
 	char *str = NULL;	/* Copy of s. */
 	char *token = NULL;	/* Start of current substring. */
 	char **tokens = NULL;	/* Substrings. */
 	int ntokens = 0;	/* Number of substrings. */
 
-	assert(s);
-	assert(sep);
-	assert(subs);
-
+	assert(s && sep && subs);
 	reraise(str_cp(s, &str));
 	tokens = calloc((size_t) max + 2, sizeof(char *));
 	if (!tokens) return ERR_SYS;
@@ -102,7 +99,7 @@ str_split(const char *const restrict s, const char *sep, const int max,
 }
 
 error
-str_vsplit(const char *const restrict s, const char *sep, const int n, ...)
+str_vsplit(const char *const s, const char *sep, const int n, ...)
 {
 	va_list ap;		/* Current variadic argument. */
 	char **arg = NULL;	/* Alias for the current variadic argument. */

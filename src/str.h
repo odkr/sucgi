@@ -57,7 +57,7 @@
  *      ERR_SYS      System error. errno(2) should be set.
  */
 __attribute__((RO(1)))
-error str_cp(const char *const restrict src, char **restrict dest);
+error str_cp(const char *const src, char **dest);
 
 /* Return true if s1 and s2 are equal and false otherwise. */
 __attribute__((RO(1), RO(2)))
@@ -86,8 +86,8 @@ error str_len(const char *const s, size_t *len);
  *      ERR_SYS      System error. errno(2) should be set.
  */
 __attribute__((RO(1), RO(2)))
-error str_split(const char *const restrict s, const char *sep,
-                const int max, char ***subs, int *restrict n);
+error str_split(const char *const s, const char *sep,
+                const int max, char ***subs, int *n);
 
 /*
  * Split s at the first n - 1 occurrences of any character in sep
@@ -100,8 +100,7 @@ error str_split(const char *const restrict s, const char *sep,
  * Otherwise the same as str_split.
  */
 __attribute__((RO(1), RO(2)))
-error str_vsplit(const char *const restrict s, const char *sep,
-                 const int n, ...);
+error str_vsplit(const char *const s, const char *sep, const int n, ...);
 
 
 #endif /* !defined(SRC_STR_H) */
