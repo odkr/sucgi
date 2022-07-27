@@ -78,10 +78,10 @@ str_split(const char *const s, const char *sep, const int max,
 	char **tokens = NULL;	/* Substrings. */
 	int ntokens = 0;	/* Number of substrings. */
 
-	assert(s && sep && subs);
-	reraise(str_cp(s, &str));
 	tokens = calloc((size_t) max + 2, sizeof(char *));
 	if (!tokens) return ERR_SYS;
+	assert(s && sep && subs);
+	reraise(str_cp(s, &str));
 
 	ntokens = 0;
 	tokens[0] = str;
