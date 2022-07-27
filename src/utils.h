@@ -64,6 +64,6 @@ void drop_privs(struct passwd *user);
  * run_script never returns.
  */
 __attribute__((RO(1), RO(2)))
-void run_script(const char *const script, struct pair pairs[]);
+void run_script(const char *const script, const struct pair pairs[]);
 
 #endif /* !defined(SRC_UTILS_H) */

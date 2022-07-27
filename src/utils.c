@@ -39,6 +39,8 @@ drop_privs(struct passwd *user)
 {
 	uid_t uid = 0;
 	gid_t gid = 0;
+	gid_t groups[1] = {};
+	int groups_init = 0;
 
 	assert(user);
 	uid = user->pw_uid;
@@ -51,22 +53,18 @@ drop_privs(struct passwd *user)
 		fail("%s's primary group is the supergroup.", user->pw_name);
 	}
 
-	{
-		const gid_t groups[] = {gid};
-		if (setgroups(1, groups) != 0) {
-			fail("group clean-up: %s.", strerror(errno));
-		}
+	groups[0] = gid;
+	if (setgroups(1, groups) != 0) {
+		fail("group clean-up: %s.", strerror(errno));
 	}
-
-	{
+	
 #if defined(__APPLE__) && defined(__MACH__)
-		const int rc = initgroups(user->pw_name, (int) gid) != 0;
+	groups_init = initgroups(user->pw_name, (int) gid) != 0;
 #else
-		const int rc = initgroups(user->pw_name, gid) != 0;
+	groups_init = initgroups(user->pw_name, gid) != 0;
 #endif /* defined(__APPLE__) && defined(__MACH__) */
-		if (rc != 0) {
-			fail("group initialisation: %s.", strerror(errno));
-		}
+	if (groups_init != 0) {
+		fail("group initialisation: %s.", strerror(errno));
 	}
 
 	/*
@@ -116,7 +114,7 @@ drop_privs(struct passwd *user)
 }
 
 void
-run_script(const char *const script, struct pair pairs[])
+run_script(const char *const script, const struct pair pairs[])
 {
 	char *suffix = NULL;		/* Filename suffix. */
 
