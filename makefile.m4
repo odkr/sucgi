@@ -80,8 +80,8 @@ CHECKS = $(SCRIPTDIR)/tests/drop_privs.sh \
 #
 
 CPPCHECKFLAGS =	-f -q --error-exitcode=8 --inconclusive \
-		--language=c --std=c99 --library=posix --platform=unix64 \
-		--suppress=missingIncludeSystem --inline-suppr
+	--language=c --std=c99 --library=posix --platform=unix64 \
+	--suppress=missingIncludeSystem --inline-suppr -I .
 
 
 #
@@ -371,12 +371,10 @@ $(BUILDDIR)/tests/main:	$(SRCDIR)/main.c \
 analysis:
 	cppcheck $(CPPCHECKFLAGS) \
 		--enable=all \
-		-I . \
-		-U __NR_openat2 -D O_NOFOLLOW_ANY=1 \
+		-U __NR_openat2 -D NAME_MAX=255 -D O_NOFOLLOW_ANY=1 \
 		$(SRCDIR)
 	cppcheck $(CPPCHECKFLAGS) \
 		--enable=unusedFunction \
-		-I . \
 		$(SRCDIR)/*.c
 	flawfinder --error-level=1 -m 0 -D -Q .
 	find $(SCRIPTDIR) -type f | xargs shellcheck configure
@@ -403,7 +401,7 @@ cov: cov/html/index.html
 
 dist: $(DISTAR) $(DISTAR).asc
 
-distcheck: dist
+distcheck:
 	$(SCRIPTDIR)/distcheck $(DISTNAME)
 
 distclean: clean
