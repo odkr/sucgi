@@ -41,8 +41,6 @@
  *      ERR_FNAME_LEN  The filename of a path segment is too long.
  *      ERR_STR_LEN    The path or a path segment is too long.
  *      ERR_SYS        System failure. errno(2) should be set.
- *
- * FIXME: separate out error messages.
  */
 __attribute__((RO(1)))
 error path_check_len(const char *const path);

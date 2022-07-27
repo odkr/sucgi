@@ -116,7 +116,6 @@ env_clear(char ***vars)
 	char **env = environ;	/* Backup of the environment. */
 	size_t n = 0;
 
-	/* FIXME: Test if this works with the glibc. */
 	environ = NULL;
 
 	environ = calloc(1, sizeof(char *));

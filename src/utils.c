@@ -115,7 +115,6 @@ drop_privs(struct passwd *user)
 #endif /* defined(TESTING) && TESTING */
 }
 
-#include <stdio.h>
 void
 run_script(const char *const script, struct pair pairs[])
 {

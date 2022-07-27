@@ -59,7 +59,6 @@ str_eq(const char *const s1, const char *const s2)
 	return (strcmp(s1, s2) == 0);
 }
 
-/* FIXME: Untested. */
 error
 str_len(const char *const s, size_t *len)
 {
