@@ -1,7 +1,8 @@
 |build|
-|sonar|
 |coverage|
 |codacy|
+|security|
+|maintanability|
 
 
 =====
@@ -153,5 +154,8 @@ GitHub: https://github.com/odkr/sucgi
 .. |coverage| image:: https://app.codacy.com/project/badge/Coverage/cb67a3bad615449589dfb242876600ac
               :target: https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_source=github.com&amp;utm_content=odkr/sucgi
 
-.. |sonar| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=alert_status
-           :target: https://sonarcloud.io/summary/new_code?id=odkr_sucgi
+.. |security| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=security_rating
+              :target: https://sonarcloud.io/summary/new_code?id=odkr_sucgi
+
+.. |maintanability| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=sqale_rating
+                    :target: https://sonarcloud.io/summary/new_code?id=odkr_sucgi
