@@ -52,6 +52,8 @@ typedef enum {
 	ERR = EXIT_FAILURE,
 	/* Too many environment variables. */
 	ERR_ENV_MAX,
+	/* A filename is too long. */
+	ERR_FNAME_LEN,
 	/* A file is not exclusively writably by the given user/group. */
 	ERR_NOT_EXCLW,
 	/* A string is too long. */
