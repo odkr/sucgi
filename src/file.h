@@ -30,11 +30,11 @@
 
 
 /* Check if fstatus indicates that the current has execute permissions. */
-__attribute__((RO(1), pure))
+__attribute__((RO(1)))
 bool file_is_exec(const struct stat *const fstatus);
 
 /* Check if fstatus indicates that only uid and gid have write permissions. */
-__attribute__((RO(2), pure))
+__attribute__((RO(2)))
 bool file_is_wexcl(const uid_t uid, const struct stat *const fstatus);
 
 /*
