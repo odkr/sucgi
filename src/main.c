@@ -300,7 +300,7 @@ main (void) {
 	 * Run the programme.
 	 */
 
-	if (file_is_exec(&path_trans_st)) {
+	if (!file_is_exec(&path_trans_st)) {
 		/* run_script never returns. */
 		run_script(path_trans, (struct pair []) SCRIPT_HANDLERS);
 	} else {

@@ -28,7 +28,7 @@ checkerr 'script handler 2: path is empty.' \
 checkerr 'filename suffix .nil: no interpreter registered.' \
 	run_script foo.nil .sh=sh
 
-checkerr 'foo.sh: exec /::no such file!!: No such file or directory.' \
+checkerr 'exec /::no such file!! foo.sh: No such file or directory.' \
 	run_script foo.sh '.sh=/::no such file!!'
 
 checkok 'This is a test script for main.sh and run_script.sh.' \

@@ -74,7 +74,7 @@ chmod -R ugo-w "$1"
 "$name/configure"
 make "$arch"
 make
-make check || sh
+make check
 chmod -R u+w .
 make distclean
 test ! -e makefile -a ! -e config.h -a ! -e build

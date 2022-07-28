@@ -141,7 +141,7 @@ run_script(const char *const script, const struct pair pairs[])
 		// suCGI's whole point is to do this safely.
 		// flawfinder: ignore.
 		execlp(interpreter, interpreter, script, NULL);
-		fail("%s: exec %s: %s.", script, interpreter, strerror(errno));
+		fail("exec %s %s: %s.", interpreter, script, strerror(errno));
 	}
 
 	fail("filename suffix %s: no interpreter registered.", suffix);
