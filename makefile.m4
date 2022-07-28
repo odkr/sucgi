@@ -51,9 +51,7 @@ CHECKBINS = $(BUILDDIR)/tests/drop_privs \
             $(BUILDDIR)/tests/run_script \
             $(BUILDDIR)/tests/str_cp \
             $(BUILDDIR)/tests/str_eq \
-            $(BUILDDIR)/tests/str_len \
-            $(BUILDDIR)/tests/str_split \
-            $(BUILDDIR)/tests/str_vsplit
+            $(BUILDDIR)/tests/str_len
 
 CHECKS = $(SCRIPTDIR)/tests/drop_privs.sh \
          $(SCRIPTDIR)/tests/fail.sh \
@@ -72,10 +70,7 @@ CHECKS = $(SCRIPTDIR)/tests/drop_privs.sh \
          $(SCRIPTDIR)/tests/run_script.sh \
          $(BUILDDIR)/tests/str_cp \
          $(BUILDDIR)/tests/str_eq \
-         $(BUILDDIR)/tests/str_len \
-         $(BUILDDIR)/tests/str_split \
-         $(BUILDDIR)/tests/str_vsplit
-
+         $(BUILDDIR)/tests/str_len
 
 #
 # Analysers
@@ -194,12 +189,14 @@ $(BUILDDIR)/tests/fail:		$(SRCDIR)/tests/fail.c \
 		$(LDLIBS)
 
 $(BUILDDIR)/tests/env_clear:	$(SRCDIR)/tests/env_clear.c \
+				$(BUILDDIR)/tests/utils.o \
 				$(BUILDDIR)/env.o \
 				$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 				$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/tests/.sentinel
 	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
+		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/env.o $(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 		$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
 		$(LDLIBS)
@@ -349,22 +346,6 @@ $(BUILDDIR)/tests/str_len:	$(SRCDIR)/tests/str_len.c \
 		$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 		$(LDLIBS)
 
-$(BUILDDIR)/tests/str_split:	$(SRCDIR)/tests/str_split.c \
-				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
-		-o $@ $< \
-		$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
-		$(LDLIBS)
-
-$(BUILDDIR)/tests/str_vsplit:	$(SRCDIR)/tests/str_vsplit.c \
-				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS)   \
-		-o $@ $< \
-		$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
-		$(LDLIBS)
-
 $(BUILDDIR)/tests/main:	$(SRCDIR)/main.c \
 			$(BUILDDIR)/env.o $(BUILDDIR)/err.o \
 			$(BUILDDIR)/file.o $(BUILDDIR)/path.o \
@@ -381,7 +362,7 @@ $(BUILDDIR)/tests/main:	$(SRCDIR)/main.c \
 analysis:
 	cppcheck $(CPPCHECKFLAGS) \
 		--enable=all \
-		-U __NR_openat2 -D NAME_MAX=255 -D O_NOFOLLOW_ANY=1 \
+		-U __NR_openat2 -D NAME_MAX=255 -D FILENAME_MAX=1024 -D O_NOFOLLOW_ANY=1 \
 		$(SRCDIR)
 	cppcheck $(CPPCHECKFLAGS) \
 		--enable=unusedFunction \
