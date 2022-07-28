@@ -94,6 +94,23 @@ Compile and install suCGI by::
 You can uninstall suCGI by ``make uninstall``.
 
 
+Setting up Apache and PHP
+=========================
+
+Install suCGI, set up Apache_ and PHP_, enable mod_userdir_ and mod_action_,
+and then add the following lines to your Apache configuration:
+
+```
+<Directory "/home">
+  Action application/x-httpd-php /cgi-bin/sucgi
+</Directory>
+```
+
+The directory should correspond to the *DOC_ROOT* setting in *config.h*.
+
+This should run PHP scripts in */home* via suCGI.
+
+
 Documentation
 =============
 
@@ -144,6 +161,14 @@ GitHub: https://github.com/odkr/sucgi
 .. _`POSIX.1-2008`: https://pubs.opengroup.org/onlinepubs/9699919799.2008edition/
 
 .. _`BUILDING.rst`: BUILDING.rst
+
+.. _Apache: https://httpd.apache.org/
+
+.. _mod_action: https://httpd.apache.org/docs/2.4/mod/mod_actions.html
+
+.. _mod_userdir: https://httpd.apache.org/docs/2.4/mod/mod_userdir.html
+
+.. _PHP: https://www.php.net/
 
 .. |codacy| image:: https://app.codacy.com/project/badge/Grade/cb67a3bad615449589dfb242876600ac
             :target: https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_source=github.com&amp;utm_content=odkr/sucgi
