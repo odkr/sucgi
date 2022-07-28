@@ -98,13 +98,13 @@ Setting up Apache and PHP
 =========================
 
 Install suCGI, set up Apache_ and PHP_, enable mod_userdir_ and mod_action_,
-and then add the following lines to your Apache configuration:
+and then add the following lines to your Apache configuration::
 
-```
-<Directory "/home">
-  Action application/x-httpd-php /cgi-bin/sucgi
-</Directory>
-```
+
+    <Directory "/home">
+        Action application/x-httpd-php /cgi-bin/sucgi
+    </Directory>
+
 
 The directory should correspond to the *DOC_ROOT* setting in *config.h*.
 
