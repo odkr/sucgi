@@ -99,22 +99,15 @@
 
 int
 main (void) {
-	/* passwd database entry of the programme's owner. */
-	struct passwd *user = NULL;
-	/* Filesystem entry of the file pointed to by $DOCUMENT_ROOT. */
-	struct stat doc_root_st;
-	/* Filesystem entry of the file pointed to by $PATH_TRANSLATED. */
-	struct stat path_trans_st;
-	/* $DOCUMENT_ROOT. */
-	char *doc_root = NULL;
-	/* $PATH_TRANSLATED. */
-	char *path_trans = NULL;
-	/* A backup of the environment. */
+	struct passwd *owner = NULL;	/* Programme owner. */
+	struct stat doc_root_st;	/* Document root's filesystem data. */
+	struct stat path_trans_st;	/* Programme's filesystem data. */
+	char *doc_root = NULL;		/* $DOCUMENT_ROOT. */
+	char *path_trans = NULL;	/* $PATH_TRANSLATED. */
 	// env_clear never adds more than ENV_MAX entries.
 	// flawfinder: ignore
-	char *vars[ENV_MAX] = {NULL};
-	/* A return code. */
-	error rc = ERR;
+	char *vars[ENV_MAX] = {NULL};	/* Backup of the environment. */
+	error rc = ERR;			/* A return code. */
 
 	errno = 0;
 
@@ -237,9 +230,9 @@ main (void) {
 	}
 
 	/* NB: The test suite does not check whether this check works. */
-	if (path_trans_st.st_uid < MIN_UID || path_trans_st.st_uid > MAX_UID) {
+	if (MAX_UID < path_trans_st.st_uid || path_trans_st.st_uid < MIN_UID) {
 		fail("%s: owned by non-regular UID %lu.",
-		      path_trans, (unsigned long) path_trans_st.st_uid);
+		     path_trans, (unsigned long) path_trans_st.st_uid);
 	}
 
 	/*
@@ -250,9 +243,9 @@ main (void) {
 
 	// suCGI does not aim to be thread-safe.
 	// cppcheck-suppress getpwuidCalled
-	user = getpwuid(path_trans_st.st_uid);
+	owner = getpwuid(path_trans_st.st_uid);
 	/* NB: The test suite does not check whether this check works. */
-	if (!user) {
+	if (!owner) {
 		fail("%s: getpwuid %lu: %s.", path_trans,
 		     (unsigned long) path_trans_st.st_uid, strerror(errno));
 	}
@@ -262,8 +255,7 @@ main (void) {
 	 * Drop privileges.
 	 */
 
-	/* NB: This call is not checked by the test suite. */
-	drop_privs(user);
+	drop_privs(owner);
 
 
 	/*
@@ -274,9 +266,11 @@ main (void) {
 	 *	chown -R smith:smith acme
 	 */
 
-	if (!path_contains(user->pw_dir, doc_root)) {
+	// It is tested above whether owner is a null pointer.
+	// cppcheck-suppress nullPointerRedundantCheck
+	if (!path_contains(owner->pw_dir, doc_root)) {
 		fail("document root %s is not in %s's home directory.",
-		     doc_root, user->pw_name);
+		     doc_root, owner->pw_name);
 	}
 
 
@@ -287,7 +281,7 @@ main (void) {
 	 * run arbitrary code as that user. This check guards against this.
 	 */
 
-	rc = path_check_wexcl(user->pw_uid, path_trans, user->pw_dir);
+	rc = path_check_wexcl(owner->pw_uid, path_trans, owner->pw_dir);
 	switch (rc) {
 		case OK:
 			break;
@@ -295,7 +289,7 @@ main (void) {
 			fail("%s: %s.", path_trans, strerror(errno));
 		case ERR_NOT_EXCLW:
 		        fail("%s: can be altered by users other than %s.",
-			     path_trans, user->pw_name);
+			     path_trans, owner->pw_name);
 		default:
 			fail("%s:%d: path_check_wexcl returned %u.",
 			     __FILE__, __LINE__ - 11, rc);

@@ -24,7 +24,7 @@
 
 /* Excise function attributes unless the compiler understands GNU C. */
 #if !defined(__GNUC__)
-#define __atribute__(attr)
+#define __attribute__(attr)
 #endif /* !defined(__GNUC__) */
 
 /* Shorthand for access(read_only, ...). */

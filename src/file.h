@@ -54,7 +54,6 @@ error file_safe_open(const char *fname, const int flags, int *fd);
  * Store fname's filesystem status in the variable pointed to by fstatus.
  *
  * If fstatus is NULL, the status is not stored.
- * fstatus should be freed by the caller.
  *
  * Errors:
  * 	The same as file_safe_open.

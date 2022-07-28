@@ -1,5 +1,5 @@
 /*
- * Marcros for fail handling.
+ * Header for err.c.
  *
  * Copyright 2022 Odin Kroeger
  * 
@@ -46,26 +46,16 @@
  */
 
 typedef enum {
-	/* Success. */
-	OK = EXIT_SUCCESS,
-	/* Generic error. Should only be used to initialise variables. */
-	ERR = EXIT_FAILURE,
-	/* Too many environment variables. */
-	ERR_ENV_MAX,
-	/* A filename is too long. */
-	ERR_FNAME_LEN,
-	/* A file is not exclusively writably by the given user/group. */
-	ERR_NOT_EXCLW,
-	/* A string is too long. */
-	ERR_STR_LEN,
-	/* A system call failed. errno should be set. */
-	ERR_SYS,
-	/* An environment variable is the empty string. */
-	ERR_VAR_EMPTY,
-	/* An environment variable is ill-formed. */
-	ERR_VAR_INVALID,
-	/* An environment variable is undefined. */
-	ERR_VAR_UNDEF
+	OK = EXIT_SUCCESS,	/* Success. */
+	ERR = EXIT_FAILURE,	/* Generic error. Should be used sparingly. */
+	ERR_ENV_MAX,		/* Too many environment variables. */
+	ERR_FNAME_LEN,		/* Filename too long. */
+	ERR_NOT_EXCLW,		/* File not exclusively writably by user. */
+	ERR_STR_LEN,		/* String too long. */
+	ERR_SYS,		/* System error. errno should be set. */
+	ERR_VAR_EMPTY,		/* Environment variable is empty. */
+	ERR_VAR_INVALID,	/* Environment variable is ill-formed. */
+	ERR_VAR_UNDEF		/* Environment variable is undefined. */
 } error;
 
 
@@ -73,10 +63,10 @@ typedef enum {
  * Functions
  */
 
-/* Log message as an fail and exit the programme with EXIT_FAILURE. */
-// message is declared constant.
+/* Log message as an error and exit the programme with EXIT_FAILURE. */
+// fail is only ever passed string literals.
 // flawfinder: igore.
-__attribute__((noreturn, RO(1), format(printf, 1, 2)))
+__attribute__((RO(1), format(printf, 1, 2), noreturn))
 void fail(const char *const message, ...);
 
 

@@ -71,23 +71,24 @@ file_safe_open(const char *fname, const int flags, int *fd)
 	};
 
 	assert(fname);
-
-	/* RESOLVE_NO_SYMLINKS ensures that fname contains no symlinks. */
+	/* 
+	 * RESOLVE_NO_SYMLINKS ensures that fname contains no symlinks. 
+	 * See below for more details.
+	 */
 	*fd = (int) syscall(__NR_openat2, AT_FDCWD, fname,
 	                    &how, sizeof(struct open_how));
 	if (*fd < 0) return ERR_SYS;
 	return OK;
 }
+
 #elif defined(TARGET_OS_MAC) && TARGET_OS_MAC && O_NOFOLLOW_ANY
 error
 file_safe_open (const char *fname, const int flags, int *fd)
 {
 	assert(fname);
-
 	// - O_NOFOLLOW_ANY ensures that fname contains no symlinks.
 	// - Whether files are regular is checked in main.
-	// - By using file descriptors,
-	//   race conditions should be avoided.
+	// - By using file descriptors, race conditions should be avoided.
 	// - Changes to the path or the file's content are either permitted
 	//   (the user may run whatever code they wish) or outside the scope
 	//   of suCGI's threat model (suCGI is insecure if an attacker can
@@ -101,6 +102,7 @@ file_safe_open (const char *fname, const int flags, int *fd)
 	if (*fd < 0) return ERR_SYS;
 	return OK;
 }
+
 #else
 #error suCGI requires Linux v5.6 or macOS v11.
 #endif /* defined(__NR_openat2) && __NR_openat2 ... 
@@ -118,7 +120,6 @@ file_safe_stat(const char *fname, struct stat *fstatus)
 	reraise(file_safe_open(fname, O_RDONLY | O_CLOEXEC, &fd));
 	rc = fstat(fd, &buf);
 	if (close(fd) != 0 || rc != 0) return ERR_SYS;
-
 	// fstatus is guaranted to be large enough to hold the data.
 	// flawfinder: ignore
 	if (fstatus) memcpy(fstatus, &buf, sizeof(struct stat));

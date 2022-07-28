@@ -35,12 +35,17 @@
 
 
 void
-drop_privs(const struct passwd *user)
+drop_privs(const struct passwd *const user)
 {
-	const uid_t uid = user->pw_uid;
-	const gid_t gid = user->pw_gid;
-	gid_t groups[] = {gid};
+	uid_t uid = 30000;
+	gid_t gid = 30000;
+	gid_t groups[1] = {gid};
 	int groups_init = -1;
+	
+	assert(user);
+	uid = user->pw_uid;
+	gid = user->pw_gid;
+	groups[0] = gid;
 
 	if (uid == 0) {
 		fail("%s is the superuser.", user->pw_name);
@@ -107,7 +112,7 @@ drop_privs(const struct passwd *user)
 	}
 #endif /* defined(TESTING) && TESTING */
 }
-#include <stdio.h>
+
 void
 run_script(const char *const script, const struct pair pairs[])
 {
@@ -126,6 +131,9 @@ run_script(const char *const script, const struct pair pairs[])
 		if (!interpreter) {
 			fail("script handler %d: no interpreter.", i + 1);
 		}
+
+		// It is tested above whether interpreter is a null pointer.
+		// cppcheck-suppress nullPointerRedundantCheck
 		if (interpreter[0] == '\0') {
 			fail("script handler %d: path is empty.", i + 1);
 		}

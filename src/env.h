@@ -46,6 +46,8 @@
  * Array of shell wildcard patterns; must be NULL-terminated.
  * Variables are only kept if their name matches one of these patterns.
  * The only exception to that rule is $PATH, which is always kept.
+ *
+ * Adopted from Apache's suEXEC. There should be no need to adapt this list.
  */
 extern char *const env_keep[];
 
@@ -55,6 +57,8 @@ extern char *const env_keep[];
  * Array of shell wildcard patterns; must be NULL-terminated.
  * Variables are tossed if their name matches one of these patterns.
  * The only exception to this rule is $PATH, which is never tossed.
+ *
+ * Adopted from Apache's suEXEC. There should be no need to adapt this list.
  */
 extern char *const env_toss[];
 

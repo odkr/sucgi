@@ -40,10 +40,7 @@
 /* The environment. */
 extern char **environ;
 
-/*
- * The patterns below have been adopted from Apache's suEXEC.
- * There should be no need to adapt them.
- */
+/* Environment variables to keep. */
 char *const env_keep[] = {
 	"AUTH_TYPE",
 	"CONTENT_LENGTH",
@@ -113,11 +110,11 @@ char *const env_toss[] = {
 error
 env_clear(char *vars[])
 {
-	static char *null = NULL;	/* Environment terminator. */
-	char **env = environ;		/* Backup of the environment. */
+	static char *var = NULL;	/* First environment variable. */
+	char **env = environ;		/* Copy of the pointer. */
 	
-	null = NULL;
-	environ = &null;
+	var = NULL;
+	environ = &var;
 
 	if (!vars) return OK;
 	for (size_t n = 0; n < ENV_MAX; n++) {

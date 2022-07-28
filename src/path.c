@@ -36,6 +36,13 @@
 #include "str.h"
 
 
+#if NAME_MAX > -1 && NAME_MAX < FILENAME_MAX
+#define MAX_FNAME NAME_MAX
+#else
+#define MAX_FNAME FILENAME_MAX
+#endif
+
+
 error
 path_check_len(const char *const path)
 {
@@ -76,12 +83,7 @@ path_check_len(const char *const path)
 			sub = NULL;
 		}
 
-#if NAME_MAX > -1
-		if (fname_len > NAME_MAX) return ERR_FNAME_LEN;
-#endif
-#if defined(FILENAME_MAX) && FILENAME_MAX < NAME_MAX
-		if (fname_len > FILENAME_MAX) return ERR_FNAME_LEN;
-#endif
+		if (fname_len > MAX_FNAME) return ERR_FNAME_LEN;
 
 		if (super[0] != '\0') {
  			long name_max = pathconf(super, _PC_NAME_MAX);
@@ -105,22 +107,25 @@ path_check_len(const char *const path)
 }
 
 error
-path_check_wexcl(const uid_t uid, const char *const path,
+path_check_wexcl(const uid_t uid, const char *const start,
                  const char *const stop)
 {
 	// str_cp never copies more than STR_MAX_LEN bytes.
 	// flawfinder: ignore.
-	char copy[STR_MAX_LEN] = {0};	/* A copy of the path. */
-	char *file = copy;		/* Current file. */
+	char path[STR_MAX_LEN] = {0};	/* A copy of the path. */
+	char *file = path;		/* Path to the current file. */
 
-	assert(path && stop);
-	reraise(str_cp(path, copy));
+	assert(start && stop);
+	reraise(str_cp(start, path));
 
 	while (true) {
 		struct stat fstatus;
+
 		if (stat(file, &fstatus) != 0) return ERR_SYS;
 		if (!file_is_wexcl(uid, &fstatus)) return ERR_NOT_EXCLW;
-		if (str_eq(file, stop) || str_eq(file, "/") || str_eq(file, ".")) break;
+		if (   str_eq(file, stop)
+		    || str_eq(file, "/")
+		    || str_eq(file, ".")) break;
 		file = dirname(file);
 	}
 
