@@ -23,6 +23,7 @@
 #include <fcntl.h>
 #include <libgen.h>
 #include <stdbool.h>
+#include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -107,19 +108,19 @@ file_safe_open (const char *fname, const int flags, int *fd)
 
 
 error
-file_safe_stat(const char *fname, struct stat **fstatus)
+file_safe_stat(const char *fname, struct stat *fstatus)
 {
-	struct stat *buf = NULL;
+	struct stat buf;
 	int fd = -1;
 	int rc = -1;
 
 	assert(fname);
-	buf = malloc(sizeof(struct stat));
-	if (!buf) return ERR_SYS;
 	reraise(file_safe_open(fname, O_RDONLY | O_CLOEXEC, &fd));
-	rc = fstat(fd, buf);
+	rc = fstat(fd, &buf);
 	if (close(fd) != 0 || rc != 0) return ERR_SYS;
 
-	if (fstatus) *fstatus = buf;
+	// fstatus is guaranted to be large enough to hold the data.
+	// flawfinder: ignore
+	if (fstatus) memcpy(fstatus, &buf, sizeof(struct stat));
 	return OK;
 }

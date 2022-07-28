@@ -15,31 +15,26 @@ int
 main (void) {
 	{
 		// flawfinder: ignore
-		char *huge = NULL;
-		char *str = NULL;
-
-		huge = malloc(STR_MAX_LEN + 2);
-		assert(huge);
+		char huge[STR_MAX_LEN + 2] = {0};
+		// flawfinder: ignore
+		char str[STR_MAX_LEN + 2];
 		memset(huge, 'x', STR_MAX_LEN + 1);
-		huge[STR_MAX_LEN + 1] = '\0';
-		assert(str_cp((const char*) huge, &str) == ERR_STR_LEN);
-		assert(str == NULL);
-
-		free(huge);
+		assert(strnlen(huge, STR_MAX_LEN + 2) == STR_MAX_LEN + 1);
+		assert(str_cp(huge, str) == ERR_STR_LEN);
 	}
 
 	{
-		char *str = NULL;
-		assert(str_cp("foo", &str) == OK);
+		// flawfinder: ignore
+		char str[STR_MAX_LEN + 1] = {0};
+		assert(str_cp("foo", str) == OK);
 		assert(str_eq(str, "foo"));
-		free(str);
 	}
 
 	{
-		char *str = NULL;
-		assert(str_cp("", &str) == OK);
+		// flawfinder: ignore
+		char str[STR_MAX_LEN + 1] = {0};
+		assert(str_cp("", str) == OK);
 		assert(str_eq(str, ""));
-		free(str);
 	}
 
 	return EXIT_SUCCESS;

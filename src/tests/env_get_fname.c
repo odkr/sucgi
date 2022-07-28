@@ -27,4 +27,5 @@ main (int argc, char **argv)
 	}
 
 	return (int) env_get_fname(name, &val, NULL);
+	// * FIXME ** actually test getting a status!
 }

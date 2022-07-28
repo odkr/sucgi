@@ -65,13 +65,14 @@ extern char *const env_toss[];
 
 /*
  * Clear the environment and ssave a copy of the old environment to vars.
- * If vars is NULL, the old environment is not saved.
+ * If vars is NULL, the old environment is not saved. vars must have
+ * enough space to hold ENV_MAX variables.
  *
  * Return code:
- *      OK       Success.
- *      ERR_SYS  System failure. errno(2) should be set.
+ *      OK           Success.
+ *      ERR_ENV_MAX  More than ENV_MAX environment variables have been set.
  */
-error env_clear(char ***vars);
+error env_clear(char *vars[]);
 
 /* 
  * Safely read a filename from the environement variable name and store a
@@ -93,7 +94,7 @@ error env_clear(char ***vars);
  *      ERR_VAR_EMPTY  The variable is empty.
  */
 __attribute__((RO(1)))
-error env_get_fname(const char *name, char **fname, struct stat **fstatus);
+error env_get_fname(const char *name, char **fname, struct stat *fstatus);
 
 /*
  * Repopulate the environment with any variable in vars the name of which
@@ -110,6 +111,8 @@ error env_get_fname(const char *name, char **fname, struct stat **fstatus);
  *      - A variable assigns a value to the empty string.
  *
  * Caveats:
+ *	Modifies its first argument!
+ *
  *      An attacker may populate the environment with variables that are not
  *      terminated by a nullbyte. If the memory region after that variable
  *      contains a nullbyte within STR_MAX_LEN bytes from the start of the
@@ -136,10 +139,8 @@ error env_get_fname(const char *name, char **fname, struct stat **fstatus);
  *	ERR_VAR_INVALID  A variable is not of the form key=value.
  * 	ERR_SYS          System error. errno(2) should be set.
  */
-__attribute__((RO(1), RO(2), RO(3)))
-error env_restore(const char *const *vars,
-                  char *const *const keep,
-                  char *const *const toss);
+__attribute__((RO(2), RO(3)))
+error env_restore(char *vars[], char *const keep[], char *const toss[]);
 
 
 #endif /* !defined(SRC_ENV_H) */

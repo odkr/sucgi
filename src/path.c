@@ -37,7 +37,7 @@
 
 
 error
-path_check_len(const char *path)
+path_check_len(const char *const path)
 {
 	size_t path_len = PATH_MAX + 1;
 	const char *sep = NULL;
@@ -51,11 +51,11 @@ path_check_len(const char *path)
 
 	sub = path;
 	do {
-		// At this point, path can at most be STR_MAX_LEN bytes long.
+		// path has been checked to be at most STR_MAX_LEN bytes long.
 		// flawfinder: ignore
 		char super[STR_MAX_LEN + 1] = {0};
-		size_t super_len = 0;
 		size_t fname_len = 0;
+		size_t super_len = 0;
 		size_t sub_len = 0;
 
 		if (sep) {
@@ -68,16 +68,19 @@ path_check_len(const char *path)
 		sep = strpbrk(sub, "/");
 		if (sep) {
 			fname_len = (size_t) (sep - sub) + 1;
+			sub_len = path_len - super_len;
 			sub = sep + 1;
 		} else {
 			fname_len = path_len - super_len;
+			sub_len = fname_len;
 			sub = NULL;
 		}
-		sub_len = path_len - (super_len + fname_len);
 
-		if (fname_len > FILENAME_MAX) return ERR_FNAME_LEN;
-#if defined(NAME_MAX) && NAME_MAX > -1
+#if NAME_MAX > -1
 		if (fname_len > NAME_MAX) return ERR_FNAME_LEN;
+#endif
+#if defined(FILENAME_MAX) && FILENAME_MAX < NAME_MAX
+		if (fname_len > FILENAME_MAX) return ERR_FNAME_LEN;
 #endif
 
 		if (super[0] != '\0') {
@@ -105,16 +108,20 @@ error
 path_check_wexcl(const uid_t uid, const char *const path,
                  const char *const stop)
 {
-	char *p = NULL;	/* Current path. */
+	// str_cp never copies more than STR_MAX_LEN bytes.
+	// flawfinder: ignore.
+	char copy[STR_MAX_LEN] = {0};	/* A copy of the path. */
+	char *file = copy;		/* Current file. */
 
 	assert(path && stop);
-	reraise(str_cp(path, &p));
+	reraise(str_cp(path, copy));
+
 	while (true) {
 		struct stat fstatus;
-		if (stat(p, &fstatus) != 0) return ERR_SYS;
+		if (stat(file, &fstatus) != 0) return ERR_SYS;
 		if (!file_is_wexcl(uid, &fstatus)) return ERR_NOT_EXCLW;
-		if (str_eq(p, stop) || str_eq(p, "/") || str_eq(p, ".")) break;
-		p = dirname(p);
+		if (str_eq(file, stop) || str_eq(file, "/") || str_eq(file, ".")) break;
+		file = dirname(file);
 	}
 
 	return OK;

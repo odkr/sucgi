@@ -63,7 +63,7 @@ error file_safe_open(const char *fname, const int flags, int *fd);
  *      The same as file_safe_open.
  */
 __attribute__((RO(1)))
-error file_safe_stat(const char *fname, struct stat **fstatus);
+error file_safe_stat(const char *fname, struct stat *fstatus);
 
 
 #endif /* !defined(SRC_FILE_H) */

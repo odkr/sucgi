@@ -48,16 +48,14 @@
 /*
  * Copy a string from src to dest.
  *
- * dest is allocated just enough memory to contain src,
- * null-terminated, and should be freed by the caller.
+ * dest must be terminated with a nullbyte and large enough to contain src.
  *
  * Return code:
  *      OK           Success.
  *      ERR_STR_LEN  src is longer than STR_MAX_LEN.
- *      ERR_SYS      System error. errno(2) should be set.
  */
 __attribute__((RO(1)))
-error str_cp(const char *const src, char **dest);
+error str_cp(const char *const src, char *dest);
 
 /* Return true if s1 and s2 are equal and false otherwise. */
 __attribute__((RO(1), RO(2)))
@@ -72,35 +70,6 @@ bool str_eq(const char *const s1, const char *const s2);
  */
 __attribute__((RO(1)))
 error str_len(const char *const s, size_t *len);
-
-/*
- * Split s at the first max occurrences of any character in sep and
- * store the substrings in the array pointed to by subs and the
- * number of substrings in the variable pointed to by n.
- *
- * If n is NULL, the number of substrings is discarded.
- * 
- * Return code:
- *      OK           Success.
- *      ERR_STR_LEN  s is longer than STR_MAX_LEN.
- *      ERR_SYS      System error. errno(2) should be set.
- */
-__attribute__((RO(1), RO(2)))
-error str_split(const char *const s, const char *sep,
-                const int max, char ***subs, int *n);
-
-/*
- * Split s at the first n - 1 occurrences of any character in sep
- * and store the substrings in the given variadic arguments.
- *
- * If s is split into fewer than n substrings, the surplus variadic
- * arguments up to the nth argument are set to NULL. If less than
- * n arguments are given the behaviour is undefined.
- *
- * Otherwise the same as str_split.
- */
-__attribute__((RO(1), RO(2)))
-error str_vsplit(const char *const s, const char *sep, const int n, ...);
 
 
 #endif /* !defined(SRC_STR_H) */

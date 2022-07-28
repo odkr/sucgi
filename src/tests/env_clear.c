@@ -9,19 +9,22 @@
 #include "../env.h"
 #include "../err.h"
 #include "../str.h"
+#include "utils.h"
+
 
 extern char **environ;
 
 int
 main (void) {
-	char **env = NULL;
+	// flawfinder: ignore
+	char *env[ENV_MAX] = {0};
 	char **var = NULL;
 	int n = 0;
 
 	env_clear(NULL);
 
 	assert(setenv("foo", "foo", 1) == 0);
-	assert(env_clear(&env) == OK);
+	assert(env_clear(env) == OK);
 	// flawfinder: ignore
 	assert(getenv("foo") == NULL);
 
@@ -30,12 +33,18 @@ main (void) {
 
 	n = 0;
 	for (var = env; *var; var++) {
-		char *name, *value;
-		assert(str_vsplit(*var, "=", 2, &name, &value) == OK);
+		char *name = calloc(STR_MAX_LEN + 1, sizeof(char));
+		char *value = calloc(STR_MAX_LEN + 1, sizeof(char));
+		assert(name && value);
+
+		assert(str_vsplit(*var, "=", 2, name, value) == OK);
 		if (str_eq(name, "foo")) {
 			assert(str_eq(value, "foo"));
 			n++;
 		}
+
+		free(name);
+		free(value);
 	}
 	assert(n == 1);
 
@@ -48,7 +57,7 @@ main (void) {
 		assert(setenv(name, "foo", true) == 0);
 	}
 
-	assert(env_clear(&var) == ERR_ENV_MAX);
+	assert(env_clear(env) == ERR_ENV_MAX);
 
 	return EXIT_SUCCESS;
 }

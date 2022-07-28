@@ -2,9 +2,11 @@
  * Test run_script.
  */
 
+#include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../err.h"
 #include "../str.h"
@@ -25,19 +27,18 @@ main (int argc, char **argv)
 	}
 
 	for (i = 2; i < argc; i++) {
-		char *suffix = NULL;
-		char *handler = NULL;
+		char *suffix = calloc(STR_MAX_LEN + 1, sizeof(char));
+		char *handler = calloc(STR_MAX_LEN + 1, sizeof(char));
 		error rc = ERR;
+
+		if (!suffix || !handler) fail("%s.", strerror(errno));
 		
-		rc = str_vsplit(argv[i], "=", 2, &suffix, &handler);
+		rc = str_vsplit(argv[i], "=", 2, suffix, handler);
 		if (rc != OK) {
 			die("run_script: str_vsplit returned %u.", rc);
 		}
 		if (suffix[0] == '\0') {
 			die("run_script: suffix %d is empty.", i - 1);
-		}
-		if (!handler) {
-			die("run_script: %s: no handler given.", argv[i]);
 		}
 
 		handlers[i - 2] = (struct pair) {

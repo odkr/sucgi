@@ -26,4 +26,5 @@ main (int argc, char **argv)
 	}
 
 	return (int) file_safe_stat(fname, NULL);
+	/* FIXME: test actually get stats! */
 }

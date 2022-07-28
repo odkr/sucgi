@@ -34,7 +34,6 @@ env_create (size_t n)
 	return OK;
 }
 
-
 /* 
  * env_restore wrapper that clears the environment and
  * accepts strings as arguments.
@@ -42,13 +41,14 @@ env_create (size_t n)
 error
 env_restore_w (const char *keep, const char *toss)
 {
-	char **vars;		/* Backup of the environment. */
-	char **keepv, **tossv;	/* Arrays of patterns. */
+	// flawfinder: ignore
+	char *vars[ENV_MAX] = {0};	/* Backup of the environment. */
+	char **keepv, **tossv;		/* Arrays of patterns. */
 
-	assert(env_clear(&vars) == OK);
+	assert(env_clear(vars) == OK);
 	assert(str_words(keep, &keepv) == OK);
 	assert(str_words(toss, &tossv) == OK);
-	return env_restore((const char *const *) vars, keepv, tossv);
+	return env_restore(vars, keepv, tossv);
 }
 
 
@@ -79,16 +79,6 @@ main (void) {
 	environ[1] = NULL;
 	assert(env_restore_w("bar", "") == ERR_VAR_INVALID);
 
-	env_create(2);
-	var = malloc(sizeof(char) * (STR_MAX_LEN + 2));
-	assert(var);
-	memset(var, 'x', STR_MAX_LEN + 1);
-	var[STR_MAX_LEN + 1] = '\0';
-	assert(strnlen(var, STR_MAX_LEN + 2) == STR_MAX_LEN + 1);
-	environ[0] = var;
-	environ[1] = NULL;
-	assert(env_restore_w("", "") == ERR_STR_LEN);
-	free(var);
 
 	/*
 	 * Simple tests.

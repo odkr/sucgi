@@ -35,16 +35,12 @@
 
 
 void
-drop_privs(struct passwd *user)
+drop_privs(const struct passwd *user)
 {
-	uid_t uid = 0;
-	gid_t gid = 0;
-	gid_t groups[1] = {0};
-	int groups_init = 0;
-
-	assert(user);
-	uid = user->pw_uid;
-	gid = user->pw_gid;
+	const uid_t uid = user->pw_uid;
+	const gid_t gid = user->pw_gid;
+	gid_t groups[] = {gid};
+	int groups_init = -1;
 
 	if (uid == 0) {
 		fail("%s is the superuser.", user->pw_name);
@@ -53,7 +49,6 @@ drop_privs(struct passwd *user)
 		fail("%s's primary group is the supergroup.", user->pw_name);
 	}
 
-	groups[0] = gid;
 	if (setgroups(1, groups) != 0) {
 		fail("group clean-up: %s.", strerror(errno));
 	}
@@ -112,7 +107,7 @@ drop_privs(struct passwd *user)
 	}
 #endif /* defined(TESTING) && TESTING */
 }
-
+#include <stdio.h>
 void
 run_script(const char *const script, const struct pair pairs[])
 {
@@ -129,14 +124,10 @@ run_script(const char *const script, const struct pair pairs[])
 		if (!str_eq(suffix, filetype)) continue;
 
 		if (!interpreter) {
-			fail("script handler %d: "
-			     "no interpreter given.",
-			     i + 1);
+			fail("script handler %d: no interpreter.", i + 1);
 		}
 		if (interpreter[0] == '\0') {
-			fail("script handler %d: "
-			     "path to interpreter is the empty string.",
-			     i + 1);
+			fail("script handler %d: path is empty.", i + 1);
 		}
 
 		// suCGI's whole point is to do this safely.

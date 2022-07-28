@@ -79,12 +79,9 @@ checkerr 'DOCUMENT_ROOT: not set.' main
 DOCUMENT_ROOT='' \
 	checkerr 'DOCUMENT_ROOT: is the empty string.' main
 
-DOCUMENT_ROOT="$long_str" \
-	checkerr 'environment variable is too long.' main
-
 [ "$long_path" ] &&
 	DOCUMENT_ROOT="$long_path" \
-		checkerr 'too long.' main
+		checkerr '$DOCUMENT_ROOT: path too long.' main
 
 [ "$long_name" ] &&
 	DOCUMENT_ROOT="$long_name" \
@@ -105,12 +102,13 @@ DOCUMENT_ROOT="$HOME" \
 DOCUMENT_ROOT="$HOME" PATH_TRANSLATED='' \
 	checkerr 'PATH_TRANSLATED: is the empty string.' main
 
-DOCUMENT_ROOT=/ PATH_TRANSLATED="$long_str" \
-	checkerr 'environment variable is too long.' main
-
 [ "$long_path" ] &&
 	DOCUMENT_ROOT=/ PATH_TRANSLATED="$long_path" \
-		checkerr 'too long.' main
+		checkerr '$PATH_TRANSLATED: path too long.' main
+
+[ "$long_name" ] &&
+	DOCUMENT_ROOT=/ PATH_TRANSLATED="$long_name" \
+		checkerr '$PATH_TRANSLATED: filename too long.' main
 
 DOCUMENT_ROOT=/ PATH_TRANSLATED='/::no-such-file!!' \
 	checkerr '$PATH_TRANSLATED: No such file or directory.' main

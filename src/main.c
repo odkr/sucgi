@@ -102,15 +102,17 @@ main (void) {
 	/* passwd database entry of the programme's owner. */
 	struct passwd *user = NULL;
 	/* Filesystem entry of the file pointed to by $DOCUMENT_ROOT. */
-	struct stat *doc_root_st = NULL;
+	struct stat doc_root_st;
 	/* Filesystem entry of the file pointed to by $PATH_TRANSLATED. */
-	struct stat *path_trans_st = NULL;
+	struct stat path_trans_st;
 	/* $DOCUMENT_ROOT. */
 	char *doc_root = NULL;
 	/* $PATH_TRANSLATED. */
 	char *path_trans = NULL;
 	/* A backup of the environment. */
-	char **vars = NULL;
+	// env_clear never adds more than ENV_MAX entries.
+	// flawfinder: ignore
+	char *vars[ENV_MAX] = {NULL};
 	/* A return code. */
 	error rc = ERR;
 
@@ -125,17 +127,15 @@ main (void) {
 	 * > info. Bad news if MALLOC_DEBUG_FILE is set to /etc/passwd.)
 	 */
 
-	rc = env_clear(&vars);
+	rc = env_clear(vars);
 	switch (rc) {
 		case OK:
 			break;
-		case ERR_SYS:
-			fail("environment clean-up: %s.", strerror(errno));
 		case ERR_ENV_MAX:
 			fail("too many environment variables.");
 		default:
 			fail("%s:%d: env_clear returned %u.",
-			      __FILE__, __LINE__ - 10, rc);
+			     __FILE__, __LINE__ - 8, rc);
 	}
 
 
@@ -143,19 +143,17 @@ main (void) {
 	 * Re-populate the environment.
 	 */
 
-	rc = env_restore((const char *const *) vars, env_keep, env_toss);
+	rc = env_restore(vars, env_keep, env_toss);
 	switch (rc) {
 		case OK:
 			break;
 		case ERR_SYS:
 			fail("environment restoration: %s.", strerror(errno));
-		case ERR_STR_LEN:
-			fail("environment variable is too long.");
 		case ERR_VAR_INVALID:
 			fail("ill-formed environment variable.");
 		default:
 			fail("%s:%d: env_restore returned %u.",
-			     __FILE__, __LINE__ - 13, rc);
+			     __FILE__, __LINE__ - 11, rc);
 	}
 
 	if (setenv("PATH", SECURE_PATH, 1) != 0) {
@@ -176,7 +174,7 @@ main (void) {
 		case ERR_FNAME_LEN:
 			fail("$DOCUMENT_ROOT: filename too long.");
 		case ERR_STR_LEN:
-			fail("$DOCUMENT_ROOT: too long.");
+			fail("$DOCUMENT_ROOT: path too long.");
 		case ERR_VAR_UNDEF:
 			fail("DOCUMENT_ROOT: not set.");
 		case ERR_VAR_EMPTY:
@@ -186,7 +184,7 @@ main (void) {
 			      __FILE__, __LINE__ - 16, rc);
 	}
 
-	if (!S_ISDIR(doc_root_st->st_mode)) {
+	if (!S_ISDIR(doc_root_st.st_mode)) {
 		fail("$DOCUMENT_ROOT: not a directory.");
 	}
 
@@ -208,13 +206,13 @@ main (void) {
 		case ERR_FNAME_LEN:
 			fail("$PATH_TRANSLATED: filename too long.");
 		case ERR_STR_LEN:
-			fail("$PATH_TRANSLATED: too long.");
+			fail("$PATH_TRANSLATED: path too long.");
 		case ERR_VAR_UNDEF:
 			fail("PATH_TRANSLATED: not set.");
 		case ERR_VAR_EMPTY:
 			fail("PATH_TRANSLATED: is the empty string.");
 		default:
-			fail("%s:%d: path_check_len returned %u.",
+			fail("%s:%d: env_get_fname returned %u.",
 			      __FILE__, __LINE__ - 17, rc);
 	}
 
@@ -222,7 +220,7 @@ main (void) {
 		fail("$PATH_TRANSLATED: not in document root %s.", doc_root);
 	}
 
-	if (!S_ISREG(path_trans_st->st_mode)) {
+	if (!S_ISREG(path_trans_st.st_mode)) {
 		fail("$PATH_TRANSLATED: not a regular file.");
 	}
 
@@ -231,19 +229,17 @@ main (void) {
 	 * Verify the CGI programme's UID and GID.
 	 */
 
-	if (path_trans_st->st_uid == 0) {
+	if (path_trans_st.st_uid == 0) {
 		fail("%s: owned by the superuser.", path_trans);
 	}
-	if (path_trans_st->st_gid == 0) {
+	if (path_trans_st.st_gid == 0) {
 		fail("%s: owned by the supergroup.", path_trans);
 	}
 
 	/* NB: The test suite does not check whether this check works. */
-	if (path_trans_st->st_uid < MIN_UID ||
-	    path_trans_st->st_uid > MAX_UID)
-	{
+	if (path_trans_st.st_uid < MIN_UID || path_trans_st.st_uid > MAX_UID) {
 		fail("%s: owned by non-regular UID %lu.",
-		      path_trans, (unsigned long) path_trans_st->st_uid);
+		      path_trans, (unsigned long) path_trans_st.st_uid);
 	}
 
 	/*
@@ -254,11 +250,11 @@ main (void) {
 
 	// suCGI does not aim to be thread-safe.
 	// cppcheck-suppress getpwuidCalled
-	user = getpwuid(path_trans_st->st_uid);
+	user = getpwuid(path_trans_st.st_uid);
 	/* NB: The test suite does not check whether this check works. */
 	if (!user) {
 		fail("%s: getpwuid %lu: %s.", path_trans,
-		     (unsigned long) path_trans_st->st_uid, strerror(errno));
+		     (unsigned long) path_trans_st.st_uid, strerror(errno));
 	}
 
 
@@ -310,7 +306,7 @@ main (void) {
 	 * Run the programme.
 	 */
 
-	if (file_is_exec(path_trans_st)) {
+	if (file_is_exec(&path_trans_st)) {
 		/* run_script never returns. */
 		run_script(path_trans, (struct pair []) SCRIPT_HANDLERS);
 	} else {

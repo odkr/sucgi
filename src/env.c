@@ -111,28 +111,25 @@ char *const env_toss[] = {
  */
 
 error
-env_clear(char ***vars)
+env_clear(char *vars[])
 {
-	char **env = environ;	/* Backup of the environment. */
+	static char *null = NULL;	/* Environment terminator. */
+	char **env = environ;		/* Backup of the environment. */
+	
+	null = NULL;
+	environ = &null;
 
-	environ = NULL;
-
-	environ = calloc(1, sizeof(char *));
-	if (!environ) return ERR_SYS;
-	*environ = NULL;
 	if (!vars) return OK;
-
-	*vars = calloc(ENV_MAX, sizeof(char *));
-	if (!*vars) return ERR_SYS;
-	for (size_t n = 0; env[n]; n++) {
-		if (n == ENV_MAX) return ERR_ENV_MAX;
-		(*vars)[n] = env[n];
+	for (size_t n = 0; n < ENV_MAX; n++) {
+		vars[n] = env[n];
+		if (!env[n]) return OK;
 	}
-	return OK;
+
+	return ERR_ENV_MAX;
 }
 
 error
-env_get_fname(const char *name, char **fname, struct stat **fstatus)
+env_get_fname(const char *name, char **fname, struct stat *fstatus)
 {
 	char *value = NULL;
 
@@ -150,24 +147,25 @@ env_get_fname(const char *name, char **fname, struct stat **fstatus)
 }
 
 error
-env_restore(const char *const *vars,
-            char *const *const keep,
-	    char *const *const toss)
+env_restore(char *vars[], char *const keep[], char *const toss[])
 {
 	assert(vars && keep && toss);
 
-	for (; *vars; vars++) {
-		char *name = NULL;
+	for (size_t i = 0; i < ENV_MAX && vars[i]; i++) {
+		char *name = vars[i];
 		char *value = NULL;
+		char *sep = NULL;
 
-		reraise(str_vsplit(*vars, "=", 2, &name, &value));
-		if (name[0] == '\0' || !value) return ERR_VAR_INVALID;
+		sep = strpbrk(vars[i], "=");
+		if (!sep || sep == *(vars + i)) return ERR_VAR_INVALID;
+		value = sep + 1;
+		*sep = '\0';
 
-		for (char *const *kv = keep; *kv; kv++) {
-			if (fnmatch(*kv, name, FNM_PERIOD) != 0)
+		for (size_t j = 0; keep[j]; j++) {
+			if (fnmatch(keep[j], name, FNM_PERIOD) != 0)
 				continue;
-			for (char *const *tv = toss; *tv; tv++) {
-				if (fnmatch(*tv, name, FNM_PERIOD) == 0)
+			for (size_t k = 0; toss[k]; k++) {
+				if (fnmatch(toss[k], name, FNM_PERIOD) == 0)
 					goto next;
 			}
 
