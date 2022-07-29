@@ -8,6 +8,8 @@
 #include <grp.h>
 #include <pwd.h>
 
+#include "../utils.h"
+
 #define MAX 65536
 
 int
