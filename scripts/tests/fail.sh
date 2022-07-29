@@ -13,7 +13,6 @@ readonly script_dir="${0%/*}"
 . "$script_dir/../utils.sh" || exit
 init || exit
 PATH="${TESTSDIR:-./build/tests}:$script_dir/../../build/tests:$PATH"
-
 tmpdir chk
 
 

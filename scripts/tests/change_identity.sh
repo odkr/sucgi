@@ -11,7 +11,8 @@ readonly script_dir="${0%/*}"
 # shellcheck disable=1091
 . "$script_dir/../utils.sh" || exit
 init || exit
-PATH="${TESTSDIR:-./build/tests}:$script_dir/../../build/tests:$PATH"
+: "${TESTSDIR:=./build/tests}"
+PATH="$TESTSDIR:$TESTSDIR/tools:$script_dir/../../build/tests:$PATH"
 tmpdir chk
 : "${LOGNAME:?}"
 
@@ -34,6 +35,10 @@ then
 
 	checkok "effective: $uid:$gid; real: $uid:$gid." \
 		change_identity "$user"
+
+	export PATH
+	checkerr 'Operation not permitted.' \
+		run-as "$uid" "$gid" change_identity "$user"
 else
 	checkerr 'Operation not permitted.' \
 		change_identity "$LOGNAME"
