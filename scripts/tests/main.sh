@@ -87,9 +87,12 @@ checkerr 'DOCUMENT_ROOT: not set.' main
 DOCUMENT_ROOT='' \
 	checkerr 'DOCUMENT_ROOT: is the empty string.' main
 
+DOCUMENT_ROOT="$long_str" \
+	checkerr 'an environment variable is too long.' main
+
 [ "$long_path" ] &&
 	DOCUMENT_ROOT="$long_path" \
-		checkerr '$DOCUMENT_ROOT: path too long.' main
+		checkerr 'too long.' main
 
 [ "$long_name" ] &&
 	DOCUMENT_ROOT="$long_name" \
@@ -110,9 +113,12 @@ DOCUMENT_ROOT=/ \
 DOCUMENT_ROOT=/ PATH_TRANSLATED='' \
 	checkerr 'PATH_TRANSLATED: is the empty string.' main
 
+DOCUMENT_ROOT=/ PATH_TRANSLATED="$long_str" \
+	checkerr 'an environment variable is too long.' main
+
 [ "$long_path" ] &&
 	DOCUMENT_ROOT=/ PATH_TRANSLATED="$long_path" \
-		checkerr '$PATH_TRANSLATED: path too long.' main
+		checkerr 'too long.' main
 
 [ "$long_name" ] &&
 	DOCUMENT_ROOT=/ PATH_TRANSLATED="$long_name" \
@@ -152,6 +158,9 @@ catch=x
 
 cp -a "$script_dir/scripts/." "$tmpdir/."
 
+cp "$tmpdir/script.sh" "$tmpdir/script"
+chmod +x "$tmpdir/script"
+
 grpw="$tmpdir/grpw.sh"
 echo : > "$grpw"
 chown -R "$ruid:$rgid" "$tmpdir"
@@ -173,6 +182,9 @@ DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$grpw" \
 	checkerr "$grpw: can be altered by users other than $user." main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/script.sh" \
+	checkok 'This is a test script for main.sh and run_script.sh.' main
+
+DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/script" \
 	checkok 'This is a test script for main.sh and run_script.sh.' main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$reportuser" \
