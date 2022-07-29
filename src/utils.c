@@ -97,7 +97,6 @@ change_identity(const struct passwd *const user)
 		fail("effective GID did not change.");
 	}
 
-#if defined(TESTING) && TESTING
 	if (0 == setegid(0)) {
 		fail("could re-set process' effective GID to 0.");
 	}
@@ -110,7 +109,6 @@ change_identity(const struct passwd *const user)
 	if (0 == setuid(0)) {
 		fail("could re-set process' real UID to 0.");
 	}
-#endif /* defined(TESTING) && TESTING */
 }
 
 void
