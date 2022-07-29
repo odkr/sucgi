@@ -55,11 +55,19 @@ env_restore_(const char *keep, const char *toss)
 
 int
 main (void) {
-	char *var = NULL;	/* An environment variable. */
+	/* flawfinder: ignore */
+	char huge[STR_MAX_LEN + 2] = {0};	/* A huge string. */
+	char *var = NULL;			/* An environment variable. */
+
 
 	/*
 	 * Failures
 	 */
+
+	memset(huge, 'x', STR_MAX_LEN + 1);
+	assert(strnlen(huge, STR_MAX_LEN + 2) == STR_MAX_LEN + 1);
+	env_init(2, huge);
+	assert(env_restore_("", "") == ERR_STR_LEN);
 
 	env_init(2, "");
 	assert(env_restore_("", "") == ERR_VAR_INVALID);

@@ -47,7 +47,7 @@
 
 /*
  * Copy a string from src to dest.
- * dest must be large enough to hold a string of STR_MAX_LEN length,
+ * dest must be large enough to hold a string that is STR_MAX_LEN bytes long,
  * excluding the terminating null byte.
  *
  * Return code:
@@ -62,8 +62,8 @@ __attribute__((READ_ONLY(1), READ_ONLY(2)))
 bool str_eq(const char *const s1, const char *const s2);
 
 /*
- * Return true if s matches any shell wildcard pattern in the n patterns
- * pats, given flags. See fnmatch(3) for pattern syntax and flags.
+ * Return true if s matches any shell wildcard pattern in pats.
+ * pats must be NULL-terminated. See fnmatch(3) for pattern syntax and flags.
  */
 __attribute__((READ_ONLY(1), READ_ONLY(2), READ_ONLY(3)))
 bool str_matchn(const char *const s, const char *const *const pats,
@@ -79,9 +79,22 @@ bool str_matchn(const char *const s, const char *const *const pats,
 __attribute__((READ_ONLY(1)))
 error str_len(const char *const s, size_t *len);
 
-/* FIXME: Undocumented */
+/*
+ * Split s at the first occurence of any character in sep and store a copy of
+ * the substring up to, but not including, that character in head and a
+ * pointer to the first character after that character in tail.
+ *
+ * head must be large enough to hold a string that is STR_MAX_LEN bytes long,
+ * excluding the terminating null byte.
+ *
+ * Return code:
+ *      OK           Success.
+ *      ERR_STR_LEN  s is longer than STR_MAX_LEN.
+ */
+__attribute__((READ_ONLY(1), READ_ONLY(2)))
 error
 str_split(const char *const s, const char *const sep,
           char *head, char **tail);
+
 
 #endif /* !defined(SRC_STR_H) */

@@ -76,7 +76,7 @@ str_split(const char *const s, const char *const sep,
 {
 	*tail = strpbrk(s, sep);
 	if (*tail) {
-		size_t len = (size_t) *tail - s;
+		size_t len = (size_t) (*tail - s);
 		reraise(str_cp(s, head));
 		head[len] = '\0';
 		(*tail)++;

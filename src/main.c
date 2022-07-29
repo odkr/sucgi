@@ -121,7 +121,7 @@ main (void) {
 		case ERR_ENV_MAX:
 			fail("too many environment variables.");
 		case ERR_STR_LEN:
-			fail("an environment variable is too long."); /*FIXME: Untested */
+			fail("an environment variable is too long.");
 		case ERR_VAR_INVALID:
 			fail("an environment variable is malformed.");
 		default:
