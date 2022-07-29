@@ -32,6 +32,6 @@ checkerr 'exec /::no such file!! foo.sh: No such file or directory.' \
 	run_script foo.sh '.sh=/::no such file!!'
 
 checkok 'This is a test script for main.sh and run_script.sh.' \
-	run_script "$script_dir/scripts/script.sh" .sh=sh
+	run_script "$script_dir/tools/script.sh" .sh=sh
 
 exit 0

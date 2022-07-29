@@ -156,7 +156,7 @@ cleanup="rm -rf \"\${tmpdir:?}\"; ${cleanup-}"
 catch=x
 [ "${caught-}" ] && exit $((caught + 128))
 
-cp -a "$script_dir/scripts/." "$tmpdir/."
+cp -a "$script_dir/tools/." "$tmpdir/."
 
 cp "$tmpdir/script.sh" "$tmpdir/script"
 chmod +x "$tmpdir/script"
