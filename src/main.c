@@ -237,8 +237,8 @@ main (void) {
 	 * owner's primary group, not to that of the programme file.
 	 */
 
-	// suCGI does not aim to be thread-safe.
-	// cppcheck-suppress getpwuidCalled
+	/* suCGI does not aim to be thread-safe. */
+	/* cppcheck-suppress getpwuidCalled */
 	owner = getpwuid(path_trans_st.st_uid);
 	/* NB: The test suite does not check whether this check works. */
 	if (!owner) {
@@ -262,8 +262,8 @@ main (void) {
 	 *	chown -R smith:smith acme
 	 */
 
-	// It is tested above whether owner is a null pointer.
-	// cppcheck-suppress nullPointerRedundantCheck
+	/* It is tested above whether owner is NULL. */
+	/* cppcheck-suppress nullPointerRedundantCheck */
 	if (!path_contains(owner->pw_dir, doc_root)) {
 		fail("document root %s is not in %s's home directory.",
 		     doc_root, owner->pw_name);

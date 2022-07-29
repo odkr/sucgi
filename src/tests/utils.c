@@ -34,7 +34,7 @@ die (const char *const message, ...)
 	va_list ap;
 
 	va_start(ap, message);
-	// flawfinder: ignore
+	/* flawfinder: ignore (format strings are always string literals). */
 	vfprintf(stderr, message, ap);
 	va_end(ap);
 	fputs("\n", stderr);

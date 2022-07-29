@@ -14,9 +14,9 @@
 int
 main (void) {
 	{
-		// flawfinder: ignore
+		/* flawfinder: ignore */
 		char huge[STR_MAX_LEN + 2] = {0};
-		// flawfinder: ignore
+		/* flawfinder: ignore */
 		char str[STR_MAX_LEN + 2];
 		memset(huge, 'x', STR_MAX_LEN + 1);
 		assert(strnlen(huge, STR_MAX_LEN + 2) == STR_MAX_LEN + 1);
@@ -24,14 +24,14 @@ main (void) {
 	}
 
 	{
-		// flawfinder: ignore
+		/* flawfinder: ignore */
 		char str[STR_MAX_LEN + 1] = {0};
 		assert(str_cp("foo", str) == OK);
 		assert(str_eq(str, "foo"));
 	}
 
 	{
-		// flawfinder: ignore
+		/* flawfinder: ignore */
 		char str[STR_MAX_LEN + 1] = {0};
 		assert(str_cp("", str) == OK);
 		assert(str_eq(str, ""));

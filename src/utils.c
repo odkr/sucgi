@@ -132,14 +132,13 @@ run_script(const char *const script, const struct pair pairs[])
 			fail("script handler %d: no interpreter.", i + 1);
 		}
 
-		// It is tested above whether interpreter is a null pointer.
-		// cppcheck-suppress nullPointerRedundantCheck
+		/* It is tested above whether interpreter is NULL. */
+		/* cppcheck-suppress nullPointerRedundantCheck */
 		if (interpreter[0] == '\0') {
 			fail("script handler %d: path is empty.", i + 1);
 		}
 
-		// suCGI's whole point is to do this safely.
-		// flawfinder: ignore.
+		/* flawfinder: ignore (suCGI's point is to do this safely). */
 		execlp(interpreter, interpreter, script, NULL);
 		fail("exec %s %s: %s.", interpreter, script, strerror(errno));
 	}

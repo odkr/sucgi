@@ -18,7 +18,7 @@ static error
 test_longer_than(size_t len)
 {
 	size_t n = len + 1;
-	// flawfinder: ignore
+	/* flawfinder: ignore */
 	char path[n + 1];
 
 	memset(path, 'c', n);
@@ -30,7 +30,7 @@ test_longer_than(size_t len)
 
 int
 main (void) {
-	// flawfinder: ignore
+	/* flawfinder: ignore */
 	char cwd[STR_MAX_LEN];
 	
 	assert(test_longer_than(STR_MAX_LEN) == ERR_STR_LEN);

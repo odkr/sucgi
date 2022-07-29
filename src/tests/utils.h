@@ -38,8 +38,7 @@
  */
 
 /* Abort the programme with an error message. */
-// This is not a call to printf.
-// flawfinder: ignore
+/* flawfinder: ignore (not a call to printf(3)). */
 __attribute__((noreturn, RO(1), format(printf, 1, 2)))
 void die(const char *const message, ...);
 

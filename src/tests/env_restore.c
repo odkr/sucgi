@@ -41,7 +41,7 @@ env_create (size_t n)
 error
 env_restore_w (const char *keep, const char *toss)
 {
-	// flawfinder: ignore
+	/* flawfinder: ignore */
 	char *vars[ENV_MAX] = {0};	/* Backup of the environment. */
 	char **keepv, **tossv;		/* Arrays of patterns. */
 
@@ -91,20 +91,20 @@ main (void) {
 	assert(setenv("bar", "bar", 1) == 0);
 	assert(setenv("baz", "baz", 1) == 0);
 	assert(env_restore_w("foo", "") == OK);
-	// flawfinder: ignore
+	/* flawfinder: ignore */
 	var = getenv("foo");
 	assert(str_eq(var, "foo"));
-	// flawfinder: ignore
+	/* flawfinder: ignore */
 	var = getenv("bar");
 	assert(!var);
-	// flawfinder: ignore
+	/* flawfinder: ignore */
 	var = getenv("baz");
 	assert(!var);
 
 	env_create(1);
 	assert(setenv("foo", "foo", 1) == 0);
 	assert(env_restore_w("", "") == OK);
-	// flawfinder: ignore
+	/* flawfinder: ignore */
 	var = getenv("foo");
 	assert(!var);
 
@@ -113,14 +113,14 @@ main (void) {
 	assert(setenv("bar", "bar", 1) == 0);
 	assert(setenv("baz", "baz", 1) == 0);
 	assert(env_restore_w("foo b*", "foo") == OK);
-	// flawfinder: ignore
+	/* flawfinder: ignore */
 	var = getenv("foo");
 	assert(var == NULL);
-	// flawfinder: ignore
+	/* flawfinder: ignore */
 	var = getenv("bar");
 	assert(var);
 	assert(str_eq(var, "bar"));
-	// flawfinder: ignore
+	/* flawfinder: ignore */
 	var = getenv("baz");
 	assert(var);
 	assert(str_eq(var, "baz"));
@@ -132,23 +132,23 @@ main (void) {
 	assert(setenv("tab", "\t", 1) == 0);
 	assert(setenv("lf", "\n", 1) == 0);
 	assert(env_restore_w("empty assign space tab lf", "") == OK);
-	// flawfinder: ignore
+	/* flawfinder: ignore */
 	var = getenv("empty");
 	assert(var);
 	assert(str_eq(var, ""));
-	// flawfinder: ignore
+	/* flawfinder: ignore */
 	var = getenv("assign");
 	assert(var);
 	assert(str_eq(var, "==bar=="));
-	// flawfinder: ignore
+	/* flawfinder: ignore */
 	var = getenv("space");
 	assert(var);
 	assert(str_eq(var, " "));
-	// flawfinder: ignore
+	/* flawfinder: ignore */
 	var = getenv("tab");
 	assert(var);
 	assert(str_eq(var, "\t"));
-	// flawfinder: ignore
+	/* flawfinder: ignore */
 	var = getenv("lf");
 	assert(var);
 	assert(str_eq(var, "\n"));

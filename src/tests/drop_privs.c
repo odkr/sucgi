@@ -27,7 +27,7 @@ main (int argc, char **argv)
 			die("usage: drop_privs USER");
 	}
 
-	// cppcheck-suppress getpwnamCalled
+	/* cppcheck-suppress getpwnamCalled */
 	pwd = getpwnam(user);
 	if (!pwd) {
 		die("drop_privs: lookup of user %s: %s.",
@@ -36,7 +36,7 @@ main (int argc, char **argv)
 
 	drop_privs(pwd);
 
-	// flawfinder: ignore
+	/* flawfinder: ignore */
 	printf("effective: %lu:%lu; real: %lu:%lu.\n",
 	       (unsigned long) geteuid(), (unsigned long) getegid(),
 	       (unsigned long) getuid(), (unsigned long) getgid());
