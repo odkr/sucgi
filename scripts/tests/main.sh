@@ -162,14 +162,25 @@ cp -a "$script_dir/tools/." "$tmpdir/."
 cp "$tmpdir/script.sh" "$tmpdir/script"
 chmod +x "$tmpdir/script"
 
+ltmin="$tmpdir/ltmin.sh"
+cp "$tmpdir/script.sh" "$ltmin"
+chmod +x "$ltmin"
+
+gtmax="$tmpdir/gtmax.sh"
+cp "$tmpdir/script.sh" "$gtmax"
+chmod +x "$gtmax"
+
 grpw="$tmpdir/grpw.sh"
-echo : > "$grpw"
-chown -R "$ruid:$rgid" "$tmpdir"
+cp "$tmpdir/script.sh" "$grpw"
 chmod ug=w "$grpw"
 
 reportuser="$tmpdir/user.sh"
-chown "$ruid:$rgid" "$reportuser"
 chmod u=rwx,go= "$reportuser"
+
+chown -R "$ruid:$rgid" "$tmpdir"
+
+chown 1:1 "$ltmin"
+chown 30001:30001 "$gtmax"
 
 fifo="$tmpdir/fifo"
 mkfifo "$fifo"
@@ -179,13 +190,12 @@ mkfifo "$fifo"
 # Root checks
 #
 
-DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/script.sh" \
-	checkerr "yo" \
-		run-as 1 1 main
+DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$ltmin" \
+	checkerr 'yo' main
 
-DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/script.sh" \
-	checkerr "yo" \
-		run-as 30001 30001 main
+DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$gtmax" \
+	checkerr 'yo' main
+
 
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$grpw" \
