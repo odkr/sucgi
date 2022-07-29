@@ -48,7 +48,9 @@ env_restore_w (const char *keep, const char *toss)
 	assert(env_clear(vars) == OK);
 	assert(str_words(keep, &keepv) == OK);
 	assert(str_words(toss, &tossv) == OK);
-	return env_restore(vars, keepv, tossv);
+	return env_restore(vars,
+	                   (const char *const *const) keepv, 
+	                   (const char *const *const) tossv);
 }
 
 

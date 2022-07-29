@@ -25,6 +25,7 @@
 #include <libgen.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -58,8 +59,7 @@ path_check_len(const char *const path)
 
 	sub = path;
 	do {
-		// path has been checked to be at most STR_MAX_LEN bytes long.
-		// flawfinder: ignore
+		/* flawfinder: ignore (super <= path, path bound-checked). */
 		char super[STR_MAX_LEN + 1] = {0};
 		size_t fname_len = 0;
 		size_t super_len = 0;
@@ -67,8 +67,7 @@ path_check_len(const char *const path)
 
 		if (sep) {
 			super_len = (size_t) (sep - path + 1);
-			// super_len cannot be longer than STR_MAX_LEN.
-			// flawfinder: ignore
+			/* flawfinder: ignore (super_len < STR_MAX_LEN). */
 			memcpy(super, path, super_len);
 		}
 
@@ -111,9 +110,9 @@ path_check_wexcl(const uid_t uid, const char *const start,
                  const char *const stop)
 {
 	// str_cp never copies more than STR_MAX_LEN bytes.
-	// flawfinder: ignore.
-	char path[STR_MAX_LEN] = {0};	/* A copy of the path. */
-	char *file = path;		/* Path to the current file. */
+	/* flawfinder: ignore (str_cp copies at most STR_MAX_LEN bytes). */
+	char path[STR_MAX_LEN + 1] = {0};	/* Copy of path. */
+	char *file = path;			/* Path to current file. */
 
 	assert(start && stop);
 	reraise(str_cp(start, path));

@@ -49,7 +49,8 @@
  *
  * Adopted from Apache's suEXEC. There should be no need to adapt this list.
  */
-extern char *const env_keep[];
+/* flawfinder: ignore (array is constant). */
+extern const char *const env_keep[49];
 
 /*
  * Environment variables to toss even if they match an ENV_KEEP pattern.
@@ -60,7 +61,8 @@ extern char *const env_keep[];
  *
  * Adopted from Apache's suEXEC. There should be no need to adapt this list.
  */
-extern char *const env_toss[];
+/* flawfinder: ignore (array is constant). */
+extern const char *const env_toss[2];
 
 
 /*
@@ -144,7 +146,8 @@ error env_get_fname(const char *name, char **fname, struct stat *fstatus);
  * 	ERR_SYS          System error. errno(2) should be set.
  */
 __attribute__((RO(2), RO(3)))
-error env_restore(char *vars[], char *const keep[], char *const toss[]);
+error env_restore(char *vars[], const char *const keep[],
+                  const char *const toss[]);
 
 
 #endif /* !defined(SRC_ENV_H) */

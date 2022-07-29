@@ -33,7 +33,7 @@ error
 str_cp(const char *const src, char *dest)
 {
 	assert(src && dest);
-	for (size_t i = 0; i < STR_MAX_LEN; i++) {
+	for (size_t i = 0; i <= STR_MAX_LEN; i++) {
 		dest[i] = src[i];
 		if (src[i] == '\0') return OK;
 	}

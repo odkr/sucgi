@@ -83,21 +83,22 @@ file_safe_open(const char *fname, const int flags, int *fd)
 
 #elif defined(TARGET_OS_MAC) && TARGET_OS_MAC && O_NOFOLLOW_ANY
 error
-file_safe_open (const char *fname, const int flags, int *fd)
+file_safe_open(const char *fname, const int flags, int *fd)
 {
 	assert(fname);
-	// - O_NOFOLLOW_ANY ensures that fname contains no symlinks.
-	// - Whether files are regular is checked in main.
-	// - By using file descriptors, race conditions should be avoided.
-	// - Changes to the path or the file's content are either permitted
-	//   (the user may run whatever code they wish) or outside the scope
-	//   of suCGI's threat model (suCGI is insecure if an attacker can
-	//   change user's files). 
-	//
-	// TODO: Discuss that suCGI is insecure if an attacker can change user
-	// files in the threat model.
-	//
-	// flawfinder: ignore
+	/*
+	 * - O_NOFOLLOW_ANY ensures that fname contains no symlinks.
+	 * - Whether files are regular is checked in main.
+	 * - By using file descriptors, race conditions should be avoided.
+	 * - Changes to the path or the file's content are either permitted
+	 *   (the user may run whatever code they wish) or outside the scope
+	 *   of suCGI's threat model (suCGI is insecure if an attacker can
+	 *   change user's files). 
+	 *
+	 * TODO: Discuss that suCGI is insecure if an attacker can change user
+	 * files in the threat model.
+	 */
+	/* flawfinder: ignore (symlinks are not followed). */
 	*fd = open(fname, flags | O_NOFOLLOW_ANY);
 	if (*fd < 0) return ERR_SYS;
 	return OK;
@@ -120,8 +121,7 @@ file_safe_stat(const char *fname, struct stat *fstatus)
 	reraise(file_safe_open(fname, O_RDONLY | O_CLOEXEC, &fd));
 	rc = fstat(fd, &buf);
 	if (close(fd) != 0 || rc != 0) return ERR_SYS;
-	// fstatus is guaranted to be large enough to hold the data.
-	// flawfinder: ignore
+	/* flawfinder: ignore (fstatus is guaranteed to be large enough). */
 	if (fstatus) memcpy(fstatus, &buf, sizeof(struct stat));
 	return OK;
 }

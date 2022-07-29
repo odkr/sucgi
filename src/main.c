@@ -65,8 +65,7 @@
 #endif
 
 #if MAX_UID <= MIN_UID
-// Flawfinder thinks this is a function ¯\_(ツ)_/¯.
-// flawfinder: ignore
+/* flawfinder: ignore (this is not a function ¯\_(ツ)_/¯). */
 #error MAX_UID is smaller than or equal to MIN_UID.
 #endif
 
@@ -104,12 +103,9 @@ main (void) {
 	struct stat path_trans_st;	/* Programme's filesystem data. */
 	char *doc_root = NULL;		/* $DOCUMENT_ROOT. */
 	char *path_trans = NULL;	/* $PATH_TRANSLATED. */
-	// env_clear never adds more than ENV_MAX entries.
-	// flawfinder: ignore
+	/* flawfinder: ignore (env_clear adds at most ENV_MAX entries). */
 	char *vars[ENV_MAX] = {NULL};	/* Backup of the environment. */
 	error rc = ERR;			/* A return code. */
-
-	errno = 0;
 
 
 	/*
@@ -304,8 +300,7 @@ main (void) {
 		/* run_script never returns. */
 		run_script(path_trans, (struct pair []) SCRIPT_HANDLERS);
 	} else {
-		// suCGI's whole point is to do this safely.
-		// flawfinder: ignore.
+		/* flawfinder: ignore (suCGI's point is to do this safely). */
 		execl(path_trans, path_trans, NULL);
 	}
 

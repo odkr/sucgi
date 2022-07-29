@@ -2,7 +2,7 @@
  * C attribute handling.
  *
  * Copyright 2022 Odin Kroeger
- * 
+ *
  * This file is part of suCGI.
  *
  * suCGI is free software: you can redistribute it and/or modify it under
@@ -27,9 +27,8 @@
 #define __attribute__(attr)
 #endif /* !defined(__GNUC__) */
 
-/* Shorthand for access(read_only, ...). */
-// This is not a call to the access() function.
-// flawfinder: ignore.
+/* Shorthand for "access(read_only, ...)". */
+/* flawfinder: ignore (not a call to access(2)). */
 #define RO(...) access(read_only, __VA_ARGS__)
 
 #endif /* !defined(SRC_ATTR_H) */

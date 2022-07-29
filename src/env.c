@@ -40,8 +40,9 @@
 /* The environment. */
 extern char **environ;
 
-/* Environment variables to keep. */
-char *const env_keep[] = {
+/* Default environment variables to keep. */
+/* flawfinder: ignore (array is constant). */
+const char *const env_keep[49] = {
 	"AUTH_TYPE",
 	"CONTENT_LENGTH",
 	"CONTENT_TYPE",
@@ -93,11 +94,9 @@ char *const env_keep[] = {
 	NULL	/* Array terminator. DO NOT REMOVE. */
 };
 
-/*
- * The pattern below has been adopted from Apache's suEXEC.
- * There should be no need to adapt this list.
- */
-char *const env_toss[] = {
+/* Default environment variables to toss. */
+/* flawfinder: ignore (array is constant). */
+const char *const env_toss[2] = {
 	"HTTP_PROXY",
 	NULL	/* Array terminator. DO NOT REMOVE. */
 };
@@ -131,8 +130,7 @@ env_get_fname(const char *name, char **fname, struct stat *fstatus)
 	char *value = NULL;
 
 	assert(name && fname);
-	// The value is checked below, extensively.
-	// flawfinder: ignore
+	/* flawfinder: ignore (value is sanitised below). */
 	value = getenv(name);
 	if (!value) return ERR_VAR_UNDEF;
 	if (*value == '\0') return ERR_VAR_EMPTY;
@@ -144,7 +142,7 @@ env_get_fname(const char *name, char **fname, struct stat *fstatus)
 }
 
 error
-env_restore(char *vars[], char *const keep[], char *const toss[])
+env_restore(char *vars[], const char *const keep[], const char *const toss[])
 {
 	assert(vars && keep && toss);
 
