@@ -84,21 +84,7 @@ error str_to_ulong (const char *const s, unsigned long *n);
  */
 __attribute__((READ_ONLY(1), READ_ONLY(2)))
 error str_splitn(const char *const s, const char *sep,
-                 const size_t max, char ***subs, size_t *n);
+                 const size_t max, char *subs[], size_t *n);
 
-/*
- * Split s at the first n - 1 occurrences of any character in sep and store
- * the substrings in the given variadic arguments. The variadic arguments must
- * be pointers to strings and large enough to store a string that is
- * STR_MAX_LEN characters long, excluding the terminating null byte.
- *
- * If s is split into fewer than n substrings, the surplus variadic
- * arguments are left alone. If fewer than n arguments are given the
- * behaviour is undefined.
- *
- * Otherwise the same as str_splitn.
- */
-__attribute__((READ_ONLY(1), READ_ONLY(2)))
-error str_vsplit(const char *const s, const char *sep, const size_t n, ...);
 
 #endif /* !defined(SRC_TESTS_UTILS) */

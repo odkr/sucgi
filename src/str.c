@@ -68,3 +68,21 @@ str_len(const char *const s, size_t *len)
 	if (len) *len = n;
 	return OK;
 }
+
+/* FIXME: Untested. */
+error
+str_split(const char *const s, const char *const sep,
+          char *head, char **tail)
+{
+	*tail = strpbrk(s, sep);
+	if (*tail) {
+		size_t len = *tail - s;
+		reraise(str_cp(s, head));
+		head[len] = '\0';
+		(*tail)++;
+	} else {
+		reraise(str_cp(s, head));
+	}
+
+	return OK;
+}

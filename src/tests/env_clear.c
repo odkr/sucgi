@@ -48,17 +48,16 @@ main (void) {
 	n = 0;
 	for (var = env; *var; var++) {
 		char *name = calloc(STR_MAX_LEN + 1, sizeof(char));
-		char *value = calloc(STR_MAX_LEN + 1, sizeof(char));
-		assert(name && value);
+		char *value = NULL;
+		assert(name);
 
-		assert(str_vsplit(*var, "=", 2, name, value) == OK);
+		assert(str_split(*var, "=", name, &value) == OK);
 		if (str_eq(name, "foo")) {
 			assert(str_eq(value, "foo"));
 			n++;
 		}
 
 		free(name);
-		free(value);
 	}
 	assert(n == 1);
 

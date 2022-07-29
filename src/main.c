@@ -120,11 +120,13 @@ main (void) {
 			fail("environment clean-up: %s.", strerror(errno));
 		case ERR_ENV_MAX:
 			fail("too many environment variables.");
+		case ERR_STR_LEN:
+			fail("an environment variable is too long."); /*FIXME: Untested */
 		case ERR_VAR_INVALID:
-			fail("ill-formed environment variable.");
+			fail("an environment variable is malformed.");
 		default:
 			fail("%s:%d: env_sanitise returned %u.",
-			     __FILE__, __LINE__ - 12, rc);
+			     __FILE__, __LINE__ - 14, rc);
 	}
 
 	if (setenv("PATH", SECURE_PATH, 1) != 0) {

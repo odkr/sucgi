@@ -79,5 +79,9 @@ bool str_matchn(const char *const s, const char *const *const pats,
 __attribute__((READ_ONLY(1)))
 error str_len(const char *const s, size_t *len);
 
+/* FIXME: Undocumented */
+error
+str_split(const char *const s, const char *const sep,
+          char *head, char **tail);
 
 #endif /* !defined(SRC_STR_H) */

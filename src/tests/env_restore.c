@@ -33,15 +33,14 @@ env_restore_(const char *keep, const char *toss)
 {
 	/* flawfinder: ignore */
 	char *vars[ENV_MAX] = {0};	/* Backup of the environment. */
-	char **keepv = NULL;		/* Array of keep patterns. */
-	char **tossv = NULL;		/* Array of toss patterns. */
-	size_t n = 0;			/* Number of patterns. */
+	/* flawfinder: ignore */
+	char *keepv[ENV_MAX] = {0};	/* Array of keep patterns. */
+	/* flawfinder: ignore */
+	char *tossv[ENV_MAX] = {0};	/* Array of toss patterns. */
 
 	assert(env_clear(vars) == OK);
-	assert(str_splitn(keep, " \f\n\r\t\v", ENV_MAX, &keepv, &n) == OK);
-	assert(n <= ENV_MAX);
-	assert(str_splitn(toss, " \f\n\r\t\v", ENV_MAX, &tossv, &n) == OK);
-	assert(n <= ENV_MAX);
+	assert(str_splitn(keep, " \f\n\r\t\v", ENV_MAX, keepv, NULL) == OK);
+	assert(str_splitn(toss, " \f\n\r\t\v", ENV_MAX, tossv, NULL) == OK);
 	return env_restore(
 		vars,
 	        (const char *const *const) keepv,

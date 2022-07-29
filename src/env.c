@@ -152,15 +152,13 @@ env_restore(char *vars[], const char *const keep[], const char *const toss[])
 	assert(vars && keep && toss);
 
 	for (size_t i = 0; i < ENV_MAX && vars[i]; i++) {
-		char *name = vars[i];
-		char *value = NULL;
-		char *sep = NULL;
+		/* str_split copies at most STR_MAX_LEN + 1 bytes. */
+		/* flawfinder: ignore. */
+		char name[STR_MAX_LEN + 1] = {0};	/* Variable name. */
+		char *value = NULL;			/* Variable value. */
 
-		sep = strpbrk(vars[i], "=");
-		if (!sep || sep == *(vars + i)) return ERR_VAR_INVALID;
-		value = sep + 1;
-		*sep = '\0';
-
+		reraise(str_split(vars[i], "=", name, &value));
+		if (name[0] == '\0' || !value) return ERR_VAR_INVALID;
 		if (str_matchn(name, keep, 0) && !str_matchn(name, toss, 0)) {
 			if (setenv(name, value, true) != 0) return ERR_SYS;
 		}

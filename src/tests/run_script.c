@@ -28,14 +28,14 @@ main (int argc, char **argv)
 
 	for (i = 2; i < argc; i++) {
 		char *suffix = calloc(STR_MAX_LEN + 1, sizeof(char));
-		char *handler = calloc(STR_MAX_LEN + 1, sizeof(char));
+		char *handler = NULL;
 		error rc = ERR;
 
-		if (!suffix || !handler) fail("%s.", strerror(errno));
-		
-		rc = str_vsplit(argv[i], "=", 2, suffix, handler);
+		if (!suffix) fail("%s.", strerror(errno));
+
+		rc = str_split(argv[i], "=", suffix, &handler);
 		if (rc != OK) {
-			die("run_script: str_vsplit returned %u.", rc);
+			die("run_script: str_split returned %u.", rc);
 		}
 		if (suffix[0] == '\0') {
 			die("run_script: suffix %d is empty.", i - 1);

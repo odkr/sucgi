@@ -71,7 +71,6 @@ str_to_ulong (const char *const s, unsigned long *n)
 	char *end = NULL;
 
 	assert(s);
-
 	m = strtoll(s, &end, 10);
 	if (*end != '\0') return ERR;
 	if (m == 0 && errno != 0) return ERR_SYS;
@@ -82,59 +81,25 @@ str_to_ulong (const char *const s, unsigned long *n)
 
 error
 str_splitn(const char *const s, const char *sep, const size_t max,
-           char ***subs, size_t *n)
+           char *subs[], size_t *n)
 {
-	char *str = NULL;	/* Copy of s. */
-	char *token = NULL;	/* Start of current substring. */
-	char **tokens = NULL;	/* Substrings. */
-	size_t ntokens = 0;	/* Number of substrings. */
+	char *pivot = (char *) s;	/* Current start of string. */
+	size_t i = 0;			/* Iterator. */
+	error rc = ERR_SYS;		/* Return code. */
 
-	assert(s && sep && subs);
-	str = calloc(STR_MAX_LEN + 1, sizeof(char));
-	if (!str) return ERR_SYS;
-	reraise(str_cp(s, str));
-
-	tokens = calloc((size_t) max + 2, sizeof(char *));
-	if (!tokens) {
-		free(str);
-		return ERR_SYS;
+	assert(subs);
+	for (; i <= max && pivot; i++) {
+		subs[i] = calloc(STR_MAX_LEN + 1, sizeof(char));
+		if (!subs[i]) goto err;
+		rc = str_split(pivot, sep, subs[i], &pivot);
+		if (rc != OK) goto err;
 	}
+	subs[++i] = NULL;
 
-	ntokens = 0;
-	tokens[0] = str;
-	while ((ntokens < max) && (token = strpbrk(str, sep))) {
-		*token = '\0';
-		str = token + 1;
-		tokens[++ntokens] = str;
-	}
-	tokens[++ntokens] = NULL;
-
-	if (n) *n = ntokens;
-	*subs = tokens;
+	if (n) *n = i;
 	return OK;
-}
 
-error
-str_vsplit(const char *const s, const char *sep, const size_t n, ...)
-{
-	va_list ap;		/* Current variadic argument. */
-	char *arg = NULL;	/* Alias for the current variadic argument. */
-	char **tokens = NULL;	/* Substrings. */
-	size_t ntokens = 0;	/* Number of substrings. */
-
-	assert(s && sep);
-	reraise(str_splitn(s, sep, n - 1, &tokens, &ntokens));
-
-	va_start(ap, n);
-
-	for (size_t i = 0; i < ntokens; i++) {
-		arg = va_arg(ap, char*);
-		assert(arg);
-		reraise(str_cp(tokens[i], arg));
-	}
-
-	va_end(ap);
-
-	free(tokens);
-	return OK;
+	err:
+		for (size_t j = 0; j < i; j++) free(subs[j]);
+		return rc;
 }
