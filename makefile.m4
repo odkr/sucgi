@@ -39,6 +39,7 @@ CHECKBINS = $(BUILDDIR)/tests/change_identity \
             $(BUILDDIR)/tests/fail $(BUILDDIR)/tests/env_clear \
             $(BUILDDIR)/tests/env_get_fname \
             $(BUILDDIR)/tests/env_restore \
+	    $(BUILDDIR)/tests/env_sanitise \
             $(BUILDDIR)/tests/main \
             $(BUILDDIR)/tests/file_is_exec \
             $(BUILDDIR)/tests/file_is_wexcl \
@@ -51,13 +52,15 @@ CHECKBINS = $(BUILDDIR)/tests/change_identity \
             $(BUILDDIR)/tests/run_script \
             $(BUILDDIR)/tests/str_cp \
             $(BUILDDIR)/tests/str_eq \
-            $(BUILDDIR)/tests/str_len
+            $(BUILDDIR)/tests/str_len \
+	    $(BUILDDIR)/tests/str_matchn
 
 CHECKS = $(SCRIPTDIR)/tests/change_identity.sh \
          $(SCRIPTDIR)/tests/fail.sh \
          $(BUILDDIR)/tests/env_clear \
          $(SCRIPTDIR)/tests/env_get_fname.sh \
          $(BUILDDIR)/tests/env_restore \
+	 $(BUILDDIR)/tests/env_sanitise \
          $(SCRIPTDIR)/tests/main.sh \
          $(SCRIPTDIR)/tests/file_is_exec.sh \
          $(SCRIPTDIR)/tests/file_is_wexcl.sh \
@@ -70,7 +73,8 @@ CHECKS = $(SCRIPTDIR)/tests/change_identity.sh \
          $(SCRIPTDIR)/tests/run_script.sh \
          $(BUILDDIR)/tests/str_cp \
          $(BUILDDIR)/tests/str_eq \
-         $(BUILDDIR)/tests/str_len
+         $(BUILDDIR)/tests/str_len \
+	$(BUILDDIR)/tests/str_matchn
 
 #
 # Analysers
@@ -229,6 +233,19 @@ $(BUILDDIR)/tests/env_restore:	$(SRCDIR)/tests/env_restore.c \
 		$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
 		$(LDLIBS)
 
+$(BUILDDIR)/tests/env_sanitise:	$(SRCDIR)/tests/env_sanitise.c \
+				$(BUILDDIR)/tests/utils.o \
+				$(BUILDDIR)/env.o $(BUILDDIR)/err.o \
+				$(BUILDDIR)/file.o $(BUILDDIR)/path.o \
+				$(BUILDDIR)/str.o \
+				$(BUILDDIR)/tests/.sentinel
+	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
+		-o $@ $< \
+		$(BUILDDIR)/tests/utils.o \
+		$(BUILDDIR)/env.o $(BUILDDIR)/err.o $(BUILDDIR)/file.o \
+		$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
+		$(LDLIBS)
+
 $(BUILDDIR)/tests/file_is_exec:	$(SRCDIR)/tests/file_is_exec.c \
 				$(BUILDDIR)/tests/utils.o \
 				$(BUILDDIR)/file.o \
@@ -346,6 +363,14 @@ $(BUILDDIR)/tests/str_len:	$(SRCDIR)/tests/str_len.c \
 		$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 		$(LDLIBS)
 
+$(BUILDDIR)/tests/str_matchn:	$(SRCDIR)/tests/str_matchn.c \
+				$(BUILDDIR)/str.o \
+				$(BUILDDIR)/tests/.sentinel
+	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
+		-o $@ $< \
+		$(BUILDDIR)/str.o \
+		$(LDLIBS)
+
 $(BUILDDIR)/tests/main:	$(SRCDIR)/main.c \
 			$(BUILDDIR)/env.o $(BUILDDIR)/err.o \
 			$(BUILDDIR)/file.o $(BUILDDIR)/path.o \
@@ -360,6 +385,7 @@ $(BUILDDIR)/tests/main:	$(SRCDIR)/main.c \
 		$(LDLIBS)
 
 analysis:
+	! grep -ri fixme $(SRCDIR)
 	cppcheck $(CPPCHECKFLAGS) --enable=all -U __NR_openat2 \
 		-D NAME_MAX=255 -D FILENAME_MAX=1024 -D O_NOFOLLOW_ANY=1 \
 		$(SRCDIR)
