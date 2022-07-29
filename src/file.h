@@ -2,7 +2,7 @@
  * Headers for file.c.
  *
  * Copyright 2022 Odin Kroeger
- * 
+ *
  * This file is part of suCGI.
  *
  * suCGI is free software: you can redistribute it and/or modify it under
@@ -58,7 +58,7 @@ error file_safe_open(const char *fname, const int flags, int *fd);
  * Errors:
  * 	The same as file_safe_open.
  *
- * Return code: 
+ * Return code:
  *      The same as file_safe_open.
  */
 __attribute__((RO(1)))

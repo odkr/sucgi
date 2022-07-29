@@ -1,4 +1,4 @@
-/* 
+/*
  * Test path_check_len.
  */
 

@@ -2,7 +2,7 @@
  * File handling for suCGI.
  *
  * Copyright 2022 Odin Kroeger
- * 
+ *
  * This file is part of suCGI.
  *
  * suCGI is free software: you can redistribute it and/or modify it under
@@ -71,8 +71,8 @@ file_safe_open(const char *fname, const int flags, int *fd)
 	};
 
 	assert(fname);
-	/* 
-	 * RESOLVE_NO_SYMLINKS ensures that fname contains no symlinks. 
+	/*
+	 * RESOLVE_NO_SYMLINKS ensures that fname contains no symlinks.
 	 * See below for more details.
 	 */
 	*fd = (int) syscall(__NR_openat2, AT_FDCWD, fname,
@@ -93,7 +93,7 @@ file_safe_open(const char *fname, const int flags, int *fd)
 	 * - Changes to the path or the file's content are either permitted
 	 *   (the user may run whatever code they wish) or outside the scope
 	 *   of suCGI's threat model (suCGI is insecure if an attacker can
-	 *   change user's files). 
+	 *   change user's files).
 	 *
 	 * TODO: Discuss that suCGI is insecure if an attacker can change user
 	 * files in the threat model.
@@ -106,7 +106,7 @@ file_safe_open(const char *fname, const int flags, int *fd)
 
 #else
 #error suCGI requires Linux v5.6 or macOS v11.
-#endif /* defined(__NR_openat2) && __NR_openat2 ... 
+#endif /* defined(__NR_openat2) && __NR_openat2 ...
           defined(TARGET_OS_MAC) && TARGET_OS_MAC && O_NOFOLLOW_ANY */
 
 

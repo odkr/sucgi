@@ -2,7 +2,7 @@
  * Path handling for suCGI.
  *
  * Copyright 2022 Odin Kroeger
- * 
+ *
  * This file is part of suCGI.
  *
  * suCGI is free software: you can redistribute it and/or modify it under

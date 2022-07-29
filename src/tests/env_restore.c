@@ -1,4 +1,4 @@
-/* 
+/*
  * Test env_restore.
  */
 
@@ -34,7 +34,7 @@ env_create (size_t n)
 	return OK;
 }
 
-/* 
+/*
  * env_restore wrapper that clears the environment and
  * accepts strings as arguments.
  */
@@ -49,7 +49,7 @@ env_restore_w (const char *keep, const char *toss)
 	assert(str_words(keep, &keepv) == OK);
 	assert(str_words(toss, &tossv) == OK);
 	return env_restore(vars,
-	                   (const char *const *const) keepv, 
+	                   (const char *const *const) keepv,
 	                   (const char *const *const) tossv);
 }
 

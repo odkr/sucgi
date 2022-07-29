@@ -2,7 +2,7 @@
  * Headers for env.c.
  *
  * Copyright 2022 Odin Kroeger
- * 
+ *
  * This file is part of suCGI.
  *
  * suCGI is free software: you can redistribute it and/or modify it under
@@ -80,15 +80,15 @@ extern const char *const env_toss[2];
  */
 error env_clear(char *vars[]);
 
-/* 
+/*
  * Safely read a filename from the environement variable name and store a
  * pointer to that name in fname and a pointer to the status of the file it
  * points to in fstatus. If fstatus is NULL, the status is dicarded.
  *
- * Errors:      
+ * Errors:
  *      - The given environment variable is undefined.
  *      - The value of the variable is the empty string.
- *      
+ *
  *      And every error that path_check_len or file_safe_stat may raise.
  *
  * Return code:
@@ -107,7 +107,7 @@ error env_get_fname(const char *name, char **fname, struct stat *fstatus);
  * (a) matches a pattern in keep and (b) does not match a pattern in toss,
  * where vars is an array of environment variables that follows the same
  * syntax as the global variable environ(7) and keep and toss are arrays
- * of shell wildcard patterns that are matched against variable names; see 
+ * of shell wildcard patterns that are matched against variable names; see
  * fnmatch(3) for the syntax.
  *
  * Errors:

@@ -1,7 +1,7 @@
 /* Headers for utils.c
  *
  * Copyright 2022 Odin Kroeger
- * 
+ *
  * This file is part of suCGI.
  *
  * suCGI is free software: you can redistribute it and/or modify it under
@@ -61,7 +61,7 @@ error str_to_ulong (const char *const s, unsigned long *n);
  * number of substrings in the variable pointed to by n.
  *
  * If n is NULL, the number of substrings is discarded.
- * 
+ *
  * Return code:
  *      OK           Success.
  *      ERR_STR_LEN  s is longer than STR_MAX_LEN.

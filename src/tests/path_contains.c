@@ -1,4 +1,4 @@
-/* 
+/*
  * Test str_starts_w.
  */
 

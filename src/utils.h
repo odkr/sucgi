@@ -2,7 +2,7 @@
  * Headers for utils.c.
  *
  * Copyright 2022 Odin Kroeger
- * 
+ *
  * This file is part of suCGI.
  *
  * suCGI is free software: you can redistribute it and/or modify it under
@@ -60,7 +60,7 @@ void drop_privs(const struct passwd *const user);
  *
  * The first interpreter that is associated with the script's filename ending
  * is executed with execlp(3) and given the script as first and only argument.
- * 
+ *
  * run_script never returns.
  */
 __attribute__((RO(1), RO(2), noreturn))

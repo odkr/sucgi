@@ -2,7 +2,7 @@
  * Run scripts for suCGI.
  *
  * Copyright 2022 Odin Kroeger
- * 
+ *
  * This file is part of suCGI.
  *
  * suCGI is free software: you can redistribute it and/or modify it under
@@ -69,7 +69,7 @@ drop_privs(const struct passwd *const user)
 
 	/*
 	 * The real UID and GID need to be set, too. Or else the
-	 * user may call seteuid(2) to gain webserver priviliges. 
+	 * user may call seteuid(2) to gain webserver priviliges.
 	 */
 	if (setgid(gid) != 0) {
 		fail("failed to set real GID: %s", strerror(errno));
