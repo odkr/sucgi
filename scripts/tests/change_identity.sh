@@ -14,6 +14,7 @@ init || exit
 : "${TESTSDIR:=./build/tests}"
 PATH="$TESTSDIR:$TESTSDIR/tools:$script_dir/../../build/tests:$PATH"
 tmpdir chk
+
 : "${LOGNAME:?}"
 
 euid="$(id -u)" && [ "$euid" ] ||
