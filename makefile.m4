@@ -53,7 +53,8 @@ CHECKBINS = $(BUILDDIR)/tests/change_identity \
             $(BUILDDIR)/tests/str_cp \
             $(BUILDDIR)/tests/str_eq \
             $(BUILDDIR)/tests/str_len \
-	    $(BUILDDIR)/tests/str_matchn
+            $(BUILDDIR)/tests/str_matchn \
+            $(BUILDDIR)/tests/str_split
 
 CHECKS = $(SCRIPTDIR)/tests/change_identity.sh \
          $(SCRIPTDIR)/tests/fail.sh \
@@ -74,7 +75,8 @@ CHECKS = $(SCRIPTDIR)/tests/change_identity.sh \
          $(BUILDDIR)/tests/str_cp \
          $(BUILDDIR)/tests/str_eq \
          $(BUILDDIR)/tests/str_len \
-	$(BUILDDIR)/tests/str_matchn
+         $(BUILDDIR)/tests/str_matchn \
+         $(BUILDDIR)/tests/str_split
 
 #
 # Analysers
@@ -369,6 +371,14 @@ $(BUILDDIR)/tests/str_matchn:	$(SRCDIR)/tests/str_matchn.c \
 	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
 		$(BUILDDIR)/str.o \
+		$(LDLIBS)
+
+$(BUILDDIR)/tests/str_split:	$(SRCDIR)/tests/str_split.c \
+				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
+				$(BUILDDIR)/tests/.sentinel
+	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
+		-o $@ $< \
+		$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 		$(LDLIBS)
 
 $(BUILDDIR)/tests/main:	$(SRCDIR)/main.c \
