@@ -20,20 +20,20 @@ main (void) {
 		char str[STR_MAX_LEN + 2];
 		memset(huge, 'x', STR_MAX_LEN + 1);
 		assert(strnlen(huge, STR_MAX_LEN + 2) == STR_MAX_LEN + 1);
-		assert(str_cp(huge, str) == ERR_STR_LEN);
+		assert(str_cp(huge, str, STR_MAX_LEN + 2) == ERR_STR_LEN);
 	}
 
 	{
 		/* flawfinder: ignore */
 		char str[STR_MAX_LEN + 1] = {0};
-		assert(str_cp("foo", str) == OK);
+		assert(str_cp("foo", str, STR_MAX_LEN + 1) == OK);
 		assert(str_eq(str, "foo"));
 	}
 
 	{
 		/* flawfinder: ignore */
 		char str[STR_MAX_LEN + 1] = {0};
-		assert(str_cp("", str) == OK);
+		assert(str_cp("", str, STR_MAX_LEN + 1) == OK);
 		assert(str_eq(str, ""));
 	}
 

@@ -70,7 +70,7 @@ str_nsplit(const char *const s, const char *sep, const int max,
 	assert(s && sep && subs);
 	str = calloc(STR_MAX_LEN + 1, sizeof(char));
 	if (!str) return ERR_SYS;
-	reraise(str_cp(s, str));
+	reraise(str_cp(s, str, STR_MAX_LEN + 1));
 
 	tokens = calloc((size_t) max + 2, sizeof(char *));
 	if (!tokens) {
@@ -108,7 +108,7 @@ str_vsplit(const char *const s, const char *sep, const int n, ...)
 	for (int i = 0; i < ntokens; i++) {
 		arg = va_arg(ap, char*);
 		assert(arg);
-		reraise(str_cp(tokens[i], arg));
+		reraise(str_cp(tokens[i], arg, STR_MAX_LEN + 1));
 	}
 
 	va_end(ap);

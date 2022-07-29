@@ -107,11 +107,10 @@ Other targets
 The *makefile* supports the following 'phony' targets:
 
 all
-    Synonym for "sucgi" and the default target.
+    Alias for "sucgi" and the default target.
 
 analysis
-    Analyse the code with cppcheck and flawfinder,
-    if they are installed.
+    Analyse the code with cppcheck and flawfinder, if they are installed.
 
 check
     Perform tests. Must be run as the superuser to perform all tests.
@@ -121,10 +120,10 @@ cov
     Must be run subsequently as regular and as superuser to be accurate.
 
 covhtml
-    Generate a human-readable coverage report in *cov/html*.
+    Alias for "cov/html/index.html".
 
 clean
-    Delete binaries, coverage reports, temporary files, and distribution files.
+    Delete binaries, coverage data, temporary files, and distribution files.
 
 dist
     Make a distribution package.

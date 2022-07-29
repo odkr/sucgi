@@ -48,7 +48,7 @@ struct pair {
  * Aborts the programme if an error occurred.
  */
 __attribute__((RO(1)))
-void drop_privs(const struct passwd *const user);
+void change_identity(const struct passwd *const user);
 
 /*
  * Run script with the first matching interpreter in pairs.

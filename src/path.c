@@ -114,7 +114,7 @@ path_check_wexcl(const uid_t uid, const char *const start,
 	char *file = path;			/* Path to current file. */
 
 	assert(start && stop);
-	reraise(str_cp(start, path));
+	reraise(str_cp(start, path, STR_MAX_LEN + 1));
 
 	while (true) {
 		struct stat fstatus;

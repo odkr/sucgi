@@ -22,9 +22,6 @@ TMPDIR="$(realdir "$TMPDIR")" && [ "$TMPDIR" ] ||
 # Prelude
 #
 
-touch "$TMPDIR/file"
-ln -s "$TMPDIR" "$TMPDIR/symlink"
-
 str_max="$(getconf PATH_MAX .)" && [ "$str_max" ] && 
 	[ "$str_max" -ge 4096 ] || str_max=4096
 long_str="$PWD/"
@@ -55,32 +52,54 @@ then
 	long_name="$PWD/${long_name}x/x"
 fi
 
+uid="$(id -u)" && [ "$uid" ] || abort "failed to get process' effective UID."
+gid="$(id -g)" && [ "$gid" ] || abort "failed to get process' effective GID."
+
+file="$TMPDIR/file"
+touch "$file"
+symlink="$TMPDIR/symlink"
+ln -s "$TMPDIR" "$symlink"
+
 
 #
 # Main
 #
 
 unset var
-env_get_fname var &&
-	abort "env_get_fname accepted an undefined variable."
+checkerr "env_get_fname: env_get_fname var f returned 10." \
+	env_get_fname var f
 
-var='' env_get_fname var &&
-	abort "env_get_fname accepted an empty variable."
+var='' \
+	checkerr "env_get_fname: env_get_fname var f returned 8." \
+		env_get_fname var f
 
-var="$long_str" env_get_fname var &&
-	abort "env_get_fname accepted an overly long string."
+var="$long_str" \
+	checkerr "env_get_fname: env_get_fname var f returned 6." \
+		env_get_fname var f
 
-var="$long_path" env_get_fname var &&
-	abort "env_get_fname accepted an overly long path."
+var="$long_path" \
+	checkerr "env_get_fname: env_get_fname var f returned 6." \
+		env_get_fname var f
 
-var="$long_name" env_get_fname var &&
-	abort "env_get_fname accepted an overly long filename."
+var="$long_name" \
+	checkerr "env_get_fname: env_get_fname var f returned 3." \
+		env_get_fname var f
 
-var="$TMPDIR/symlink/file" env_get_fname var &&
-	abort "env_get_fname does not refuse $TMPDIR/symlink/file."
+var="$symlink" \
+	checkerr "env_get_fname: env_get_fname var f returned 7." \
+		env_get_fname var f
 
-var="$TMPDIR/file" env_get_fname var ||
-	abort "env_get_fname refuses $TMPDIR/file."
+var="$file" \
+	checkerr "env_get_fname: env_get_fname var d returned 4." \
+		env_get_fname var d
+
+var="$TMPDIR" \
+	checkerr "env_get_fname: env_get_fname var f returned 4." \
+		env_get_fname var f
+
+var="$file" \
+	checkok "UID $uid, GID $gid" \
+		env_get_fname var f
 
 
 exit 0

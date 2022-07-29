@@ -93,6 +93,7 @@ main (void) {
 	assert(env_restore_w("foo", "") == OK);
 	/* flawfinder: ignore */
 	var = getenv("foo");
+	assert(var);
 	assert(str_eq(var, "foo"));
 	/* flawfinder: ignore */
 	var = getenv("bar");
@@ -115,7 +116,7 @@ main (void) {
 	assert(env_restore_w("foo b*", "foo") == OK);
 	/* flawfinder: ignore */
 	var = getenv("foo");
-	assert(var == NULL);
+	assert(!var);
 	/* flawfinder: ignore */
 	var = getenv("bar");
 	assert(var);

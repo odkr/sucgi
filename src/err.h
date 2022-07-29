@@ -49,6 +49,7 @@ typedef enum {
 	ERR = EXIT_FAILURE,	/* Generic error. Should be used sparingly. */
 	ERR_ENV_MAX,		/* Too many environment variables. */
 	ERR_FNAME_LEN,		/* Filename too long. */
+	ERR_FTYPE,		/* File is of the wrong type. */
 	ERR_NOT_EXCLW,		/* File not exclusively writably by user. */
 	ERR_STR_LEN,		/* String too long. */
 	ERR_SYS,		/* System error. errno should be set. */

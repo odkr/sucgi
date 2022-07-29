@@ -19,16 +19,26 @@ TMPDIR="$(realdir "$TMPDIR")" && [ "$TMPDIR" ] ||
 
 
 #
+# Prelude
+#
+
+uid="$(id -u)" && [ "$uid" ] || abort "failed to get process' effective UID."
+gid="$(id -g)" && [ "$gid" ] || abort "failed to get process' effective GID."
+
+file="$TMPDIR/file"
+touch "$file"
+symlink="$TMPDIR/symlink"
+ln -s "$TMPDIR" "$symlink"
+
+
+#
 # Main
 #
 
-touch "$TMPDIR/file"
-ln -s "$TMPDIR" "$TMPDIR/symlink"
+checkok "UID $uid, GID $gid" \
+	file_safe_stat "$file"
 
-file_safe_stat "$TMPDIR/file" ||
-	abort "file_safe_stat refuses to stat $TMPDIR/file."
-
-file_safe_stat "$TMPDIR/symlink/file" &&
-	abort "file_safe_stat does not refuse to stat $TMPDIR/symlink/file."
+checkerr "file_safe_stat: $symlink: Too many levels of symbolic links." \
+	file_safe_stat "$symlink"
 
 exit 0

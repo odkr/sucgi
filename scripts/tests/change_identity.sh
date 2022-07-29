@@ -32,9 +32,11 @@ then
 	gid="$(id -g "$user")" && [ "$gid" ] ||
 		abort "failed to get ID of $user's primary group."
 
-	checkok "effective: $uid:$gid; real: $uid:$gid." drop_privs "$user"
+	checkok "effective: $uid:$gid; real: $uid:$gid." \
+		change_identity "$user"
 else
-	checkerr 'Operation not permitted.' drop_privs "$LOGNAME"
+	checkerr 'Operation not permitted.' \
+		change_identity "$LOGNAME"
 fi
 
 exit 0

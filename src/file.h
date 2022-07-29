@@ -56,7 +56,7 @@ error file_safe_open(const char *fname, const int flags, int *fd);
  * If fstatus is NULL, the status is not stored.
  *
  * Errors:
- * 	The same as file_safe_open.
+ *      The same as file_safe_open.
  *
  * Return code:
  *      The same as file_safe_open.

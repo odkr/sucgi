@@ -16,14 +16,13 @@ init || exit
 # Options
 #
 
-builddir=build destdir='' prefix=/usr/local
+builddir=build prefix=/usr/local
 cgi_bin=/usr/lib/cgi-bin www_group=www-data
 OPTIND=1 OPTARG='' opt=''
-while getopts b:c:d:p:w:h opt; do
+while getopts b:c:p:w:h opt; do
 	case $opt in
 		(b) builddir="$OPTARG" ;;
 		(c) cgi_bin="$OPTARG" ;;
-		(d) destdir="$OPTARG" ;;
 		(p) prefix="$OPTARG" ;;
 		(w) www_group="$OPTARG" ;;
 		(h) exec cat <<-EOF ;;
@@ -38,8 +37,6 @@ while getopts b:c:d:p:w:h opt; do
 			               (defaults to build).
 			    -c DIR     /cgi-bin is DIR.
 			               (defaults to /usr/lib/cgi-bin).
-			    -d DIR     Prefix PREFIX with DIR
-			               (empty by default).
 			    -p PREFIX  Prefix installation target with PREFIX
 			               (defaults to /usr/local).
 			    -w GROUP   Webserver runs as GROUP
@@ -63,7 +60,7 @@ unset opt
 
 catch=
 
-readonly installdir="$destdir$prefix/libexec"
+readonly installdir="$prefix/libexec"
 if ! [ -e "$installdir" ]
 then
 	# shellcheck disable=2154
@@ -96,7 +93,7 @@ warn "symlinking $bold$symlink$reset to $bold$target$reset ..."
 [ -L "$symlink" ] || [ -f "$symlink" ] || [ -d "$symlink" ] &&
 	abort "$bold$symlink$reset$red: exists."
 cleanup="rm -f \"\$symlink\"; ${cleanup-}"
-ln -s "$destdir$prefix/libexec/sucgi" "$cgi_bin/sucgi"
+ln -s "$target" "$cgi_bin/sucgi"
 
 # shellcheck disable=2034
 catch=x

@@ -35,11 +35,11 @@
 
 
 void
-drop_privs(const struct passwd *const user)
+change_identity(const struct passwd *const user)
 {
-	uid_t uid = 30000;
-	gid_t gid = 30000;
-	gid_t groups[1] = {gid};
+	uid_t uid = 0;
+	gid_t gid = 0;
+	gid_t groups[1] = {0};
 	int groups_init = -1;
 	
 	assert(user);

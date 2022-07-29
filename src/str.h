@@ -46,20 +46,26 @@
  */
 
 /*
- * Copy a string from src to dest.
- *
- * dest must be terminated with a nullbyte and large enough to contain src.
+ * Copy a string from src to dest, which is of the given size.
  *
  * Return code:
  *      OK           Success.
- *      ERR_STR_LEN  src is longer than STR_MAX_LEN.
+ *      ERR_STR_LEN  src is longer than size or STR_MAX_LEN.
  */
 __attribute__((RO(1)))
-error str_cp(const char *const src, char *dest);
+error str_cp(const char *const src, char *dest, const size_t size);
 
 /* Return true if s1 and s2 are equal and false otherwise. */
 __attribute__((RO(1), RO(2)))
 bool str_eq(const char *const s1, const char *const s2);
+
+/*
+ * Return true if s matches any shell pattern in pats, given flags.
+ * See fnmatch(3) for pattern syntax and flags.
+ */
+__attribute__((RO(1), RO(2), RO(3)))
+bool str_match(const char *const s, const char *const *const pats,
+               const int flags);
 
 /*
  * Calculate the length of a string.

@@ -61,7 +61,6 @@ cleanup() {
 
 # Try to get a user's homedirectory.
 homedir() (
-	set -x
 	user="${1:?}"
 
 	# This should work in all POSIX.1-2018-compliant shells,

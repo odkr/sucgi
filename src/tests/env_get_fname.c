@@ -2,8 +2,8 @@
  * Test env_get_fname.
  */
 
-#include <errno.h>
 #include <fcntl.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 
@@ -15,17 +15,54 @@
 int
 main (int argc, char **argv)
 {
-	const char *name = NULL;
-	char *val = NULL;
+	struct stat fstatus;
+	mode_t ftype = 0;
+	char *name = NULL;
+	char *fname = NULL;
+	char *fspec = NULL;
+	error rc;
 
 	switch (argc) {
-		case 2:
+		case 3:
 			name = argv[1];
+			fspec = argv[2];
 			break;
 		default:
-	 		die("usage: env_get_fname VAR");
+	 		die("usage: env_get_fname VAR FTYPE");
 	}
 
-	return (int) env_get_fname(name, &val, NULL);
-	// * FIXME ** actually test getting a status!
+	if (fspec[1] != '\0') {
+		die("env_get_fname: filetype must be a single character.");
+	}
+
+	switch(fspec[0]) {
+		case 'f':
+			ftype = S_IFREG;
+			break;
+		case 'd':
+			ftype = S_IFDIR;
+			break;
+		case '\0':
+			die("env_get_fname: filetype is empty.");
+		default:
+			die("env_get_fname: filetype must be 'd' or 'f'.");
+	}
+
+	rc = env_get_fname(name, ftype, &fname, &fstatus);
+
+	if (rc == OK) {
+		/* flawfinder: ignore. */
+		printf("file_safe_stat: "
+		       "inode %lu, UID %lu, GID %lu, mode %o, size %lub.\n",
+		       (unsigned long) fstatus.st_ino,
+		       (unsigned long) fstatus.st_uid,
+		       (unsigned long) fstatus.st_gid,
+		       fstatus.st_mode,
+		       (unsigned long) fstatus.st_size);
+	} else {
+		die("env_get_fname: env_get_fname %s %s returned %d.",
+		    name, fspec, rc);
+	}
+
+	return EXIT_SUCCESS;
 }

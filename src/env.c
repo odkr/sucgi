@@ -125,8 +125,10 @@ env_clear(char *vars[])
 }
 
 error
-env_get_fname(const char *name, char **fname, struct stat *fstatus)
+env_get_fname(const char *name, const mode_t ftype,
+              char **fname, struct stat *fstatus)
 {
+	struct stat buf;
 	char *value = NULL;
 
 	assert(name && fname);
@@ -135,8 +137,12 @@ env_get_fname(const char *name, char **fname, struct stat *fstatus)
 	if (!value) return ERR_VAR_UNDEF;
 	if (*value == '\0') return ERR_VAR_EMPTY;
 	reraise(path_check_len(value));
-	reraise(file_safe_stat(value, fstatus));
+	reraise(file_safe_stat(value, &buf));
+	/* FIXME: UNTESTED. */
+	if ((buf.st_mode & S_IFMT) != ftype) return ERR_FTYPE;
 
+	/* flawfinder: ignore (fstatus is guaranteed to be large enough). */
+	if (fstatus) memcpy(fstatus, &buf, sizeof(struct stat));
 	*fname = value;
 	return OK;
 }
@@ -156,19 +162,31 @@ env_restore(char *vars[], const char *const keep[], const char *const toss[])
 		value = sep + 1;
 		*sep = '\0';
 
-		for (size_t j = 0; keep[j]; j++) {
-			if (fnmatch(keep[j], name, FNM_PERIOD) != 0)
-				continue;
-			for (size_t k = 0; toss[k]; k++) {
-				if (fnmatch(toss[k], name, FNM_PERIOD) == 0)
-					goto next;
-			}
-
+		if (str_match(name, keep, 0) && !str_match(name, toss, 0)) {
 			if (setenv(name, value, true) != 0) return ERR_SYS;
-			break;
 		}
-		next:;
 	}
+
+	return OK;
+}
+
+/* FIXME: Untested. */
+error
+env_sanitise (const char *const keep[], const char *const toss[])
+{
+	/* flawfinder: ignore (env_clear adds at most ENV_MAX entries). */
+	char *vars[ENV_MAX] = {NULL};	/* Backup of the environment. */
+
+	/*
+	 * Words of wisdom from the authors of suexec.c:
+	 *
+	 * > While cleaning the environment, the environment should be clean.
+	 * > (E.g. malloc() may get the name of a file for writing debugging
+	 * > info. Bad news if MALLOC_DEBUG_FILE is set to /etc/passwd.)
+	 */
+
+	reraise(env_clear(vars));
+	reraise(env_restore(vars, keep, toss));
 
 	return OK;
 }

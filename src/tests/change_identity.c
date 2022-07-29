@@ -24,17 +24,17 @@ main (int argc, char **argv)
 			user = argv[1];
 			break;
 		default:
-			die("usage: drop_privs USER");
+			die("usage: change_identity USER");
 	}
 
 	/* cppcheck-suppress getpwnamCalled */
 	pwd = getpwnam(user);
 	if (!pwd) {
-		die("drop_privs: lookup of user %s: %s.",
+		die("change_identity: lookup of user %s: %s.",
 		    user, strerror(errno));
 	}
 
-	drop_privs(pwd);
+	change_identity(pwd);
 
 	/* flawfinder: ignore */
 	printf("effective: %lu:%lu; real: %lu:%lu.\n",

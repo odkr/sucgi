@@ -71,8 +71,10 @@ error str_nsplit(const char *const s, const char *sep,
                  const int max, char ***subs, int *n);
 
 /*
- * Split s at the first n - 1 occurrences of any character in sep
- * and store the substrings in the given variadic arguments.
+ * Split s at the first n - 1 occurrences of any character in sep and store
+ * the substrings in the given variadic arguments. The variadic arguments must
+ * be large enough to store a string that is STR_MAX_LEN characters long,
+ * excluding the terminating null byte.
  *
  * If s is split into fewer than n substrings, the surplus variadic
  * arguments up to the nth argument are left alone. If less than

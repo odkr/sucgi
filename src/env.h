@@ -70,7 +70,7 @@ extern const char *const env_toss[2];
  */
 
 /*
- * Clear the environment and ssave a copy of the old environment to vars.
+ * Clear the environment and save a copy of the old environment to vars.
  * If vars is NULL, the old environment is not saved. vars must have
  * enough space to hold ENV_MAX variables.
  *
@@ -81,15 +81,17 @@ extern const char *const env_toss[2];
 error env_clear(char *vars[]);
 
 /*
- * Safely read a filename from the environement variable name and store a
- * pointer to that name in fname and a pointer to the status of the file it
- * points to in fstatus. If fstatus is NULL, the status is dicarded.
+ * Safely read a filename from the environement variable name,
+ * check if its of type ftype and, if so, store a pointer to the
+ * filename in fname and a pointer to the file's status in fstatus.
+ * If fstatus is NULL, the status is dicarded.
  *
  * Errors:
  *      - The given environment variable is undefined.
  *      - The value of the variable is the empty string.
+ *	- The file is not of the given type.
  *
- *      And every error that path_check_len or file_safe_stat may raise.
+ *      And any error that path_check_len or file_safe_stat may raise.
  *
  * Return code:
  *      OK             Success.
@@ -100,15 +102,15 @@ error env_clear(char *vars[]);
  *      ERR_VAR_EMPTY  The variable is empty.
  */
 __attribute__((RO(1)))
-error env_get_fname(const char *name, char **fname, struct stat *fstatus);
+error env_get_fname(const char *name, const mode_t ftype,
+                    char **fname, struct stat *fstatus);
 
 /*
  * Repopulate the environment with any variable in vars the name of which
  * (a) matches a pattern in keep and (b) does not match a pattern in toss,
  * where vars is an array of environment variables that follows the same
- * syntax as the global variable environ(7) and keep and toss are arrays
- * of shell wildcard patterns that are matched against variable names; see
- * fnmatch(3) for the syntax.
+ * syntax as the global variable environ(7). Patterns are shell wildcard
+ * patterns; see fnmatch(3) for the syntax.
  *
  * Errors:
  *      - A variable is empty.
@@ -148,6 +150,19 @@ error env_get_fname(const char *name, char **fname, struct stat *fstatus);
 __attribute__((RO(2), RO(3)))
 error env_restore(char *vars[], const char *const keep[],
                   const char *const toss[]);
+
+/*
+ * Unset every environment variable the name of which (a) does not match a
+ * pattern in keep or (b) does match a pattern in toss. Patterns are shell
+ * wildcard patterns. See fnmatch(3) for the syntax.
+ *
+ * Errors:
+ *	Any error that env_clear or env_restore may raise.
+ *
+ * Return code:
+ *	Any code that env_clear or env_restore may return.
+ */
+error env_sanitise (const char *const keep[], const char *const toss[]);
 
 
 #endif /* !defined(SRC_ENV_H) */

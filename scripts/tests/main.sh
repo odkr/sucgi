@@ -56,6 +56,23 @@ true="$(command -v true >/dev/null 2>&1 || :)" || :
 : "${true:=/usr/bin/true}"
 "$true" || abort "true: exited with status $?."
 
+uid="$(regularuid)" && [ "$uid" ] ||
+	abort "failed to get non-root user ID of caller."
+user="$(id -un "$uid")" && [ "$user" ] ||
+	abort "failed to name of user with ID $uid."
+gid="$(id -g "$user")" && [ "$gid" ] ||
+	abort "failed to get ID of $user's primary group."
+
+home="$(homedir "$user")" && [ "$home" ] ||
+	abort "failed to get $user's home directory."
+
+homebase="$home"
+while [ "/${homebase##*/}" != "$homebase" ]
+do
+	homebase="$(dirname "$homebase")" && [ "$homebase" ] ||
+		abort "failed to get directory name of $homebase."
+done
+
 
 #
 # Non-root checks
@@ -96,10 +113,10 @@ DOCUMENT_ROOT="$0" \
 DOCUMENT_ROOT=. \
 	checkerr '$DOCUMENT_ROOT: does not match /*.' main
 
-DOCUMENT_ROOT="$HOME" \
+DOCUMENT_ROOT=/ \
 	checkerr 'PATH_TRANSLATED: not set.' main
 
-DOCUMENT_ROOT="$HOME" PATH_TRANSLATED='' \
+DOCUMENT_ROOT=/ PATH_TRANSLATED='' \
 	checkerr 'PATH_TRANSLATED: is the empty string.' main
 
 [ "$long_path" ] &&
@@ -113,10 +130,10 @@ DOCUMENT_ROOT="$HOME" PATH_TRANSLATED='' \
 DOCUMENT_ROOT=/ PATH_TRANSLATED='/::no-such-file!!' \
 	checkerr '$PATH_TRANSLATED: No such file or directory.' main
 
-DOCUMENT_ROOT="$HOME" PATH_TRANSLATED=/ \
-	checkerr "\$PATH_TRANSLATED: not in document root $HOME." main
+DOCUMENT_ROOT="$homebase" PATH_TRANSLATED="$true" \
+	checkerr "\$PATH_TRANSLATED: not in document root $homebase." main
 
-DOCUMENT_ROOT=/ PATH_TRANSLATED="$HOME" \
+DOCUMENT_ROOT=/ PATH_TRANSLATED="$home" \
 	checkerr '$PATH_TRANSLATED: not a regular file.' main
 
 DOCUMENT_ROOT=/ PATH_TRANSLATED="$true" \
@@ -132,16 +149,6 @@ uid="$(id -u)" && [ "$uid" ] ||
 
 # The checks below only work if main.sh is invoked as root.
 [ "$uid" -ne 0 ] && exit
-
-uid="$(regularuid)" && [ "$uid" ] ||
-	abort "failed to get non-root user ID of caller."
-user="$(id -un "$uid")" && [ "$user" ] ||
-	abort "failed to name of user with ID $uid."
-gid="$(id -g "$user")" && [ "$gid" ] ||
-	abort "failed to get ID of $user's primary group."
-
-home="$(homedir "$user")" && [ "$home" ] ||
-	abort "failed to get $user's home directory."
 
 tmpdir="${home:?}/.tmp-$$"
 readonly tmpdir
@@ -171,16 +178,16 @@ mkfifo "$fifo"
 # Root checks
 #
 
-DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$grpw" \
+DOCUMENT_ROOT=/ PATH_TRANSLATED="$grpw" \
 	checkerr "$grpw: can be altered by users other than $user." main
 
-DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/script.sh" \
+DOCUMENT_ROOT=/ PATH_TRANSLATED="$tmpdir/script.sh" \
 	checkok 'This is a test script for main.sh and run_script.sh.' main
 
-DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$reportuser" \
+DOCUMENT_ROOT=/ PATH_TRANSLATED="$reportuser" \
 	checkok "$uid:$gid" main
 
-DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/env.sh" FOO=bar \
+DOCUMENT_ROOT=/ PATH_TRANSLATED="$tmpdir/env.sh" FOO=bar \
 	main >"$fifo" 2>&1 & pid="$!"
 grep -Fq 'FOO=bar' <"$fifo" && abort 'environment was not cleared.'
 wait "$pid" || abort "./env.sh exited with non-status $?."

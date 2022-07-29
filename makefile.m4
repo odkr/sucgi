@@ -35,7 +35,7 @@ COVDIR = cov
 # Tests
 #
 
-CHECKBINS = $(BUILDDIR)/tests/drop_privs \
+CHECKBINS = $(BUILDDIR)/tests/change_identity \
             $(BUILDDIR)/tests/fail $(BUILDDIR)/tests/env_clear \
             $(BUILDDIR)/tests/env_get_fname \
             $(BUILDDIR)/tests/env_restore \
@@ -53,7 +53,7 @@ CHECKBINS = $(BUILDDIR)/tests/drop_privs \
             $(BUILDDIR)/tests/str_eq \
             $(BUILDDIR)/tests/str_len
 
-CHECKS = $(SCRIPTDIR)/tests/drop_privs.sh \
+CHECKS = $(SCRIPTDIR)/tests/change_identity.sh \
          $(SCRIPTDIR)/tests/fail.sh \
          $(BUILDDIR)/tests/env_clear \
          $(SCRIPTDIR)/tests/env_get_fname.sh \
@@ -169,7 +169,7 @@ $(BUILDDIR)/tests/utils.o:	$(SRCDIR)/tests/utils.c \
 				$(BUILDDIR)/tests/.sentinel
 	$(CC) -I . -c $(CFLAGS) -o $@ $<
 
-$(BUILDDIR)/tests/drop_privs:	$(SRCDIR)/tests/drop_privs.c \
+$(BUILDDIR)/tests/change_identity:	$(SRCDIR)/tests/change_identity.c \
 				$(BUILDDIR)/tests/utils.o \
 				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/utils.o \
@@ -360,13 +360,10 @@ $(BUILDDIR)/tests/main:	$(SRCDIR)/main.c \
 		$(LDLIBS)
 
 analysis:
-	cppcheck $(CPPCHECKFLAGS) \
-		--enable=all \
-		-U __NR_openat2 -D NAME_MAX=255 -D FILENAME_MAX=1024 -D O_NOFOLLOW_ANY=1 \
+	cppcheck $(CPPCHECKFLAGS) --enable=all -U __NR_openat2 \
+		-D NAME_MAX=255 -D FILENAME_MAX=1024 -D O_NOFOLLOW_ANY=1 \
 		$(SRCDIR)
-	cppcheck $(CPPCHECKFLAGS) \
-		--enable=unusedFunction \
-		$(SRCDIR)/*.c
+	cppcheck $(CPPCHECKFLAGS) --enable=unusedFunction $(SRCDIR)/*.c
 	flawfinder --error-level=1 -m 0 -D -Q .
 	find $(SCRIPTDIR) -type f | xargs shellcheck configure
 
@@ -407,8 +404,8 @@ $(DISTAR).asc: $(DISTAR)
 	gpg -qab --batch --yes $(DISTAR)
 
 install: $(BUILDDIR)/sucgi
-	$(SCRIPTDIR)/install -b "$(BUILDDIR)" -d "$(DESTDIR)" -p "$(PREFIX)" \
-		-c "$(CGIBIN)" -w "$(WWWGRP)"
+	$(SCRIPTDIR)/install -b $(BUILDDIR) -p "$(DESTDIR)$(PREFIX)" \
+		-c $(CGIBIN) -w $(WWWGRP)
 
 uninstall:
 	rm -f $(CGIBIN)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi

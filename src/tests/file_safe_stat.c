@@ -4,6 +4,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 
@@ -15,6 +16,7 @@
 int
 main (int argc, char **argv)
 {
+	struct stat fstatus;
 	const char *fname = NULL;
 
 	switch (argc) {
@@ -25,6 +27,18 @@ main (int argc, char **argv)
 	 		die("usage: file_safe_stat FNAME");
 	}
 
-	return (int) file_safe_stat(fname, NULL);
-	/* FIXME: test actually get stats! */
+	if (file_safe_stat(fname, &fstatus) == OK) {
+		/* flawfinder: ignore. */
+		printf("file_safe_stat: "
+		       "inode %lu, UID %lu, GID %lu, mode %o, size %lub.\n",
+		       (unsigned long) fstatus.st_ino,
+		       (unsigned long) fstatus.st_uid,
+		       (unsigned long) fstatus.st_gid,
+		       (int) fstatus.st_mode,
+		       (unsigned long) fstatus.st_size);
+	} else {
+		die("file_safe_stat: %s: %s.", fname, strerror(errno));
+	}
+
+	return EXIT_SUCCESS;
 }

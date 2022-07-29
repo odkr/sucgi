@@ -17,6 +17,7 @@ define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
  * Which document root directories are safe?
  *
  * Shell wildcard pattern.
+ * '*' neither matches slashes ('/') nor leading dots ('.').
  * CGI programmes are only run if they are inside a matching document root.
  *
  * This definition should correspond to the UserDir directive of your
