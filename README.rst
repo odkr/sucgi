@@ -97,7 +97,7 @@ You can uninstall suCGI by ``make uninstall``.
 Setting up Apache and PHP
 =========================
 
-Install suCGI, set up Apache_ and PHP_, enable mod_userdir_ and mod_action_,
+Set up Apache_ and PHP_, enable mod_userdir_ and mod_action_, install suCGI
 and then add the following lines to your Apache configuration::
 
 
