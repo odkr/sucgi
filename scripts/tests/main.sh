@@ -179,12 +179,12 @@ mkfifo "$fifo"
 #
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/script.sh" \
-	checkerr "yo"
-	run-as 1 1 main
+	checkerr "yo" \
+		run-as 1 1 main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/script.sh" \
-	checkerr "yo"
-	run-as 30001 30001 main
+	checkerr "yo" \
+		run-as 30001 30001 main
 
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$grpw" \
