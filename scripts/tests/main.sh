@@ -191,12 +191,10 @@ mkfifo "$fifo"
 #
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$ltmin" \
-	checkerr 'yo' main
+	checkerr "$ltmin: owned by non-regular UID 1." main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$gtmax" \
-	checkerr 'yo' main
-
-
+	checkerr "$gtmax: owned by non-regular UID 30001." main main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$grpw" \
 	checkerr "$grpw: can be altered by users other than $user." main
