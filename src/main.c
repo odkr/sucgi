@@ -242,9 +242,9 @@ main (void) {
 
 	/*
 	 * If the webserver is (mis-)configured to allow visitors to change
-	 * user files and a user set the permissions of a script that can be
-	 * accessed from the web to be world-writable, then visitors could
-	 * run arbitrary code as that user. This check guards against this.
+	 * user files and a user (accidentally) has set the permissions of a
+	 * web-accessible script to be world-writable, then visitors could
+	 * run arbitrary code as that user.
 	 */
 
 	rc = path_check_wexcl(owner->pw_uid, prog, owner->pw_dir);
