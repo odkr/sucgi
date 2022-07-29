@@ -203,7 +203,6 @@ main (void) {
 		fail("%s: owned by the supergroup.", prog);
 	}
 
-	/* NB: The test suite does not check whether this check works. */
 	if (MAX_UID < fstatus.st_uid || fstatus.st_uid < MIN_UID) {
 		fail("%s: owned by non-regular UID %lu.",
 		     prog, (unsigned long) fstatus.st_uid);

@@ -157,6 +157,15 @@ cleanup="rm -rf \"\${tmpdir:?}\"; ${cleanup-}"
 catch=x
 [ "${caught-}" ] && exit $((caught + 128))
 
+unused_ids="$(unused-ids)" && [ "$unused_ids" ] ||
+	abort "failed to find an unused UID and GID."
+
+unused_uid="${unused_ids##*:}"
+unused_gid="${unused_ids%%:*}"
+
+[ "$unused_uid" ] || abort "cannot parse unused UID."
+[ "$unused_gid" ] || abort "cannot parse unused GID."
+
 cp -a "$script_dir/tools/." "$tmpdir/."
 
 cp "$tmpdir/script.sh" "$tmpdir/script"
@@ -170,6 +179,14 @@ gtmax="$tmpdir/gtmax.sh"
 cp "$tmpdir/script.sh" "$gtmax"
 chmod +x "$gtmax"
 
+nouser="$tmpdir/nouser.sh"
+cp "$tmpdir/script.sh" "$nouser"
+chmod +x "$nouser"
+
+nogroup="$tmpdir/nogroup.sh"
+cp "$tmpdir/script.sh" "$nogroup"
+chmod +x "$nogroup"
+
 grpw="$tmpdir/grpw.sh"
 cp "$tmpdir/script.sh" "$grpw"
 chmod ug=w "$grpw"
@@ -181,6 +198,8 @@ chown -R "$ruid:$rgid" "$tmpdir"
 
 chown 1:1 "$ltmin"
 chown 30001:30001 "$gtmax"
+chown "$unused_uid" "$nouser"
+chgrp "$unused_gid" "$nogroup"
 
 fifo="$tmpdir/fifo"
 mkfifo "$fifo"
@@ -195,6 +214,12 @@ DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$ltmin" \
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$gtmax" \
 	checkerr "$gtmax: owned by non-regular UID 30001." main main
+
+DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$nouser" \
+	checkerr "XXX." main
+
+DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$nogroup" \
+	checkerr "XXX." main main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$grpw" \
 	checkerr "$grpw: can be altered by users other than $user." main
