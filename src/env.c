@@ -135,7 +135,7 @@ env_get_fname(const char *name, const mode_t ftype,
 	/* flawfinder: ignore (value is sanitised below). */
 	value = getenv(name);
 	if (!value) return ERR_VAR_UNDEF;
-	if (*value == '\0') return ERR_VAR_EMPTY;
+	if ('\0' == *value) return ERR_VAR_EMPTY;
 	reraise(path_check_len(value));
 	reraise(file_safe_stat(value, &buf));
 	if ((buf.st_mode & S_IFMT) != ftype) return ERR_FTYPE;
@@ -158,7 +158,7 @@ env_restore(char *vars[], const char *const keep[], const char *const toss[])
 		char *value = NULL;			/* Variable value. */
 
 		reraise(str_split(vars[i], "=", name, &value));
-		if (name[0] == '\0' || !value) return ERR_VAR_INVALID;
+		if ('\0' == name[0] || !value) return ERR_VAR_INVALID;
 		if (str_matchn(name, keep, 0) && !str_matchn(name, toss, 0)) {
 			if (setenv(name, value, true) != 0) return ERR_SYS;
 		}

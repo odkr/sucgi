@@ -137,7 +137,7 @@ path_contains(const char *const super, const char *const sub)
 
 	assert(super && sub);
 	len = strnlen(super, STR_MAX_LEN);
-	if (super[0] == '\0') return false;
+	if ('\0' == super[0]) return false;
 	if (str_eq(sub, "/")) return false;
 	if (sub[len] != '/' && !str_eq(super, "/")) return false;
 	return (strncmp(super, sub, len) == 0);

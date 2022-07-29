@@ -38,7 +38,7 @@ main (void) {
 	/* flawfinder: ignore */
 	assert(getenv("foo") == NULL);
 	for (var = environ; *var; var++) n++;
-	assert(n == 0);
+	assert(0 == n);
 
 
 	/*
@@ -59,7 +59,7 @@ main (void) {
 
 		free(name);
 	}
-	assert(n == 1);
+	assert(1 == n);
 
 
 	/*

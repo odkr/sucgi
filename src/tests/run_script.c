@@ -37,7 +37,7 @@ main (int argc, char **argv)
 		if (rc != OK) {
 			die("run_script: str_split returned %u.", rc);
 		}
-		if (suffix[0] == '\0') {
+		if ('\0' == suffix[0]) {
 			die("run_script: suffix %d is empty.", i - 1);
 		}
 

@@ -17,13 +17,13 @@ main (void) {
 	huge[STR_MAX_LEN + 1] = '\0';
 	assert(strnlen(huge, STR_MAX_LEN + 1) > STR_MAX_LEN);
 	assert(str_len(huge, &len) == ERR_STR_LEN);
-	assert(len == 0);
+	assert(0 == len);
 
 	assert(str_len("", &len) == OK);
-	assert(len == 0);
+	assert(0 == len);
 
 	assert(str_len("a", &len) == OK);
-	assert(len == 1);
+	assert(1 == len);
 
 	return EXIT_SUCCESS;
 }

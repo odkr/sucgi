@@ -193,10 +193,10 @@ main (void) {
 		fail("$PATH_TRANSLATED: not in document root %s.", doc_root);
 	}
 
-	if (fstatus.st_uid == 0) {
+	if (0 == fstatus.st_uid) {
 		fail("%s: owned by the superuser.", prog);
 	}
-	if (fstatus.st_gid == 0) {
+	if (0 == fstatus.st_gid) {
 		fail("%s: owned by the supergroup.", prog);
 	}
 

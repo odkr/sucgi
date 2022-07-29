@@ -50,7 +50,7 @@ main (int argc, char **argv)
 
 	rc = env_get_fname(name, ftype, &fname, &fstatus);
 
-	if (rc == OK) {
+	if (OK == rc) {
 		/* flawfinder: ignore. */
 		printf("file_safe_stat: "
 		       "inode %lu, UID %lu, GID %lu, mode %o, size %lub.\n",

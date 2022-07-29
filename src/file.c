@@ -56,7 +56,7 @@ file_is_wexcl(const uid_t uid, const struct stat *const fstatus)
 {
 	assert(fstatus);
 
-	return     fstatus->st_uid == uid
+	return     uid == fstatus->st_uid
 		&& !(fstatus->st_mode & S_IWGRP)
 		&& !(fstatus->st_mode & S_IWOTH);
 }

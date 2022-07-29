@@ -73,7 +73,7 @@ str_to_ulong (const char *const s, unsigned long *n)
 	assert(s);
 	m = strtoll(s, &end, 10);
 	if (*end != '\0') return ERR;
-	if (m == 0 && errno != 0) return ERR_SYS;
+	if (0 == m && 0 != errno) return ERR_SYS;
 
 	*n = (unsigned long) m;
 	return OK;

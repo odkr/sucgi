@@ -47,10 +47,10 @@ change_identity(const struct passwd *const user)
 	gid = user->pw_gid;
 	groups[0] = gid;
 
-	if (uid == 0) {
+	if (0 == uid) {
 		fail("%s is the superuser.", user->pw_name);
 	}
-	if (gid == 0) {
+	if (0 == gid) {
 		fail("%s's primary group is the supergroup.", user->pw_name);
 	}
 
@@ -98,16 +98,16 @@ change_identity(const struct passwd *const user)
 	}
 
 #if defined(TESTING) && TESTING
-	if (setegid(0) == 0) {
+	if (0 == setegid(0)) {
 		fail("could re-set process' effective GID to 0.");
 	}
-	if (seteuid(0) == 0) {
+	if (0 == seteuid(0)) {
 		fail("could re-set process' effective UID to 0.");
 	}
-	if (setgid(0) == 0) {
+	if (0 == setgid(0)) {
 		fail("could re-set process' real GID to 0.");
 	}
-	if (setuid(0) == 0) {
+	if (0 == setuid(0)) {
 		fail("could re-set process' real UID to 0.");
 	}
 #endif /* defined(TESTING) && TESTING */
@@ -134,7 +134,7 @@ run_script(const char *const script, const struct pair pairs[])
 
 		/* It is tested above whether interpreter is NULL. */
 		/* cppcheck-suppress nullPointerRedundantCheck */
-		if (interpreter[0] == '\0') {
+		if ('\0' == interpreter[0]) {
 			fail("script handler %d: path is empty.", i + 1);
 		}
 
