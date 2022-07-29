@@ -19,16 +19,25 @@ TMPDIR="$(realdir "$TMPDIR")" && [ "$TMPDIR" ] ||
 
 
 #
+# Prelude
+#
+
+file="$TMPDIR/file"
+touch "$file"
+symlink="$TMPDIR/symlink"
+ln -s "$TMPDIR" "$symlink"
+
+
+#
 # Main
 #
 
-touch "$TMPDIR/file"
-ln -s "$TMPDIR" "$TMPDIR/symlink"
+# shellcheck disable=2154
+file_safe_open "$file" ||
+	abort "file_safe_open refuses to open $bold$file$reset."
 
-file_safe_open "$TMPDIR/file" ||
-	abort "file_safe_open refuses to open $TMP/file."
-
+# shellcheck disable=2154
 file_safe_open "$TMPDIR/symlink/file" &&
-	abort "file_safe_open does not refuse to open $TMP/symlink/file."
+	abort "file_safe_open does not refuse to open $bold$symlink$reset."
 
 exit 0

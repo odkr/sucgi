@@ -18,19 +18,32 @@ extern char **environ;
 int
 main (void) {
 	/* flawfinder: ignore */
-	char *env[ENV_MAX] = {0};
-	char **var = NULL;
-	int n = 0;
+	char *env[ENV_MAX] = {0};	/* A backup of the environment. */
+	char **var = NULL;		/* An environment variable. */
+	int n = 0;			/* Number of variables found. */
+
+	/* 
+	 * Start with a clean environmenet, hopefully.
+	 */
 
 	env_clear(NULL);
+
+
+	/*
+	 * Check whether the environment is cleared.
+	 */
 
 	assert(setenv("foo", "foo", 1) == 0);
 	assert(env_clear(env) == OK);
 	/* flawfinder: ignore */
 	assert(getenv("foo") == NULL);
-
 	for (var = environ; *var; var++) n++;
 	assert(n == 0);
+
+
+	/*
+	 * Check whether the previous environment has been stored in env.
+	 */
 
 	n = 0;
 	for (var = env; *var; var++) {
@@ -49,7 +62,13 @@ main (void) {
 	}
 	assert(n == 1);
 
+
+	/*
+	 * Check whether env_clear errors out if there are too many variables.
+	 */
+	
 	assert(env_clear(NULL) == OK);
+	
 	for (int i = 0; i <= ENV_MAX; i++) {
 		/* flawfinder: ignore */
 		char name[STR_MAX_LEN];
@@ -59,6 +78,10 @@ main (void) {
 	}
 
 	assert(env_clear(env) == ERR_ENV_MAX);
+
+	/*
+	 * All good.
+	 */
 
 	return EXIT_SUCCESS;
 }

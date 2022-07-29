@@ -34,8 +34,10 @@ for mode in $no
 do
 	chown "$uid:$gid" "$fname"
 	chmod "$mode" "$fname"
+	# shellcheck disable=2154
 	file_is_wexcl "$uid" "$fname" &&
-		abort "file_is_wexcl reports $mode as exclusively writable."
+		abort "file_is_wexcl reports $bold$mode$reset" \
+		      "as ${bold}exclusively writable$reset."
 	chmod ugo= "$fname"
 done
 
@@ -44,8 +46,10 @@ for mode in $yes
 do
 	chown "$uid:$gid" "$fname"
 	chmod "$mode" "$fname"
+	# shellcheck disable=2154
 	file_is_wexcl "$uid" "$fname" ||
-		abort "file_is_wexcl reports $mode as not exclusively writable."
+		abort "file_is_wexcl reports $bold$mode$reset" \
+		      "as ${bold}not$reset exclusively writable."
 	chmod ugo= "$fname"
 done
 

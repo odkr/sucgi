@@ -21,17 +21,4 @@ tmpdir chk
 # Main
 #
 
-
-fifo="$TMPDIR/fifo"
-mkfifo -m 0700 "$fifo"
-
-fail >"$fifo" 2>&1 & pid=$!
-
-# Fail if the error message does not contain "foo".
-grep -q foo <"$fifo" || exit 1
-
-# Fail if fail did not exit with a non-zero status.
-wait $pid && exit 2
-
-# All good.
-exit 0
+checkerr foo fail

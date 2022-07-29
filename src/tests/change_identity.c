@@ -24,13 +24,13 @@ main (int argc, char **argv)
 			user = argv[1];
 			break;
 		default:
-			die("usage: change_identity USER");
+			die("usage: change_identity USERNAME");
 	}
 
 	/* cppcheck-suppress getpwnamCalled */
 	pwd = getpwnam(user);
 	if (!pwd) {
-		die("change_identity: lookup of user %s: %s.",
+		die("change_identity: getpwnam %s: %s.",
 		    user, strerror(errno));
 	}
 

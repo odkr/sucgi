@@ -38,7 +38,8 @@ do
 	chown "$uid:$gid" "$fname"
 	chmod "$mode" "$fname"
 	path_check_wexcl "$uid" "$fname" "$TMPDIR" &&
-		abort "path_check_wexcl reports $mode as exclusively writable."
+		abort "path_check_wexcl reports $bold$mode$reset" \
+		      "as ${bold}exclusively writable$reset."
 	chmod ugo= "$fname"
 done
 
@@ -48,11 +49,14 @@ do
 	chown "$uid:$gid" "$fname"
 	chmod "$mode" "$fname"
 	path_check_wexcl "$uid" "$fname" "$TMPDIR" ||
-		abort "path_check_wexcl reports $mode as not exclusively writable."
+		abort "path_check_wexcl reports $mode as" \
+		      "${bold}not$reset exclusively writable."
 	path_check_wexcl "$uid" "$fname" / &&
-		abort "path_check_wexcl reports $fname as exclusively writable w/o stop condition."
+		abort "path_check_wexcl reports $bold$fname$reset" \
+		      "as exclusively writable ${bold}w/o stop$reset."
 	chmod ugo= "$fname"
 done
 
 path_check_wexcl 0 /bin/sh / ||
-	abort "path_check_wexcl reports /bin/sh as not exclusively writable."
+	abort "path_check_wexcl reports $bold/bin/sh$reset as" \
+	      "${bold}not$reset exclusively writable."
