@@ -9,7 +9,10 @@
 
 #include "../err.h"
 #include "../path.h"
+
 #include "utils.h"
+#include "str.h"
+
 
 /*
  * Convert a string to a user ID.

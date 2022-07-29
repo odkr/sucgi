@@ -9,7 +9,9 @@
 
 #include "../err.h"
 #include "../file.h"
+
 #include "utils.h"
+#include "str.h"
 
 
 /*

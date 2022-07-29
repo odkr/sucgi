@@ -1,4 +1,4 @@
-/* Headers for utils.c
+/* Environment functions for the test suite.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -18,20 +18,31 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(SRC_TESTS_UTILS_H)
-#define SRC_TESTS_UTILS_H
+#include <assert.h>
+#include <stdarg.h>
 
-#include "../attr.h"
 #include "../err.h"
+#include "env.h"
 
 
-/*
- * Functions
- */
+error
+env_init(const size_t n, ...)
+{
+	va_list ap;	/* Variadic argument. */
+	size_t i = 0;	/* Iterator. */
 
-/* Print a formatted error message to STDERR and exit with EXIT_FAILURE. */
-__attribute__((READ_ONLY(1)))
-void die(const char *const message, ...);
+	assert(n > 0);
+	environ = calloc(n, sizeof(char *));
+	if (!environ) return ERR_SYS;
 
+	va_start(ap, n);
+	for (; i < n - 1; i++) {
+		char *var = va_arg(ap, char *);
+		assert(var);
+		environ[i] = var;
+	}
+	va_end(ap);
+	environ[i] = NULL;
 
-#endif /* !defined(SRC_TESTS_UTILS) */
+	return OK;
+}

@@ -18,20 +18,32 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(SRC_TESTS_UTILS_H)
-#define SRC_TESTS_UTILS_H
+#if !defined(SRC_TESTS_ENV_H)
+#define SRC_TESTS_ENV_H
 
 #include "../attr.h"
 #include "../err.h"
 
 
 /*
+ * Globals
+ */
+
+/* The environment. */
+extern char **environ;
+
+
+/*
  * Functions
  */
 
-/* Print a formatted error message to STDERR and exit with EXIT_FAILURE. */
+/* 
+ * Create a new environment with space for at least n elements
+ * and initialise with the given variadic arguments,
+ * which must be strings.
+ */
 __attribute__((READ_ONLY(1)))
-void die(const char *const message, ...);
+error env_init(const size_t n, ...);
 
 
-#endif /* !defined(SRC_TESTS_UTILS) */
+#endif /* !defined(SRC_TESTS_ENV_H) */

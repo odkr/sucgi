@@ -126,6 +126,10 @@ $(BUILDDIR)/tests/.sentinel: $(BUILDDIR)/.sentinel
 	test -e $(BUILDDIR)/tests || mkdir -p $(BUILDDIR)/tests
 	touch $(BUILDDIR)/tests/.sentinel
 
+$(BUILDDIR)/tests/tools/.sentinel: $(BUILDDIR)/tests/.sentinel
+	test -e $(BUILDDIR)/tools/tests || mkdir -p $(BUILDDIR)/tests/tools
+	touch $(BUILDDIR)/tests/tools/.sentinel
+
 $(BUILDDIR)/env.o:	$(SRCDIR)/env.c $(SRCDIR)/env.h	\
 			$(SRCDIR)/attr.h $(SRCDIR)/err.h $(SRCDIR)/str.h \
 			$(BUILDDIR)/.sentinel
@@ -169,11 +173,29 @@ $(BUILDDIR)/sucgi:	$(SRCDIR)/main.c config.h \
 		$(BUILDDIR)/path.o $(BUILDDIR)/str.o $(BUILDDIR)/utils.o \
 		$(LDLIBS)
 
+$(BUILDDIR)/tests/env.o:	$(SRCDIR)/tests/env.c \
+				$(SRCDIR)/tests/env.h \
+				$(BUILDDIR)/tests/.sentinel
+	$(CC) -I . -c $(CFLAGS) -o $@ $<
+
 $(BUILDDIR)/tests/utils.o:	$(SRCDIR)/tests/utils.c \
 				$(SRCDIR)/tests/utils.h \
 				$(SRCDIR)/str.h \
 				$(BUILDDIR)/tests/.sentinel
 	$(CC) -I . -c $(CFLAGS) -o $@ $<
+
+$(BUILDDIR)/tests/str.o:	$(SRCDIR)/tests/str.c \
+				$(SRCDIR)/str.h \
+				$(BUILDDIR)/tests/.sentinel
+	$(CC) -I . -c $(CFLAGS) -o $@ $<
+
+$(BUILDDIR)/tests/tools/run-as:	$(SRCDIR)/tests/tools/run-as.c \
+				$(BUILDDIR)/tests/utils.o \
+				$(BUILDDIR)/tests/str.o \
+				$(BUILDDIR)/tests/tools/.sentinel
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
+		$(BUILDDIR)/tests/str.o $(BUILDDIR)/tests/utils.o \
+		$(LDLIBS)
 
 $(BUILDDIR)/tests/change_identity:	$(SRCDIR)/tests/change_identity.c \
 				$(BUILDDIR)/tests/utils.o \
@@ -223,6 +245,8 @@ $(BUILDDIR)/tests/env_get_fname:	$(SRCDIR)/tests/env_get_fname.c \
 		$(LDLIBS)
 
 $(BUILDDIR)/tests/env_restore:	$(SRCDIR)/tests/env_restore.c \
+				$(BUILDDIR)/tests/env.o \
+				$(BUILDDIR)/tests/str.o \
 				$(BUILDDIR)/tests/utils.o \
 				$(BUILDDIR)/env.o $(BUILDDIR)/err.o \
 				$(BUILDDIR)/file.o $(BUILDDIR)/path.o \
@@ -230,12 +254,15 @@ $(BUILDDIR)/tests/env_restore:	$(SRCDIR)/tests/env_restore.c \
 				$(BUILDDIR)/tests/.sentinel
 	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
+		$(BUILDDIR)/tests/env.o $(BUILDDIR)/tests/str.o \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/env.o $(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 		$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
 		$(LDLIBS)
 
 $(BUILDDIR)/tests/env_sanitise:	$(SRCDIR)/tests/env_sanitise.c \
+				$(BUILDDIR)/tests/env.o \
+				$(BUILDDIR)/tests/str.o \
 				$(BUILDDIR)/tests/utils.o \
 				$(BUILDDIR)/env.o $(BUILDDIR)/err.o \
 				$(BUILDDIR)/file.o $(BUILDDIR)/path.o \
@@ -243,6 +270,7 @@ $(BUILDDIR)/tests/env_sanitise:	$(SRCDIR)/tests/env_sanitise.c \
 				$(BUILDDIR)/tests/.sentinel
 	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
+		$(BUILDDIR)/tests/env.o $(BUILDDIR)/tests/str.o \
 		$(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/env.o $(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 		$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
@@ -260,12 +288,13 @@ $(BUILDDIR)/tests/file_is_exec:	$(SRCDIR)/tests/file_is_exec.c \
 		$(LDLIBS)
 
 $(BUILDDIR)/tests/file_is_wexcl:	$(SRCDIR)/tests/file_is_wexcl.c \
+					$(BUILDDIR)/tests/str.o \
 					$(BUILDDIR)/tests/utils.o \
 					$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
 					$(BUILDDIR)/tests/.sentinel
 	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
-		$(BUILDDIR)/tests/utils.o \
+		$(BUILDDIR)/tests/str.o $(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
 		$(LDLIBS)
 
@@ -301,13 +330,14 @@ $(BUILDDIR)/tests/path_check_len:	$(SRCDIR)/tests/path_check_len.c \
 		$(LDLIBS)
 
 $(BUILDDIR)/tests/path_check_wexcl:	$(SRCDIR)/tests/path_check_wexcl.c \
+					$(BUILDDIR)/tests/str.o \
 					$(BUILDDIR)/tests/utils.o \
 					$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 					$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
 					$(BUILDDIR)/tests/.sentinel
 	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
-		$(BUILDDIR)/tests/utils.o \
+		$(BUILDDIR)/tests/str.o $(BUILDDIR)/tests/utils.o \
 		$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 		$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
 		$(LDLIBS)
