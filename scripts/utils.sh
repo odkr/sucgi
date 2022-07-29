@@ -167,14 +167,6 @@ owner() {
 	ls -dl "${1:?}" | awk '{print $3}'
 }
 
-# Print the canonical path of a directory.
-realdir() (
-	dir="${1:?}"
-	cd -P "$dir" || exit
-	pwd
-)
-
-
 # Get the UID of the user who invoked the script,
 # even if the script has been invoked via su or sudo.
 regularuid() (
@@ -208,9 +200,12 @@ regularuid() (
 # Create a directory with the filename $prefix-$$ in $dir,
 # register it for deletion via $cleanup, and set it as $TMPDIR.
 tmpdir() {
-	__tmpdir_prefix="${1:?}" __tmpdir_dir="${2:-"${TMPDIR:-.}"}"
 	[ "${__tmpdir_tmpdir-}" ] && return
-	readonly __tmpdir_tmpdir="$__tmpdir_dir/$__tmpdir_prefix-$$"
+	__tmpdir_prefix="${1:?}" __tmpdir_dir="${2:-"${TMPDIR:-.}"}"
+	__tmpdir_real="$(cd -P "$__tmpdir_dir" && pwd)" &&
+		[ "$__tmpdir_real" ] && [ -d "$__tmpdir_real" ] ||
+			abort "failed to get real path of $__tmpdir_dir."
+	readonly __tmpdir_tmpdir="$__tmpdir_real/$__tmpdir_prefix-$$"
 	[ -e "$__tmpdir_tmpdir" ] && abort "$__tmpdir_tmpdir: exists."
 	catch=
 	mkdir -m 0700 "$__tmpdir_tmpdir" || exit

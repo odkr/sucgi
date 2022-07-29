@@ -14,8 +14,6 @@ init || exit
 PATH="${TESTSDIR:-./build/tests}:$script_dir/../../build/tests:$PATH"
 
 tmpdir chk
-TMPDIR="$(realdir "$TMPDIR")" && [ "$TMPDIR" ] ||
-	abort "failed to get canonical path of temporary directory."
 
 
 #

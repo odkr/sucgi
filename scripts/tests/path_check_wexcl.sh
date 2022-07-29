@@ -15,8 +15,6 @@ init || exit
 PATH="${TESTSDIR:-./build/tests}:$script_dir/../../build/tests:$PATH"
 
 tmpdir tmp .
-TMPDIR="$(realdir "$TMPDIR")" && [ "$TMPDIR" ] ||
-	abort "failed to get canonical path of temporary directory."
 
 
 #
@@ -37,6 +35,7 @@ for mode in $no
 do
 	chown "$uid:$gid" "$fname"
 	chmod "$mode" "$fname"
+	# shellcheck disable=2154
 	path_check_wexcl "$uid" "$fname" "$TMPDIR" &&
 		abort "path_check_wexcl reports $bold$mode$reset" \
 		      "as ${bold}exclusively writable$reset."
@@ -48,15 +47,18 @@ for mode in $yes
 do
 	chown "$uid:$gid" "$fname"
 	chmod "$mode" "$fname"
+	# shellcheck disable=2154
 	path_check_wexcl "$uid" "$fname" "$TMPDIR" ||
 		abort "path_check_wexcl reports $mode as" \
 		      "${bold}not$reset exclusively writable."
+	# shellcheck disable=2154
 	path_check_wexcl "$uid" "$fname" / &&
 		abort "path_check_wexcl reports $bold$fname$reset" \
 		      "as exclusively writable ${bold}w/o stop$reset."
 	chmod ugo= "$fname"
 done
 
+# shellcheck disable=2154
 path_check_wexcl 0 /bin/sh / ||
 	abort "path_check_wexcl reports $bold/bin/sh$reset as" \
 	      "${bold}not$reset exclusively writable."
