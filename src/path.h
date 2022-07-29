@@ -42,7 +42,7 @@
  *      ERR_STR_LEN    The path or a path segment is too long.
  *      ERR_SYS        System failure. errno(2) should be set.
  */
-__attribute__((RO(1)))
+__attribute__((READ_ONLY(1)))
 error path_check_len(const char *const path);
 
 /*
@@ -55,7 +55,7 @@ error path_check_len(const char *const path);
  *      ERR_STR_LEN    The path is longer than STR_MAX_LEN.
  *      ERR_SYS        System failure. errno(2) should be set.
  */
-__attribute__((RO(2), RO(3)))
+__attribute__((READ_ONLY(2), READ_ONLY(3)))
 error path_check_wexcl(const uid_t uid, const char *const path,
                        const char *const stop);
 
@@ -65,7 +65,7 @@ error path_check_wexcl(const uid_t uid, const char *const path,
  * Caveats:
  *      This check is meaningless unless both paths are canonical.
  */
-__attribute__((RO(1), RO(2)))
+__attribute__((READ_ONLY(1), READ_ONLY(2)))
 bool path_contains(const char *const super, const char *const sub);
 
 

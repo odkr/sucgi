@@ -29,6 +29,6 @@
 
 /* Shorthand for "access(read_only, ...)". */
 /* flawfinder: ignore (not a call to access(2)). */
-#define RO(...) access(read_only, __VA_ARGS__)
+#define READ_ONLY(...) access(read_only, __VA_ARGS__)
 
 #endif /* !defined(SRC_ATTR_H) */

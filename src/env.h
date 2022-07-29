@@ -101,7 +101,7 @@ error env_clear(char *vars[]);
  *      ERR_VAR_UNDEF  The variable is undefined.
  *      ERR_VAR_EMPTY  The variable is empty.
  */
-__attribute__((RO(1)))
+__attribute__((READ_ONLY(1)))
 error env_get_fname(const char *name, const mode_t ftype,
                     char **fname, struct stat *fstatus);
 
@@ -147,7 +147,7 @@ error env_get_fname(const char *name, const mode_t ftype,
  *	ERR_VAR_INVALID  A variable is not of the form key=value.
  * 	ERR_SYS          System error. errno(2) should be set.
  */
-__attribute__((RO(2), RO(3)))
+__attribute__((READ_ONLY(2), READ_ONLY(3)))
 error env_restore(char *vars[], const char *const keep[],
                   const char *const toss[]);
 

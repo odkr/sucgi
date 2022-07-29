@@ -39,7 +39,7 @@
 
 /* Abort the programme with an error message. */
 /* flawfinder: ignore (not a call to printf(3)). */
-__attribute__((noreturn, RO(1), format(printf, 1, 2)))
+__attribute__((noreturn, READ_ONLY(1), format(printf, 1, 2)))
 void die(const char *const message, ...);
 
 /*
@@ -51,7 +51,7 @@ void die(const char *const message, ...);
  *      ERR           Trailing nun-numeric characters.
  *      ERR_SYS       System error. errno(2) should be set.
  */
-__attribute__((RO(1)))
+__attribute__((READ_ONLY(1)))
 error str_to_ulong (const char *const s, unsigned long *n);
 
 /*
@@ -66,7 +66,7 @@ error str_to_ulong (const char *const s, unsigned long *n);
  *      ERR_STR_LEN  s is longer than STR_MAX_LEN.
  *      ERR_SYS      System error. errno(2) should be set.
  */
-__attribute__((RO(1), RO(2)))
+__attribute__((READ_ONLY(1), READ_ONLY(2)))
 error str_nsplit(const char *const s, const char *sep,
                  const int max, char ***subs, int *n);
 
@@ -82,7 +82,7 @@ error str_nsplit(const char *const s, const char *sep,
  *
  * Otherwise the same as str_split.
  */
-__attribute__((RO(1), RO(2)))
+__attribute__((READ_ONLY(1), READ_ONLY(2)))
 error str_vsplit(const char *const s, const char *sep, const int n, ...);
 
 /*
@@ -96,7 +96,7 @@ error str_vsplit(const char *const s, const char *sep, const int n, ...);
  *      ERR           s consists of more than STR_MAX_SUBS words.
  *      ERR_SYS       System error. errno(2) should be set.
  */
-__attribute__((RO(1)))
+__attribute__((READ_ONLY(1)))
 error str_words (const char *const restrict s, char ***subs);
 
 #endif /* !defined(SRC_TESTS_UTILS_H) */

@@ -47,7 +47,7 @@ struct pair {
  *
  * Aborts the programme if an error occurred.
  */
-__attribute__((RO(1)))
+__attribute__((READ_ONLY(1)))
 void change_identity(const struct passwd *const user);
 
 /*
@@ -63,7 +63,7 @@ void change_identity(const struct passwd *const user);
  *
  * run_script never returns.
  */
-__attribute__((RO(1), RO(2), noreturn))
+__attribute__((READ_ONLY(1), READ_ONLY(2), noreturn))
 void run_script(const char *const script, const struct pair pairs[]);
 
 #endif /* !defined(SRC_UTILS_H) */
