@@ -178,6 +178,15 @@ mkfifo "$fifo"
 # Root checks
 #
 
+DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/script.sh" \
+	checkerr "yo"
+	run-as 1 1 main
+
+DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/script.sh" \
+	checkerr "yo"
+	run-as 30001 30001 main
+
+
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$grpw" \
 	checkerr "$grpw: can be altered by users other than $user." main
 

@@ -89,6 +89,9 @@
 #undef MIN_UID
 #define MIN_UID 500
 
+#undef MAX_UID
+#define MAX_UID 30000
+
 #undef SCRIPT_HANDLERS
 #define SCRIPT_HANDLERS {{.key = ".sh", .value = "sh"}, {NULL, NULL}}
 
