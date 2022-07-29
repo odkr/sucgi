@@ -31,12 +31,10 @@
 
 
 error
-str_cp(const char *const src, char *dest, const size_t size)
+str_cp(const char *const src, char *dest)
 {
-	size_t n = (size < STR_MAX_LEN + 1) ? size : STR_MAX_LEN + 1;
-
-	assert(src && dest && size > 0);
-	for (size_t i = 0; i < n; i++) {
+	assert(src && dest);
+	for (size_t i = 0; i <= STR_MAX_LEN; i++) {
 		dest[i] = src[i];
 		if (src[i] == '\0') return OK;
 	}
@@ -52,7 +50,8 @@ str_eq(const char *const s1, const char *const s2)
 }
 
 bool
-str_match(const char *const s, const char *const *const pats, const int flags)
+str_matchn(const char *const s, 
+           const char *const *const pats, const int flags)
 {
 	for (size_t i = 0; pats[i]; i++) {
 		if (fnmatch(pats[i], s, flags) == 0) return true;
@@ -66,7 +65,6 @@ str_len(const char *const s, size_t *len)
 	size_t n = strnlen(s, STR_MAX_LEN + 2);
 	if (n > STR_MAX_LEN) return ERR_STR_LEN;
 
-	/* FIXME: Untested. */
 	if (len) *len = n;
 	return OK;
 }

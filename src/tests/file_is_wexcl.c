@@ -12,8 +12,12 @@
 #include "utils.h"
 
 
+/*
+ * Convert a string to a user ID.
+ * Aborts the programme if conversion fails.
+ */
 void
-str_to_id_f (char *s, id_t *id) {
+str_to_id(char *s, id_t *id) {
 	unsigned long n;
 	if (str_to_ulong(s, &n) != OK) {
 		die("file_is_wexcl: %s is not a number.", s);
@@ -32,7 +36,7 @@ main (int argc, char **argv)
 
 	switch (argc) {
 		case 3:
-			str_to_id_f(argv[1], &uid);
+			str_to_id(argv[1], &uid);
 			fname = argv[2];
 			break;
 		default:

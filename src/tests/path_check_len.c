@@ -13,7 +13,7 @@
 #include "../str.h"
 
 
-/* FIXME Undocumented. */
+/* Run path_check_len for a path that is longer than len. */
 static error
 test_longer_than(size_t len)
 {

@@ -1,5 +1,5 @@
 /*
- * Test str_starts_w.
+ * Test path_contains.
  */
 
 #include <assert.h>
@@ -9,9 +9,13 @@
 
 int
 main (void) {
+
+	/*
+	 * Absolute paths.
+	 */
+
 	assert(path_contains("/", "/foo"));
 	assert(path_contains("/foo", "/foo/bar"));
-
 	assert(!path_contains("/foo", "/bar"));
 	assert(!path_contains("/bar", "/foo"));
 	assert(!path_contains("/foo", "/foobar"));
@@ -20,9 +24,22 @@ main (void) {
 	assert(!path_contains("/foo", "/foo"));
 	assert(!path_contains("/", "/"));
 
+
+	/*
+	 * Relative paths
+	 */
+
+	assert(path_contains("foo", "foo/bar"));
+	assert(!path_contains("foo", "foo"));
+	assert(!path_contains("bar", "foo"));
+
+
+	/*
+	 * Paths with leading dot
+	 */
+
 	assert(path_contains(".", "./foo"));
 	assert(path_contains("./foo", "./foo/bar"));
-
 	assert(!path_contains("./bar", "./foo"));
 	assert(!path_contains("./foo", "."));
 	assert(!path_contains("./foo", "./"));
@@ -32,9 +49,10 @@ main (void) {
 	assert(!path_contains(".f", ".foo"));
 	assert(!path_contains(".foo", ".foo"));
 
-	assert(path_contains("foo", "foo/bar"));
-	assert(!path_contains("foo", "foo"));
-	assert(!path_contains("bar", "foo"));
+
+	/*
+	 * Empty paths
+	 */
 
 	assert(!path_contains("", "/"));
 	assert(!path_contains("", "."));
@@ -43,6 +61,11 @@ main (void) {
 	assert(!path_contains(".", ""));
 	assert(!path_contains("foo", ""));
 	assert(!path_contains("", ""));	
-	
+
+
+	/*
+	 * All good
+	 */
+
 	return EXIT_SUCCESS;
 }

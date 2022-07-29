@@ -43,6 +43,28 @@ die (const char *const message, ...)
 }
 
 error
+env_init(const size_t n, ...)
+{
+	va_list ap;	/* Variadic argument. */
+	size_t i = 0;	/* Iterator. */
+
+	assert(n > 0);
+	environ = calloc(n, sizeof(char *));
+	if (!environ) return ERR_SYS;
+
+	va_start(ap, n);
+	for (; i < n - 1; i++) {
+		char *var = va_arg(ap, char *);
+		assert(var);
+		environ[i] = var;
+	}
+	va_end(ap);
+	environ[i] = NULL;
+
+	return OK;
+}
+
+error
 str_to_ulong (const char *const s, unsigned long *n)
 {
 	long long m = 0;
@@ -59,18 +81,18 @@ str_to_ulong (const char *const s, unsigned long *n)
 }
 
 error
-str_nsplit(const char *const s, const char *sep, const int max,
-           char ***subs, int *n)
+str_splitn(const char *const s, const char *sep, const size_t max,
+           char ***subs, size_t *n)
 {
 	char *str = NULL;	/* Copy of s. */
 	char *token = NULL;	/* Start of current substring. */
 	char **tokens = NULL;	/* Substrings. */
-	int ntokens = 0;	/* Number of substrings. */
+	size_t ntokens = 0;	/* Number of substrings. */
 
 	assert(s && sep && subs);
 	str = calloc(STR_MAX_LEN + 1, sizeof(char));
 	if (!str) return ERR_SYS;
-	reraise(str_cp(s, str, STR_MAX_LEN + 1));
+	reraise(str_cp(s, str));
 
 	tokens = calloc((size_t) max + 2, sizeof(char *));
 	if (!tokens) {
@@ -93,39 +115,26 @@ str_nsplit(const char *const s, const char *sep, const int max,
 }
 
 error
-str_vsplit(const char *const s, const char *sep, const int n, ...)
+str_vsplit(const char *const s, const char *sep, const size_t n, ...)
 {
 	va_list ap;		/* Current variadic argument. */
 	char *arg = NULL;	/* Alias for the current variadic argument. */
 	char **tokens = NULL;	/* Substrings. */
-	int ntokens = 0;	/* Number of substrings. */
+	size_t ntokens = 0;	/* Number of substrings. */
 
 	assert(s && sep);
-	reraise(str_nsplit(s, sep, n - 1, &tokens, &ntokens));
+	reraise(str_splitn(s, sep, n - 1, &tokens, &ntokens));
 
 	va_start(ap, n);
 
-	for (int i = 0; i < ntokens; i++) {
+	for (size_t i = 0; i < ntokens; i++) {
 		arg = va_arg(ap, char*);
 		assert(arg);
-		reraise(str_cp(tokens[i], arg, STR_MAX_LEN + 1));
+		reraise(str_cp(tokens[i], arg));
 	}
 
 	va_end(ap);
 
 	free(tokens);
-	return OK;
-}
-
-error
-str_words (const char *const restrict s, char ***subs)
-{
-	int n = 0;
-
-	assert(s);
-	assert(subs);
-
-	reraise(str_nsplit(s, " \f\n\r\t\v", STR_MAX_SUBS, subs, &n));
-	if (n > STR_MAX_SUBS) return ERR;
 	return OK;
 }

@@ -138,7 +138,6 @@ env_get_fname(const char *name, const mode_t ftype,
 	if (*value == '\0') return ERR_VAR_EMPTY;
 	reraise(path_check_len(value));
 	reraise(file_safe_stat(value, &buf));
-	/* FIXME: UNTESTED. */
 	if ((buf.st_mode & S_IFMT) != ftype) return ERR_FTYPE;
 
 	/* flawfinder: ignore (fstatus is guaranteed to be large enough). */
@@ -162,7 +161,7 @@ env_restore(char *vars[], const char *const keep[], const char *const toss[])
 		value = sep + 1;
 		*sep = '\0';
 
-		if (str_match(name, keep, 0) && !str_match(name, toss, 0)) {
+		if (str_matchn(name, keep, 0) && !str_matchn(name, toss, 0)) {
 			if (setenv(name, value, true) != 0) return ERR_SYS;
 		}
 	}
@@ -170,7 +169,6 @@ env_restore(char *vars[], const char *const keep[], const char *const toss[])
 	return OK;
 }
 
-/* FIXME: Untested. */
 error
 env_sanitise (const char *const keep[], const char *const toss[])
 {

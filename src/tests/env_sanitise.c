@@ -25,25 +25,22 @@ extern char **environ;
  */
 
 /*
- * Clear the environment, run env_store with the given patterns, and
- * return its return code. Patters are whitespace-separated strings.
+ * Run env_sanitise with the given patterns, and return its return code.
+ * Patters are whitespace-separated strings.
  */
 error
-env_restore_(const char *keep, const char *toss)
+env_sanitise_(const char *keep, const char *toss)
 {
 	/* flawfinder: ignore */
-	char *vars[ENV_MAX] = {0};	/* Backup of the environment. */
 	char **keepv = NULL;		/* Array of keep patterns. */
 	char **tossv = NULL;		/* Array of toss patterns. */
 	size_t n = 0;			/* Number of patterns. */
 
-	assert(env_clear(vars) == OK);
 	assert(str_splitn(keep, " \f\n\r\t\v", ENV_MAX, &keepv, &n) == OK);
 	assert(n <= ENV_MAX);
 	assert(str_splitn(toss, " \f\n\r\t\v", ENV_MAX, &tossv, &n) == OK);
 	assert(n <= ENV_MAX);
-	return env_restore(
-		vars,
+	return env_sanitise(
 	        (const char *const *const) keepv,
 	        (const char *const *const) tossv
 	);
@@ -63,13 +60,13 @@ main (void) {
 	 */
 
 	env_init(2, "");
-	assert(env_restore_("", "") == ERR_VAR_INVALID);
+	assert(env_sanitise_("", "") == ERR_VAR_INVALID);
 
 	env_init(2, "foo");
-	assert(env_restore_("foo", "") == ERR_VAR_INVALID);
+	assert(env_sanitise_("foo", "") == ERR_VAR_INVALID);
 
 	env_init(2, "=bar");
-	assert(env_restore_("bar", "") == ERR_VAR_INVALID);
+	assert(env_sanitise_("bar", "") == ERR_VAR_INVALID);
 
 
 	/*
@@ -80,7 +77,7 @@ main (void) {
 	assert(setenv("foo", "foo", 1) == 0);
 	assert(setenv("bar", "bar", 1) == 0);
 	assert(setenv("baz", "baz", 1) == 0);
-	assert(env_restore_("foo", "") == OK);
+	assert(env_sanitise_("foo", "") == OK);
 	/* flawfinder: ignore */
 	var = getenv("foo");
 	assert(var);
@@ -94,7 +91,7 @@ main (void) {
 
 	env_init(1);
 	assert(setenv("foo", "foo", 1) == 0);
-	assert(env_restore_("", "") == OK);
+	assert(env_sanitise_("", "") == OK);
 	/* flawfinder: ignore */
 	var = getenv("foo");
 	assert(!var);
@@ -103,7 +100,7 @@ main (void) {
 	assert(setenv("foo", "foo", 1) == 0);
 	assert(setenv("bar", "bar", 1) == 0);
 	assert(setenv("baz", "baz", 1) == 0);
-	assert(env_restore_("foo b*", "foo") == OK);
+	assert(env_sanitise_("foo b*", "foo") == OK);
 	/* flawfinder: ignore */
 	var = getenv("foo");
 	assert(!var);
@@ -127,7 +124,7 @@ main (void) {
 	assert(setenv("space", " ", 1) == 0);
 	assert(setenv("tab", "\t", 1) == 0);
 	assert(setenv("lf", "\n", 1) == 0);
-	assert(env_restore_("empty assign space tab lf", "") == OK);
+	assert(env_sanitise_("empty assign space tab lf", "") == OK);
 	/* flawfinder: ignore */
 	var = getenv("empty");
 	assert(var);
