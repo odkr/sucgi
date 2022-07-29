@@ -52,8 +52,8 @@ then
 	long_name="$PWD/${long_name}x/x"
 fi
 
-uid="$(id -u)" && [ "$uid" ] || abort "failed to get process' effective UID."
-gid="$(id -g)" && [ "$gid" ] || abort "failed to get process' effective GID."
+uid="$(id -u)" && [ "$uid" ] ||
+	abort "failed to get process' effective UID."
 
 file="$TMPDIR/file"
 touch "$file"
@@ -98,7 +98,7 @@ var="$TMPDIR" \
 		env_get_fname var f
 
 var="$file" \
-	checkok "UID $uid, GID $gid" \
+	checkok "UID $uid" \
 		env_get_fname var f
 
 

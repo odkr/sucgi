@@ -56,11 +56,11 @@ true="$(command -v true >/dev/null 2>&1 || :)" || :
 : "${true:=/usr/bin/true}"
 "$true" || abort "true: exited with status $?."
 
-uid="$(regularuid)" && [ "$uid" ] ||
+ruid="$(regularuid)" && [ "$ruid" ] ||
 	abort "failed to get non-root user ID of caller."
-user="$(id -un "$uid")" && [ "$user" ] ||
+user="$(id -un "$ruid")" && [ "$user" ] ||
 	abort "failed to name of user with ID $uid."
-gid="$(id -g "$user")" && [ "$gid" ] ||
+rgid="$(id -g "$user")" && [ "$rgid" ] ||
 	abort "failed to get ID of $user's primary group."
 
 home="$(homedir "$user")" && [ "$home" ] ||
@@ -163,11 +163,11 @@ cp -a "$script_dir/scripts/." "$tmpdir/."
 
 grpw="$tmpdir/grpw.sh"
 echo : > "$grpw"
-chown -R "$uid:$gid" "$tmpdir"
+chown -R "$ruid:$rgid" "$tmpdir"
 chmod ug=w "$grpw"
 
 reportuser="$tmpdir/user.sh"
-chown "$uid:$gid" "$reportuser"
+chown "$ruid:$rgid" "$reportuser"
 chmod u=rwx,go= "$reportuser"
 
 fifo="$tmpdir/fifo"
@@ -185,7 +185,7 @@ DOCUMENT_ROOT=/ PATH_TRANSLATED="$tmpdir/script.sh" \
 	checkok 'This is a test script for main.sh and run_script.sh.' main
 
 DOCUMENT_ROOT=/ PATH_TRANSLATED="$reportuser" \
-	checkok "$uid:$gid" main
+	checkok "$ruid:$rgid" main
 
 DOCUMENT_ROOT=/ PATH_TRANSLATED="$tmpdir/env.sh" FOO=bar \
 	main >"$fifo" 2>&1 & pid="$!"
