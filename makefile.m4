@@ -35,7 +35,9 @@ COVDIR = cov
 # Tests
 #
 
-CHECKBINS = $(BUILDDIR)/tests/change_identity \
+CHECKBINS = $(BUILDDIR)/tests/tools/run-as \
+            $(BUILDDIR)/tests/tools/unused-ids \
+            $(BUILDDIR)/tests/change_identity \
             $(BUILDDIR)/tests/fail $(BUILDDIR)/tests/env_clear \
             $(BUILDDIR)/tests/env_get_fname \
             $(BUILDDIR)/tests/env_restore \
@@ -195,6 +197,13 @@ $(BUILDDIR)/tests/tools/run-as:	$(SRCDIR)/tests/tools/run-as.c \
 				$(BUILDDIR)/tests/tools/.sentinel
 	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
 		$(BUILDDIR)/tests/str.o $(BUILDDIR)/tests/utils.o \
+		$(LDLIBS)
+
+$(BUILDDIR)/tests/tools/unused-ids:	$(SRCDIR)/tests/tools/unused-ids.c \
+					$(BUILDDIR)/tests/utils.o \
+					$(BUILDDIR)/tests/tools/.sentinel
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
+		$(BUILDDIR)/tests/utils.o \
 		$(LDLIBS)
 
 $(BUILDDIR)/tests/change_identity:	$(SRCDIR)/tests/change_identity.c \
