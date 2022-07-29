@@ -94,21 +94,23 @@ Compile and install suCGI by::
 You can uninstall suCGI by ``make uninstall``.
 
 
-Setting up Apache and PHP
-=========================
+Apache Configuration for PHP
+============================
 
 Set up Apache_ and PHP_, enable mod_userdir_ and mod_action_, install suCGI
 and then add the following lines to your Apache configuration::
-
 
     <Directory "/home">
         Action application/x-httpd-php /cgi-bin/sucgi
     </Directory>
 
+The directory should correspond to *DOC_ROOT* in *config.h*.
 
-The directory should correspond to the *DOC_ROOT* setting in *config.h*.
+Restart Apache::
 
-This should run PHP scripts in */home* via suCGI.
+    apache2ctl -t && apache2ctl restart
+
+PHP scripts in */home* should now be run under the UID and GID of their owner.
 
 
 Documentation
