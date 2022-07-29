@@ -66,13 +66,6 @@ rgid="$(id -g "$user")" && [ "$rgid" ] ||
 home="$(homedir "$user")" && [ "$home" ] ||
 	abort "failed to get $user's home directory."
 
-homebase="$home"
-while [ "/${homebase##*/}" != "$homebase" ]
-do
-	homebase="$(dirname "$homebase")" && [ "$homebase" ] ||
-		abort "failed to get directory name of $homebase."
-done
-
 
 #
 # Non-root checks
@@ -130,8 +123,8 @@ DOCUMENT_ROOT=/ PATH_TRANSLATED='' \
 DOCUMENT_ROOT=/ PATH_TRANSLATED='/::no-such-file!!' \
 	checkerr '$PATH_TRANSLATED: No such file or directory.' main
 
-DOCUMENT_ROOT="$homebase" PATH_TRANSLATED="$true" \
-	checkerr "\$PATH_TRANSLATED: not in document root $homebase." main
+DOCUMENT_ROOT="$home" PATH_TRANSLATED="$true" \
+	checkerr "\$PATH_TRANSLATED: not in document root $home." main
 
 DOCUMENT_ROOT=/ PATH_TRANSLATED="$home" \
 	checkerr '$PATH_TRANSLATED: not a regular file.' main
@@ -178,16 +171,16 @@ mkfifo "$fifo"
 # Root checks
 #
 
-DOCUMENT_ROOT=/ PATH_TRANSLATED="$grpw" \
+DOCUMENT_ROOT="$home" PATH_TRANSLATED="$grpw" \
 	checkerr "$grpw: can be altered by users other than $user." main
 
-DOCUMENT_ROOT=/ PATH_TRANSLATED="$tmpdir/script.sh" \
+DOCUMENT_ROOT="$home" PATH_TRANSLATED="$tmpdir/script.sh" \
 	checkok 'This is a test script for main.sh and run_script.sh.' main
 
-DOCUMENT_ROOT=/ PATH_TRANSLATED="$reportuser" \
+DOCUMENT_ROOT="$home" PATH_TRANSLATED="$reportuser" \
 	checkok "$ruid:$rgid" main
 
-DOCUMENT_ROOT=/ PATH_TRANSLATED="$tmpdir/env.sh" FOO=bar \
+DOCUMENT_ROOT="$home" PATH_TRANSLATED="$tmpdir/env.sh" FOO=bar \
 	main >"$fifo" 2>&1 & pid="$!"
 grep -Fq 'FOO=bar' <"$fifo" && abort 'environment was not cleared.'
 wait "$pid" || abort "./env.sh exited with non-status $?."

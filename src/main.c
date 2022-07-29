@@ -83,6 +83,9 @@
 #undef DOC_ROOT
 #define DOC_ROOT "/*"
 
+#undef FNM_PATHNAME
+#define FNM_PATHNAME 0
+
 #undef MIN_UID
 #define MIN_UID 500
 
