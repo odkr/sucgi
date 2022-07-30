@@ -41,17 +41,5 @@ main (int argc, char **argv)
 	       (unsigned long) geteuid(), (unsigned long) getegid(),
 	       (unsigned long) getuid(), (unsigned long) getgid());
 
-	/* 
-	 * Creating coverage reports as root would fail
-	 * if the EUID and EGID were not reset to 0.
-	 */
-
-	if (seteuid(0) != 0) {
-		die("change_identity: seteuid 0: %s.", strerror(errno));
-	}
-	if (setegid(0) != 0) {
-		die("change_identity: setegid 0: %s.", strerror(errno));
-	}
-
 	return EXIT_SUCCESS;
 }
