@@ -1,5 +1,5 @@
 /*
- * Get an unused user ID and group ID.
+ * Find an unallocated regular user and an unallocated regular group ID.
  */
 
 #include <errno.h>
@@ -10,15 +10,17 @@
 
 #include "../utils.h"
 
-#define MAX 65536
+#define MIN 1000
+#define MAX 30000
+
 
 int
 main (void)
 {
 	struct passwd *pwd = NULL;
 	struct group *grp = NULL;
-	uid_t uid = 1;
-	gid_t gid = 1;
+	uid_t uid = MIN;
+	gid_t gid = MIN;
 
 	for (; uid < MAX; uid++) {
 		pwd = getpwuid(uid);
