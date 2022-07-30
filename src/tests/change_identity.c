@@ -30,8 +30,8 @@ main (int argc, char **argv)
 	/* cppcheck-suppress getpwnamCalled */
 	pwd = getpwnam(user);
 	if (!pwd) {
-		die("change_identity: getpwnam %s: %s.",
-		    user, strerror(errno));
+		char *err = (errno > 0) ? strerror(errno) : "no such user";
+		die("change_identity: getpwnam %s: %s.", user, err);
 	}
 
 	change_identity(pwd);

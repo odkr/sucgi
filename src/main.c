@@ -219,8 +219,9 @@ main (void) {
 	owner = getpwuid(fstatus.st_uid);
 	/* NB: The test suite does not check whether this check works. */
 	if (!owner) {
-		fail("%s: getpwuid %lu: %s.", prog,
-		     (unsigned long) fstatus.st_uid, strerror(errno));
+		char *err = (errno > 0) ? strerror(errno) : "no such user";
+		fail("%s: getpwuid %lu: %s.",
+		     prog, (unsigned long) fstatus.uid, err);
 	}
 
 
