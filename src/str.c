@@ -31,11 +31,11 @@
 
 
 error
-str_cp(const char *const src, char *dest)
+str_cp(const char *const src, str4096 *dest)
 {
 	assert(src && dest);
 	for (size_t i = 0; i <= STR_MAX_LEN; i++) {
-		dest[i] = src[i];
+		(*dest)[i] = src[i];
 		if ('\0' == src[i]) return OK;
 	}
 
@@ -69,16 +69,15 @@ str_len(const char *const s, size_t *len)
 	return OK;
 }
 
-/* FIXME: Untested. */
 error
 str_split(const char *const s, const char *const sep,
-          char *head, char **tail)
+          str4096 *head, char **tail)
 {
 	*tail = strpbrk(s, sep);
 	if (*tail) {
 		size_t len = (size_t) (*tail - s);
 		reraise(str_cp(s, head));
-		head[len] = '\0';
+		(*head)[len] = '\0';
 		(*tail)++;
 	} else {
 		reraise(str_cp(s, head));

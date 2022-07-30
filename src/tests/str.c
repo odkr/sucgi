@@ -45,7 +45,7 @@ str_to_ulong (const char *const s, unsigned long *n)
 
 error
 str_splitn(const char *const s, const char *sep, const size_t max,
-           char *subs[], size_t *n)
+           str4096 *subs[], size_t *n)
 {
 	char *pivot = (char *) s;	/* Current start of string. */
 	size_t i = 0;			/* Iterator. */

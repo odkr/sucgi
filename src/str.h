@@ -42,6 +42,15 @@
 
 
 /*
+ * Data types
+ */
+
+/* A str4096 string type. */
+/* flawfinder: ignore (this type is defined to facilitate bound checks). */
+typedef char str4096[STR_MAX_LEN + 1];
+
+
+/*
  * Functions
  */
 
@@ -55,7 +64,7 @@
  *      ERR_STR_LEN  src is longer than STR_MAX_LEN.
  */
 __attribute__((READ_ONLY(1)))
-error str_cp(const char *const src, char *dest);
+error str_cp(const char *const src, str4096 *dest);
 
 /* Return true if s1 and s2 are equal and false otherwise. */
 __attribute__((READ_ONLY(1), READ_ONLY(2)))
@@ -94,7 +103,7 @@ error str_len(const char *const s, size_t *len);
 __attribute__((READ_ONLY(1), READ_ONLY(2)))
 error
 str_split(const char *const s, const char *const sep,
-          char *head, char **tail);
+          str4096 *head, char **tail);
 
 
 #endif /* !defined(SRC_STR_H) */

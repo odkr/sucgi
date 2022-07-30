@@ -45,18 +45,15 @@ change_identity(const struct passwd *const user)
 {
 	uid_t uid = 0;
 	gid_t gid = 0;
-	// gid_t groups[1] = {0};
 	char *name = NULL;
 
 	assert(user && user->pw_name);
 	name = user->pw_name;
 	uid = user->pw_uid;
 	gid = user->pw_gid;
-	// groups[0] = gid;
 
 	if (0 == uid) fail("%s is the superuser.", name);
 	if (0 == gid) fail("%s's primary group is the supergroup.", name);
-	if (str_eq(name, "root")) fail("refusing username 'root'.");
 
 	if (setgroups(1, (gid_t[1]) {gid}) != 0) {
 		fail("setgroups %lu: %s.",

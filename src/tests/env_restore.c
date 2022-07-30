@@ -35,11 +35,11 @@ error
 env_restore_(const char *keep, const char *toss)
 {
 	/* flawfinder: ignore */
-	char *vars[ENV_MAX] = {0};	/* Backup of the environment. */
+	char *vars[ENV_MAX] = {NULL};	/* Backup of the environment. */
 	/* flawfinder: ignore */
-	char *keepv[ENV_MAX] = {0};	/* Array of keep patterns. */
+	char *keepv[ENV_MAX] = {NULL};	/* Array of keep patterns. */
 	/* flawfinder: ignore */
-	char *tossv[ENV_MAX] = {0};	/* Array of toss patterns. */
+	char *tossv[ENV_MAX] = {NULL};	/* Array of toss patterns. */
 
 	assert(env_clear(vars) == OK);
 	assert(str_splitn(keep, " \f\n\r\t\v", ENV_MAX, keepv, NULL) == OK);
@@ -59,7 +59,7 @@ env_restore_(const char *keep, const char *toss)
 int
 main (void) {
 	/* flawfinder: ignore */
-	char huge[STR_MAX_LEN + 2] = {0};	/* A huge string. */
+	char huge[STR_MAX_LEN + 2] = "";	/* A huge string. */
 	char *var = NULL;			/* An environment variable. */
 
 

@@ -60,12 +60,13 @@ path_check_len(const char *const path)
 	sub = path;
 	do {
 		/* flawfinder: ignore (super <= path, path bound-checked). */
-		char super[STR_MAX_LEN + 1] = {0};
+		char super[STR_MAX_LEN + 1] = "";
 		size_t fname_len = 0;
 		size_t super_len = 0;
 		size_t sub_len = 0;
 
 		if (sep) {
+			/* FIXME: Create safe string copy function and use it here. */
 			super_len = (size_t) (sep - path + 1);
 			/* flawfinder: ignore (super_len < STR_MAX_LEN). */
 			memcpy(super, path, super_len);
@@ -109,12 +110,11 @@ error
 path_check_wexcl(const uid_t uid, const char *const start,
                  const char *const stop)
 {
-	/* flawfinder: ignore (str_cp copies at most STR_MAX_LEN bytes). */
-	char path[STR_MAX_LEN + 1] = {0};	/* Copy of path. */
-	char *file = path;			/* Path to current file. */
+	str4096 path = "";	/* Copy of path. */
+	char *file = path;	/* Path to current file. */
 
 	assert(start && stop);
-	reraise(str_cp(start, path));
+	reraise(str_cp(start, &path));
 
 	while (true) {
 		struct stat fstatus;

@@ -23,6 +23,7 @@ main (void)
 	gid_t gid = MIN;
 
 	for (; uid < MAX; uid++) {
+		/* cppcheck-suppress getpwuidCalled */
 		pwd = getpwuid(uid);
 		if (!pwd) {
 			if (errno) {
@@ -35,6 +36,7 @@ main (void)
 	if (MAX == uid) die("unused-ids: cannot find an unused user ID.");
 
 	for (; gid < MAX; gid++) {
+		/* cppcheck-suppress getgrgidCalled */
 		grp = getgrgid(gid);
 		if (!grp) {
 			if (errno) {
@@ -46,6 +48,7 @@ main (void)
 	}
 	if (MAX == gid) die("unused-ids: cannot find an unused group ID.");
 
+	// flawfinder: ignore
 	printf("%lu:%lu\n", (unsigned long) uid, (unsigned long) gid);
 
 	exit(EXIT_SUCCESS);
