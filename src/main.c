@@ -217,7 +217,6 @@ main (void) {
 	/* suCGI does not aim to be thread-safe. */
 	/* cppcheck-suppress getpwuidCalled */
 	owner = getpwuid(fstatus.st_uid);
-	/* NB: The test suite does not check whether this check works. */
 	if (!owner) {
 		char *err = (errno > 0) ? strerror(errno) : "no such user";
 		fail("%s: getpwuid %lu: %s.",
