@@ -33,38 +33,37 @@
 #include "str.h"
 #include "utils.h"
 
+#if defined(__APPLE__) && defined(__MACH__)
+#define INITGROUPS_GID_TYPE int
+#else
+#define INITGROUPS_GID_TYPE gid_t
+#endif
+
 
 void
 change_identity(const struct passwd *const user)
 {
 	uid_t uid = 0;
 	gid_t gid = 0;
-	gid_t groups[1] = {0};
-	int groups_init = -1;
-	
-	assert(user);
+	// gid_t groups[1] = {0};
+	char *name = NULL;
+
+	assert(user && user->pw_name);
+	name = user->pw_name;
 	uid = user->pw_uid;
 	gid = user->pw_gid;
-	groups[0] = gid;
+	// groups[0] = gid;
 
-	if (0 == uid) {
-		fail("%s is the superuser.", user->pw_name);
-	}
-	if (0 == gid) {
-		fail("%s's primary group is the supergroup.", user->pw_name);
-	}
+	if (0 == uid) fail("%s is the superuser.", name);
+	if (0 == gid) fail("%s's primary group is the supergroup.", name);
+	if (str_eq(name, "root")) fail("refusing username 'root'.");
 
-	if (setgroups(1, groups) != 0) {
-		fail("group clean-up: %s.", strerror(errno));
+	if (setgroups(1, (gid_t[1]) {gid}) != 0) {
+		fail("setgroups %lu: %s.",
+		     (unsigned long) gid, strerror(errno));
 	}
-	
-#if defined(__APPLE__) && defined(__MACH__)
-	groups_init = initgroups(user->pw_name, (int) gid) != 0;
-#else
-	groups_init = initgroups(user->pw_name, gid) != 0;
-#endif /* defined(__APPLE__) && defined(__MACH__) */
-	if (groups_init != 0) {
-		fail("group initialisation: %s.", strerror(errno));
+	if (initgroups(name, (INITGROUPS_GID_TYPE) gid) != 0) {
+		fail("initgroups %s: %s.", name, strerror(errno));
 	}
 
 	/*
@@ -72,43 +71,27 @@ change_identity(const struct passwd *const user)
 	 * user may call seteuid(2) to gain webserver priviliges.
 	 */
 	if (setgid(gid) != 0) {
-		fail("failed to set real GID: %s", strerror(errno));
+		fail("setgid %lu: %s.", (unsigned long) gid, strerror(errno));
 	}
 	if (setuid(uid) != 0) {
-		fail("failed to set real UID: %s.", strerror(errno));
+		fail("setuid %lu: %s.", (unsigned long) uid, strerror(errno));
 	}
 	if (setegid(gid) != 0) {
-		fail("failed to set effective GID: %s", strerror(errno));
+		fail("setegid %lu: %s.", (unsigned long) gid, strerror(errno));
 	}
 	if (seteuid(uid) != 0) {
-		fail("failed to set effective UID: %s.", strerror(errno));
+		fail("seteuid %lu: %s.", (unsigned long) uid, strerror(errno));
 	}
 
-	if (getuid() != uid) {
-		fail("real UID did not change.");
-	}
-	if (getgid() != gid) {
-		fail("real GID did not change.");
-	}
-	if (geteuid() != uid) {
-		fail("effective UID did not change.");
-	}
-	if (getegid() != gid) {
-		fail("effective GID did not change.");
-	}
+	if (getuid() != uid) fail("failed to set real UID.");
+	if (getgid() != gid) fail("failed to set real GID.");
+	if (geteuid() != uid) fail("failed to set effective UID.");
+	if (getegid() != gid) fail("failed to set effective GID.");
 
-	if (0 == setegid(0)) {
-		fail("could re-set process' effective GID to 0.");
-	}
-	if (0 == seteuid(0)) {
-		fail("could re-set process' effective UID to 0.");
-	}
-	if (0 == setgid(0)) {
-		fail("could re-set process' real GID to 0.");
-	}
-	if (0 == setuid(0)) {
-		fail("could re-set process' real UID to 0.");
-	}
+	if (setegid(0) == 0) fail("could reset effective GID to 0.");
+	if (seteuid(0) == 0) fail("could reset effective UID to 0.");
+	if (setgid(0) == 0) fail("could reset real GID to 0.");
+	if (setuid(0) == 0) fail("could reset real UID to 0.");
 }
 
 void
@@ -128,11 +111,7 @@ run_script(const char *const script, const struct pair pairs[])
 
 		if (!interpreter) {
 			fail("script handler %d: no interpreter.", i + 1);
-		}
-
-		/* It is tested above whether interpreter is NULL. */
-		/* cppcheck-suppress nullPointerRedundantCheck */
-		if ('\0' == interpreter[0]) {
+		} else if ('\0' == interpreter[0]) {
 			fail("script handler %d: path is empty.", i + 1);
 		}
 
