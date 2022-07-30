@@ -221,7 +221,7 @@ main (void) {
 	if (!owner) {
 		char *err = (errno > 0) ? strerror(errno) : "no such user";
 		fail("%s: getpwuid %lu: %s.",
-		     prog, (unsigned long) fstatus.uid, err);
+		     prog, (unsigned long) fstatus.st_uid, err);
 	}
 
 
