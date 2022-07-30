@@ -194,9 +194,11 @@ $(BUILDDIR)/tests/str.o:	$(SRCDIR)/tests/str.c \
 $(BUILDDIR)/tests/tools/run-as:	$(SRCDIR)/tests/tools/run-as.c \
 				$(BUILDDIR)/tests/utils.o \
 				$(BUILDDIR)/tests/str.o \
+				$(BUILDDIR)/str.o \
 				$(BUILDDIR)/tests/tools/.sentinel
 	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
 		$(BUILDDIR)/tests/str.o $(BUILDDIR)/tests/utils.o \
+		$(BUILDDIR)/str.o \
 		$(LDLIBS)
 
 $(BUILDDIR)/tests/tools/unused-ids:	$(SRCDIR)/tests/tools/unused-ids.c \
