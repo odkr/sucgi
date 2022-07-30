@@ -455,7 +455,6 @@ clean:
 cov:
 	test -e cov || mkdir cov
 	cd cov && CC=$(CC) CFLAGS=--coverage ../configure -q && make check
-	chmod -R u+rw,go= cov
 
 lcov.info: cov
 	lcov -c -d cov -o lcov.info --exclude '*/tests/*'
