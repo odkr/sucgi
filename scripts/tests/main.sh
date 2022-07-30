@@ -183,10 +183,6 @@ nouser="$tmpdir/nouser.sh"
 cp "$tmpdir/script.sh" "$nouser"
 chmod +x "$nouser"
 
-nogroup="$tmpdir/nogroup.sh"
-cp "$tmpdir/script.sh" "$nogroup"
-chmod +x "$nogroup"
-
 grpw="$tmpdir/grpw.sh"
 cp "$tmpdir/script.sh" "$grpw"
 chmod ug=w "$grpw"
@@ -199,7 +195,6 @@ chown -R "$ruid:$rgid" "$tmpdir"
 chown 1:1 "$ltmin"
 chown 30001:30001 "$gtmax"
 chown "$unused_uid" "$nouser"
-chgrp "$unused_gid" "$nogroup"
 
 fifo="$tmpdir/fifo"
 mkfifo "$fifo"
@@ -216,10 +211,7 @@ DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$gtmax" \
 	checkerr "$gtmax: owned by non-regular UID 30001." main main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$nouser" \
-	checkerr "XXX." main
-
-DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$nogroup" \
-	checkerr "XXX." main main
+	checkerr "$nouser: getpwuid $unused_uid: no such user." main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$grpw" \
 	checkerr "$grpw: can be altered by users other than $user." main
