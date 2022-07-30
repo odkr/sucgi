@@ -46,14 +46,12 @@ main (int argc, char **argv)
 	 * if the EUID and EGID were not reset to 0.
 	 */
 
-	/* cppcheck-suppress getpwuidCalled */
-	pwd = getpwuid(0);
-	if (!pwd) {
-		char *err = (errno > 0) ? strerror(errno) : "no such user";
-		die("change_identity: getpwuid 0: %s.", err);
+	if (seteuid(0) != 0) {
+		die("change_identity: seteuid 0: %s.", strerror(errno));
 	}
-
-	change_identity(pwd);
+	if (setegid(0) != 0) {
+		die("change_identity: setegid 0: %s.", strerror(errno));
+	}
 
 	return EXIT_SUCCESS;
 }
