@@ -35,14 +35,14 @@ str_cp(const char *const src,
        char (*dest)[STR_MAX])
 {
 	/* 
-	 * Using stpncpy causes str_cp and env_sanitise to break if suCGI is
-	 * compiled with instrumentation (e.g., -flto, -fstack-protector, or
-	 * --coverage) using GCC. ¯\_(ツ)_/¯
+	 * FIXME: Using stpncpy causes str_cp and env_sanitise to break in
+	 * mysterious ways if suCGI is compiled with instrumentation (e.g.,
+	 * -flto, -fstack-protector, or --coverage) using GCC. ¯\_(ツ)_/¯
 	 */
 	assert(src && dest);
 	for (size_t n = 0; n < STR_MAX; n++) {
 		(*dest)[n] = src[n];
-		if ('\0' == (*dest)[n]) return OK;
+		if ('\0' == src[n]) return OK;
 	}
 	return ERR_STR_MAX;
 }
