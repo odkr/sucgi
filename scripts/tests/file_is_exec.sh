@@ -43,3 +43,26 @@ done
 
 file_is_exec /bin/sh ||
 	abort "file_is_exec does not report /bin/sh as executable."
+
+
+#
+# Interlude
+#
+
+euid="$(id -u)" && [ "$euid" ] ||
+	abort "failed to get effective user ID."
+
+[ "$euid" -ne 0 ] && exit
+
+unused_ids="$(unused-ids)" && [ "$unused_ids" ] ||
+	abort "failed to find an ununsed UID and GID."
+
+chown "$unused_ids" "$fname"
+
+chmod o= "$fname"
+file_is_exec "$fname" &&
+	abort "file_is_exec reports $mode as executable."
+
+chmod o=x "$fname"
+file_is_exec "$fname" ||
+	abort "file_is_exec does not report $mode as executable."
