@@ -55,7 +55,7 @@ cleanup() {
 	trap : EXIT HUP INT TERM
 	kill -15 -$$ >/dev/null 2>&1
 	[ "${cleanup-}" ] && eval "$cleanup"
-	[ "${reset-}" ] && printf %s "$reset"
+	[ "${reset-}" ] && printf %s "$reset" >&2
 	exit "$status"
 }
 

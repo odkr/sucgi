@@ -451,13 +451,16 @@ clean:
 cov:
 	test -e cov || mkdir cov
 	cd cov && CC=$(CC) CFLAGS=--coverage ../configure -q && make check
+	chown -R $$($(SCRIPTDIR)/realids) cov
 
 lcov.info: cov
 	lcov -c -d cov -o lcov.info --exclude '*/tests/*'
+	chown -R $$($(SCRIPTDIR)/realids) lcov.info
 
 cov/html/index.html: lcov.info
 	test -e cov/html || mkdir cov/html
 	genhtml -o cov/html lcov.info
+	chown -R $$($(SCRIPTDIR)/realids) cov/html
 
 covhtml: cov/html/index.html
 
