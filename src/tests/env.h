@@ -42,7 +42,6 @@ extern char **environ;
  * and initialise with the given variadic arguments,
  * which must be strings.
  */
-__attribute__((READ_ONLY(1)))
 error env_init(const size_t n, ...);
 
 
