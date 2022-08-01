@@ -68,7 +68,7 @@ error str_cp(const char *const src,
  *      OK           Success.
  *      ERR_STR_MAX  n is larger than STR_MAX - 1 bytes.
  */
-__attribute__((READ_ONLY(1), READ_ONLY(2)))
+__attribute__((READ_ONLY(2), READ_ONLY(3)))
 error str_cpn(const size_t n, const char *const src,
               /* Flawfinder: ignore (str_cpn writes at most STR_MAX bytes.) */
 	      char (*dest)[STR_MAX]);
@@ -81,7 +81,7 @@ bool str_eq(const char *const s1, const char *const s2);
  * Return true if s matches any shell wildcard pattern in pats.
  * pats must be NULL-terminated. See fnmatch(3) for pattern syntax and flags.
  */
-__attribute__((READ_ONLY(1), READ_ONLY(2), READ_ONLY(3)))
+__attribute__((READ_ONLY(1), READ_ONLY(2)))
 bool str_fnmatchn(const char *const s, const char *const *const pats,
                 const int flags);
 
