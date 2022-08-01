@@ -450,10 +450,12 @@ clean:
 
 cov:
 	test -e cov || mkdir cov
-	cd cov && CC=$(CC) CFLAGS=--coverage ../configure -q && make covprep && make check
+	cd cov && CC=$(CC) CFLAGS=--coverage ../configure -q && make _covrun
 
-covprep: $(CHECKBINS)
+_covbuild: $(CHECKBINS)
 	chown -R $$($(SCRIPTDIR)/realids) build
+
+_covrun: _covbuild check
 
 lcov.info: cov
 	lcov -c -d cov -o lcov.info --exclude '*/tests/*'
@@ -485,7 +487,7 @@ install: $(BUILDDIR)/sucgi
 uninstall:
 	rm -f $(CGIBIN)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
 
-.SILENT: analysis check cov dist distcheck install
+.SILENT: analysis check cov _covbuild _covrun dist distcheck install
 
 .PHONY: all analysis check clean cov covhtml gcov lcov.info \
 	dist distcheck distclean install uninstall

@@ -55,7 +55,7 @@ env_sanitise_(const char *keep, const char *toss)
 int
 main (void) {
 	/* Flawfinder: ignore */
-	char huge[STR_MAX +1] = "";	/* A huge string. */
+	char huge[STR_MAX + 1] = "";	/* A huge string. */
 	char *var = NULL;		/* An environment variable. */
 
 

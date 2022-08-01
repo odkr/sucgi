@@ -202,10 +202,9 @@ main (void) {
 	if (0 == fstatus.st_gid) {
 		fail("%s: owned by the supergroup.", prog);
 	}
-
 	if (MAX_UID < fstatus.st_uid || fstatus.st_uid < MIN_UID) {
-		fail("%s: owned by non-regular UID %lu.",
-		     prog, (unsigned long) fstatus.st_uid);
+		fail("%s: owned by non-regular UID %llu.",
+		     prog, (uint64_t) fstatus.st_uid);
 	}
 
 	/*
@@ -219,8 +218,8 @@ main (void) {
 	owner = getpwuid(fstatus.st_uid);
 	if (!owner) {
 		char *err = (errno > 0) ? strerror(errno) : "no such user";
-		fail("%s: getpwuid %lu: %s.",
-		     prog, (unsigned long) fstatus.st_uid, err);
+		fail("%s: getpwuid %llu: %s.",
+		     prog, (uint64_t) fstatus.st_uid, err);
 	}
 
 

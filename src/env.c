@@ -164,13 +164,16 @@ env_sanitise (const char *const keep[], const char *const toss[])
 
 	/* Repopulate the environment. */
 	for (size_t i = 0; i < ENV_MAX && vars[i]; i++) {
-		/* Flawfinder: ignore (str_split adds at most STR_MAX bytes). */
+		/* Flawfinder: ignore (str_split respects STR_MAX). */
 		char name[STR_MAX] = "";	/* Variable name. */
 		char *value = NULL;		/* Variable value. */
 
 		reraise(str_split(vars[i], "=", &name, &value));
 		if (str_eq(name, "") || !value) return ERR_VAR_INVALID;
-		if (str_fnmatchn(name, keep, 0) && !str_fnmatchn(name, toss, 0)) {
+
+		if ( str_fnmatchn(name, keep, 0) && 
+		    !str_fnmatchn(name, toss, 0))
+		{
 			if (setenv(name, value, true) != 0) return ERR_SYS;
 		}
 	}

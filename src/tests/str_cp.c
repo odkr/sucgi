@@ -19,7 +19,7 @@ main (void) {
 	char huge[STR_MAX + 1] = "";	/* A string that exceeds STR_MAX. */
 	/* Flawfinder: ignore */
 	char s[STR_MAX] = "";		/* A string. */
-	
+
 	/* Test overly long string. */
 	memset(huge, 'x', STR_MAX);
 	assert(strnlen(huge, STR_MAX + 1) == STR_MAX);

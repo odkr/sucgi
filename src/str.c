@@ -29,16 +29,21 @@
 #include "err.h"
 #include "str.h"
 
-
 error
 str_cp(const char *const src,
        /* Flawfinder: ignore (str_cp copies at most STR_MAX bytes). */
        char (*dest)[STR_MAX])
 {
+	/* 
+	 * Using stpncpy causes str_cp and env_sanitise to break if suCGI is
+	 * compiled with instrumentation (e.g., -flto, -fstack-protector, or
+	 * --coverage) using GCC. ¯\_(ツ)_/¯
+	 */
 	assert(src && dest);
-	char *term = stpncpy(*dest, src, STR_MAX);
-	if ('\0' == *term) return OK;
-	*term = '\0';
+	for (size_t n = 0; n < STR_MAX; n++) {
+		(*dest)[n] = src[n];
+		if ('\0' == (*dest)[n]) return OK;
+	}
 	return ERR_STR_MAX;
 }
 
