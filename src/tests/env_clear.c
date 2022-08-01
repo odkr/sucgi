@@ -17,7 +17,7 @@ extern char **environ;
 
 int
 main (void) {
-	/* flawfinder: ignore */
+	/* Flawfinder: ignore */
 	char *env[ENV_MAX] = {NULL};	/* A backup of the environment. */
 	char **var = NULL;		/* An environment variable. */
 	int n = 0;			/* Number of variables found. */
@@ -35,7 +35,7 @@ main (void) {
 
 	assert(setenv("foo", "foo", 1) == 0);
 	assert(env_clear(env) == OK);
-	/* flawfinder: ignore */
+	/* Flawfinder: ignore */
 	assert(getenv("foo") == NULL);
 	for (var = environ; *var; var++) n++;
 	assert(0 == n);
@@ -47,7 +47,8 @@ main (void) {
 
 	n = 0;
 	for (var = env; *var; var++) {
-		str4096 name = "";
+		/* Flawfinder: ignore */
+		char name[STR_MAX] = "";
 		char *value = NULL;
 
 		assert(str_split(*var, "=", &name, &value) == OK);
@@ -66,10 +67,11 @@ main (void) {
 	assert(env_clear(NULL) == OK);
 	
 	for (int i = 0; i <= ENV_MAX; i++) {
-		str4096 name = "";
+		/* Flawfinder: ignore */
+		char name[STR_MAX] = "";
 		
-		/* flawfinder: ignore */
-		assert(snprintf(name, STR_MAX_LEN, "foo%d", i) > 0);
+		/* Flawfinder: ignore */
+		assert(snprintf(name, STR_MAX - 1, "foo%d", i) > 0);
 		assert(setenv(name, "foo", true) == 0);
 	}
 

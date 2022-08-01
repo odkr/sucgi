@@ -48,7 +48,7 @@ main (void)
 	}
 	if (MAX == gid) die("unused-ids: cannot find an unused group ID.");
 
-	// flawfinder: ignore
+	// Flawfinder: ignore
 	printf("%lu:%lu\n", (unsigned long) uid, (unsigned long) gid);
 
 	exit(EXIT_SUCCESS);

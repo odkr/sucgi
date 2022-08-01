@@ -38,7 +38,7 @@ main (int argc, char **argv)
 	str_to_id(argv[1], &uid);
 	str_to_id(argv[2], &gid);
 	/* cppcheck-suppress nullPointerRedundantCheck */
-	/* flawfinder: ignore */
+	/* Flawfinder: ignore */
 	(void) memcpy(args, &argv[3], (size_t) (argc - 3) * sizeof(char *));
 
 	if (setgroups(1, (gid_t[1]) {gid}) != 0) {
@@ -77,7 +77,7 @@ main (int argc, char **argv)
 	if (setgid(0) == 0) die("run-as: could reset real GID to 0.");
 	if (setuid(0) == 0) die("run-as: could reset real UID to 0.");
 
-	// flawfinder: ignore
+	// Flawfinder: ignore
 	execvp(args[0], args);
 
 	die("exec %s: %s.", args[0], strerror(errno));

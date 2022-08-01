@@ -27,7 +27,8 @@ main (int argc, char **argv)
 	}
 
 	for (i = 2; i < argc; i++) {
-		str4096 suffix = "";
+		/* Flawfinder: ignore */
+		char suffix[STR_MAX] = "";
 		char *handler = NULL;
 		error rc = ERR;
 
@@ -38,7 +39,7 @@ main (int argc, char **argv)
 			die("run_script: suffix %d is empty.", i - 1);
 		}
 
-		char *key = strndup(suffix, STR_MAX_LEN);
+		char *key = strndup(suffix, STR_MAX - 1);
 		if (!key) die("strndup: %s.", strerror(errno));
 
 		handlers[i - 2] = (struct pair) {

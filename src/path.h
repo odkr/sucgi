@@ -31,15 +31,15 @@
 
 /*
  * Check whether:
- *      - path's length is within PATH_MAX and STR_MAX_LEN.
+ *      - path's length is within PATH_MAX and STR_MAX.
  *      - each sub-path in path is within pathconf(parent, _PC_PATH_MAX).
  *      - each segment of the given path is within NAME_MAX, FILENAME_MAX,
- *        STR_MAX_LEN, and pathconf(parent, _PC_NAME_MAX).
+ *        STR_MAX - 1, and pathconf(parent, _PC_NAME_MAX).
  *
  * Return code:
  *      OK             The path is within limits.
  *      ERR_FNAME_LEN  The filename of a path segment is too long.
- *      ERR_STR_LEN    The path or a path segment is too long.
+ *      ERR_STR_MAX    The path or a path segment is too long.
  *      ERR_SYS        System failure. errno(2) should be set.
  */
 __attribute__((READ_ONLY(1)))
@@ -52,7 +52,7 @@ error path_check_len(const char *const path);
  * Return code:
  *      OK             User has exclusive write access.
  *      ERR_NOT_EXCLW  User does not have exclusive write access.
- *      ERR_STR_LEN    The path is longer than STR_MAX_LEN.
+ *      ERR_STR_MAX    The path is longer than STR_MAX - 1.
  *      ERR_SYS        System failure. errno(2) should be set.
  */
 __attribute__((READ_ONLY(2), READ_ONLY(3)))

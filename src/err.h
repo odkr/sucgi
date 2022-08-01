@@ -51,7 +51,7 @@ typedef enum {
 	ERR_FNAME_LEN,		/* Filename too long. */
 	ERR_FTYPE,		/* File is of the wrong type. */
 	ERR_NOT_EXCLW,		/* File not exclusively writably by user. */
-	ERR_STR_LEN,		/* String too long. */
+	ERR_STR_MAX,		/* String too long. */
 	ERR_SYS,		/* System error. errno should be set. */
 	ERR_VAR_EMPTY,		/* Environment variable is empty. */
 	ERR_VAR_INVALID,	/* Environment variable is ill-formed. */
@@ -64,7 +64,7 @@ typedef enum {
  */
 
 /* Log message as an error and exit the programme with EXIT_FAILURE. */
-/* flawfinder: ignore (this is not a call to printf(3)). */
+/* Flawfinder: ignore (this is not a call to printf(3)). */
 __attribute__((READ_ONLY(1), format(printf, 1, 2), noreturn))
 void fail(const char *const message, ...);
 

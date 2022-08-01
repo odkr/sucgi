@@ -58,7 +58,7 @@ error str_to_ulong (const char *const s, unsigned long *n);
  *
  * Return code:
  *      OK           Success.
- *      ERR_STR_LEN  s is longer than STR_MAX_LEN.
+ *      ERR_STR_MAX  s is longer than STR_MAX - 1.
  *      ERR_SYS      System error. errno(2) should be set.
  */
 __attribute__((READ_ONLY(1), READ_ONLY(2)))

@@ -13,15 +13,16 @@
 int
 main(void)
 {
-	/* flawfinder: ignore */
-	char huge[STR_MAX_LEN + 2] = "";	/* A huge string. */
-	str4096 head = "";			/* First token. */
-	char *tail = NULL;			/* Remainder. */
+	/* Flawfinder: ignore */
+	char huge[STR_MAX + 1] = "";	/* A huge string. */
+	/* Flawfinder: ignore */
+	char head[STR_MAX] = "";	/* First token. */
+	char *tail = NULL;		/* Remainder. */
 
 	/* Test overly long string. */
-	memset(huge, 'x', STR_MAX_LEN + 1);
-	assert(strnlen(huge, STR_MAX_LEN + 2) == STR_MAX_LEN + 1);
-	assert(str_split(huge, ",", &head, &tail) == ERR_STR_LEN);
+	memset(huge, 'x', STR_MAX);
+	assert(strnlen(huge, STR_MAX + 1) == STR_MAX);
+	assert(str_split(huge, ",", &head, &tail) == ERR_STR_MAX);
 	assert(!tail);
 
 	/* Simple test. */

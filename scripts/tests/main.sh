@@ -23,11 +23,11 @@ tmpdir chk
 
 str_max="$(getconf PATH_MAX .)" && [ "$str_max" ] && 
 	[ "$str_max" -ge 4096 ] || str_max=4096
-long_str="$PWD/"
+long_str="x"
 while [ "${#long_str}" -le "$str_max" ]
-	do long_str="$long_str/x"
+	do long_str="${long_str}x"
 done
-long_str="$long_str/x"
+long_str="${long_str}x"
 
 if	path_max="$(getconf PATH_MAX .)" &&
 	[ "$path_max" ] &&
@@ -83,17 +83,18 @@ checkerr 'too many environment variables.' main
 # shellcheck disable=2086
 unset $vars
 
+eval "export $long_str=\"\$long_str\""
+checkerr 'an environment variable name is too long.' main
+unset "$long_str"
+
 checkerr 'DOCUMENT_ROOT: not set.' main
 
 DOCUMENT_ROOT='' \
 	checkerr 'DOCUMENT_ROOT: is the empty string.' main
 
-DOCUMENT_ROOT="$long_str" \
-	checkerr 'an environment variable is too long.' main
-
 [ "$long_path" ] &&
 	DOCUMENT_ROOT="$long_path" \
-		checkerr 'too long.' main
+		checkerr '$DOCUMENT_ROOT: path too long.' main
 
 [ "$long_name" ] &&
 	DOCUMENT_ROOT="$long_name" \
@@ -114,12 +115,9 @@ DOCUMENT_ROOT=/ \
 DOCUMENT_ROOT=/ PATH_TRANSLATED='' \
 	checkerr 'PATH_TRANSLATED: is the empty string.' main
 
-DOCUMENT_ROOT=/ PATH_TRANSLATED="$long_str" \
-	checkerr 'an environment variable is too long.' main
-
 [ "$long_path" ] &&
 	DOCUMENT_ROOT=/ PATH_TRANSLATED="$long_path" \
-		checkerr 'too long.' main
+		checkerr '$PATH_TRANSLATED: path too long.' main
 
 [ "$long_name" ] &&
 	DOCUMENT_ROOT=/ PATH_TRANSLATED="$long_name" \

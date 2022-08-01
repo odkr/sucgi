@@ -51,7 +51,7 @@ main (int argc, char **argv)
 	rc = env_get_fname(name, ftype, &fname, &fstatus);
 
 	if (OK == rc) {
-		/* flawfinder: ignore. */
+		/* Flawfinder: ignore. */
 		printf("file_safe_stat: "
 		       "inode %lu, UID %lu, GID %lu, mode %o, size %lub.\n",
 		       (unsigned long) fstatus.st_ino,

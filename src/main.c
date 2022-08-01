@@ -65,7 +65,7 @@
 #endif
 
 #if MAX_UID <= MIN_UID
-/* flawfinder: ignore (this is not a function ¯\_(ツ)_/¯). */
+/* Flawfinder: ignore (this is not a function ¯\_(ツ)_/¯). */
 #error MAX_UID is smaller than or equal to MIN_UID.
 #endif
 
@@ -123,8 +123,8 @@ main (void) {
 			fail("environment clean-up: %s.", strerror(errno));
 		case ERR_ENV_MAX:
 			fail("too many environment variables.");
-		case ERR_STR_LEN:
-			fail("an environment variable is too long.");
+		case ERR_STR_MAX:
+			fail("an environment variable name is too long.");
 		case ERR_VAR_INVALID:
 			fail("an environment variable is malformed.");
 		default:
@@ -151,7 +151,7 @@ main (void) {
 			fail("$DOCUMENT_ROOT: filename too long.");
 		case ERR_FTYPE:
 			fail("$DOCUMENT_ROOT: not a directory.");
-		case ERR_STR_LEN:
+		case ERR_STR_MAX:
 			fail("$DOCUMENT_ROOT: path too long.");
 		case ERR_VAR_UNDEF:
 			fail("DOCUMENT_ROOT: not set.");
@@ -181,7 +181,7 @@ main (void) {
 			fail("$PATH_TRANSLATED: filename too long.");
 		case ERR_FTYPE:
 			fail("$PATH_TRANSLATED: not a regular file.");
-		case ERR_STR_LEN:
+		case ERR_STR_MAX:
 			fail("$PATH_TRANSLATED: path too long.");
 		case ERR_VAR_UNDEF:
 			fail("PATH_TRANSLATED: not set.");
@@ -239,8 +239,6 @@ main (void) {
 	 *	chown -R smith:smith acme
 	 */
 
-	/* It is tested above whether owner is NULL. */
-	/* cppcheck-suppress nullPointerRedundantCheck */
 	if (!path_contains(owner->pw_dir, doc_root)) {
 		fail("document root %s is not in %s's home directory.",
 		     doc_root, owner->pw_name);
@@ -277,7 +275,7 @@ main (void) {
 		/* run_script never returns. */
 		run_script(prog, (struct pair []) SCRIPT_HANDLERS);
 	} else {
-		/* flawfinder: ignore (suCGI's point is to do this safely). */
+		/* Flawfinder: ignore (suCGI's point is to do this safely). */
 		execl(prog, prog, NULL);
 	}
 

@@ -40,6 +40,7 @@
 #include "err.h"
 #include "str.h"
 
+
 bool
 file_is_exec(const struct stat *const fstatus)
 {
@@ -81,7 +82,7 @@ file_safe_open(const char *fname, const int flags, int *fd)
 	return OK;
 }
 
-#elif defined(TARGET_OS_MAC) && TARGET_OS_MAC && O_NOFOLLOW_ANY
+#elif defined(TARGET_OS_MAC) && TARGET_OS_MAC && defined(O_NOFOLLOW_ANY)
 error
 file_safe_open(const char *fname, const int flags, int *fd)
 {
@@ -98,7 +99,7 @@ file_safe_open(const char *fname, const int flags, int *fd)
 	 * TODO: Discuss that suCGI is insecure if an attacker can change user
 	 * files in the threat model.
 	 */
-	/* flawfinder: ignore (symlinks are not followed). */
+	/* Flawfinder: ignore (symlinks are not followed). */
 	*fd = open(fname, flags | O_NOFOLLOW_ANY);
 	if (*fd < 0) return ERR_SYS;
 	return OK;
@@ -107,21 +108,21 @@ file_safe_open(const char *fname, const int flags, int *fd)
 #else
 #error suCGI requires Linux v5.6 or macOS v11.
 #endif /* defined(__NR_openat2) && __NR_openat2 ...
-          defined(TARGET_OS_MAC) && TARGET_OS_MAC && O_NOFOLLOW_ANY */
+          defined(TARGET_OS_MAC) && TARGET_OS_MAC && defined(O_NOFOLLOW_ANY) */
 
 
 error
 file_safe_stat(const char *fname, struct stat *fstatus)
 {
-	struct stat buf;
-	int fd = -1;
-	int rc = -1;
+	struct stat buf;	/* Filesystem status of fname. */
+	int fd = -1;		/* File descriptor. */
+	int rc = -1;		/* Return code. */
 
 	assert(fname);
 	reraise(file_safe_open(fname, O_RDONLY | O_CLOEXEC, &fd));
 	rc = fstat(fd, &buf);
 	if (close(fd) != 0 || rc != 0) return ERR_SYS;
-	/* flawfinder: ignore (fstatus is guaranteed to be large enough). */
-	if (fstatus) memcpy(fstatus, &buf, sizeof(struct stat));
+	/* Flawfinder: ignore (fstatus is guaranteed to be large enough). */
+	if (fstatus) (void) memcpy(fstatus, &buf, sizeof(struct stat));
 	return OK;
 }

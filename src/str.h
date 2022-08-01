@@ -33,21 +33,12 @@
  * Constants
  */
 
-/* Maximum length of strings in bytes, without the terminating nullbyte. */
+/* Maximum length of strings in bytes, including the terminating nullbyte. */
 #if PATH_MAX > 4096
-#define STR_MAX_LEN PATH_MAX
+#define STR_MAX PATH_MAX
 #else
-#define STR_MAX_LEN 4096
+#define STR_MAX 4096
 #endif
-
-
-/*
- * Data types
- */
-
-/* A str4096 string type. */
-/* flawfinder: ignore (this type is defined to facilitate bound checks). */
-typedef char str4096[STR_MAX_LEN + 1];
 
 
 /*
@@ -56,15 +47,31 @@ typedef char str4096[STR_MAX_LEN + 1];
 
 /*
  * Copy a string from src to dest.
- * dest must be large enough to hold a string that is STR_MAX_LEN bytes long,
+ * dest must be large enough to hold a string that is STR_MAX - 1 bytes long,
  * excluding the terminating null byte.
  *
  * Return code:
  *      OK           Success.
- *      ERR_STR_LEN  src is longer than STR_MAX_LEN.
+ *      ERR_STR_MAX  src is longer than STR_MAX - 1 bytes.
  */
 __attribute__((READ_ONLY(1)))
-error str_cp(const char *const src, str4096 *dest);
+error str_cp(const char *const src,
+             /* Flawfinder: ignore (str_cp writes at most STR_MAX bytes.) */
+             char (*dest)[STR_MAX]);
+
+/*
+ * Copy n bytes from string src to dest.
+ * dest must be large enough to hold a string that is STR_MAX - 1 bytes long,
+ * excluding the terminating null byte.
+ *
+ * Return code:
+ *      OK           Success.
+ *      ERR_STR_MAX  n is larger than STR_MAX - 1 bytes.
+ */
+__attribute__((READ_ONLY(1), READ_ONLY(2)))
+error str_cpn(const size_t n, const char *const src,
+              /* Flawfinder: ignore (str_cpn writes at most STR_MAX bytes.) */
+	      char (*dest)[STR_MAX]);
 
 /* Return true if s1 and s2 are equal and false otherwise. */
 __attribute__((READ_ONLY(1), READ_ONLY(2)))
@@ -75,7 +82,7 @@ bool str_eq(const char *const s1, const char *const s2);
  * pats must be NULL-terminated. See fnmatch(3) for pattern syntax and flags.
  */
 __attribute__((READ_ONLY(1), READ_ONLY(2), READ_ONLY(3)))
-bool str_matchn(const char *const s, const char *const *const pats,
+bool str_fnmatchn(const char *const s, const char *const *const pats,
                 const int flags);
 
 /*
@@ -83,7 +90,7 @@ bool str_matchn(const char *const s, const char *const *const pats,
  *
  * Return code:
  *      OK           Success.
- *      ERR_STR_LEN  The string is longer than STR_MAX_LEN.
+ *      ERR_STR_MAX  The string is longer than STR_MAX - 1 bytes.
  */
 __attribute__((READ_ONLY(1)))
 error str_len(const char *const s, size_t *len);
@@ -93,17 +100,17 @@ error str_len(const char *const s, size_t *len);
  * the substring up to, but not including, that character in head and a
  * pointer to the first character after that character in tail.
  *
- * head must be large enough to hold a string that is STR_MAX_LEN bytes long,
+ * head must be large enough to hold a string that is STR_MAX - 1 bytes long,
  * excluding the terminating null byte.
  *
  * Return code:
  *      OK           Success.
- *      ERR_STR_LEN  s is longer than STR_MAX_LEN.
+ *      ERR_STR_MAX  s is longer than STR_MAX - 1 bytes.
  */
 __attribute__((READ_ONLY(1), READ_ONLY(2)))
-error
-str_split(const char *const s, const char *const sep,
-          str4096 *head, char **tail);
+error str_split(const char *const s, const char *const sep,
+                /* Flawfinder: ignore (str_split writes at most STR_MAX bytes.) */
+		char (*head)[STR_MAX], char **tail);
 
 
 #endif /* !defined(SRC_STR_H) */

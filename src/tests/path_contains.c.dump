@@ -1,0 +1,1240 @@
+<?xml version="1.0"?>
+<dumps>
+  <platform name="unix64" char_bit="8" short_bit="16" int_bit="32" long_bit="64" long_long_bit="64" pointer_bit="64"/>
+  <rawtokens>
+    <file index="0" name="src/tests/path_contains.c"/>
+    <file index="1" name="src/path.h"/>
+    <file index="2" name="src/attr.h"/>
+    <file index="3" name="src/err.h"/>
+    <tok fileIndex="0" linenr="1" column="1" str="/*x * Test path_contains.x */"/>
+    <tok fileIndex="0" linenr="5" column="1" str="#"/>
+    <tok fileIndex="0" linenr="5" column="2" str="include"/>
+    <tok fileIndex="0" linenr="5" column="10" str="&lt;assert.h&gt;"/>
+    <tok fileIndex="0" linenr="6" column="1" str="#"/>
+    <tok fileIndex="0" linenr="6" column="2" str="include"/>
+    <tok fileIndex="0" linenr="6" column="10" str="&lt;stdlib.h&gt;"/>
+    <tok fileIndex="0" linenr="8" column="1" str="#"/>
+    <tok fileIndex="0" linenr="8" column="2" str="include"/>
+    <tok fileIndex="0" linenr="8" column="10" str="&quot;../path.h&quot;"/>
+    <tok fileIndex="0" linenr="10" column="1" str="int"/>
+    <tok fileIndex="0" linenr="11" column="1" str="main"/>
+    <tok fileIndex="0" linenr="11" column="6" str="("/>
+    <tok fileIndex="0" linenr="11" column="7" str="void"/>
+    <tok fileIndex="0" linenr="11" column="11" str=")"/>
+    <tok fileIndex="0" linenr="11" column="13" str="{"/>
+    <tok fileIndex="0" linenr="13" column="2" str="/*xx * Absolute paths.xx */"/>
+    <tok fileIndex="0" linenr="17" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="17" column="8" str="("/>
+    <tok fileIndex="0" linenr="17" column="9" str="path_contains"/>
+    <tok fileIndex="0" linenr="17" column="22" str="("/>
+    <tok fileIndex="0" linenr="17" column="23" str="&quot;/&quot;"/>
+    <tok fileIndex="0" linenr="17" column="26" str=","/>
+    <tok fileIndex="0" linenr="17" column="28" str="&quot;/foo&quot;"/>
+    <tok fileIndex="0" linenr="17" column="34" str=")"/>
+    <tok fileIndex="0" linenr="17" column="35" str=")"/>
+    <tok fileIndex="0" linenr="17" column="36" str=";"/>
+    <tok fileIndex="0" linenr="18" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="18" column="8" str="("/>
+    <tok fileIndex="0" linenr="18" column="9" str="path_contains"/>
+    <tok fileIndex="0" linenr="18" column="22" str="("/>
+    <tok fileIndex="0" linenr="18" column="23" str="&quot;/foo&quot;"/>
+    <tok fileIndex="0" linenr="18" column="29" str=","/>
+    <tok fileIndex="0" linenr="18" column="31" str="&quot;/foo/bar&quot;"/>
+    <tok fileIndex="0" linenr="18" column="41" str=")"/>
+    <tok fileIndex="0" linenr="18" column="42" str=")"/>
+    <tok fileIndex="0" linenr="18" column="43" str=";"/>
+    <tok fileIndex="0" linenr="19" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="19" column="8" str="("/>
+    <tok fileIndex="0" linenr="19" column="9" str="!"/>
+    <tok fileIndex="0" linenr="19" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="19" column="23" str="("/>
+    <tok fileIndex="0" linenr="19" column="24" str="&quot;/foo&quot;"/>
+    <tok fileIndex="0" linenr="19" column="30" str=","/>
+    <tok fileIndex="0" linenr="19" column="32" str="&quot;/bar&quot;"/>
+    <tok fileIndex="0" linenr="19" column="38" str=")"/>
+    <tok fileIndex="0" linenr="19" column="39" str=")"/>
+    <tok fileIndex="0" linenr="19" column="40" str=";"/>
+    <tok fileIndex="0" linenr="20" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="20" column="8" str="("/>
+    <tok fileIndex="0" linenr="20" column="9" str="!"/>
+    <tok fileIndex="0" linenr="20" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="20" column="23" str="("/>
+    <tok fileIndex="0" linenr="20" column="24" str="&quot;/bar&quot;"/>
+    <tok fileIndex="0" linenr="20" column="30" str=","/>
+    <tok fileIndex="0" linenr="20" column="32" str="&quot;/foo&quot;"/>
+    <tok fileIndex="0" linenr="20" column="38" str=")"/>
+    <tok fileIndex="0" linenr="20" column="39" str=")"/>
+    <tok fileIndex="0" linenr="20" column="40" str=";"/>
+    <tok fileIndex="0" linenr="21" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="21" column="8" str="("/>
+    <tok fileIndex="0" linenr="21" column="9" str="!"/>
+    <tok fileIndex="0" linenr="21" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="21" column="23" str="("/>
+    <tok fileIndex="0" linenr="21" column="24" str="&quot;/foo&quot;"/>
+    <tok fileIndex="0" linenr="21" column="30" str=","/>
+    <tok fileIndex="0" linenr="21" column="32" str="&quot;/foobar&quot;"/>
+    <tok fileIndex="0" linenr="21" column="41" str=")"/>
+    <tok fileIndex="0" linenr="21" column="42" str=")"/>
+    <tok fileIndex="0" linenr="21" column="43" str=";"/>
+    <tok fileIndex="0" linenr="22" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="22" column="8" str="("/>
+    <tok fileIndex="0" linenr="22" column="9" str="!"/>
+    <tok fileIndex="0" linenr="22" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="22" column="23" str="("/>
+    <tok fileIndex="0" linenr="22" column="24" str="&quot;/&quot;"/>
+    <tok fileIndex="0" linenr="22" column="27" str=","/>
+    <tok fileIndex="0" linenr="22" column="29" str="&quot;foo&quot;"/>
+    <tok fileIndex="0" linenr="22" column="34" str=")"/>
+    <tok fileIndex="0" linenr="22" column="35" str=")"/>
+    <tok fileIndex="0" linenr="22" column="36" str=";"/>
+    <tok fileIndex="0" linenr="23" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="23" column="8" str="("/>
+    <tok fileIndex="0" linenr="23" column="9" str="!"/>
+    <tok fileIndex="0" linenr="23" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="23" column="23" str="("/>
+    <tok fileIndex="0" linenr="23" column="24" str="&quot;/foo&quot;"/>
+    <tok fileIndex="0" linenr="23" column="30" str=","/>
+    <tok fileIndex="0" linenr="23" column="32" str="&quot;/&quot;"/>
+    <tok fileIndex="0" linenr="23" column="35" str=")"/>
+    <tok fileIndex="0" linenr="23" column="36" str=")"/>
+    <tok fileIndex="0" linenr="23" column="37" str=";"/>
+    <tok fileIndex="0" linenr="24" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="24" column="8" str="("/>
+    <tok fileIndex="0" linenr="24" column="9" str="!"/>
+    <tok fileIndex="0" linenr="24" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="24" column="23" str="("/>
+    <tok fileIndex="0" linenr="24" column="24" str="&quot;/foo&quot;"/>
+    <tok fileIndex="0" linenr="24" column="30" str=","/>
+    <tok fileIndex="0" linenr="24" column="32" str="&quot;/foo&quot;"/>
+    <tok fileIndex="0" linenr="24" column="38" str=")"/>
+    <tok fileIndex="0" linenr="24" column="39" str=")"/>
+    <tok fileIndex="0" linenr="24" column="40" str=";"/>
+    <tok fileIndex="0" linenr="25" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="25" column="8" str="("/>
+    <tok fileIndex="0" linenr="25" column="9" str="!"/>
+    <tok fileIndex="0" linenr="25" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="25" column="23" str="("/>
+    <tok fileIndex="0" linenr="25" column="24" str="&quot;/&quot;"/>
+    <tok fileIndex="0" linenr="25" column="27" str=","/>
+    <tok fileIndex="0" linenr="25" column="29" str="&quot;/&quot;"/>
+    <tok fileIndex="0" linenr="25" column="32" str=")"/>
+    <tok fileIndex="0" linenr="25" column="33" str=")"/>
+    <tok fileIndex="0" linenr="25" column="34" str=";"/>
+    <tok fileIndex="0" linenr="28" column="2" str="/*xx * Relative pathsxx */"/>
+    <tok fileIndex="0" linenr="32" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="32" column="8" str="("/>
+    <tok fileIndex="0" linenr="32" column="9" str="path_contains"/>
+    <tok fileIndex="0" linenr="32" column="22" str="("/>
+    <tok fileIndex="0" linenr="32" column="23" str="&quot;foo&quot;"/>
+    <tok fileIndex="0" linenr="32" column="28" str=","/>
+    <tok fileIndex="0" linenr="32" column="30" str="&quot;foo/bar&quot;"/>
+    <tok fileIndex="0" linenr="32" column="39" str=")"/>
+    <tok fileIndex="0" linenr="32" column="40" str=")"/>
+    <tok fileIndex="0" linenr="32" column="41" str=";"/>
+    <tok fileIndex="0" linenr="33" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="33" column="8" str="("/>
+    <tok fileIndex="0" linenr="33" column="9" str="!"/>
+    <tok fileIndex="0" linenr="33" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="33" column="23" str="("/>
+    <tok fileIndex="0" linenr="33" column="24" str="&quot;foo&quot;"/>
+    <tok fileIndex="0" linenr="33" column="29" str=","/>
+    <tok fileIndex="0" linenr="33" column="31" str="&quot;foo&quot;"/>
+    <tok fileIndex="0" linenr="33" column="36" str=")"/>
+    <tok fileIndex="0" linenr="33" column="37" str=")"/>
+    <tok fileIndex="0" linenr="33" column="38" str=";"/>
+    <tok fileIndex="0" linenr="34" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="34" column="8" str="("/>
+    <tok fileIndex="0" linenr="34" column="9" str="!"/>
+    <tok fileIndex="0" linenr="34" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="34" column="23" str="("/>
+    <tok fileIndex="0" linenr="34" column="24" str="&quot;bar&quot;"/>
+    <tok fileIndex="0" linenr="34" column="29" str=","/>
+    <tok fileIndex="0" linenr="34" column="31" str="&quot;foo&quot;"/>
+    <tok fileIndex="0" linenr="34" column="36" str=")"/>
+    <tok fileIndex="0" linenr="34" column="37" str=")"/>
+    <tok fileIndex="0" linenr="34" column="38" str=";"/>
+    <tok fileIndex="0" linenr="37" column="2" str="/*xx * Paths with leading dotxx */"/>
+    <tok fileIndex="0" linenr="41" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="41" column="8" str="("/>
+    <tok fileIndex="0" linenr="41" column="9" str="path_contains"/>
+    <tok fileIndex="0" linenr="41" column="22" str="("/>
+    <tok fileIndex="0" linenr="41" column="23" str="&quot;.&quot;"/>
+    <tok fileIndex="0" linenr="41" column="26" str=","/>
+    <tok fileIndex="0" linenr="41" column="28" str="&quot;./foo&quot;"/>
+    <tok fileIndex="0" linenr="41" column="35" str=")"/>
+    <tok fileIndex="0" linenr="41" column="36" str=")"/>
+    <tok fileIndex="0" linenr="41" column="37" str=";"/>
+    <tok fileIndex="0" linenr="42" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="42" column="8" str="("/>
+    <tok fileIndex="0" linenr="42" column="9" str="path_contains"/>
+    <tok fileIndex="0" linenr="42" column="22" str="("/>
+    <tok fileIndex="0" linenr="42" column="23" str="&quot;./foo&quot;"/>
+    <tok fileIndex="0" linenr="42" column="30" str=","/>
+    <tok fileIndex="0" linenr="42" column="32" str="&quot;./foo/bar&quot;"/>
+    <tok fileIndex="0" linenr="42" column="43" str=")"/>
+    <tok fileIndex="0" linenr="42" column="44" str=")"/>
+    <tok fileIndex="0" linenr="42" column="45" str=";"/>
+    <tok fileIndex="0" linenr="43" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="43" column="8" str="("/>
+    <tok fileIndex="0" linenr="43" column="9" str="!"/>
+    <tok fileIndex="0" linenr="43" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="43" column="23" str="("/>
+    <tok fileIndex="0" linenr="43" column="24" str="&quot;./bar&quot;"/>
+    <tok fileIndex="0" linenr="43" column="31" str=","/>
+    <tok fileIndex="0" linenr="43" column="33" str="&quot;./foo&quot;"/>
+    <tok fileIndex="0" linenr="43" column="40" str=")"/>
+    <tok fileIndex="0" linenr="43" column="41" str=")"/>
+    <tok fileIndex="0" linenr="43" column="42" str=";"/>
+    <tok fileIndex="0" linenr="44" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="44" column="8" str="("/>
+    <tok fileIndex="0" linenr="44" column="9" str="!"/>
+    <tok fileIndex="0" linenr="44" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="44" column="23" str="("/>
+    <tok fileIndex="0" linenr="44" column="24" str="&quot;./foo&quot;"/>
+    <tok fileIndex="0" linenr="44" column="31" str=","/>
+    <tok fileIndex="0" linenr="44" column="33" str="&quot;.&quot;"/>
+    <tok fileIndex="0" linenr="44" column="36" str=")"/>
+    <tok fileIndex="0" linenr="44" column="37" str=")"/>
+    <tok fileIndex="0" linenr="44" column="38" str=";"/>
+    <tok fileIndex="0" linenr="45" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="45" column="8" str="("/>
+    <tok fileIndex="0" linenr="45" column="9" str="!"/>
+    <tok fileIndex="0" linenr="45" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="45" column="23" str="("/>
+    <tok fileIndex="0" linenr="45" column="24" str="&quot;./foo&quot;"/>
+    <tok fileIndex="0" linenr="45" column="31" str=","/>
+    <tok fileIndex="0" linenr="45" column="33" str="&quot;./&quot;"/>
+    <tok fileIndex="0" linenr="45" column="37" str=")"/>
+    <tok fileIndex="0" linenr="45" column="38" str=")"/>
+    <tok fileIndex="0" linenr="45" column="39" str=";"/>
+    <tok fileIndex="0" linenr="46" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="46" column="8" str="("/>
+    <tok fileIndex="0" linenr="46" column="9" str="!"/>
+    <tok fileIndex="0" linenr="46" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="46" column="23" str="("/>
+    <tok fileIndex="0" linenr="46" column="24" str="&quot;./foo&quot;"/>
+    <tok fileIndex="0" linenr="46" column="31" str=","/>
+    <tok fileIndex="0" linenr="46" column="33" str="&quot;./foo&quot;"/>
+    <tok fileIndex="0" linenr="46" column="40" str=")"/>
+    <tok fileIndex="0" linenr="46" column="41" str=")"/>
+    <tok fileIndex="0" linenr="46" column="42" str=";"/>
+    <tok fileIndex="0" linenr="47" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="47" column="8" str="("/>
+    <tok fileIndex="0" linenr="47" column="9" str="!"/>
+    <tok fileIndex="0" linenr="47" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="47" column="23" str="("/>
+    <tok fileIndex="0" linenr="47" column="24" str="&quot;.&quot;"/>
+    <tok fileIndex="0" linenr="47" column="27" str=","/>
+    <tok fileIndex="0" linenr="47" column="29" str="&quot;.&quot;"/>
+    <tok fileIndex="0" linenr="47" column="32" str=")"/>
+    <tok fileIndex="0" linenr="47" column="33" str=")"/>
+    <tok fileIndex="0" linenr="47" column="34" str=";"/>
+    <tok fileIndex="0" linenr="48" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="48" column="8" str="("/>
+    <tok fileIndex="0" linenr="48" column="9" str="!"/>
+    <tok fileIndex="0" linenr="48" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="48" column="23" str="("/>
+    <tok fileIndex="0" linenr="48" column="24" str="&quot;.&quot;"/>
+    <tok fileIndex="0" linenr="48" column="27" str=","/>
+    <tok fileIndex="0" linenr="48" column="29" str="&quot;.foo&quot;"/>
+    <tok fileIndex="0" linenr="48" column="35" str=")"/>
+    <tok fileIndex="0" linenr="48" column="36" str=")"/>
+    <tok fileIndex="0" linenr="48" column="37" str=";"/>
+    <tok fileIndex="0" linenr="49" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="49" column="8" str="("/>
+    <tok fileIndex="0" linenr="49" column="9" str="!"/>
+    <tok fileIndex="0" linenr="49" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="49" column="23" str="("/>
+    <tok fileIndex="0" linenr="49" column="24" str="&quot;.f&quot;"/>
+    <tok fileIndex="0" linenr="49" column="28" str=","/>
+    <tok fileIndex="0" linenr="49" column="30" str="&quot;.foo&quot;"/>
+    <tok fileIndex="0" linenr="49" column="36" str=")"/>
+    <tok fileIndex="0" linenr="49" column="37" str=")"/>
+    <tok fileIndex="0" linenr="49" column="38" str=";"/>
+    <tok fileIndex="0" linenr="50" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="50" column="8" str="("/>
+    <tok fileIndex="0" linenr="50" column="9" str="!"/>
+    <tok fileIndex="0" linenr="50" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="50" column="23" str="("/>
+    <tok fileIndex="0" linenr="50" column="24" str="&quot;.foo&quot;"/>
+    <tok fileIndex="0" linenr="50" column="30" str=","/>
+    <tok fileIndex="0" linenr="50" column="32" str="&quot;.foo&quot;"/>
+    <tok fileIndex="0" linenr="50" column="38" str=")"/>
+    <tok fileIndex="0" linenr="50" column="39" str=")"/>
+    <tok fileIndex="0" linenr="50" column="40" str=";"/>
+    <tok fileIndex="0" linenr="53" column="2" str="/*xx * Empty pathsxx */"/>
+    <tok fileIndex="0" linenr="57" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="57" column="8" str="("/>
+    <tok fileIndex="0" linenr="57" column="9" str="!"/>
+    <tok fileIndex="0" linenr="57" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="57" column="23" str="("/>
+    <tok fileIndex="0" linenr="57" column="24" str="&quot;&quot;"/>
+    <tok fileIndex="0" linenr="57" column="26" str=","/>
+    <tok fileIndex="0" linenr="57" column="28" str="&quot;/&quot;"/>
+    <tok fileIndex="0" linenr="57" column="31" str=")"/>
+    <tok fileIndex="0" linenr="57" column="32" str=")"/>
+    <tok fileIndex="0" linenr="57" column="33" str=";"/>
+    <tok fileIndex="0" linenr="58" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="58" column="8" str="("/>
+    <tok fileIndex="0" linenr="58" column="9" str="!"/>
+    <tok fileIndex="0" linenr="58" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="58" column="23" str="("/>
+    <tok fileIndex="0" linenr="58" column="24" str="&quot;&quot;"/>
+    <tok fileIndex="0" linenr="58" column="26" str=","/>
+    <tok fileIndex="0" linenr="58" column="28" str="&quot;.&quot;"/>
+    <tok fileIndex="0" linenr="58" column="31" str=")"/>
+    <tok fileIndex="0" linenr="58" column="32" str=")"/>
+    <tok fileIndex="0" linenr="58" column="33" str=";"/>
+    <tok fileIndex="0" linenr="59" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="59" column="8" str="("/>
+    <tok fileIndex="0" linenr="59" column="9" str="!"/>
+    <tok fileIndex="0" linenr="59" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="59" column="23" str="("/>
+    <tok fileIndex="0" linenr="59" column="24" str="&quot;&quot;"/>
+    <tok fileIndex="0" linenr="59" column="26" str=","/>
+    <tok fileIndex="0" linenr="59" column="28" str="&quot;foo&quot;"/>
+    <tok fileIndex="0" linenr="59" column="33" str=")"/>
+    <tok fileIndex="0" linenr="59" column="34" str=")"/>
+    <tok fileIndex="0" linenr="59" column="35" str=";"/>
+    <tok fileIndex="0" linenr="60" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="60" column="8" str="("/>
+    <tok fileIndex="0" linenr="60" column="9" str="!"/>
+    <tok fileIndex="0" linenr="60" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="60" column="23" str="("/>
+    <tok fileIndex="0" linenr="60" column="24" str="&quot;/&quot;"/>
+    <tok fileIndex="0" linenr="60" column="27" str=","/>
+    <tok fileIndex="0" linenr="60" column="29" str="&quot;&quot;"/>
+    <tok fileIndex="0" linenr="60" column="31" str=")"/>
+    <tok fileIndex="0" linenr="60" column="32" str=")"/>
+    <tok fileIndex="0" linenr="60" column="33" str=";"/>
+    <tok fileIndex="0" linenr="61" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="61" column="8" str="("/>
+    <tok fileIndex="0" linenr="61" column="9" str="!"/>
+    <tok fileIndex="0" linenr="61" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="61" column="23" str="("/>
+    <tok fileIndex="0" linenr="61" column="24" str="&quot;.&quot;"/>
+    <tok fileIndex="0" linenr="61" column="27" str=","/>
+    <tok fileIndex="0" linenr="61" column="29" str="&quot;&quot;"/>
+    <tok fileIndex="0" linenr="61" column="31" str=")"/>
+    <tok fileIndex="0" linenr="61" column="32" str=")"/>
+    <tok fileIndex="0" linenr="61" column="33" str=";"/>
+    <tok fileIndex="0" linenr="62" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="62" column="8" str="("/>
+    <tok fileIndex="0" linenr="62" column="9" str="!"/>
+    <tok fileIndex="0" linenr="62" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="62" column="23" str="("/>
+    <tok fileIndex="0" linenr="62" column="24" str="&quot;foo&quot;"/>
+    <tok fileIndex="0" linenr="62" column="29" str=","/>
+    <tok fileIndex="0" linenr="62" column="31" str="&quot;&quot;"/>
+    <tok fileIndex="0" linenr="62" column="33" str=")"/>
+    <tok fileIndex="0" linenr="62" column="34" str=")"/>
+    <tok fileIndex="0" linenr="62" column="35" str=";"/>
+    <tok fileIndex="0" linenr="63" column="2" str="assert"/>
+    <tok fileIndex="0" linenr="63" column="8" str="("/>
+    <tok fileIndex="0" linenr="63" column="9" str="!"/>
+    <tok fileIndex="0" linenr="63" column="10" str="path_contains"/>
+    <tok fileIndex="0" linenr="63" column="23" str="("/>
+    <tok fileIndex="0" linenr="63" column="24" str="&quot;&quot;"/>
+    <tok fileIndex="0" linenr="63" column="26" str=","/>
+    <tok fileIndex="0" linenr="63" column="28" str="&quot;&quot;"/>
+    <tok fileIndex="0" linenr="63" column="30" str=")"/>
+    <tok fileIndex="0" linenr="63" column="31" str=")"/>
+    <tok fileIndex="0" linenr="63" column="32" str=";"/>
+    <tok fileIndex="0" linenr="66" column="2" str="/*xx * All goodxx */"/>
+    <tok fileIndex="0" linenr="70" column="2" str="return"/>
+    <tok fileIndex="0" linenr="70" column="9" str="EXIT_SUCCESS"/>
+    <tok fileIndex="0" linenr="70" column="21" str=";"/>
+    <tok fileIndex="0" linenr="71" column="1" str="}"/>
+  </rawtokens>
+  <suppressions>
+    <suppression errorId="missingIncludeSystem" />
+    <suppression errorId="getpwuidCalled" fileName="src/main.c" lineNumber="219" />
+    <suppression errorId="getpwnamCalled" fileName="src/tests/change_identity.c" lineNumber="31" />
+  </suppressions>
+<dump cfg="__GNUC__=1">
+  <standards>
+    <c version="c99"/>
+    <cpp version="c++23"/>
+  </standards>
+  <directivelist>
+    <directive file="src/tests/path_contains.c" linenr="5" str="#include &lt;assert.h&gt;"/>
+    <directive file="src/tests/path_contains.c" linenr="6" str="#include &lt;stdlib.h&gt;"/>
+    <directive file="src/tests/path_contains.c" linenr="8" str="#include &quot;../path.h&quot;"/>
+    <directive file="src/attr.h" linenr="22" str="#if !defined(SRC_ATTR_H)"/>
+    <directive file="src/attr.h" linenr="23" str="#define SRC_ATTR_H"/>
+    <directive file="src/attr.h" linenr="26" str="#if !defined(__GNUC__)"/>
+    <directive file="src/attr.h" linenr="27" str="#define __attribute__(attr)"/>
+    <directive file="src/attr.h" linenr="28" str="#endif"/>
+    <directive file="src/attr.h" linenr="32" str="#define READ_ONLY(argn) access(read_only, argn)"/>
+    <directive file="src/attr.h" linenr="34" str="#endif"/>
+    <directive file="src/err.h" linenr="22" str="#if !defined(SRC_ERR_H)"/>
+    <directive file="src/err.h" linenr="23" str="#define SRC_ERR_H"/>
+    <directive file="src/err.h" linenr="25" str="#include &lt;stdlib.h&gt;"/>
+    <directive file="src/err.h" linenr="27" str="#include &quot;attr.h&quot;"/>
+    <directive file="src/err.h" linenr="35" str="#define reraise(err) do { error _reraise_err = (err); if (_reraise_err != OK) return _reraise_err; } while (0)"/>
+    <directive file="src/err.h" linenr="72" str="#endif"/>
+    <directive file="src/path.h" linenr="22" str="#if !defined(SRC_PATH_H)"/>
+    <directive file="src/path.h" linenr="23" str="#define SRC_PATH_H"/>
+    <directive file="src/path.h" linenr="25" str="#include &lt;stdbool.h&gt;"/>
+    <directive file="src/path.h" linenr="26" str="#include &lt;sys/types.h&gt;"/>
+    <directive file="src/path.h" linenr="28" str="#include &quot;attr.h&quot;"/>
+    <directive file="src/path.h" linenr="29" str="#include &quot;err.h&quot;"/>
+    <directive file="src/path.h" linenr="72" str="#endif"/>
+  </directivelist>
+  <macro-usage>
+    <macro name="READ_ONLY" file="src/attr.h" line="32" column="9" usefile="src/err.h" useline="68" usecolumn="16" is-known-value="true"/>
+    <macro name="READ_ONLY" file="src/attr.h" line="32" column="9" usefile="src/path.h" useline="45" usecolumn="16" is-known-value="true"/>
+    <macro name="READ_ONLY" file="src/attr.h" line="32" column="9" usefile="src/path.h" useline="58" usecolumn="16" is-known-value="true"/>
+    <macro name="READ_ONLY" file="src/attr.h" line="32" column="9" usefile="src/path.h" useline="58" usecolumn="30" is-known-value="true"/>
+    <macro name="READ_ONLY" file="src/attr.h" line="32" column="9" usefile="src/path.h" useline="68" usecolumn="16" is-known-value="true"/>
+    <macro name="READ_ONLY" file="src/attr.h" line="32" column="9" usefile="src/path.h" useline="68" usecolumn="30" is-known-value="true"/>
+  </macro-usage>
+  <simplecpp-if-cond>
+    <if-cond file="src/path.h" line="22" column="2" E="! 0" result="1"/>
+    <if-cond file="src/attr.h" line="22" column="2" E="! 0" result="1"/>
+    <if-cond file="src/attr.h" line="26" column="2" E="! 1" result="0"/>
+    <if-cond file="src/err.h" line="22" column="2" E="! 0" result="1"/>
+    <if-cond file="src/attr.h" line="22" column="2" E="! 1" result="0"/>
+  </simplecpp-if-cond>
+  <tokenlist>
+    <token id="0x600001838a00" file="src/err.h" linenr="47" column="9" str="enum" scope="0x7f8342904590" type="name"/>
+    <token id="0x600001846850" file="src/err.h" linenr="47" column="0" str="error" scope="0x7f8342904590" type="name" type-scope="0x7f83429046e0"/>
+    <token id="0x600001838870" file="src/err.h" linenr="47" column="14" str="{" scope="0x7f83429046e0" link="0x60000183a530" valueType-type="int" valueType-sign="signed" valueType-reference="None" valueType-typeScope="0x7f83429046e0"/>
+    <token id="0x600001838780" file="src/err.h" linenr="48" column="2" str="OK" scope="0x7f83429046e0" type="name" astParent="0x600001838730" valueType-type="int" valueType-sign="signed" valueType-reference="None" valueType-typeScope="0x7f83429046e0"/>
+    <token id="0x600001838730" file="src/err.h" linenr="48" column="5" str="=" scope="0x7f83429046e0" type="op" isAssignmentOp="true" astParent="0x6000018389b0" astOperand1="0x600001838780" astOperand2="0x600001838a50" valueType-type="int" valueType-sign="signed" valueType-reference="None" valueType-typeScope="0x7f83429046e0"/>
+    <token id="0x600001838a50" file="src/err.h" linenr="48" column="7" str="EXIT_SUCCESS" scope="0x7f83429046e0" type="name" astParent="0x600001838730"/>
+    <token id="0x6000018389b0" file="src/err.h" linenr="48" column="19" str="," scope="0x7f83429046e0" astParent="0x600001838aa0" astOperand1="0x600001838730" astOperand2="0x600001838910"/>
+    <token id="0x600001838960" file="src/err.h" linenr="49" column="2" str="ERR" scope="0x7f83429046e0" type="name" astParent="0x600001838910" valueType-type="int" valueType-sign="signed" valueType-reference="None" valueType-typeScope="0x7f83429046e0"/>
+    <token id="0x600001838910" file="src/err.h" linenr="49" column="6" str="=" scope="0x7f83429046e0" type="op" isAssignmentOp="true" astParent="0x6000018389b0" astOperand1="0x600001838960" astOperand2="0x600001838820" valueType-type="int" valueType-sign="signed" valueType-reference="None" valueType-typeScope="0x7f83429046e0"/>
+    <token id="0x600001838820" file="src/err.h" linenr="49" column="8" str="EXIT_FAILURE" scope="0x7f83429046e0" type="name" astParent="0x600001838910"/>
+    <token id="0x600001838aa0" file="src/err.h" linenr="49" column="20" str="," scope="0x7f83429046e0" astParent="0x600001839e50" astOperand1="0x6000018389b0" astOperand2="0x6000018399f0"/>
+    <token id="0x6000018399f0" file="src/err.h" linenr="50" column="2" str="ERR_ENV_MAX" scope="0x7f83429046e0" type="name" astParent="0x600001838aa0" valueType-type="int" valueType-sign="signed" valueType-reference="None" valueType-typeScope="0x7f83429046e0"/>
+    <token id="0x600001839e50" file="src/err.h" linenr="50" column="13" str="," scope="0x7f83429046e0" astParent="0x60000183a350" astOperand1="0x600001838aa0" astOperand2="0x600001838c80"/>
+    <token id="0x600001838c80" file="src/err.h" linenr="51" column="2" str="ERR_FNAME_LEN" scope="0x7f83429046e0" type="name" astParent="0x600001839e50" valueType-type="int" valueType-sign="signed" valueType-reference="None" valueType-typeScope="0x7f83429046e0"/>
+    <token id="0x60000183a350" file="src/err.h" linenr="51" column="15" str="," scope="0x7f83429046e0" astParent="0x600001838be0" astOperand1="0x600001839e50" astOperand2="0x60000183ab70"/>
+    <token id="0x60000183ab70" file="src/err.h" linenr="52" column="2" str="ERR_FTYPE" scope="0x7f83429046e0" type="name" astParent="0x60000183a350" valueType-type="int" valueType-sign="signed" valueType-reference="None" valueType-typeScope="0x7f83429046e0"/>
+    <token id="0x600001838be0" file="src/err.h" linenr="52" column="11" str="," scope="0x7f83429046e0" astParent="0x600001839a90" astOperand1="0x60000183a350" astOperand2="0x600001839a40"/>
+    <token id="0x600001839a40" file="src/err.h" linenr="53" column="2" str="ERR_NOT_EXCLW" scope="0x7f83429046e0" type="name" astParent="0x600001838be0" valueType-type="int" valueType-sign="signed" valueType-reference="None" valueType-typeScope="0x7f83429046e0"/>
+    <token id="0x600001839a90" file="src/err.h" linenr="53" column="15" str="," scope="0x7f83429046e0" astParent="0x600001839b80" astOperand1="0x600001838be0" astOperand2="0x600001838dc0"/>
+    <token id="0x600001838dc0" file="src/err.h" linenr="54" column="2" str="ERR_STR_MAX" scope="0x7f83429046e0" type="name" astParent="0x600001839a90" valueType-type="int" valueType-sign="signed" valueType-reference="None" valueType-typeScope="0x7f83429046e0"/>
+    <token id="0x600001839b80" file="src/err.h" linenr="54" column="13" str="," scope="0x7f83429046e0" astParent="0x60000183a080" astOperand1="0x600001839a90" astOperand2="0x600001839360"/>
+    <token id="0x600001839360" file="src/err.h" linenr="55" column="2" str="ERR_SYS" scope="0x7f83429046e0" type="name" astParent="0x600001839b80" valueType-type="int" valueType-sign="signed" valueType-reference="None" valueType-typeScope="0x7f83429046e0"/>
+    <token id="0x60000183a080" file="src/err.h" linenr="55" column="9" str="," scope="0x7f83429046e0" astParent="0x600001839d60" astOperand1="0x600001839b80" astOperand2="0x600001839ae0"/>
+    <token id="0x600001839ae0" file="src/err.h" linenr="56" column="2" str="ERR_VAR_EMPTY" scope="0x7f83429046e0" type="name" astParent="0x60000183a080" valueType-type="int" valueType-sign="signed" valueType-reference="None" valueType-typeScope="0x7f83429046e0"/>
+    <token id="0x600001839d60" file="src/err.h" linenr="56" column="15" str="," scope="0x7f83429046e0" astParent="0x60000183afd0" astOperand1="0x60000183a080" astOperand2="0x600001839fe0"/>
+    <token id="0x600001839fe0" file="src/err.h" linenr="57" column="2" str="ERR_VAR_INVALID" scope="0x7f83429046e0" type="name" astParent="0x600001839d60" valueType-type="int" valueType-sign="signed" valueType-reference="None" valueType-typeScope="0x7f83429046e0"/>
+    <token id="0x60000183afd0" file="src/err.h" linenr="57" column="17" str="," scope="0x7f83429046e0" astOperand1="0x600001839d60" astOperand2="0x60000183a300"/>
+    <token id="0x60000183a300" file="src/err.h" linenr="58" column="2" str="ERR_VAR_UNDEF" scope="0x7f83429046e0" type="name" astParent="0x60000183afd0" valueType-type="int" valueType-sign="signed" valueType-reference="None" valueType-typeScope="0x7f83429046e0"/>
+    <token id="0x60000183a530" file="src/err.h" linenr="59" column="1" str="}" scope="0x7f83429046e0" link="0x600001838870"/>
+    <token id="0x6000018468a0" file="src/err.h" linenr="59" column="0" str=";" scope="0x7f8342904590"/>
+    <token id="0x6000018468f0" file="src/err.h" linenr="69" column="1" str="void" scope="0x7f8342904590" type="name"/>
+    <token id="0x6000018390e0" file="src/err.h" linenr="69" column="6" str="fail" scope="0x7f8342904590" type="name" function="0x600000a08010"/>
+    <token id="0x6000018399a0" file="src/err.h" linenr="69" column="10" str="(" scope="0x7f8342904590" link="0x60000183ac10" valueType-type="void" valueType-reference="None"/>
+    <token id="0x600001839ea0" file="src/err.h" linenr="69" column="11" str="const" scope="0x7f8342904590" type="name"/>
+    <token id="0x60000183b020" file="src/err.h" linenr="69" column="17" str="char" scope="0x7f8342904590" type="name" astParent="0x60000183a710"/>
+    <token id="0x60000183a710" file="src/err.h" linenr="69" column="22" str="*" scope="0x7f8342904590" type="op" isArithmeticalOp="true" astParent="0x60000183a760" astOperand1="0x60000183b020" astOperand2="0x600001839130"/>
+    <token id="0x600001839090" file="src/err.h" linenr="69" column="23" str="const" scope="0x7f8342904590" type="name"/>
+    <token id="0x600001839130" file="src/err.h" linenr="69" column="29" str="message" scope="0x7f8342904590" type="name" varId="1" variable="0x600001008240" astParent="0x60000183a710" valueType-type="char" valueType-pointer="1" valueType-constness="3" valueType-reference="None"/>
+    <token id="0x60000183a760" file="src/err.h" linenr="69" column="36" str="," scope="0x7f8342904590" astOperand1="0x60000183a710" astOperand2="0x6000018397c0"/>
+    <token id="0x6000018397c0" file="src/err.h" linenr="69" column="38" str="..." scope="0x7f8342904590" astParent="0x60000183a760"/>
+    <token id="0x60000183ac10" file="src/err.h" linenr="69" column="41" str=")" scope="0x7f8342904590" link="0x6000018399a0"/>
+    <token id="0x6000018391d0" file="src/err.h" linenr="69" column="42" str=";" scope="0x7f8342904590"/>
+    <token id="0x600001839900" file="src/path.h" linenr="46" column="1" str="error" scope="0x7f8342904590" type="name" type-scope="0x7f83429046e0"/>
+    <token id="0x60000183a800" file="src/path.h" linenr="46" column="7" str="path_check_len" scope="0x7f8342904590" type="name" function="0x600000a080b0"/>
+    <token id="0x600001839ef0" file="src/path.h" linenr="46" column="21" str="(" scope="0x7f8342904590" link="0x600001839c70" valueType-type="int" valueType-sign="signed" valueType-reference="None" valueType-typeScope="0x7f83429046e0"/>
+    <token id="0x600001839400" file="src/path.h" linenr="46" column="22" str="const" scope="0x7f8342904590" type="name"/>
+    <token id="0x600001839db0" file="src/path.h" linenr="46" column="28" str="char" scope="0x7f8342904590" type="name" astParent="0x600001839680"/>
+    <token id="0x600001839680" file="src/path.h" linenr="46" column="33" str="*" scope="0x7f8342904590" type="op" isArithmeticalOp="true" astOperand1="0x600001839db0" astOperand2="0x60000183aa80"/>
+    <token id="0x600001839bd0" file="src/path.h" linenr="46" column="34" str="const" scope="0x7f8342904590" type="name"/>
+    <token id="0x60000183aa80" file="src/path.h" linenr="46" column="40" str="path" scope="0x7f8342904590" type="name" varId="2" variable="0x600001008c50" astParent="0x600001839680" valueType-type="char" valueType-pointer="1" valueType-constness="3" valueType-reference="None"/>
+    <token id="0x600001839c70" file="src/path.h" linenr="46" column="44" str=")" scope="0x7f8342904590" link="0x600001839ef0"/>
+    <token id="0x600001839040" file="src/path.h" linenr="46" column="45" str=";" scope="0x7f8342904590"/>
+    <token id="0x600001839f40" file="src/path.h" linenr="59" column="1" str="error" scope="0x7f8342904590" type="name" type-scope="0x7f83429046e0"/>
+    <token id="0x60000183abc0" file="src/path.h" linenr="59" column="7" str="path_check_wexcl" scope="0x7f8342904590" type="name" function="0x600000a08150"/>
+    <token id="0x60000183a8f0" file="src/path.h" linenr="59" column="23" str="(" scope="0x7f8342904590" link="0x600001839810" valueType-type="int" valueType-sign="signed" valueType-reference="None" valueType-typeScope="0x7f83429046e0"/>
+    <token id="0x60000183b070" file="src/path.h" linenr="59" column="24" str="const" scope="0x7f8342904590" type="name"/>
+    <token id="0x60000183a850" file="src/path.h" linenr="59" column="30" str="uid_t" scope="0x7f8342904590" type="name"/>
+    <token id="0x60000183a490" file="src/path.h" linenr="59" column="36" str="uid" scope="0x7f8342904590" type="name" varId="3" variable="0x600001008be0" valueType-type="unknown int" valueType-sign="signed" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x60000183aad0" file="src/path.h" linenr="59" column="39" str="," scope="0x7f8342904590"/>
+    <token id="0x60000183af80" file="src/path.h" linenr="59" column="41" str="const" scope="0x7f8342904590" type="name"/>
+    <token id="0x60000183a9e0" file="src/path.h" linenr="59" column="47" str="char" scope="0x7f8342904590" type="name" astParent="0x60000183a2b0"/>
+    <token id="0x60000183a2b0" file="src/path.h" linenr="59" column="52" str="*" scope="0x7f8342904590" type="op" isArithmeticalOp="true" astParent="0x60000183a6c0" astOperand1="0x60000183a9e0" astOperand2="0x6000018394a0"/>
+    <token id="0x600001838d20" file="src/path.h" linenr="59" column="53" str="const" scope="0x7f8342904590" type="name"/>
+    <token id="0x6000018394a0" file="src/path.h" linenr="59" column="59" str="path" scope="0x7f8342904590" type="name" varId="4" variable="0x600001008b70" astParent="0x60000183a2b0" valueType-type="char" valueType-pointer="1" valueType-constness="3" valueType-reference="None"/>
+    <token id="0x60000183a6c0" file="src/path.h" linenr="59" column="63" str="," scope="0x7f8342904590" astOperand1="0x60000183a2b0" astOperand2="0x600001839630"/>
+    <token id="0x600001838cd0" file="src/path.h" linenr="60" column="24" str="const" scope="0x7f8342904590" type="name"/>
+    <token id="0x60000183af30" file="src/path.h" linenr="60" column="30" str="char" scope="0x7f8342904590" type="name" astParent="0x600001839630"/>
+    <token id="0x600001839630" file="src/path.h" linenr="60" column="35" str="*" scope="0x7f8342904590" type="op" isArithmeticalOp="true" astParent="0x60000183a6c0" astOperand1="0x60000183af30" astOperand2="0x600001838d70"/>
+    <token id="0x600001838eb0" file="src/path.h" linenr="60" column="36" str="const" scope="0x7f8342904590" type="name"/>
+    <token id="0x600001838d70" file="src/path.h" linenr="60" column="42" str="stop" scope="0x7f8342904590" type="name" varId="5" variable="0x600001008b00" astParent="0x600001839630" valueType-type="char" valueType-pointer="1" valueType-constness="3" valueType-reference="None"/>
+    <token id="0x600001839810" file="src/path.h" linenr="60" column="46" str=")" scope="0x7f8342904590" link="0x60000183a8f0"/>
+    <token id="0x600001839450" file="src/path.h" linenr="60" column="47" str=";" scope="0x7f8342904590"/>
+    <token id="0x60000183a210" file="src/path.h" linenr="69" column="1" str="bool" scope="0x7f8342904590" type="name"/>
+    <token id="0x60000183b570" file="src/path.h" linenr="69" column="6" str="path_contains" scope="0x7f8342904590" type="name" function="0x600000a081f0"/>
+    <token id="0x60000183b5c0" file="src/path.h" linenr="69" column="19" str="(" scope="0x7f8342904590" link="0x60000183b980" values="0x600003b1c520" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x60000183b610" file="src/path.h" linenr="69" column="20" str="const" scope="0x7f8342904590" type="name"/>
+    <token id="0x60000183b660" file="src/path.h" linenr="69" column="26" str="char" scope="0x7f8342904590" type="name" astParent="0x60000183b6b0"/>
+    <token id="0x60000183b6b0" file="src/path.h" linenr="69" column="31" str="*" scope="0x7f8342904590" type="op" isArithmeticalOp="true" astParent="0x60000183b7a0" astOperand1="0x60000183b660" astOperand2="0x60000183b750"/>
+    <token id="0x60000183b700" file="src/path.h" linenr="69" column="32" str="const" scope="0x7f8342904590" type="name"/>
+    <token id="0x60000183b750" file="src/path.h" linenr="69" column="38" str="super" scope="0x7f8342904590" type="name" varId="6" variable="0x600001008a90" astParent="0x60000183b6b0" valueType-type="char" valueType-pointer="1" valueType-constness="3" valueType-reference="None"/>
+    <token id="0x60000183b7a0" file="src/path.h" linenr="69" column="43" str="," scope="0x7f8342904590" astOperand1="0x60000183b6b0" astOperand2="0x60000183b890"/>
+    <token id="0x60000183b7f0" file="src/path.h" linenr="69" column="45" str="const" scope="0x7f8342904590" type="name"/>
+    <token id="0x60000183b840" file="src/path.h" linenr="69" column="51" str="char" scope="0x7f8342904590" type="name" astParent="0x60000183b890"/>
+    <token id="0x60000183b890" file="src/path.h" linenr="69" column="56" str="*" scope="0x7f8342904590" type="op" isArithmeticalOp="true" astParent="0x60000183b7a0" astOperand1="0x60000183b840" astOperand2="0x60000183b930"/>
+    <token id="0x60000183b8e0" file="src/path.h" linenr="69" column="57" str="const" scope="0x7f8342904590" type="name"/>
+    <token id="0x60000183b930" file="src/path.h" linenr="69" column="63" str="sub" scope="0x7f8342904590" type="name" varId="7" variable="0x600001008a20" astParent="0x60000183b890" valueType-type="char" valueType-pointer="1" valueType-constness="3" valueType-reference="None"/>
+    <token id="0x60000183b980" file="src/path.h" linenr="69" column="66" str=")" scope="0x7f8342904590" link="0x60000183b5c0"/>
+    <token id="0x60000183b9d0" file="src/path.h" linenr="69" column="67" str=";" scope="0x7f8342904590"/>
+    <token id="0x60000183ba20" file="src/tests/path_contains.c" linenr="10" column="1" str="int" scope="0x7f8342904590" type="name"/>
+    <token id="0x60000183ba70" file="src/tests/path_contains.c" linenr="11" column="1" str="main" scope="0x7f8342904590" type="name" function="0x600000a08290"/>
+    <token id="0x60000183bac0" file="src/tests/path_contains.c" linenr="11" column="6" str="(" scope="0x7f8342904590" isRemovedVoidParameter="true" link="0x60000183bb60" valueType-type="int" valueType-sign="signed" valueType-reference="None"/>
+    <token id="0x60000183bb60" file="src/tests/path_contains.c" linenr="11" column="11" str=")" scope="0x7f8342904590" link="0x60000183bac0"/>
+    <token id="0x60000183bbb0" file="src/tests/path_contains.c" linenr="11" column="13" str="{" scope="0x7f8342904830" link="0x6000018467b0"/>
+    <token id="0x60000183bc00" file="src/tests/path_contains.c" linenr="17" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x60000183bc50"/>
+    <token id="0x60000183bc50" file="src/tests/path_contains.c" linenr="17" column="8" str="(" scope="0x7f8342904830" link="0x60000183be80" astOperand1="0x60000183bc00" astOperand2="0x60000183bcf0" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x60000183bca0" file="src/tests/path_contains.c" linenr="17" column="9" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x60000183bcf0"/>
+    <token id="0x60000183bcf0" file="src/tests/path_contains.c" linenr="17" column="22" str="(" scope="0x7f8342904830" link="0x60000183be30" values="0x600003b1d1a0" astParent="0x60000183bc50" astOperand1="0x60000183bca0" astOperand2="0x60000183bd90" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x60000183bd40" file="src/tests/path_contains.c" linenr="17" column="23" str="&quot;/&quot;" scope="0x7f8342904830" type="string" strlen="1" values="0x600003b1c9c0" astParent="0x60000183bd90" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x60000183bd90" file="src/tests/path_contains.c" linenr="17" column="26" str="," scope="0x7f8342904830" astParent="0x60000183bcf0" astOperand1="0x60000183bd40" astOperand2="0x60000183bde0"/>
+    <token id="0x60000183bde0" file="src/tests/path_contains.c" linenr="17" column="28" str="&quot;/foo&quot;" scope="0x7f8342904830" type="string" strlen="4" values="0x600003b1c920" astParent="0x60000183bd90" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x60000183be30" file="src/tests/path_contains.c" linenr="17" column="34" str=")" scope="0x7f8342904830" link="0x60000183bcf0"/>
+    <token id="0x60000183be80" file="src/tests/path_contains.c" linenr="17" column="35" str=")" scope="0x7f8342904830" link="0x60000183bc50"/>
+    <token id="0x60000183bed0" file="src/tests/path_contains.c" linenr="17" column="36" str=";" scope="0x7f8342904830"/>
+    <token id="0x60000183bf20" file="src/tests/path_contains.c" linenr="18" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x60000183bf70"/>
+    <token id="0x60000183bf70" file="src/tests/path_contains.c" linenr="18" column="8" str="(" scope="0x7f8342904830" link="0x600001821f90" astOperand1="0x60000183bf20" astOperand2="0x600001820f00" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001821360" file="src/tests/path_contains.c" linenr="18" column="9" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001820f00"/>
+    <token id="0x600001820f00" file="src/tests/path_contains.c" linenr="18" column="22" str="(" scope="0x7f8342904830" link="0x600001823e80" values="0x600003b1cb20" astParent="0x60000183bf70" astOperand1="0x600001821360" astOperand2="0x600001823a70" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x6000018222b0" file="src/tests/path_contains.c" linenr="18" column="23" str="&quot;/foo&quot;" scope="0x7f8342904830" type="string" strlen="4" values="0x600003b1cde0" astParent="0x600001823a70" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001823a70" file="src/tests/path_contains.c" linenr="18" column="29" str="," scope="0x7f8342904830" astParent="0x600001820f00" astOperand1="0x6000018222b0" astOperand2="0x600001821860"/>
+    <token id="0x600001821860" file="src/tests/path_contains.c" linenr="18" column="31" str="&quot;/foo/bar&quot;" scope="0x7f8342904830" type="string" strlen="8" values="0x600003b1c060" astParent="0x600001823a70" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001823e80" file="src/tests/path_contains.c" linenr="18" column="41" str=")" scope="0x7f8342904830" link="0x600001820f00"/>
+    <token id="0x600001821f90" file="src/tests/path_contains.c" linenr="18" column="42" str=")" scope="0x7f8342904830" link="0x60000183bf70"/>
+    <token id="0x600001822e90" file="src/tests/path_contains.c" linenr="18" column="43" str=";" scope="0x7f8342904830"/>
+    <token id="0x6000018216d0" file="src/tests/path_contains.c" linenr="19" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x600001821400"/>
+    <token id="0x600001821400" file="src/tests/path_contains.c" linenr="19" column="8" str="(" scope="0x7f8342904830" link="0x600001823020" astOperand1="0x6000018216d0" astOperand2="0x600001820e60" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001820e60" file="src/tests/path_contains.c" linenr="19" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1c420" astParent="0x600001821400" astOperand1="0x600001823980" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001820960" file="src/tests/path_contains.c" linenr="19" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001823980"/>
+    <token id="0x600001823980" file="src/tests/path_contains.c" linenr="19" column="23" str="(" scope="0x7f8342904830" link="0x600001823570" values="0x600003b1c6e0" astParent="0x600001820e60" astOperand1="0x600001820960" astOperand2="0x6000018231b0" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x6000018219f0" file="src/tests/path_contains.c" linenr="19" column="24" str="&quot;/foo&quot;" scope="0x7f8342904830" type="string" strlen="4" values="0x600003b1d500" astParent="0x6000018231b0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x6000018231b0" file="src/tests/path_contains.c" linenr="19" column="30" str="," scope="0x7f8342904830" astParent="0x600001823980" astOperand1="0x6000018219f0" astOperand2="0x6000018237a0"/>
+    <token id="0x6000018237a0" file="src/tests/path_contains.c" linenr="19" column="32" str="&quot;/bar&quot;" scope="0x7f8342904830" type="string" strlen="4" values="0x600003b1c740" astParent="0x6000018231b0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001823570" file="src/tests/path_contains.c" linenr="19" column="38" str=")" scope="0x7f8342904830" link="0x600001823980"/>
+    <token id="0x600001823020" file="src/tests/path_contains.c" linenr="19" column="39" str=")" scope="0x7f8342904830" link="0x600001821400"/>
+    <token id="0x600001821450" file="src/tests/path_contains.c" linenr="19" column="40" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001822d00" file="src/tests/path_contains.c" linenr="20" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x600001821fe0"/>
+    <token id="0x600001821fe0" file="src/tests/path_contains.c" linenr="20" column="8" str="(" scope="0x7f8342904830" link="0x600001823430" astOperand1="0x600001822d00" astOperand2="0x600001823250" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001823250" file="src/tests/path_contains.c" linenr="20" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1d4c0" astParent="0x600001821fe0" astOperand1="0x600001820fa0" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x6000018210e0" file="src/tests/path_contains.c" linenr="20" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001820fa0"/>
+    <token id="0x600001820fa0" file="src/tests/path_contains.c" linenr="20" column="23" str="(" scope="0x7f8342904830" link="0x600001822e40" values="0x600003b1cf40" astParent="0x600001823250" astOperand1="0x6000018210e0" astOperand2="0x6000018221c0" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x6000018238e0" file="src/tests/path_contains.c" linenr="20" column="24" str="&quot;/bar&quot;" scope="0x7f8342904830" type="string" strlen="4" values="0x600003b1c0e0" astParent="0x6000018221c0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x6000018221c0" file="src/tests/path_contains.c" linenr="20" column="30" str="," scope="0x7f8342904830" astParent="0x600001820fa0" astOperand1="0x6000018238e0" astOperand2="0x600001822f30"/>
+    <token id="0x600001822f30" file="src/tests/path_contains.c" linenr="20" column="32" str="&quot;/foo&quot;" scope="0x7f8342904830" type="string" strlen="4" values="0x600003b1c1e0" astParent="0x6000018221c0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001822e40" file="src/tests/path_contains.c" linenr="20" column="38" str=")" scope="0x7f8342904830" link="0x600001820fa0"/>
+    <token id="0x600001823430" file="src/tests/path_contains.c" linenr="20" column="39" str=")" scope="0x7f8342904830" link="0x600001821fe0"/>
+    <token id="0x600001821cc0" file="src/tests/path_contains.c" linenr="20" column="40" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001822a80" file="src/tests/path_contains.c" linenr="21" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x6000018235c0"/>
+    <token id="0x6000018235c0" file="src/tests/path_contains.c" linenr="21" column="8" str="(" scope="0x7f8342904830" link="0x6000018239d0" astOperand1="0x600001822a80" astOperand2="0x6000018219a0" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x6000018219a0" file="src/tests/path_contains.c" linenr="21" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1c6c0" astParent="0x6000018235c0" astOperand1="0x600001821b80" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001822300" file="src/tests/path_contains.c" linenr="21" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001821b80"/>
+    <token id="0x600001821b80" file="src/tests/path_contains.c" linenr="21" column="23" str="(" scope="0x7f8342904830" link="0x6000018212c0" values="0x600003b1d1c0" astParent="0x6000018219a0" astOperand1="0x600001822300" astOperand2="0x600001823ac0" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x6000018228f0" file="src/tests/path_contains.c" linenr="21" column="24" str="&quot;/foo&quot;" scope="0x7f8342904830" type="string" strlen="4" values="0x600003b1c620" astParent="0x600001823ac0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001823ac0" file="src/tests/path_contains.c" linenr="21" column="30" str="," scope="0x7f8342904830" astParent="0x600001821b80" astOperand1="0x6000018228f0" astOperand2="0x6000018225d0"/>
+    <token id="0x6000018225d0" file="src/tests/path_contains.c" linenr="21" column="32" str="&quot;/foobar&quot;" scope="0x7f8342904830" type="string" strlen="7" values="0x600003b1d0a0" astParent="0x600001823ac0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x6000018212c0" file="src/tests/path_contains.c" linenr="21" column="41" str=")" scope="0x7f8342904830" link="0x600001821b80"/>
+    <token id="0x6000018239d0" file="src/tests/path_contains.c" linenr="21" column="42" str=")" scope="0x7f8342904830" link="0x6000018235c0"/>
+    <token id="0x600001823f70" file="src/tests/path_contains.c" linenr="21" column="43" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001823890" file="src/tests/path_contains.c" linenr="22" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x600001823bb0"/>
+    <token id="0x600001823bb0" file="src/tests/path_contains.c" linenr="22" column="8" str="(" scope="0x7f8342904830" link="0x600001822940" astOperand1="0x600001823890" astOperand2="0x600001823cf0" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001823cf0" file="src/tests/path_contains.c" linenr="22" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1d520" astParent="0x600001823bb0" astOperand1="0x600001822170" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001822760" file="src/tests/path_contains.c" linenr="22" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001822170"/>
+    <token id="0x600001822170" file="src/tests/path_contains.c" linenr="22" column="23" str="(" scope="0x7f8342904830" link="0x600001821090" values="0x600003b1d580" astParent="0x600001823cf0" astOperand1="0x600001822760" astOperand2="0x600001823160" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001822f80" file="src/tests/path_contains.c" linenr="22" column="24" str="&quot;/&quot;" scope="0x7f8342904830" type="string" strlen="1" values="0x600003b1c940" astParent="0x600001823160" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001823160" file="src/tests/path_contains.c" linenr="22" column="27" str="," scope="0x7f8342904830" astParent="0x600001822170" astOperand1="0x600001822f80" astOperand2="0x6000018224e0"/>
+    <token id="0x6000018224e0" file="src/tests/path_contains.c" linenr="22" column="29" str="&quot;foo&quot;" scope="0x7f8342904830" type="string" strlen="3" values="0x600003b1c1a0" astParent="0x600001823160" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001821090" file="src/tests/path_contains.c" linenr="22" column="34" str=")" scope="0x7f8342904830" link="0x600001822170"/>
+    <token id="0x600001822940" file="src/tests/path_contains.c" linenr="22" column="35" str=")" scope="0x7f8342904830" link="0x600001823bb0"/>
+    <token id="0x600001820f50" file="src/tests/path_contains.c" linenr="22" column="36" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001823930" file="src/tests/path_contains.c" linenr="23" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x600001821040"/>
+    <token id="0x600001821040" file="src/tests/path_contains.c" linenr="23" column="8" str="(" scope="0x7f8342904830" link="0x600001820ff0" astOperand1="0x600001823930" astOperand2="0x6000018214a0" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x6000018214a0" file="src/tests/path_contains.c" linenr="23" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1cb40" astParent="0x600001821040" astOperand1="0x6000018227b0" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x6000018213b0" file="src/tests/path_contains.c" linenr="23" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x6000018227b0"/>
+    <token id="0x6000018227b0" file="src/tests/path_contains.c" linenr="23" column="23" str="(" scope="0x7f8342904830" link="0x600001823610" values="0x600003b1d100" astParent="0x6000018214a0" astOperand1="0x6000018213b0" astOperand2="0x600001822260" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001821540" file="src/tests/path_contains.c" linenr="23" column="24" str="&quot;/foo&quot;" scope="0x7f8342904830" type="string" strlen="4" values="0x600003b1c4e0" astParent="0x600001822260" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001822260" file="src/tests/path_contains.c" linenr="23" column="30" str="," scope="0x7f8342904830" astParent="0x6000018227b0" astOperand1="0x600001821540" astOperand2="0x600001821c70"/>
+    <token id="0x600001821c70" file="src/tests/path_contains.c" linenr="23" column="32" str="&quot;/&quot;" scope="0x7f8342904830" type="string" strlen="1" values="0x600003b1c160" astParent="0x600001822260" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001823610" file="src/tests/path_contains.c" linenr="23" column="35" str=")" scope="0x7f8342904830" link="0x6000018227b0"/>
+    <token id="0x600001820ff0" file="src/tests/path_contains.c" linenr="23" column="36" str=")" scope="0x7f8342904830" link="0x600001821040"/>
+    <token id="0x600001822990" file="src/tests/path_contains.c" linenr="23" column="37" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001822210" file="src/tests/path_contains.c" linenr="24" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x600001822670"/>
+    <token id="0x600001822670" file="src/tests/path_contains.c" linenr="24" column="8" str="(" scope="0x7f8342904830" link="0x600001820c80" astOperand1="0x600001822210" astOperand2="0x600001823750" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001823750" file="src/tests/path_contains.c" linenr="24" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1c700" astParent="0x600001822670" astOperand1="0x600001821810" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001822490" file="src/tests/path_contains.c" linenr="24" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001821810"/>
+    <token id="0x600001821810" file="src/tests/path_contains.c" linenr="24" column="23" str="(" scope="0x7f8342904830" link="0x600001820b40" values="0x600003b1cb60" astParent="0x600001823750" astOperand1="0x600001822490" astOperand2="0x600001821770" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001823f20" file="src/tests/path_contains.c" linenr="24" column="24" str="&quot;/foo&quot;" scope="0x7f8342904830" type="string" strlen="4" values="0x600003b1d160" astParent="0x600001821770" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001821770" file="src/tests/path_contains.c" linenr="24" column="30" str="," scope="0x7f8342904830" astParent="0x600001821810" astOperand1="0x600001823f20" astOperand2="0x600001821310"/>
+    <token id="0x600001821310" file="src/tests/path_contains.c" linenr="24" column="32" str="&quot;/foo&quot;" scope="0x7f8342904830" type="string" strlen="4" values="0x600003b1d120" astParent="0x600001821770" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001820b40" file="src/tests/path_contains.c" linenr="24" column="38" str=")" scope="0x7f8342904830" link="0x600001821810"/>
+    <token id="0x600001820c80" file="src/tests/path_contains.c" linenr="24" column="39" str=")" scope="0x7f8342904830" link="0x600001822670"/>
+    <token id="0x600001823480" file="src/tests/path_contains.c" linenr="24" column="40" str=";" scope="0x7f8342904830"/>
+    <token id="0x6000018220d0" file="src/tests/path_contains.c" linenr="25" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x6000018232a0"/>
+    <token id="0x6000018232a0" file="src/tests/path_contains.c" linenr="25" column="8" str="(" scope="0x7f8342904830" link="0x600001822da0" astOperand1="0x6000018220d0" astOperand2="0x600001821220" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001821220" file="src/tests/path_contains.c" linenr="25" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1cb80" astParent="0x6000018232a0" astOperand1="0x600001822710" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001821d10" file="src/tests/path_contains.c" linenr="25" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001822710"/>
+    <token id="0x600001822710" file="src/tests/path_contains.c" linenr="25" column="23" str="(" scope="0x7f8342904830" link="0x600001821630" values="0x600003b1cba0" astParent="0x600001821220" astOperand1="0x600001821d10" astOperand2="0x600001822620" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x6000018234d0" file="src/tests/path_contains.c" linenr="25" column="24" str="&quot;/&quot;" scope="0x7f8342904830" type="string" strlen="1" values="0x600003b1d460" astParent="0x600001822620" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001822620" file="src/tests/path_contains.c" linenr="25" column="27" str="," scope="0x7f8342904830" astParent="0x600001822710" astOperand1="0x6000018234d0" astOperand2="0x600001821130"/>
+    <token id="0x600001821130" file="src/tests/path_contains.c" linenr="25" column="29" str="&quot;/&quot;" scope="0x7f8342904830" type="string" strlen="1" values="0x600003b1c080" astParent="0x600001822620" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001821630" file="src/tests/path_contains.c" linenr="25" column="32" str=")" scope="0x7f8342904830" link="0x600001822710"/>
+    <token id="0x600001822da0" file="src/tests/path_contains.c" linenr="25" column="33" str=")" scope="0x7f8342904830" link="0x6000018232a0"/>
+    <token id="0x600001822580" file="src/tests/path_contains.c" linenr="25" column="34" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001822120" file="src/tests/path_contains.c" linenr="32" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x600001821d60"/>
+    <token id="0x600001821d60" file="src/tests/path_contains.c" linenr="32" column="8" str="(" scope="0x7f8342904830" link="0x600001820af0" astOperand1="0x600001822120" astOperand2="0x600001822d50" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001820a00" file="src/tests/path_contains.c" linenr="32" column="9" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001822d50"/>
+    <token id="0x600001822d50" file="src/tests/path_contains.c" linenr="32" column="22" str="(" scope="0x7f8342904830" link="0x600001821950" values="0x600003b1c720" astParent="0x600001821d60" astOperand1="0x600001820a00" astOperand2="0x600001823b10" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001821ea0" file="src/tests/path_contains.c" linenr="32" column="23" str="&quot;foo&quot;" scope="0x7f8342904830" type="string" strlen="3" values="0x600003b1c3a0" astParent="0x600001823b10" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001823b10" file="src/tests/path_contains.c" linenr="32" column="28" str="," scope="0x7f8342904830" astParent="0x600001822d50" astOperand1="0x600001821ea0" astOperand2="0x600001822c10"/>
+    <token id="0x600001822c10" file="src/tests/path_contains.c" linenr="32" column="30" str="&quot;foo/bar&quot;" scope="0x7f8342904830" type="string" strlen="7" values="0x600003b1c760" astParent="0x600001823b10" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001821950" file="src/tests/path_contains.c" linenr="32" column="39" str=")" scope="0x7f8342904830" link="0x600001822d50"/>
+    <token id="0x600001820af0" file="src/tests/path_contains.c" linenr="32" column="40" str=")" scope="0x7f8342904830" link="0x600001821d60"/>
+    <token id="0x600001821f40" file="src/tests/path_contains.c" linenr="32" column="41" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001822ad0" file="src/tests/path_contains.c" linenr="33" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x600001823070"/>
+    <token id="0x600001823070" file="src/tests/path_contains.c" linenr="33" column="8" str="(" scope="0x7f8342904830" link="0x600001821db0" astOperand1="0x600001822ad0" astOperand2="0x600001821b30" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001821b30" file="src/tests/path_contains.c" linenr="33" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1cfe0" astParent="0x600001823070" astOperand1="0x6000018208c0" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001821a40" file="src/tests/path_contains.c" linenr="33" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x6000018208c0"/>
+    <token id="0x6000018208c0" file="src/tests/path_contains.c" linenr="33" column="23" str="(" scope="0x7f8342904830" link="0x600001821bd0" values="0x600003b1d400" astParent="0x600001821b30" astOperand1="0x600001821a40" astOperand2="0x600001823200" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001822bc0" file="src/tests/path_contains.c" linenr="33" column="24" str="&quot;foo&quot;" scope="0x7f8342904830" type="string" strlen="3" values="0x600003b1c9e0" astParent="0x600001823200" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001823200" file="src/tests/path_contains.c" linenr="33" column="29" str="," scope="0x7f8342904830" astParent="0x6000018208c0" astOperand1="0x600001822bc0" astOperand2="0x600001820dc0"/>
+    <token id="0x600001820dc0" file="src/tests/path_contains.c" linenr="33" column="31" str="&quot;foo&quot;" scope="0x7f8342904830" type="string" strlen="3" values="0x600003b1cca0" astParent="0x600001823200" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001821bd0" file="src/tests/path_contains.c" linenr="33" column="36" str=")" scope="0x7f8342904830" link="0x6000018208c0"/>
+    <token id="0x600001821db0" file="src/tests/path_contains.c" linenr="33" column="37" str=")" scope="0x7f8342904830" link="0x600001823070"/>
+    <token id="0x600001820be0" file="src/tests/path_contains.c" linenr="33" column="38" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001820e10" file="src/tests/path_contains.c" linenr="34" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x600001823340"/>
+    <token id="0x600001823340" file="src/tests/path_contains.c" linenr="34" column="8" str="(" scope="0x7f8342904830" link="0x600001820d70" astOperand1="0x600001820e10" astOperand2="0x600001820d20" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001820d20" file="src/tests/path_contains.c" linenr="34" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1c2a0" astParent="0x600001823340" astOperand1="0x600001823e30" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001823c00" file="src/tests/path_contains.c" linenr="34" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001823e30"/>
+    <token id="0x600001823e30" file="src/tests/path_contains.c" linenr="34" column="23" str="(" scope="0x7f8342904830" link="0x600001823ed0" values="0x600003b1c2c0" astParent="0x600001820d20" astOperand1="0x600001823c00" astOperand2="0x600001821590" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001823840" file="src/tests/path_contains.c" linenr="34" column="24" str="&quot;bar&quot;" scope="0x7f8342904830" type="string" strlen="3" values="0x600003b1d3a0" astParent="0x600001821590" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001821590" file="src/tests/path_contains.c" linenr="34" column="29" str="," scope="0x7f8342904830" astParent="0x600001823e30" astOperand1="0x600001823840" astOperand2="0x600001820eb0"/>
+    <token id="0x600001820eb0" file="src/tests/path_contains.c" linenr="34" column="31" str="&quot;foo&quot;" scope="0x7f8342904830" type="string" strlen="3" values="0x600003b1c680" astParent="0x600001821590" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001823ed0" file="src/tests/path_contains.c" linenr="34" column="36" str=")" scope="0x7f8342904830" link="0x600001823e30"/>
+    <token id="0x600001820d70" file="src/tests/path_contains.c" linenr="34" column="37" str=")" scope="0x7f8342904830" link="0x600001823340"/>
+    <token id="0x600001822fd0" file="src/tests/path_contains.c" linenr="34" column="38" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001821900" file="src/tests/path_contains.c" linenr="41" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x600001822a30"/>
+    <token id="0x600001822a30" file="src/tests/path_contains.c" linenr="41" column="8" str="(" scope="0x7f8342904830" link="0x6000018228a0" astOperand1="0x600001821900" astOperand2="0x600001823520" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001823d90" file="src/tests/path_contains.c" linenr="41" column="9" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001823520"/>
+    <token id="0x600001823520" file="src/tests/path_contains.c" linenr="41" column="22" str="(" scope="0x7f8342904830" link="0x600001820b90" values="0x600003b1d1e0" astParent="0x600001822a30" astOperand1="0x600001823d90" astOperand2="0x600001822b20" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001822b70" file="src/tests/path_contains.c" linenr="41" column="23" str="&quot;.&quot;" scope="0x7f8342904830" type="string" strlen="1" values="0x600003b1c600" astParent="0x600001822b20" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001822b20" file="src/tests/path_contains.c" linenr="41" column="26" str="," scope="0x7f8342904830" astParent="0x600001823520" astOperand1="0x600001822b70" astOperand2="0x600001821ae0"/>
+    <token id="0x600001821ae0" file="src/tests/path_contains.c" linenr="41" column="28" str="&quot;./foo&quot;" scope="0x7f8342904830" type="string" strlen="5" values="0x600003b1c240" astParent="0x600001822b20" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001820b90" file="src/tests/path_contains.c" linenr="41" column="35" str=")" scope="0x7f8342904830" link="0x600001823520"/>
+    <token id="0x6000018228a0" file="src/tests/path_contains.c" linenr="41" column="36" str=")" scope="0x7f8342904830" link="0x600001822a30"/>
+    <token id="0x600001822530" file="src/tests/path_contains.c" linenr="41" column="37" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001823390" file="src/tests/path_contains.c" linenr="42" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x6000018214f0"/>
+    <token id="0x6000018214f0" file="src/tests/path_contains.c" linenr="42" column="8" str="(" scope="0x7f8342904830" link="0x600001823ca0" astOperand1="0x600001823390" astOperand2="0x600001822ee0" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x6000018217c0" file="src/tests/path_contains.c" linenr="42" column="9" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001822ee0"/>
+    <token id="0x600001822ee0" file="src/tests/path_contains.c" linenr="42" column="22" str="(" scope="0x7f8342904830" link="0x600001823de0" values="0x600003b1cfc0" astParent="0x6000018214f0" astOperand1="0x6000018217c0" astOperand2="0x600001820a50" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x6000018233e0" file="src/tests/path_contains.c" linenr="42" column="23" str="&quot;./foo&quot;" scope="0x7f8342904830" type="string" strlen="5" values="0x600003b1c960" astParent="0x600001820a50" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001820a50" file="src/tests/path_contains.c" linenr="42" column="30" str="," scope="0x7f8342904830" astParent="0x600001822ee0" astOperand1="0x6000018233e0" astOperand2="0x600001823b60"/>
+    <token id="0x600001823b60" file="src/tests/path_contains.c" linenr="42" column="32" str="&quot;./foo/bar&quot;" scope="0x7f8342904830" type="string" strlen="9" values="0x600003b1ca20" astParent="0x600001820a50" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001823de0" file="src/tests/path_contains.c" linenr="42" column="43" str=")" scope="0x7f8342904830" link="0x600001822ee0"/>
+    <token id="0x600001823ca0" file="src/tests/path_contains.c" linenr="42" column="44" str=")" scope="0x7f8342904830" link="0x6000018214f0"/>
+    <token id="0x600001821720" file="src/tests/path_contains.c" linenr="42" column="45" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001820820" file="src/tests/path_contains.c" linenr="43" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x6000018211d0"/>
+    <token id="0x6000018211d0" file="src/tests/path_contains.c" linenr="43" column="8" str="(" scope="0x7f8342904830" link="0x600001822030" astOperand1="0x600001820820" astOperand2="0x600001820910" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001820910" file="src/tests/path_contains.c" linenr="43" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1d020" astParent="0x6000018211d0" astOperand1="0x600001822cb0" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001821a90" file="src/tests/path_contains.c" linenr="43" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001822cb0"/>
+    <token id="0x600001822cb0" file="src/tests/path_contains.c" linenr="43" column="23" str="(" scope="0x7f8342904830" link="0x6000018236b0" values="0x600003b1c800" astParent="0x600001820910" astOperand1="0x600001821a90" astOperand2="0x6000018223a0" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x6000018232f0" file="src/tests/path_contains.c" linenr="43" column="24" str="&quot;./bar&quot;" scope="0x7f8342904830" type="string" strlen="5" values="0x600003b1c9a0" astParent="0x6000018223a0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x6000018223a0" file="src/tests/path_contains.c" linenr="43" column="31" str="," scope="0x7f8342904830" astParent="0x600001822cb0" astOperand1="0x6000018232f0" astOperand2="0x6000018218b0"/>
+    <token id="0x6000018218b0" file="src/tests/path_contains.c" linenr="43" column="33" str="&quot;./foo&quot;" scope="0x7f8342904830" type="string" strlen="5" values="0x600003b1c980" astParent="0x6000018223a0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x6000018236b0" file="src/tests/path_contains.c" linenr="43" column="40" str=")" scope="0x7f8342904830" link="0x600001822cb0"/>
+    <token id="0x600001822030" file="src/tests/path_contains.c" linenr="43" column="41" str=")" scope="0x7f8342904830" link="0x6000018211d0"/>
+    <token id="0x600001822850" file="src/tests/path_contains.c" linenr="43" column="42" str=";" scope="0x7f8342904830"/>
+    <token id="0x6000018237f0" file="src/tests/path_contains.c" linenr="44" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x600001822350"/>
+    <token id="0x600001822350" file="src/tests/path_contains.c" linenr="44" column="8" str="(" scope="0x7f8342904830" link="0x600001822440" astOperand1="0x6000018237f0" astOperand2="0x6000018230c0" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x6000018230c0" file="src/tests/path_contains.c" linenr="44" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1cf60" astParent="0x600001822350" astOperand1="0x600001820870" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x6000018226c0" file="src/tests/path_contains.c" linenr="44" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001820870"/>
+    <token id="0x600001820870" file="src/tests/path_contains.c" linenr="44" column="23" str="(" scope="0x7f8342904830" link="0x600001822800" values="0x600003b1cd20" astParent="0x6000018230c0" astOperand1="0x6000018226c0" astOperand2="0x600001821ef0" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001823c50" file="src/tests/path_contains.c" linenr="44" column="24" str="&quot;./foo&quot;" scope="0x7f8342904830" type="string" strlen="5" values="0x600003b1d560" astParent="0x600001821ef0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001821ef0" file="src/tests/path_contains.c" linenr="44" column="31" str="," scope="0x7f8342904830" astParent="0x600001820870" astOperand1="0x600001823c50" astOperand2="0x6000018209b0"/>
+    <token id="0x6000018209b0" file="src/tests/path_contains.c" linenr="44" column="33" str="&quot;.&quot;" scope="0x7f8342904830" type="string" strlen="1" values="0x600003b1c180" astParent="0x600001821ef0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001822800" file="src/tests/path_contains.c" linenr="44" column="36" str=")" scope="0x7f8342904830" link="0x600001820870"/>
+    <token id="0x600001822440" file="src/tests/path_contains.c" linenr="44" column="37" str=")" scope="0x7f8342904830" link="0x600001822350"/>
+    <token id="0x600001822080" file="src/tests/path_contains.c" linenr="44" column="38" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001821e50" file="src/tests/path_contains.c" linenr="45" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x6000018229e0"/>
+    <token id="0x6000018229e0" file="src/tests/path_contains.c" linenr="45" column="8" str="(" scope="0x7f8342904830" link="0x600001821270" astOperand1="0x600001821e50" astOperand2="0x600001821c20" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001821c20" file="src/tests/path_contains.c" linenr="45" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1d000" astParent="0x6000018229e0" astOperand1="0x600001820cd0" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001821180" file="src/tests/path_contains.c" linenr="45" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001820cd0"/>
+    <token id="0x600001820cd0" file="src/tests/path_contains.c" linenr="45" column="23" str="(" scope="0x7f8342904830" link="0x600001820aa0" values="0x600003b1cbc0" astParent="0x600001821c20" astOperand1="0x600001821180" astOperand2="0x6000018223f0" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001821e00" file="src/tests/path_contains.c" linenr="45" column="24" str="&quot;./foo&quot;" scope="0x7f8342904830" type="string" strlen="5" values="0x600003b1c4a0" astParent="0x6000018223f0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x6000018223f0" file="src/tests/path_contains.c" linenr="45" column="31" str="," scope="0x7f8342904830" astParent="0x600001820cd0" astOperand1="0x600001821e00" astOperand2="0x6000018215e0"/>
+    <token id="0x6000018215e0" file="src/tests/path_contains.c" linenr="45" column="33" str="&quot;./&quot;" scope="0x7f8342904830" type="string" strlen="2" values="0x600003b1d480" astParent="0x6000018223f0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001820aa0" file="src/tests/path_contains.c" linenr="45" column="37" str=")" scope="0x7f8342904830" link="0x600001820cd0"/>
+    <token id="0x600001821270" file="src/tests/path_contains.c" linenr="45" column="38" str=")" scope="0x7f8342904830" link="0x6000018229e0"/>
+    <token id="0x600001823660" file="src/tests/path_contains.c" linenr="45" column="39" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001823110" file="src/tests/path_contains.c" linenr="46" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x600001822df0"/>
+    <token id="0x600001822df0" file="src/tests/path_contains.c" linenr="46" column="8" str="(" scope="0x7f8342904830" link="0x600001844050" astOperand1="0x600001823110" astOperand2="0x600001822c60" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001822c60" file="src/tests/path_contains.c" linenr="46" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1d420" astParent="0x600001822df0" astOperand1="0x600001823d40" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001823700" file="src/tests/path_contains.c" linenr="46" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001823d40"/>
+    <token id="0x600001823d40" file="src/tests/path_contains.c" linenr="46" column="23" str="(" scope="0x7f8342904830" link="0x600001844000" values="0x600003b1d200" astParent="0x600001822c60" astOperand1="0x600001823700" astOperand2="0x600001820c30" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001821680" file="src/tests/path_contains.c" linenr="46" column="24" str="&quot;./foo&quot;" scope="0x7f8342904830" type="string" strlen="5" values="0x600003b1d620" astParent="0x600001820c30" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001820c30" file="src/tests/path_contains.c" linenr="46" column="31" str="," scope="0x7f8342904830" astParent="0x600001823d40" astOperand1="0x600001821680" astOperand2="0x600001823a20"/>
+    <token id="0x600001823a20" file="src/tests/path_contains.c" linenr="46" column="33" str="&quot;./foo&quot;" scope="0x7f8342904830" type="string" strlen="5" values="0x600003b1c900" astParent="0x600001820c30" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001844000" file="src/tests/path_contains.c" linenr="46" column="40" str=")" scope="0x7f8342904830" link="0x600001823d40"/>
+    <token id="0x600001844050" file="src/tests/path_contains.c" linenr="46" column="41" str=")" scope="0x7f8342904830" link="0x600001822df0"/>
+    <token id="0x6000018440a0" file="src/tests/path_contains.c" linenr="46" column="42" str=";" scope="0x7f8342904830"/>
+    <token id="0x6000018440f0" file="src/tests/path_contains.c" linenr="47" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x600001844140"/>
+    <token id="0x600001844140" file="src/tests/path_contains.c" linenr="47" column="8" str="(" scope="0x7f8342904830" link="0x6000018443c0" astOperand1="0x6000018440f0" astOperand2="0x600001844190" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001844190" file="src/tests/path_contains.c" linenr="47" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1d220" astParent="0x600001844140" astOperand1="0x600001844230" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x6000018441e0" file="src/tests/path_contains.c" linenr="47" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001844230"/>
+    <token id="0x600001844230" file="src/tests/path_contains.c" linenr="47" column="23" str="(" scope="0x7f8342904830" link="0x600001844370" values="0x600003b1cbe0" astParent="0x600001844190" astOperand1="0x6000018441e0" astOperand2="0x6000018442d0" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001844280" file="src/tests/path_contains.c" linenr="47" column="24" str="&quot;.&quot;" scope="0x7f8342904830" type="string" strlen="1" values="0x600003b1cce0" astParent="0x6000018442d0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x6000018442d0" file="src/tests/path_contains.c" linenr="47" column="27" str="," scope="0x7f8342904830" astParent="0x600001844230" astOperand1="0x600001844280" astOperand2="0x600001844320"/>
+    <token id="0x600001844320" file="src/tests/path_contains.c" linenr="47" column="29" str="&quot;.&quot;" scope="0x7f8342904830" type="string" strlen="1" values="0x600003b1d360" astParent="0x6000018442d0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001844370" file="src/tests/path_contains.c" linenr="47" column="32" str=")" scope="0x7f8342904830" link="0x600001844230"/>
+    <token id="0x6000018443c0" file="src/tests/path_contains.c" linenr="47" column="33" str=")" scope="0x7f8342904830" link="0x600001844140"/>
+    <token id="0x600001844410" file="src/tests/path_contains.c" linenr="47" column="34" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001844460" file="src/tests/path_contains.c" linenr="48" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x6000018444b0"/>
+    <token id="0x6000018444b0" file="src/tests/path_contains.c" linenr="48" column="8" str="(" scope="0x7f8342904830" link="0x600001844730" astOperand1="0x600001844460" astOperand2="0x600001844500" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001844500" file="src/tests/path_contains.c" linenr="48" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1cc00" astParent="0x6000018444b0" astOperand1="0x6000018445a0" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001844550" file="src/tests/path_contains.c" linenr="48" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x6000018445a0"/>
+    <token id="0x6000018445a0" file="src/tests/path_contains.c" linenr="48" column="23" str="(" scope="0x7f8342904830" link="0x6000018446e0" values="0x600003b1cc20" astParent="0x600001844500" astOperand1="0x600001844550" astOperand2="0x600001844640" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x6000018445f0" file="src/tests/path_contains.c" linenr="48" column="24" str="&quot;.&quot;" scope="0x7f8342904830" type="string" strlen="1" values="0x600003b1c380" astParent="0x600001844640" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001844640" file="src/tests/path_contains.c" linenr="48" column="27" str="," scope="0x7f8342904830" astParent="0x6000018445a0" astOperand1="0x6000018445f0" astOperand2="0x600001844690"/>
+    <token id="0x600001844690" file="src/tests/path_contains.c" linenr="48" column="29" str="&quot;.foo&quot;" scope="0x7f8342904830" type="string" strlen="4" values="0x600003b1c7c0" astParent="0x600001844640" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x6000018446e0" file="src/tests/path_contains.c" linenr="48" column="35" str=")" scope="0x7f8342904830" link="0x6000018445a0"/>
+    <token id="0x600001844730" file="src/tests/path_contains.c" linenr="48" column="36" str=")" scope="0x7f8342904830" link="0x6000018444b0"/>
+    <token id="0x600001844780" file="src/tests/path_contains.c" linenr="48" column="37" str=";" scope="0x7f8342904830"/>
+    <token id="0x6000018447d0" file="src/tests/path_contains.c" linenr="49" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x600001844820"/>
+    <token id="0x600001844820" file="src/tests/path_contains.c" linenr="49" column="8" str="(" scope="0x7f8342904830" link="0x600001844aa0" astOperand1="0x6000018447d0" astOperand2="0x600001844870" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001844870" file="src/tests/path_contains.c" linenr="49" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1cc40" astParent="0x600001844820" astOperand1="0x600001844910" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x6000018448c0" file="src/tests/path_contains.c" linenr="49" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001844910"/>
+    <token id="0x600001844910" file="src/tests/path_contains.c" linenr="49" column="23" str="(" scope="0x7f8342904830" link="0x600001844a50" values="0x600003b1cc60" astParent="0x600001844870" astOperand1="0x6000018448c0" astOperand2="0x6000018449b0" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001844960" file="src/tests/path_contains.c" linenr="49" column="24" str="&quot;.f&quot;" scope="0x7f8342904830" type="string" strlen="2" values="0x600003b1cfa0" astParent="0x6000018449b0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x6000018449b0" file="src/tests/path_contains.c" linenr="49" column="28" str="," scope="0x7f8342904830" astParent="0x600001844910" astOperand1="0x600001844960" astOperand2="0x600001844a00"/>
+    <token id="0x600001844a00" file="src/tests/path_contains.c" linenr="49" column="30" str="&quot;.foo&quot;" scope="0x7f8342904830" type="string" strlen="4" values="0x600003b1cf80" astParent="0x6000018449b0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001844a50" file="src/tests/path_contains.c" linenr="49" column="36" str=")" scope="0x7f8342904830" link="0x600001844910"/>
+    <token id="0x600001844aa0" file="src/tests/path_contains.c" linenr="49" column="37" str=")" scope="0x7f8342904830" link="0x600001844820"/>
+    <token id="0x600001844af0" file="src/tests/path_contains.c" linenr="49" column="38" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001844b40" file="src/tests/path_contains.c" linenr="50" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x600001844b90"/>
+    <token id="0x600001844b90" file="src/tests/path_contains.c" linenr="50" column="8" str="(" scope="0x7f8342904830" link="0x600001844e10" astOperand1="0x600001844b40" astOperand2="0x600001844be0" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001844be0" file="src/tests/path_contains.c" linenr="50" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1cc80" astParent="0x600001844b90" astOperand1="0x600001844c80" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001844c30" file="src/tests/path_contains.c" linenr="50" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001844c80"/>
+    <token id="0x600001844c80" file="src/tests/path_contains.c" linenr="50" column="23" str="(" scope="0x7f8342904830" link="0x600001844dc0" values="0x600003b1d240" astParent="0x600001844be0" astOperand1="0x600001844c30" astOperand2="0x600001844d20" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001844cd0" file="src/tests/path_contains.c" linenr="50" column="24" str="&quot;.foo&quot;" scope="0x7f8342904830" type="string" strlen="4" values="0x600003b1c3c0" astParent="0x600001844d20" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001844d20" file="src/tests/path_contains.c" linenr="50" column="30" str="," scope="0x7f8342904830" astParent="0x600001844c80" astOperand1="0x600001844cd0" astOperand2="0x600001844d70"/>
+    <token id="0x600001844d70" file="src/tests/path_contains.c" linenr="50" column="32" str="&quot;.foo&quot;" scope="0x7f8342904830" type="string" strlen="4" values="0x600003b1cf20" astParent="0x600001844d20" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001844dc0" file="src/tests/path_contains.c" linenr="50" column="38" str=")" scope="0x7f8342904830" link="0x600001844c80"/>
+    <token id="0x600001844e10" file="src/tests/path_contains.c" linenr="50" column="39" str=")" scope="0x7f8342904830" link="0x600001844b90"/>
+    <token id="0x600001844e60" file="src/tests/path_contains.c" linenr="50" column="40" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001844eb0" file="src/tests/path_contains.c" linenr="57" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x600001844f00"/>
+    <token id="0x600001844f00" file="src/tests/path_contains.c" linenr="57" column="8" str="(" scope="0x7f8342904830" link="0x600001845180" astOperand1="0x600001844eb0" astOperand2="0x600001844f50" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001844f50" file="src/tests/path_contains.c" linenr="57" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1cda0" astParent="0x600001844f00" astOperand1="0x600001844ff0" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001844fa0" file="src/tests/path_contains.c" linenr="57" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001844ff0"/>
+    <token id="0x600001844ff0" file="src/tests/path_contains.c" linenr="57" column="23" str="(" scope="0x7f8342904830" link="0x600001845130" values="0x600003b1c820" astParent="0x600001844f50" astOperand1="0x600001844fa0" astOperand2="0x600001845090" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001845040" file="src/tests/path_contains.c" linenr="57" column="24" str="&quot;&quot;" scope="0x7f8342904830" type="string" strlen="0" values="0x600003b1cd00" astParent="0x600001845090" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001845090" file="src/tests/path_contains.c" linenr="57" column="26" str="," scope="0x7f8342904830" astParent="0x600001844ff0" astOperand1="0x600001845040" astOperand2="0x6000018450e0"/>
+    <token id="0x6000018450e0" file="src/tests/path_contains.c" linenr="57" column="28" str="&quot;/&quot;" scope="0x7f8342904830" type="string" strlen="1" values="0x600003b1d180" astParent="0x600001845090" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001845130" file="src/tests/path_contains.c" linenr="57" column="31" str=")" scope="0x7f8342904830" link="0x600001844ff0"/>
+    <token id="0x600001845180" file="src/tests/path_contains.c" linenr="57" column="32" str=")" scope="0x7f8342904830" link="0x600001844f00"/>
+    <token id="0x6000018451d0" file="src/tests/path_contains.c" linenr="57" column="33" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001845220" file="src/tests/path_contains.c" linenr="58" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x600001845270"/>
+    <token id="0x600001845270" file="src/tests/path_contains.c" linenr="58" column="8" str="(" scope="0x7f8342904830" link="0x6000018454f0" astOperand1="0x600001845220" astOperand2="0x6000018452c0" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x6000018452c0" file="src/tests/path_contains.c" linenr="58" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1cdc0" astParent="0x600001845270" astOperand1="0x600001845360" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001845310" file="src/tests/path_contains.c" linenr="58" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001845360"/>
+    <token id="0x600001845360" file="src/tests/path_contains.c" linenr="58" column="23" str="(" scope="0x7f8342904830" link="0x6000018454a0" values="0x600003b1cd40" astParent="0x6000018452c0" astOperand1="0x600001845310" astOperand2="0x600001845400" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x6000018453b0" file="src/tests/path_contains.c" linenr="58" column="24" str="&quot;&quot;" scope="0x7f8342904830" type="string" strlen="0" values="0x600003b1c7e0" astParent="0x600001845400" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001845400" file="src/tests/path_contains.c" linenr="58" column="26" str="," scope="0x7f8342904830" astParent="0x600001845360" astOperand1="0x6000018453b0" astOperand2="0x600001845450"/>
+    <token id="0x600001845450" file="src/tests/path_contains.c" linenr="58" column="28" str="&quot;.&quot;" scope="0x7f8342904830" type="string" strlen="1" values="0x600003b1c460" astParent="0x600001845400" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x6000018454a0" file="src/tests/path_contains.c" linenr="58" column="31" str=")" scope="0x7f8342904830" link="0x600001845360"/>
+    <token id="0x6000018454f0" file="src/tests/path_contains.c" linenr="58" column="32" str=")" scope="0x7f8342904830" link="0x600001845270"/>
+    <token id="0x600001845540" file="src/tests/path_contains.c" linenr="58" column="33" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001845590" file="src/tests/path_contains.c" linenr="59" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x6000018455e0"/>
+    <token id="0x6000018455e0" file="src/tests/path_contains.c" linenr="59" column="8" str="(" scope="0x7f8342904830" link="0x600001845860" astOperand1="0x600001845590" astOperand2="0x600001845630" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001845630" file="src/tests/path_contains.c" linenr="59" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1cd60" astParent="0x6000018455e0" astOperand1="0x6000018456d0" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001845680" file="src/tests/path_contains.c" linenr="59" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x6000018456d0"/>
+    <token id="0x6000018456d0" file="src/tests/path_contains.c" linenr="59" column="23" str="(" scope="0x7f8342904830" link="0x600001845810" values="0x600003b1cd80" astParent="0x600001845630" astOperand1="0x600001845680" astOperand2="0x600001845770" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001845720" file="src/tests/path_contains.c" linenr="59" column="24" str="&quot;&quot;" scope="0x7f8342904830" type="string" strlen="0" values="0x600003b1ca40" astParent="0x600001845770" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001845770" file="src/tests/path_contains.c" linenr="59" column="26" str="," scope="0x7f8342904830" astParent="0x6000018456d0" astOperand1="0x600001845720" astOperand2="0x6000018457c0"/>
+    <token id="0x6000018457c0" file="src/tests/path_contains.c" linenr="59" column="28" str="&quot;foo&quot;" scope="0x7f8342904830" type="string" strlen="3" values="0x600003b1ca60" astParent="0x600001845770" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001845810" file="src/tests/path_contains.c" linenr="59" column="33" str=")" scope="0x7f8342904830" link="0x6000018456d0"/>
+    <token id="0x600001845860" file="src/tests/path_contains.c" linenr="59" column="34" str=")" scope="0x7f8342904830" link="0x6000018455e0"/>
+    <token id="0x6000018458b0" file="src/tests/path_contains.c" linenr="59" column="35" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001845900" file="src/tests/path_contains.c" linenr="60" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x600001845950"/>
+    <token id="0x600001845950" file="src/tests/path_contains.c" linenr="60" column="8" str="(" scope="0x7f8342904830" link="0x600001845bd0" astOperand1="0x600001845900" astOperand2="0x6000018459a0" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x6000018459a0" file="src/tests/path_contains.c" linenr="60" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1c5e0" astParent="0x600001845950" astOperand1="0x600001845a40" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x6000018459f0" file="src/tests/path_contains.c" linenr="60" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001845a40"/>
+    <token id="0x600001845a40" file="src/tests/path_contains.c" linenr="60" column="23" str="(" scope="0x7f8342904830" link="0x600001845b80" values="0x600003b1c400" astParent="0x6000018459a0" astOperand1="0x6000018459f0" astOperand2="0x600001845ae0" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001845a90" file="src/tests/path_contains.c" linenr="60" column="24" str="&quot;/&quot;" scope="0x7f8342904830" type="string" strlen="1" values="0x600003b1ca80" astParent="0x600001845ae0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001845ae0" file="src/tests/path_contains.c" linenr="60" column="27" str="," scope="0x7f8342904830" astParent="0x600001845a40" astOperand1="0x600001845a90" astOperand2="0x600001845b30"/>
+    <token id="0x600001845b30" file="src/tests/path_contains.c" linenr="60" column="29" str="&quot;&quot;" scope="0x7f8342904830" type="string" strlen="0" values="0x600003b1caa0" astParent="0x600001845ae0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001845b80" file="src/tests/path_contains.c" linenr="60" column="31" str=")" scope="0x7f8342904830" link="0x600001845a40"/>
+    <token id="0x600001845bd0" file="src/tests/path_contains.c" linenr="60" column="32" str=")" scope="0x7f8342904830" link="0x600001845950"/>
+    <token id="0x600001845c20" file="src/tests/path_contains.c" linenr="60" column="33" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001845c70" file="src/tests/path_contains.c" linenr="61" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x600001845cc0"/>
+    <token id="0x600001845cc0" file="src/tests/path_contains.c" linenr="61" column="8" str="(" scope="0x7f8342904830" link="0x600001845f40" astOperand1="0x600001845c70" astOperand2="0x600001845d10" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001845d10" file="src/tests/path_contains.c" linenr="61" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1c580" astParent="0x600001845cc0" astOperand1="0x600001845db0" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001845d60" file="src/tests/path_contains.c" linenr="61" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001845db0"/>
+    <token id="0x600001845db0" file="src/tests/path_contains.c" linenr="61" column="23" str="(" scope="0x7f8342904830" link="0x600001845ef0" values="0x600003b1c8c0" astParent="0x600001845d10" astOperand1="0x600001845d60" astOperand2="0x600001845e50" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001845e00" file="src/tests/path_contains.c" linenr="61" column="24" str="&quot;.&quot;" scope="0x7f8342904830" type="string" strlen="1" values="0x600003b1cac0" astParent="0x600001845e50" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001845e50" file="src/tests/path_contains.c" linenr="61" column="27" str="," scope="0x7f8342904830" astParent="0x600001845db0" astOperand1="0x600001845e00" astOperand2="0x600001845ea0"/>
+    <token id="0x600001845ea0" file="src/tests/path_contains.c" linenr="61" column="29" str="&quot;&quot;" scope="0x7f8342904830" type="string" strlen="0" values="0x600003b1cae0" astParent="0x600001845e50" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001845ef0" file="src/tests/path_contains.c" linenr="61" column="31" str=")" scope="0x7f8342904830" link="0x600001845db0"/>
+    <token id="0x600001845f40" file="src/tests/path_contains.c" linenr="61" column="32" str=")" scope="0x7f8342904830" link="0x600001845cc0"/>
+    <token id="0x600001845f90" file="src/tests/path_contains.c" linenr="61" column="33" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001845fe0" file="src/tests/path_contains.c" linenr="62" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x600001846030"/>
+    <token id="0x600001846030" file="src/tests/path_contains.c" linenr="62" column="8" str="(" scope="0x7f8342904830" link="0x6000018462b0" astOperand1="0x600001845fe0" astOperand2="0x600001846080" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x600001846080" file="src/tests/path_contains.c" linenr="62" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1d080" astParent="0x600001846030" astOperand1="0x600001846120" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x6000018460d0" file="src/tests/path_contains.c" linenr="62" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001846120"/>
+    <token id="0x600001846120" file="src/tests/path_contains.c" linenr="62" column="23" str="(" scope="0x7f8342904830" link="0x600001846260" values="0x600003b1d4a0" astParent="0x600001846080" astOperand1="0x6000018460d0" astOperand2="0x6000018461c0" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001846170" file="src/tests/path_contains.c" linenr="62" column="24" str="&quot;foo&quot;" scope="0x7f8342904830" type="string" strlen="3" values="0x600003b1cb00" astParent="0x6000018461c0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x6000018461c0" file="src/tests/path_contains.c" linenr="62" column="29" str="," scope="0x7f8342904830" astParent="0x600001846120" astOperand1="0x600001846170" astOperand2="0x600001846210"/>
+    <token id="0x600001846210" file="src/tests/path_contains.c" linenr="62" column="31" str="&quot;&quot;" scope="0x7f8342904830" type="string" strlen="0" values="0x600003b1c560" astParent="0x6000018461c0" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001846260" file="src/tests/path_contains.c" linenr="62" column="33" str=")" scope="0x7f8342904830" link="0x600001846120"/>
+    <token id="0x6000018462b0" file="src/tests/path_contains.c" linenr="62" column="34" str=")" scope="0x7f8342904830" link="0x600001846030"/>
+    <token id="0x600001846300" file="src/tests/path_contains.c" linenr="62" column="35" str=";" scope="0x7f8342904830"/>
+    <token id="0x600001846350" file="src/tests/path_contains.c" linenr="63" column="2" str="assert" scope="0x7f8342904830" type="name" astParent="0x6000018463a0"/>
+    <token id="0x6000018463a0" file="src/tests/path_contains.c" linenr="63" column="8" str="(" scope="0x7f8342904830" link="0x600001846620" astOperand1="0x600001846350" astOperand2="0x6000018463f0" valueType-type="void" valueType-reference="None" valueType-originalTypeName="void"/>
+    <token id="0x6000018463f0" file="src/tests/path_contains.c" linenr="63" column="9" str="!" scope="0x7f8342904830" type="op" isLogicalOp="true" values="0x600003b1cf00" astParent="0x6000018463a0" astOperand1="0x600001846490" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x600001846440" file="src/tests/path_contains.c" linenr="63" column="10" str="path_contains" scope="0x7f8342904830" type="name" function="0x600000a081f0" astParent="0x600001846490"/>
+    <token id="0x600001846490" file="src/tests/path_contains.c" linenr="63" column="23" str="(" scope="0x7f8342904830" link="0x6000018465d0" values="0x600003b1c2e0" astParent="0x6000018463f0" astOperand1="0x600001846440" astOperand2="0x600001846530" valueType-type="bool" valueType-reference="None"/>
+    <token id="0x6000018464e0" file="src/tests/path_contains.c" linenr="63" column="24" str="&quot;&quot;" scope="0x7f8342904830" type="string" strlen="0" values="0x600003b1d0c0" astParent="0x600001846530" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x600001846530" file="src/tests/path_contains.c" linenr="63" column="26" str="," scope="0x7f8342904830" astParent="0x600001846490" astOperand1="0x6000018464e0" astOperand2="0x600001846580"/>
+    <token id="0x600001846580" file="src/tests/path_contains.c" linenr="63" column="28" str="&quot;&quot;" scope="0x7f8342904830" type="string" strlen="0" values="0x600003b1c300" astParent="0x600001846530" valueType-type="char" valueType-pointer="1" valueType-constness="1" valueType-reference="None"/>
+    <token id="0x6000018465d0" file="src/tests/path_contains.c" linenr="63" column="30" str=")" scope="0x7f8342904830" link="0x600001846490"/>
+    <token id="0x600001846620" file="src/tests/path_contains.c" linenr="63" column="31" str=")" scope="0x7f8342904830" link="0x6000018463a0"/>
+    <token id="0x600001846670" file="src/tests/path_contains.c" linenr="63" column="32" str=";" scope="0x7f8342904830"/>
+    <token id="0x6000018466c0" file="src/tests/path_contains.c" linenr="70" column="2" str="return" scope="0x7f8342904830" type="name" astOperand1="0x600001846710" valueType-type="int" valueType-sign="signed" valueType-reference="None"/>
+    <token id="0x600001846710" file="src/tests/path_contains.c" linenr="70" column="9" str="EXIT_SUCCESS" scope="0x7f8342904830" type="name" astParent="0x6000018466c0"/>
+    <token id="0x600001846760" file="src/tests/path_contains.c" linenr="70" column="21" str=";" scope="0x7f8342904830"/>
+    <token id="0x6000018467b0" file="src/tests/path_contains.c" linenr="71" column="1" str="}" scope="0x7f8342904830" link="0x60000183bbb0"/>
+  </tokenlist>
+  <scopes>
+    <scope id="0x7f8342904590" type="Global">
+      <functionList>
+        <function id="0x600000a08010" token="0x0" tokenDef="0x6000018390e0" name="fail" type="Function">
+          <arg nr="1" variable="0x600001008240"/>
+          <arg nr="2" variable="0x6000010081d0"/>
+        </function>
+        <function id="0x600000a080b0" token="0x0" tokenDef="0x60000183a800" name="path_check_len" type="Function">
+          <arg nr="1" variable="0x600001008c50"/>
+        </function>
+        <function id="0x600000a08150" token="0x0" tokenDef="0x60000183abc0" name="path_check_wexcl" type="Function">
+          <arg nr="1" variable="0x600001008be0"/>
+          <arg nr="2" variable="0x600001008b70"/>
+          <arg nr="3" variable="0x600001008b00"/>
+        </function>
+        <function id="0x600000a081f0" token="0x0" tokenDef="0x60000183b570" name="path_contains" type="Function">
+          <arg nr="1" variable="0x600001008a90"/>
+          <arg nr="2" variable="0x600001008a20"/>
+        </function>
+        <function id="0x600000a08290" token="0x60000183ba70" tokenDef="0x60000183ba70" name="main" type="Function"/>
+      </functionList>
+    </scope>
+    <scope id="0x7f83429046e0" type="Enum" className="error" bodyStart="0x600001838870" bodyEnd="0x60000183a530" nestedIn="0x7f8342904590"/>
+    <scope id="0x7f8342904830" type="Function" className="main" bodyStart="0x60000183bbb0" bodyEnd="0x6000018467b0" nestedIn="0x7f8342904590" function="0x600000a08290"/>
+  </scopes>
+  <variables>
+    <var id="0x6000010081d0" nameToken="0x0" typeStartToken="0x6000018397c0" typeEndToken="0x6000018397c0" access="Argument" scope="0x0" constness="0" isArray="false" isClass="false" isConst="false" isExtern="false" isPointer="false" isReference="false" isStatic="false" isVolatile="false"/>
+    <var id="0x600001008240" nameToken="0x600001839130" typeStartToken="0x60000183b020" typeEndToken="0x60000183a710" access="Argument" scope="0x0" constness="3" isArray="false" isClass="false" isConst="true" isExtern="false" isPointer="true" isReference="false" isStatic="false" isVolatile="false"/>
+    <var id="0x600001008a20" nameToken="0x60000183b930" typeStartToken="0x60000183b840" typeEndToken="0x60000183b890" access="Argument" scope="0x0" constness="3" isArray="false" isClass="false" isConst="true" isExtern="false" isPointer="true" isReference="false" isStatic="false" isVolatile="false"/>
+    <var id="0x600001008a90" nameToken="0x60000183b750" typeStartToken="0x60000183b660" typeEndToken="0x60000183b6b0" access="Argument" scope="0x0" constness="3" isArray="false" isClass="false" isConst="true" isExtern="false" isPointer="true" isReference="false" isStatic="false" isVolatile="false"/>
+    <var id="0x600001008b00" nameToken="0x600001838d70" typeStartToken="0x60000183af30" typeEndToken="0x600001839630" access="Argument" scope="0x0" constness="3" isArray="false" isClass="false" isConst="true" isExtern="false" isPointer="true" isReference="false" isStatic="false" isVolatile="false"/>
+    <var id="0x600001008b70" nameToken="0x6000018394a0" typeStartToken="0x60000183a9e0" typeEndToken="0x60000183a2b0" access="Argument" scope="0x0" constness="3" isArray="false" isClass="false" isConst="true" isExtern="false" isPointer="true" isReference="false" isStatic="false" isVolatile="false"/>
+    <var id="0x600001008be0" nameToken="0x60000183a490" typeStartToken="0x60000183a850" typeEndToken="0x60000183a850" access="Argument" scope="0x0" constness="1" isArray="false" isClass="false" isConst="true" isExtern="false" isPointer="false" isReference="false" isStatic="false" isVolatile="false"/>
+    <var id="0x600001008c50" nameToken="0x60000183aa80" typeStartToken="0x600001839db0" typeEndToken="0x600001839680" access="Argument" scope="0x0" constness="3" isArray="false" isClass="false" isConst="true" isExtern="false" isPointer="true" isReference="false" isStatic="false" isVolatile="false"/>
+  </variables>
+  <valueflow>
+    <values id="0x600003b1c520">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1d1a0">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c9c0">
+      <value tokvalue="0x60000183bd40" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c920">
+      <value tokvalue="0x60000183bde0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1cb20">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1cde0">
+      <value tokvalue="0x6000018222b0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c060">
+      <value tokvalue="0x600001821860" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c420">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c6e0">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1d500">
+      <value tokvalue="0x6000018219f0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c740">
+      <value tokvalue="0x6000018237a0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1d4c0">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1cf40">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c0e0">
+      <value tokvalue="0x6000018238e0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c1e0">
+      <value tokvalue="0x600001822f30" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c6c0">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1d1c0">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c620">
+      <value tokvalue="0x6000018228f0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1d0a0">
+      <value tokvalue="0x6000018225d0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1d520">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1d580">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c940">
+      <value tokvalue="0x600001822f80" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c1a0">
+      <value tokvalue="0x6000018224e0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1cb40">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1d100">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c4e0">
+      <value tokvalue="0x600001821540" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c160">
+      <value tokvalue="0x600001821c70" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c700">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1cb60">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1d160">
+      <value tokvalue="0x600001823f20" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1d120">
+      <value tokvalue="0x600001821310" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1cb80">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1cba0">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1d460">
+      <value tokvalue="0x6000018234d0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c080">
+      <value tokvalue="0x600001821130" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c720">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c3a0">
+      <value tokvalue="0x600001821ea0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c760">
+      <value tokvalue="0x600001822c10" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1cfe0">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1d400">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c9e0">
+      <value tokvalue="0x600001822bc0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1cca0">
+      <value tokvalue="0x600001820dc0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c2a0">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c2c0">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1d3a0">
+      <value tokvalue="0x600001823840" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c680">
+      <value tokvalue="0x600001820eb0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1d1e0">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c600">
+      <value tokvalue="0x600001822b70" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c240">
+      <value tokvalue="0x600001821ae0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1cfc0">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c960">
+      <value tokvalue="0x6000018233e0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1ca20">
+      <value tokvalue="0x600001823b60" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1d020">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c800">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c9a0">
+      <value tokvalue="0x6000018232f0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c980">
+      <value tokvalue="0x6000018218b0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1cf60">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1cd20">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1d560">
+      <value tokvalue="0x600001823c50" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c180">
+      <value tokvalue="0x6000018209b0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1d000">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1cbc0">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c4a0">
+      <value tokvalue="0x600001821e00" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1d480">
+      <value tokvalue="0x6000018215e0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1d420">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1d200">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1d620">
+      <value tokvalue="0x600001821680" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c900">
+      <value tokvalue="0x600001823a20" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1d220">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1cbe0">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1cce0">
+      <value tokvalue="0x600001844280" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1d360">
+      <value tokvalue="0x600001844320" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1cc00">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1cc20">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c380">
+      <value tokvalue="0x6000018445f0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c7c0">
+      <value tokvalue="0x600001844690" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1cc40">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1cc60">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1cfa0">
+      <value tokvalue="0x600001844960" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1cf80">
+      <value tokvalue="0x600001844a00" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1cc80">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1d240">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c3c0">
+      <value tokvalue="0x600001844cd0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1cf20">
+      <value tokvalue="0x600001844d70" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1cda0">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c820">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1cd00">
+      <value tokvalue="0x600001845040" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1d180">
+      <value tokvalue="0x6000018450e0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1cdc0">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1cd40">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c7e0">
+      <value tokvalue="0x6000018453b0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c460">
+      <value tokvalue="0x600001845450" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1cd60">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1cd80">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1ca40">
+      <value tokvalue="0x600001845720" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1ca60">
+      <value tokvalue="0x6000018457c0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c5e0">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c400">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1ca80">
+      <value tokvalue="0x600001845a90" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1caa0">
+      <value tokvalue="0x600001845b30" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c580">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c8c0">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1cac0">
+      <value tokvalue="0x600001845e00" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1cae0">
+      <value tokvalue="0x600001845ea0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1d080">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1d4a0">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1cb00">
+      <value tokvalue="0x600001846170" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c560">
+      <value tokvalue="0x600001846210" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1cf00">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1c2e0">
+      <value intvalue="-1" bound="Upper" impossible="true" path="0"/>
+      <value intvalue="2" bound="Lower" impossible="true" path="0"/>
+    </values>
+    <values id="0x600003b1d0c0">
+      <value tokvalue="0x6000018464e0" bound="Point" known="true" path="0"/>
+    </values>
+    <values id="0x600003b1c300">
+      <value tokvalue="0x600001846580" bound="Point" known="true" path="0"/>
+    </values>
+  </valueflow>
+</dump>
+</dumps>

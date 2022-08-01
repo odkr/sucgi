@@ -45,18 +45,21 @@ str_to_ulong (const char *const s, unsigned long *n)
 
 error
 str_splitn(const char *const s, const char *sep, const size_t max,
-           str4096 *subs[], size_t *n)
+           char **subs, size_t *n)
 {
+	/* cppcheck-suppress unreadVariable */
+	error rc = ERR_SYS;		/* Return code. */
 	char *pivot = (char *) s;	/* Current start of string. */
 	size_t i = 0;			/* Iterator. */
-	error rc = ERR_SYS;		/* Return code. */
 
 	assert(subs);
 	for (; i <= max && pivot; i++) {
-		subs[i] = calloc(STR_MAX_LEN + 1, sizeof(char));
-		if (!subs[i]) goto err;
-		rc = str_split(pivot, sep, subs[i], &pivot);
+		/* Flawfinder: ignore */
+		char sub[STR_MAX] = "";
+		rc = str_split(pivot, sep, &sub, &pivot);
 		if (rc != OK) goto err;
+		subs[i] = strndup(sub, STR_MAX);
+		if (!subs[i]) goto err;
 	}
 	subs[++i] = NULL;
 

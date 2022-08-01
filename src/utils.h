@@ -26,6 +26,13 @@
 
 #include "attr.h"
 
+#if defined(__APPLE__) && defined(__MACH__)
+typedef int dummy_gid;
+#else
+typedef gid_t dummy_gid;
+#endif
+
+
 
 /*
  * Data types

@@ -41,7 +41,7 @@
 extern char **environ;
 
 /* Default environment variables to keep. */
-/* flawfinder: ignore (array is constant). */
+/* Flawfinder: ignore (array is constant). */
 const char *const env_keep[49] = {
 	"AUTH_TYPE",
 	"CONTENT_LENGTH",
@@ -95,7 +95,7 @@ const char *const env_keep[49] = {
 };
 
 /* Default environment variables to toss. */
-/* flawfinder: ignore (array is constant). */
+/* Flawfinder: ignore (array is constant). */
 const char *const env_toss[2] = {
 	"HTTP_PROXY",
 	NULL	/* Array terminator. DO NOT REMOVE. */
@@ -110,7 +110,7 @@ error
 env_clear(char *vars[])
 {
 	static char *var = NULL;	/* First environment variable. */
-	char **env = environ;		/* Copy of the pointer. */
+	char **env = environ;		/* Copy of the environ pointer. */
 	
 	var = NULL;
 	environ = &var;
@@ -128,47 +128,28 @@ error
 env_get_fname(const char *name, const mode_t ftype,
               char **fname, struct stat *fstatus)
 {
-	struct stat buf;
-	char *value = NULL;
+	struct stat buf;	/* Filesystem status of the file. */
+	char *value = NULL;	/* The value of the environment variable. */
 
 	assert(name && fname);
-	/* flawfinder: ignore (value is sanitised below). */
+	/* Flawfinder: ignore (value is sanitised below). */
 	value = getenv(name);
 	if (!value) return ERR_VAR_UNDEF;
-	if ('\0' == *value) return ERR_VAR_EMPTY;
+	if (str_eq(value, "")) return ERR_VAR_EMPTY;
 	reraise(path_check_len(value));
 	reraise(file_safe_stat(value, &buf));
 	if ((buf.st_mode & S_IFMT) != ftype) return ERR_FTYPE;
 
-	/* flawfinder: ignore (fstatus is guaranteed to be large enough). */
-	if (fstatus) memcpy(fstatus, &buf, sizeof(struct stat));
+	/* Flawfinder: ignore (fstatus is guaranteed to be large enough). */
+	if (fstatus) (void) memcpy(fstatus, &buf, sizeof(struct stat));
 	*fname = value;
-	return OK;
-}
-
-error
-env_restore(char *vars[], const char *const keep[], const char *const toss[])
-{
-	assert(vars && keep && toss);
-
-	for (size_t i = 0; i < ENV_MAX && vars[i]; i++) {
-		str4096 name = "";	/* Variable name. */
-		char *value = NULL;	/* Variable value. */
-
-		reraise(str_split(vars[i], "=", &name, &value));
-		if ('\0' == name[0] || !value) return ERR_VAR_INVALID;
-		if (str_matchn(name, keep, 0) && !str_matchn(name, toss, 0)) {
-			if (setenv(name, value, true) != 0) return ERR_SYS;
-		}
-	}
-
 	return OK;
 }
 
 error
 env_sanitise (const char *const keep[], const char *const toss[])
 {
-	/* flawfinder: ignore (env_clear adds at most ENV_MAX entries). */
+	/* Flawfinder: ignore (env_clear adds at most ENV_MAX entries). */
 	char *vars[ENV_MAX] = {NULL};	/* Backup of the environment. */
 
 	/*
@@ -180,7 +161,19 @@ env_sanitise (const char *const keep[], const char *const toss[])
 	 */
 
 	reraise(env_clear(vars));
-	reraise(env_restore(vars, keep, toss));
+
+	/* Repopulate the environment. */
+	for (size_t i = 0; i < ENV_MAX && vars[i]; i++) {
+		/* Flawfinder: ignore (str_split adds at most STR_MAX bytes). */
+		char name[STR_MAX] = "";	/* Variable name. */
+		char *value = NULL;		/* Variable value. */
+
+		reraise(str_split(vars[i], "=", &name, &value));
+		if (str_eq(name, "") || !value) return ERR_VAR_INVALID;
+		if (str_fnmatchn(name, keep, 0) && !str_fnmatchn(name, toss, 0)) {
+			if (setenv(name, value, true) != 0) return ERR_SYS;
+		}
+	}
 
 	return OK;
 }

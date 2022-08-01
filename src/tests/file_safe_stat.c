@@ -28,7 +28,7 @@ main (int argc, char **argv)
 	}
 
 	if (file_safe_stat(fname, &fstatus) == OK) {
-		/* flawfinder: ignore. */
+		/* Flawfinder: ignore. */
 		printf("file_safe_stat: "
 		       "inode %lu, UID %lu, GID %lu, mode %o, size %lub.\n",
 		       (unsigned long) fstatus.st_ino,

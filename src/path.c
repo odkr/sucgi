@@ -54,22 +54,20 @@ path_check_len(const char *const path)
 	assert(path);
 	reraise(str_len(path, &path_len));
 #if PATH_MAX > -1
-	if (path_len > PATH_MAX - 1) return ERR_STR_LEN;
+	if (path_len > PATH_MAX - 1) return ERR_STR_MAX;
 #endif
 
 	sub = path;
 	do {
-		/* flawfinder: ignore (super <= path, path bound-checked). */
-		char super[STR_MAX_LEN + 1] = "";
-		size_t fname_len = 0;
-		size_t super_len = 0;
-		size_t sub_len = 0;
+		/* Flawfinder: ignore (str_cpn writes at most STR_MAX bytes). */
+		char super[STR_MAX] = "";	/* Super-directory. */
+		size_t super_len = 0;		/* Super-directory path length. */
+		size_t sub_len = 0;		/* Sub-dir path length. */
+		size_t fname_len = 0;		/* Filename length .*/
 
 		if (sep) {
-			/* FIXME: Create safe string copy function and use it here. */
 			super_len = (size_t) (sep - path + 1);
-			/* flawfinder: ignore (super_len < STR_MAX_LEN). */
-			memcpy(super, path, super_len);
+			reraise(str_cpn(super_len, path, &super));
 		}
 
 		sep = strpbrk(sub, "/");
@@ -85,7 +83,7 @@ path_check_len(const char *const path)
 
 		if (fname_len > MAX_FNAME) return ERR_FNAME_LEN;
 
-		if (super[0] != '\0') {
+		if (!str_eq(super, "")) {
  			long name_max = pathconf(super, _PC_NAME_MAX);
 			long path_max = pathconf(super, _PC_PATH_MAX);
 
@@ -98,7 +96,7 @@ path_check_len(const char *const path)
 			if (path_max < 0) {
 				if (errno > 0) return ERR_SYS;
 			} else if (sub_len > (size_t) path_max) {
-				return ERR_STR_LEN;
+				return ERR_STR_MAX;
 			}
 		}
 	} while (sep);
@@ -110,8 +108,9 @@ error
 path_check_wexcl(const uid_t uid, const char *const start,
                  const char *const stop)
 {
-	str4096 path = "";	/* Copy of path. */
-	char *file = path;	/* Path to current file. */
+	/* Flawfinder: ignore (str_cp copies at most STR_MAX bytes). */
+	char path[STR_MAX] = "";	/* Copy of path. */
+	char *file = path;		/* Path to current file. */
 
 	assert(start && stop);
 	reraise(str_cp(start, &path));
@@ -121,9 +120,9 @@ path_check_wexcl(const uid_t uid, const char *const start,
 
 		if (stat(file, &fstatus) != 0) return ERR_SYS;
 		if (!file_is_wexcl(uid, &fstatus)) return ERR_NOT_EXCLW;
-		if (   str_eq(file, stop)
-		    || str_eq(file, "/")
-		    || str_eq(file, ".")) break;
+		if (str_eq(file, stop) ||
+		    str_eq(file, "/")  ||
+		    str_eq(file, ".")) break;
 		file = dirname(file);
 	}
 
@@ -133,11 +132,11 @@ path_check_wexcl(const uid_t uid, const char *const start,
 bool
 path_contains(const char *const super, const char *const sub)
 {
-	size_t len = 0;
+	size_t len = 0;	/* Super-directory length. */
 
 	assert(super && sub);
-	len = strnlen(super, STR_MAX_LEN);
-	if ('\0' == super[0]) return false;
+	len = strnlen(super, STR_MAX - 1);
+	if (str_eq(super, "")) return false;
 	if (str_eq(sub, "/")) return false;
 	if (sub[len] != '/' && !str_eq(super, "/")) return false;
 	return (strncmp(super, sub, len) == 0);

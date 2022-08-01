@@ -11,12 +11,12 @@
 int
 main (void) {
 	size_t len = 0;
-	/* flawfinder: ignore */
-	char huge[STR_MAX_LEN + 2];
-	memset(huge, 'c', STR_MAX_LEN + 1);
-	huge[STR_MAX_LEN + 1] = '\0';
-	assert(strnlen(huge, STR_MAX_LEN + 1) > STR_MAX_LEN);
-	assert(str_len(huge, &len) == ERR_STR_LEN);
+	/* Flawfinder: ignore */
+	char huge[STR_MAX + 1];
+	memset(huge, 'c', STR_MAX);
+	huge[STR_MAX] = '\0';
+	assert(strnlen(huge, STR_MAX) > STR_MAX - 1);
+	assert(str_len(huge, &len) == ERR_STR_MAX);
 	assert(0 == len);
 
 	assert(str_len("", &len) == OK);

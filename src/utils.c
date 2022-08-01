@@ -33,19 +33,13 @@
 #include "str.h"
 #include "utils.h"
 
-#if defined(__APPLE__) && defined(__MACH__)
-#define INITGROUPS_GID_TYPE int
-#else
-#define INITGROUPS_GID_TYPE gid_t
-#endif
-
 
 void
 change_identity(const struct passwd *const user)
 {
-	uid_t uid = 0;
-	gid_t gid = 0;
-	char *name = NULL;
+	uid_t uid = 0;		/* user's UID. */
+	gid_t gid = 0;		/* user's GID. */
+	char *name = NULL;	/* user's name. */
 
 	assert(user && user->pw_name);
 	name = user->pw_name;
@@ -59,13 +53,13 @@ change_identity(const struct passwd *const user)
 		fail("setgroups %lu: %s.",
 		     (unsigned long) gid, strerror(errno));
 	}
-	if (initgroups(name, (INITGROUPS_GID_TYPE) gid) != 0) {
+	if (initgroups(name, (dummy_gid) gid) != 0) {
 		fail("initgroups %s: %s.", name, strerror(errno));
 	}
 
 	/*
 	 * The real UID and GID need to be set, too. Or else the
-	 * user may call seteuid(2) to gain webserver priviliges.
+	 * user can call seteuid(2) to gain webserver priviliges.
 	 */
 	if (setgid(gid) != 0) {
 		fail("setgid %lu: %s.", (unsigned long) gid, strerror(errno));
@@ -108,11 +102,11 @@ run_script(const char *const script, const struct pair pairs[])
 
 		if (!interpreter) {
 			fail("script handler %d: no interpreter.", i + 1);
-		} else if ('\0' == interpreter[0]) {
+		} else if (str_eq(interpreter, "")) {
 			fail("script handler %d: path is empty.", i + 1);
 		}
 
-		/* flawfinder: ignore (suCGI's point is to do this safely). */
+		/* Flawfinder: ignore (suCGI's point is to do this safely). */
 		execlp(interpreter, interpreter, script, NULL);
 		fail("exec %s %s: %s.", interpreter, script, strerror(errno));
 	}

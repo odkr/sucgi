@@ -40,7 +40,6 @@ CHECKBINS = $(BUILDDIR)/tests/tools/run-as \
             $(BUILDDIR)/tests/change_identity \
             $(BUILDDIR)/tests/fail $(BUILDDIR)/tests/env_clear \
             $(BUILDDIR)/tests/env_get_fname \
-            $(BUILDDIR)/tests/env_restore \
 	    $(BUILDDIR)/tests/env_sanitise \
             $(BUILDDIR)/tests/main \
             $(BUILDDIR)/tests/file_is_exec \
@@ -53,16 +52,16 @@ CHECKBINS = $(BUILDDIR)/tests/tools/run-as \
             $(BUILDDIR)/tests/reraise \
             $(BUILDDIR)/tests/run_script \
             $(BUILDDIR)/tests/str_cp \
+            $(BUILDDIR)/tests/str_cpn \
             $(BUILDDIR)/tests/str_eq \
+            $(BUILDDIR)/tests/str_fnmatchn \
             $(BUILDDIR)/tests/str_len \
-            $(BUILDDIR)/tests/str_matchn \
             $(BUILDDIR)/tests/str_split
 
 CHECKS = $(SCRIPTDIR)/tests/change_identity.sh \
          $(SCRIPTDIR)/tests/fail.sh \
          $(BUILDDIR)/tests/env_clear \
          $(SCRIPTDIR)/tests/env_get_fname.sh \
-         $(BUILDDIR)/tests/env_restore \
 	 $(BUILDDIR)/tests/env_sanitise \
          $(SCRIPTDIR)/tests/main.sh \
          $(SCRIPTDIR)/tests/file_is_exec.sh \
@@ -75,10 +74,12 @@ CHECKS = $(SCRIPTDIR)/tests/change_identity.sh \
          $(BUILDDIR)/tests/reraise \
          $(SCRIPTDIR)/tests/run_script.sh \
          $(BUILDDIR)/tests/str_cp \
+         $(BUILDDIR)/tests/str_cpn \
          $(BUILDDIR)/tests/str_eq \
+         $(BUILDDIR)/tests/str_fnmatchn \
          $(BUILDDIR)/tests/str_len \
-         $(BUILDDIR)/tests/str_matchn \
          $(BUILDDIR)/tests/str_split
+
 
 #
 # Analysers
@@ -86,7 +87,8 @@ CHECKS = $(SCRIPTDIR)/tests/change_identity.sh \
 
 CPPCHECKFLAGS =	-f -q --error-exitcode=8 --inconclusive \
 	--language=c --std=c99 --library=posix --platform=unix64 \
-	--suppress=missingIncludeSystem --inline-suppr -I .
+	--suppress=missingIncludeSystem --inline-suppr \
+	-D __GNUC__ -I .
 
 
 #
@@ -255,22 +257,6 @@ $(BUILDDIR)/tests/env_get_fname:	$(SRCDIR)/tests/env_get_fname.c \
 		$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
 		$(LDLIBS)
 
-$(BUILDDIR)/tests/env_restore:	$(SRCDIR)/tests/env_restore.c \
-				$(BUILDDIR)/tests/env.o \
-				$(BUILDDIR)/tests/str.o \
-				$(BUILDDIR)/tests/utils.o \
-				$(BUILDDIR)/env.o $(BUILDDIR)/err.o \
-				$(BUILDDIR)/file.o $(BUILDDIR)/path.o \
-				$(BUILDDIR)/str.o \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
-		-o $@ $< \
-		$(BUILDDIR)/tests/env.o $(BUILDDIR)/tests/str.o \
-		$(BUILDDIR)/tests/utils.o \
-		$(BUILDDIR)/env.o $(BUILDDIR)/err.o $(BUILDDIR)/file.o \
-		$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
-		$(LDLIBS)
-
 $(BUILDDIR)/tests/env_sanitise:	$(SRCDIR)/tests/env_sanitise.c \
 				$(BUILDDIR)/tests/env.o \
 				$(BUILDDIR)/tests/str.o \
@@ -390,6 +376,14 @@ $(BUILDDIR)/tests/str_cp:	$(SRCDIR)/tests/str_cp.c \
 		$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 		$(LDLIBS)
 
+$(BUILDDIR)/tests/str_cpn:	$(SRCDIR)/tests/str_cpn.c \
+				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
+				$(BUILDDIR)/tests/.sentinel
+	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
+		-o $@ $< \
+		$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
+		$(LDLIBS)
+
 $(BUILDDIR)/tests/str_eq:	$(SRCDIR)/tests/str_eq.c \
 				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/tests/.sentinel
@@ -398,20 +392,20 @@ $(BUILDDIR)/tests/str_eq:	$(SRCDIR)/tests/str_eq.c \
 		$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 		$(LDLIBS)
 
+$(BUILDDIR)/tests/str_fnmatchn:	$(SRCDIR)/tests/str_fnmatchn.c \
+				$(BUILDDIR)/str.o \
+				$(BUILDDIR)/tests/.sentinel
+	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
+		-o $@ $< \
+		$(BUILDDIR)/str.o \
+		$(LDLIBS)
+
 $(BUILDDIR)/tests/str_len:	$(SRCDIR)/tests/str_len.c \
 				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/tests/.sentinel
 	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
 		-o $@ $< \
 		$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
-		$(LDLIBS)
-
-$(BUILDDIR)/tests/str_matchn:	$(SRCDIR)/tests/str_matchn.c \
-				$(BUILDDIR)/str.o \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
-		-o $@ $< \
-		$(BUILDDIR)/str.o \
 		$(LDLIBS)
 
 $(BUILDDIR)/tests/str_split:	$(SRCDIR)/tests/str_split.c \
@@ -437,10 +431,12 @@ $(BUILDDIR)/tests/main:	$(SRCDIR)/main.c \
 
 analysis:
 	! grep -ri fixme $(SRCDIR)
-	cppcheck $(CPPCHECKFLAGS) --enable=all -U __NR_openat2 \
-		-D NAME_MAX=255 -D FILENAME_MAX=1024 -D O_NOFOLLOW_ANY=1 \
-		$(SRCDIR)
+	cppcheck $(CPPCHECKFLAGS) --enable=all \
+		-D __NR_openat2=437 -U O_NOFOLLOW_ANY $(SRCDIR)
+	cppcheck $(CPPCHECKFLAGS) --enable=all \
+		-U __NR_openat2 -D O_NOFOLLOW_ANY=0x20000000 $(SRCDIR)/file.c
 	cppcheck $(CPPCHECKFLAGS) --enable=unusedFunction $(SRCDIR)/*.c
+	#cppcheck $(CPPCHECKFLAGS) --addon=misra.py $(SRCDIR)
 	flawfinder --error-level=1 -m 0 -D -Q .
 	find $(SCRIPTDIR) -type f | xargs shellcheck configure
 

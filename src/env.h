@@ -49,7 +49,7 @@
  *
  * Adopted from Apache's suEXEC. There should be no need to adapt this list.
  */
-/* flawfinder: ignore (array is constant). */
+/* Flawfinder: ignore (array is constant). */
 extern const char *const env_keep[49];
 
 /*
@@ -61,7 +61,7 @@ extern const char *const env_keep[49];
  *
  * Adopted from Apache's suEXEC. There should be no need to adapt this list.
  */
-/* flawfinder: ignore (array is constant). */
+/* Flawfinder: ignore (array is constant). */
 extern const char *const env_toss[2];
 
 
@@ -76,7 +76,7 @@ extern const char *const env_toss[2];
  *
  * Return code:
  *      OK           Success.
- *      ERR_ENV_MAX  More than ENV_MAX environment variables have been set.
+ *      ERR_ENV_MAX  Encountered more than ENV_MAX environment variables.
  */
 error env_clear(char *vars[]);
 
@@ -96,7 +96,7 @@ error env_clear(char *vars[]);
  * Return code:
  *      OK             Success.
  *      ERR_FNAME_LEN  A filename in the path is too long.
- *      ERR_STR_LEN    The value of the variable is too long.
+ *      ERR_STR_MAX    The whole path is too long.
  *      ERR_SYS        System failure. errno(2) should be set.
  *      ERR_VAR_UNDEF  The variable is undefined.
  *      ERR_VAR_EMPTY  The variable is empty.
@@ -106,24 +106,20 @@ error env_get_fname(const char *name, const mode_t ftype,
                     char **fname, struct stat *fstatus);
 
 /*
- * Repopulate the environment with any variable in vars the name of which
- * (a) matches a pattern in keep and (b) does not match a pattern in toss,
- * where vars is an array of environment variables that follows the same
- * syntax as the global variable environ(7). Patterns are shell wildcard
- * patterns; see fnmatch(3) for the syntax.
+ * Unset every environment variable the name of which (a) does not match a
+ * pattern in keep or (b) does match a pattern in toss. Patterns are shell
+ * wildcard patterns. See fnmatch(3) for the syntax.
  *
  * Errors:
- *      - A variable is empty.
- *      - A variable is longer than STR_MAX_LEN.
+ *      - A variable is the empty string.
+ *      - A variable name is longer than STR_MAX - 1.
  *      - A variable does not contain a "=".
  *      - A variable assigns a value to the empty string.
  *
  * Caveats:
- *	Modifies its first argument!
- *
  *      An attacker may populate the environment with variables that are not
  *      terminated by a nullbyte. If the memory region after that variable
- *      contains a nullbyte within STR_MAX_LEN bytes from the start of the
+ *      contains a nullbyte within STR_MAX - 1 bytes from the start of the
  *      variable, setenv will overshoot and dump the contents of that region
  *      into the environment, from where they can be extracted with 'ps -Eef'.
  *      That said, suCGI should not be privy to any information that is not
@@ -143,24 +139,10 @@ error env_get_fname(const char *name, const mode_t ftype,
  *
  * Return code:
  * 	OK               Success.
- * 	ERR_STR_LEN      A variable is longer than STR_MAX_LEN.
+ *      ERR_ENV_MAX      Encountered more than ENV_MAX environment variables.
+ * 	ERR_STR_MAX      A variable name is longer than STR_MAX - 1 bytes.
  *	ERR_VAR_INVALID  A variable is not of the form key=value.
  * 	ERR_SYS          System error. errno(2) should be set.
- */
-__attribute__((READ_ONLY(2), READ_ONLY(3)))
-error env_restore(char *vars[], const char *const keep[],
-                  const char *const toss[]);
-
-/*
- * Unset every environment variable the name of which (a) does not match a
- * pattern in keep or (b) does match a pattern in toss. Patterns are shell
- * wildcard patterns. See fnmatch(3) for the syntax.
- *
- * Errors:
- *	Any error that env_clear or env_restore may raise.
- *
- * Return code:
- *	Any code that env_clear or env_restore may return.
  */
 error env_sanitise (const char *const keep[], const char *const toss[]);
 

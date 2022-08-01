@@ -27,8 +27,8 @@
 #define __attribute__(attr)
 #endif /* !defined(__GNUC__) */
 
-/* Shorthand for "access(read_only, ...)". */
-/* flawfinder: ignore (not a call to access(2)). */
-#define READ_ONLY(...) access(read_only, __VA_ARGS__)
+/* Shorthand for "access(read_only, argn)". */
+/* Flawfinder: ignore (not a call to access(2)). */
+#define READ_ONLY(argn) access(read_only, argn)
 
 #endif /* !defined(SRC_ATTR_H) */
