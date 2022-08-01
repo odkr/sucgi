@@ -20,7 +20,7 @@ jobs:
     - name: sudo make check
       run: sudo make check
     - name: sudo make install
-      run: sudo make WWWGRP=root install
+      run: sudo make WWWGRP=staff install
     - name: sudo make uninstall
       run: sudo make uninstall
 
