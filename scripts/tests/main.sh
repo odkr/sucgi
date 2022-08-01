@@ -218,7 +218,7 @@ DOCUMENT_ROOT="/" PATH_TRANSLATED="$script" \
 	checkerr "document root / is not in $user's home directory." main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$su" \
-	checkerr "$ltmin: owned by the superuser." main
+	checkerr "$su: owned by the superuser." main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$sg" \
 	checkerr "$ltmin: owned by the supergroup." main
