@@ -57,12 +57,12 @@ file_is_wexcl(const uid_t uid, const struct stat *const fstatus)
 {
 	assert(fstatus);
 
-	return     uid == fstatus->st_uid
-		&& !(fstatus->st_mode & S_IWGRP)
-		&& !(fstatus->st_mode & S_IWOTH);
+	return uid == fstatus->st_uid        &&
+	       !(fstatus->st_mode & S_IWGRP) &&
+	       !(fstatus->st_mode & S_IWOTH);
 }
 
-#if defined(__NR_openat2) && __NR_openat2
+#if defined(__NR_openat2)
 error
 file_safe_open(const char *fname, const int flags, int *fd)
 {
@@ -107,7 +107,7 @@ file_safe_open(const char *fname, const int flags, int *fd)
 
 #else
 #error suCGI requires Linux v5.6 or macOS v11.
-#endif /* defined(__NR_openat2) && __NR_openat2 ...
+#endif /* defined(__NR_openat2) ...
           defined(TARGET_OS_MAC) && TARGET_OS_MAC && defined(O_NOFOLLOW_ANY) */
 
 
