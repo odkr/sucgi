@@ -173,7 +173,7 @@ chmod +x "$tmpdir/script"
 su="$tmpdir/su.sh"
 cp "$tmpdir/script.sh" "$su"
 
-su="$tmpdir/sg.sh"
+sg="$tmpdir/sg.sh"
 cp "$tmpdir/script.sh" "$sg"
 
 ltmin="$tmpdir/ltmin.sh"
@@ -215,7 +215,7 @@ mkfifo "$fifo"
 #
 
 DOCUMENT_ROOT="/" PATH_TRANSLATED="$script" \
-	checkerr "document root $home is not in $user's home directory." main
+	checkerr "document root / is not in $user's home directory." main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$su" \
 	checkerr "$ltmin: owned by the superuser." main
