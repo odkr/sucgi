@@ -140,11 +140,11 @@ DOCUMENT_ROOT=/ PATH_TRANSLATED="$true" \
 # Interlude
 #
 
-uid="$(id -u)" && [ "$uid" ] ||
+euid="$(id -u)" && [ "$euid" ] ||
 	abort "failed to get process' effective UID."
 
 # The checks below only work if main.sh is invoked as root.
-[ "$uid" -ne 0 ] && exit
+[ "$euid" -ne 0 ] && exit
 
 tmpdir="${home:?}/.tmp-$$"
 readonly tmpdir
@@ -166,30 +166,42 @@ unused_gid="${unused_ids%%:*}"
 
 cp -a "$script_dir/tools/." "$tmpdir/."
 
-cp "$tmpdir/script.sh" "$tmpdir/script"
+script="$tmpdir/script.sh"
+cp "$script" "$tmpdir/script"
 chmod +x "$tmpdir/script"
 
+su="$tmpdir/su.sh"
+cp "$tmpdir/script.sh" "$su"
+
+su="$tmpdir/sg.sh"
+cp "$tmpdir/script.sh" "$sg"
+
 ltmin="$tmpdir/ltmin.sh"
-cp "$tmpdir/script.sh" "$ltmin"
+cp "$script" "$ltmin"
+chmod +x "$ltmin"
+
+ltmin="$tmpdir/ltmin.sh"
+cp "$script" "$ltmin"
 chmod +x "$ltmin"
 
 gtmax="$tmpdir/gtmax.sh"
-cp "$tmpdir/script.sh" "$gtmax"
+cp "$script" "$gtmax"
 chmod +x "$gtmax"
 
 nouser="$tmpdir/nouser.sh"
-cp "$tmpdir/script.sh" "$nouser"
+cp "$script" "$nouser"
 chmod +x "$nouser"
 
 grpw="$tmpdir/grpw.sh"
-cp "$tmpdir/script.sh" "$grpw"
+cp "$script" "$grpw"
 chmod ug=w "$grpw"
 
 reportuser="$tmpdir/user.sh"
 chmod u=rwx,go= "$reportuser"
 
 chown -R "$ruid:$rgid" "$tmpdir"
-
+chown 0 "$su"
+chgrp 0 "$sg"
 chown 1:1 "$ltmin"
 chown 30001:30001 "$gtmax"
 chown "$unused_uid" "$nouser"
@@ -201,6 +213,15 @@ mkfifo "$fifo"
 #
 # Root checks
 #
+
+DOCUMENT_ROOT="/" PATH_TRANSLATED="$script" \
+	checkerr "document root $home is not in $user's home directory." main
+
+DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$su" \
+	checkerr "$ltmin: owned by the superuser." main
+
+DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$sg" \
+	checkerr "$ltmin: owned by the supergroup." main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$ltmin" \
 	checkerr "$ltmin: owned by non-regular UID 1." main
@@ -214,7 +235,7 @@ DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$nouser" \
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$grpw" \
 	checkerr "$grpw: can be altered by users other than $user." main
 
-DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/script.sh" \
+DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$script" \
 	checkok 'This is a test script for main.sh and run_script.sh.' main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/script" \
