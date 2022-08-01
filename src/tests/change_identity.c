@@ -37,9 +37,9 @@ main (int argc, char **argv)
 	change_identity(pwd);
 
 	/* Flawfinder: ignore */
-	printf("effective: %lu:%lu; real: %lu:%lu.\n",
-	       (unsigned long) geteuid(), (unsigned long) getegid(),
-	       (unsigned long) getuid(), (unsigned long) getgid());
+	printf("effective: %llu:%llu; real: %llu:%llu.\n",
+	       (uint64_t) geteuid(), (uint64_t) getegid(),
+	       (uint64_t) getuid(), (uint64_t) getgid());
 
 	return EXIT_SUCCESS;
 }

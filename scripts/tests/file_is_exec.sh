@@ -50,7 +50,7 @@ file_is_exec /bin/sh ||
 #
 
 euid="$(id -u)" && [ "$euid" ] ||
-	abort "failed to get effective user ID."
+	abort "failed to get process' effective user ID."
 
 [ "$euid" -ne 0 ] && exit
 

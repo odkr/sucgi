@@ -29,20 +29,19 @@ if [ "$euid" -eq 0 ]
 then
 	uid="$(regularuid)" && [ "$uid" ] ||
 		abort "failed to get non-root user ID of caller."
+	# This is non-POSIX.
 	user="$(id -un "$uid")" && [ "$user" ] ||
-		abort "failed to name of user with ID $uid."
+		abort "failed to get name of user with ID $uid."
 	gid="$(id -g "$user")" && [ "$gid" ] ||
 		abort "failed to get ID of $user's primary group."
-
-	checkok "effective: $uid:$gid; real: $uid:$gid." \
-		change_identity "$user"
 
 	export PATH
 	checkerr 'Operation not permitted.' \
 		run-as "$uid" "$gid" change_identity "$user"
+
+	checkok "effective: $uid:$gid; real: $uid:$gid." \
+		change_identity "$user"
 else
 	checkerr 'Operation not permitted.' \
 		change_identity "$LOGNAME"
 fi
-
-exit 0
