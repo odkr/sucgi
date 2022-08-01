@@ -50,39 +50,37 @@ change_identity(const struct passwd *const user)
 	if (0 == gid) fail("%s's primary group is the supergroup.", name);
 
 	if (setgroups(1, (gid_t[1]) {gid}) != 0) {
-		fail("setgroups %lu: %s.",
-		     (unsigned long) gid, strerror(errno));
+		fail("setgroups %llu: %s.", (uint64_t) gid, strerror(errno));
 	}
-	if (initgroups(name, (dummy_gid) gid) != 0) {
+	if (initgroups(name, (gid_dummy) gid) != 0) {
 		fail("initgroups %s: %s.", name, strerror(errno));
 	}
 
 	/*
 	 * The real UID and GID need to be set, too. Or else the
-	 * user can call seteuid(2) to gain webserver priviliges.
+	 * user can call seteuid(2) to gain webserver privileges.
 	 */
-	if (setgid(gid) != 0) {
-		fail("setgid %lu: %s.", (unsigned long) gid, strerror(errno));
+	if (setgid(gid) != 0 || getgid() != gid) {
+		char *err = (errno > 0) ? strerror(errno) : "unknown error";
+		fail("setgid %llu: %s.", (uint64_t) gid, err);
 	}
-	if (setuid(uid) != 0) {
-		fail("setuid %lu: %s.", (unsigned long) uid, strerror(errno));
+	if (setuid(uid) != 0 || getuid() != uid) {
+		char *err = (errno > 0) ? strerror(errno) : "unknown error";
+		fail("setuid %llu: %s.", (uint64_t) uid, err);
 	}
-	if (setegid(gid) != 0) {
-		fail("setegid %lu: %s.", (unsigned long) gid, strerror(errno));
+	if (setegid(gid) != 0 || getegid() != gid) {
+		char *err = (errno > 0) ? strerror(errno) : "unknown error";
+		fail("setegid %llu: %s.", (uint64_t) gid, err);
 	}
-	if (seteuid(uid) != 0) {
-		fail("seteuid %lu: %s.", (unsigned long) uid, strerror(errno));
+	if (seteuid(uid) != 0 || geteuid() != uid) {
+		char *err = (errno > 0) ? strerror(errno) : "unknown error";
+		fail("seteuid %llu: %s.", (uint64_t) uid, err);
 	}
 
-	if (getuid() != uid) fail("failed to set real UID.");
-	if (getgid() != gid) fail("failed to set real GID.");
-	if (geteuid() != uid) fail("failed to set effective UID.");
-	if (getegid() != gid) fail("failed to set effective GID.");
-
-	if (setegid(0) == 0) fail("could reset effective GID to 0.");
-	if (seteuid(0) == 0) fail("could reset effective UID to 0.");
-	if (setgid(0) == 0) fail("could reset real GID to 0.");
-	if (setuid(0) == 0) fail("could reset real UID to 0.");
+	if (setgid(0) == 0) fail("setgid 0: succeeded.");
+	if (setuid(0) == 0) fail("setuid 0: succeeded.");
+	if (setegid(0) == 0) fail("setegid 0: succeeded.");
+	if (seteuid(0) == 0) fail("seteuid 0: succeeded.");
 }
 
 void

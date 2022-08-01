@@ -22,6 +22,9 @@ tmpdir chk
 checkerr 'foo: no filename suffix.' \
 	run_script foo
 
+checkerr 'script handler 1: no interpreter.' \
+	run_script foo.sh .sh .py=python
+
 checkerr 'script handler 2: path is empty.' \
 	run_script foo.sh .py=python .sh=
 

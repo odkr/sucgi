@@ -27,9 +27,9 @@
 #include "attr.h"
 
 #if defined(__APPLE__) && defined(__MACH__)
-typedef int dummy_gid;
+typedef int gid_dummy;
 #else
-typedef gid_t dummy_gid;
+typedef gid_t gid_dummy;
 #endif
 
 

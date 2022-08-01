@@ -33,11 +33,7 @@ main (int argc, char **argv)
 		error rc = ERR;
 
 		rc = str_split(argv[i], "=", &suffix, &handler);
-		if (rc != OK) {
-			die("run_script: str_split returned %u.", rc);
-		} else if ('\0' == suffix[0]) {
-			die("run_script: suffix %d is empty.", i - 1);
-		}
+		if (rc != OK) die("run_script: str_split returned %u.", rc);
 
 		char *key = strndup(suffix, STR_MAX - 1);
 		if (!key) die("strndup: %s.", strerror(errno));
