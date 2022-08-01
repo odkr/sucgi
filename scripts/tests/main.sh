@@ -221,7 +221,7 @@ DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$su" \
 	checkerr "$su: owned by the superuser." main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$sg" \
-	checkerr "$ltmin: owned by the supergroup." main
+	checkerr "$sg: owned by the supergroup." main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$ltmin" \
 	checkerr "$ltmin: owned by non-regular UID 1." main
