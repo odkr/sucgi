@@ -118,9 +118,10 @@ check
 cov
     Generate coverage data in *cov*.
     Must be run *twice* as superuser in order to be accurate.
+    Requires and only works with Clang_.
 
 covhtml
-    Alias for "cov/html/index.html".
+    Alias for "cov/html/index.html". Requires lcov_.
 
 clean
     Delete binaries, coverage data, temporary files, and distribution files.
@@ -140,3 +141,8 @@ install
 
 uninstall
     Uninstall suCGI.
+
+
+.. _Clang: https://clang.llvm.org/
+
+.. _lcov: https://github.com/linux-test-project/lcov
