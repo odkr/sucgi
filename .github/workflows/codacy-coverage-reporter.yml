@@ -13,8 +13,6 @@ jobs:
     name: codacy-coverage-reporter
     steps:
       - uses: actions/checkout@v3
-      - name: brew install gcc@12
-        run: brew install gcc@12
       - name: brew install lcov
         run: brew install lcov
       - name: configure
@@ -22,7 +20,7 @@ jobs:
       - name: make check
         run: make check
       - name: sudo make cov
-        run: sudo make cov
+        run: for _ in $(seq 1 8); do sudo make cov || :; done
       - name: make lcov.info
         run: make lcov.info
       - name: Run codacy-coverage-reporter
