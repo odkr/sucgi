@@ -117,7 +117,7 @@ check
 
 cov
     Generate coverage data in *cov*.
-    Must be run as superuser in order to be accurate.
+    Must be run *twice* as superuser in order to be accurate.
 
 covhtml
     Alias for "cov/html/index.html".
