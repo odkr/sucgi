@@ -461,16 +461,14 @@ cov:
 	cd cov && CC=$(CC) CFLAGS=--coverage ../configure -q && make covgen
 
 covgen: $(CHECKBINS)
+	chown -R $$($(SCRIPTDIR)/realids) .
+	chmod -R u+rw,go+r .
 	for check in $(CHECKS); do				\
-		printf 'checking %s ...\n' "$$check"	&&	\
-		chown -R $$($(SCRIPTDIR)/realids) .	&&	\
-		chmod -R u+rw,go+r .			&&	\
+		printf 'checking %s ...\n' "$$check"	;	\
 		TESTSDIR=./build/tests "$$check"	;	\
+		chown -R $$($(SCRIPTDIR)/realids) .	;	\
+		chmod -R u+rw,go+r .			;	\
 	done
-
-#covbuild: $(CHECKBINS)
-#	chown -R $$($(SCRIPTDIR)/realids) .
-#	for check in $$(CHECKS); do TESTSDIR=./build/tests $(CHECK)
 
 lcov.info: cov
 	lcov -c -d cov -o lcov.info --exclude '*/tests/*'
