@@ -28,7 +28,7 @@ str_to_id(char *s, id_t *id) {
 int
 main (int argc, char **argv)
 {
-	char **args = calloc((size_t) (argc - 3), sizeof(char *)); 
+	char **args = calloc((size_t) (argc - 2), sizeof(char *)); 
 	uid_t uid = 0;
 	gid_t gid = 0;
 
