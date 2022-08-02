@@ -46,7 +46,6 @@
  *      ERR           Trailing nun-numeric characters.
  *      ERR_SYS       System error. errno(2) should be set.
  */
-__attribute__((READ_ONLY(1)))
 error str_to_ulong (const char *const s, unsigned long *n);
 
 /*
@@ -61,7 +60,6 @@ error str_to_ulong (const char *const s, unsigned long *n);
  *      ERR_STR_MAX  s is longer than STR_MAX - 1.
  *      ERR_SYS      System error. errno(2) should be set.
  */
-__attribute__((READ_ONLY(1), READ_ONLY(2)))
 error str_splitn(const char *const s, const char *sep,
                  const size_t max, char *subs[], size_t *n);
 

@@ -36,6 +36,7 @@ main (int argc, char **argv)
 
 	change_identity(pwd);
 
+	/* cppcheck-suppress invalidPrintfArgType_uint */
 	/* Flawfinder: ignore */
 	printf("effective: %llu:%llu; real: %llu:%llu.\n",
 	       (uint64_t) geteuid(), (uint64_t) getegid(),

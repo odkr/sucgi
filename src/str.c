@@ -34,16 +34,9 @@ str_cp(const char *const src,
        /* Flawfinder: ignore (str_cp copies at most STR_MAX bytes). */
        char (*dest)[STR_MAX])
 {
-	/* 
-	 * FIXME: Using stpncpy causes str_cp and env_sanitise to break in
-	 * mysterious ways if suCGI is compiled with instrumentation (e.g.,
-	 * -flto, -fstack-protector, or --coverage) using GCC. ¯\_(ツ)_/¯
-	 */
 	assert(src && dest);
-	for (size_t n = 0; n < STR_MAX; n++) {
-		(*dest)[n] = src[n];
-		if ('\0' == src[n]) return OK;
-	}
+	(void) strncpy(*dest, src, STR_MAX);
+	if ('\0' == (*dest)[STR_MAX - 1]) return OK;
 	return ERR_STR_MAX;
 }
 

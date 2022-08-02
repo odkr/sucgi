@@ -20,7 +20,6 @@ main (int argc, char **argv)
 	if (envc < 0) die("usage: evil-env VAR [VAR [...] PROG");
 	if (!envv) die("evil-env: %s.", strerror(errno));
 
-	/* cppcheck-suppress nullPointerRedundantCheck */
 	/* Flawfinder: ignore */
 	(void) memcpy(envv, &argv[1], (size_t) envc * sizeof(char *));
 

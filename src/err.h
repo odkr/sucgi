@@ -65,7 +65,7 @@ typedef enum {
 
 /* Log message as an error and exit the programme with EXIT_FAILURE. */
 /* Flawfinder: ignore (this is not a call to printf(3)). */
-__attribute__((READ_ONLY(1), format(printf, 1, 2), noreturn))
+__attribute__((format(printf, 1, 2), noreturn))
 void fail(const char *const message, ...);
 
 

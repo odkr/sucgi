@@ -30,11 +30,9 @@
 
 
 /* Check if fstatus indicates that the current has execute permissions. */
-__attribute__((READ_ONLY(1)))
 bool file_is_exec(const struct stat *const fstatus);
 
 /* Check if fstatus indicates that only uid and gid have write permissions. */
-__attribute__((READ_ONLY(2)))
 bool file_is_wexcl(const uid_t uid, const struct stat *const fstatus);
 
 /*
@@ -47,7 +45,6 @@ bool file_is_wexcl(const uid_t uid, const struct stat *const fstatus);
  *      OK       Success.
  *      ERR_SYS  System failure. errno(2) should be set.
  */
-__attribute__((READ_ONLY(1)))
 error file_safe_open(const char *fname, const int flags, int *fd);
 
 /*
@@ -61,7 +58,6 @@ error file_safe_open(const char *fname, const int flags, int *fd);
  * Return code:
  *      The same as file_safe_open.
  */
-__attribute__((READ_ONLY(1)))
 error file_safe_stat(const char *fname, struct stat *fstatus);
 
 

@@ -26,7 +26,6 @@ main(void)
 	/* Test overly long string. */
 	assert(strnlen(huge, STR_MAX + 1) == STR_MAX);
 	assert(str_split(huge, ",", &head, &tail) == ERR_STR_MAX);
-	/* FIXME: why does this assertion fail: assert(str_eq(head, large)); */
 	assert(!tail);
 
 	/* Test long string. */

@@ -37,8 +37,7 @@ main (int argc, char **argv)
 
 	str_to_id(argv[1], &uid);
 	str_to_id(argv[2], &gid);
-	/* cppcheck-suppress nullPointerRedundantCheck;
-	   Flawfinder: ignore */
+	/* Flawfinder: ignore */
 	(void) memcpy(args, &argv[3],
 	              /* argc - 2 to copy the terminating NULL. */
 	              (size_t) (argc - 2) * sizeof(char *));

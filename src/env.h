@@ -101,7 +101,6 @@ error env_clear(char *vars[]);
  *      ERR_VAR_UNDEF  The variable is undefined.
  *      ERR_VAR_EMPTY  The variable is empty.
  */
-__attribute__((READ_ONLY(1)))
 error env_get_fname(const char *name, const mode_t ftype,
                     char **fname, struct stat *fstatus);
 

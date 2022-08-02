@@ -30,7 +30,7 @@
  */
 
 /* Print a formatted error message to STDERR and exit with EXIT_FAILURE. */
-__attribute__((READ_ONLY(1), noreturn))
+__attribute__((noreturn))
 void die(const char *const message, ...);
 
 

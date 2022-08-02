@@ -54,7 +54,6 @@
  *      OK           Success.
  *      ERR_STR_MAX  src is longer than STR_MAX - 1 bytes.
  */
-__attribute__((READ_ONLY(1)))
 error str_cp(const char *const src,
              /* Flawfinder: ignore (str_cp writes at most STR_MAX bytes.) */
              char (*dest)[STR_MAX]);
@@ -68,22 +67,19 @@ error str_cp(const char *const src,
  *      OK           Success.
  *      ERR_STR_MAX  n is larger than STR_MAX - 1 bytes.
  */
-__attribute__((READ_ONLY(2), READ_ONLY(3)))
 error str_cpn(const size_t n, const char *const src,
               /* Flawfinder: ignore (str_cpn writes at most STR_MAX bytes.) */
 	      char (*dest)[STR_MAX]);
 
 /* Return true if s1 and s2 are equal and false otherwise. */
-__attribute__((READ_ONLY(1), READ_ONLY(2)))
 bool str_eq(const char *const s1, const char *const s2);
 
 /*
  * Return true if s matches any shell wildcard pattern in pats.
  * pats must be NULL-terminated. See fnmatch(3) for pattern syntax and flags.
  */
-__attribute__((READ_ONLY(1), READ_ONLY(2)))
 bool str_fnmatchn(const char *const s, const char *const *const pats,
-                const int flags);
+                  const int flags);
 
 /*
  * Calculate the length of a string.
@@ -92,7 +88,6 @@ bool str_fnmatchn(const char *const s, const char *const *const pats,
  *      OK           Success.
  *      ERR_STR_MAX  The string is longer than STR_MAX - 1 bytes.
  */
-__attribute__((READ_ONLY(1)))
 error str_len(const char *const s, size_t *len);
 
 /*
@@ -107,7 +102,6 @@ error str_len(const char *const s, size_t *len);
  *      OK           Success.
  *      ERR_STR_MAX  s is longer than STR_MAX - 1 bytes.
  */
-__attribute__((READ_ONLY(1), READ_ONLY(2)))
 error str_split(const char *const s, const char *const sep,
                 /* Flawfinder: ignore (str_split writes at most STR_MAX bytes.) */
 		char (*head)[STR_MAX], char **tail);
