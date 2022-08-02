@@ -37,9 +37,11 @@ main (int argc, char **argv)
 
 	str_to_id(argv[1], &uid);
 	str_to_id(argv[2], &gid);
-	/* cppcheck-suppress nullPointerRedundantCheck */
-	/* Flawfinder: ignore */
-	(void) memcpy(args, &argv[3], (size_t) (argc - 3) * sizeof(char *));
+	/* cppcheck-suppress nullPointerRedundantCheck;
+	   Flawfinder: ignore */
+	(void) memcpy(args, &argv[3],
+	              /* argc - 2 to copy the terminating NULL. */
+	              (size_t) (argc - 2) * sizeof(char *));
 
 	if (setgroups(1, (gid_t[1]) {gid}) != 0) {
 		die("setgroups %lu: %s.",
