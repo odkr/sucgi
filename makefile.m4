@@ -464,13 +464,12 @@ cov:
 		make covgen
 
 covpre: $(CHECKBINS)
-	mkdir -p $(PROJECTDIR)/build/tests/tools || :
 	chown -R $$($(SCRIPTDIR)/realids) .
 	chmod -R u+rw,go+r .
 	find . -type d -exec chmod ug+s '{}' +
 
 covgen: covpre check
-
+	chmod -R u+rw,go+r .
 
 lcov.info: cov
 	lcov -c -d cov -o lcov.info --exclude '*/tests/*'
