@@ -29,8 +29,7 @@ if [ "$euid" -eq 0 ]
 then
 	uid="$(regularuid)" && [ "$uid" ] ||
 		abort "failed to get non-root user ID of caller."
-	# FIXME: This is not in POSIX.1-2018.
-	user="$(id -un "$uid")" && [ "$user" ] ||
+	user="$(username "$uid")" && [ "$user" ] ||
 		abort "failed to get name of user with ID $uid."
 	gid="$(id -g "$user")" && [ "$gid" ] ||
 		abort "failed to get ID of $user's primary group."

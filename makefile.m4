@@ -218,6 +218,14 @@ $(BUILDDIR)/tests/tools/unused-ids:	$(SRCDIR)/tests/tools/unused-ids.c \
 		$(BUILDDIR)/tests/utils.o \
 		$(LDLIBS)
 
+$(BUILDDIR)/tests/tools/username:	$(SRCDIR)/tests/tools/username.c \
+				$(BUILDDIR)/tests/utils.o \
+				$(BUILDDIR)/tests/tools/.sentinel
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
+		$(BUILDDIR)/tests/str.o $(BUILDDIR)/tests/utils.o \
+		$(LDLIBS)
+
+
 $(BUILDDIR)/tests/change_identity:	$(SRCDIR)/tests/change_identity.c \
 				$(BUILDDIR)/tests/utils.o \
 				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
@@ -437,7 +445,7 @@ $(BUILDDIR)/tests/main:	$(SRCDIR)/main.c \
 		$(LDLIBS)
 
 analysis:
-	! grep -ri fixme $(SRCDIR)
+	! grep -ri fixme $(SRCDIR) $(SCRIPTDIR)
 	cppcheck $(CPPCHECKFLAGS) --enable=all \
 		-D __NR_openat2=437 -U O_NOFOLLOW_ANY $(SRCDIR)
 	cppcheck $(CPPCHECKFLAGS) --enable=all \
@@ -460,7 +468,7 @@ cov:
 	cd cov && CC=$(CC) CFLAGS=--coverage ../configure -fq && make covgen
 
 covpre: $(CHECKBINS)
-	chown -R $$($(SCRIPTDIR)/realids) .
+	chown -R $$($(SCRIPTDIR)/regularids) .
 	chmod -R u+rw,go+r .
 	find . -type d -exec chmod ug+s '{}' +
 

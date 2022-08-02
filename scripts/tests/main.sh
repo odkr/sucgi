@@ -57,8 +57,8 @@ true="$(command -v true >/dev/null 2>&1 || :)" || :
 
 ruid="$(regularuid)" && [ "$ruid" ] ||
 	abort "failed to get non-root user ID of caller."
-user="$(id -un "$ruid")" && [ "$user" ] ||
-	abort "failed to get name of user with ID $ruid."
+user="$(username "$ruid")" && [ "$user" ] ||
+	abort "failed to get username associated with ID $ruid."
 rgid="$(id -g "$user")" && [ "$rgid" ] ||
 	abort "failed to get ID of $user's primary group."
 

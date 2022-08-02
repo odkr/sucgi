@@ -35,6 +35,7 @@ str_cp(const char *const src,
        char (*dest)[STR_MAX])
 {
 	assert(src && dest);
+	/* Flawfinder: ignore (null-termination is checked below). */
 	(void) strncpy(*dest, src, STR_MAX);
 	if ('\0' == (*dest)[STR_MAX - 1]) return OK;
 	return ERR_STR_MAX;

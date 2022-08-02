@@ -15,7 +15,7 @@
 
 
 /*
- * Convert a string to a user ID.
+ * Convert a string to an ID.
  * Aborts the programme if conversion fails.
  */
 void
