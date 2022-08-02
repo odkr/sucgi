@@ -121,7 +121,7 @@ cov
     Requires and only works with Clang_.
 
 covhtml
-    Alias for "cov/html/index.html". Requires lcov_.
+    Alias for "cov/html/index.html". Requires LCOV_.
 
 clean
     Delete binaries, coverage data, temporary files, and distribution files.
@@ -145,4 +145,4 @@ uninstall
 
 .. _Clang: https://clang.llvm.org/
 
-.. _lcov: https://github.com/linux-test-project/lcov
+.. _LCOV: https://github.com/linux-test-project/lcov
