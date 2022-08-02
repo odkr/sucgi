@@ -35,7 +35,8 @@ COVDIR = cov
 # Tests
 #
 
-CHECKBINS = $(BUILDDIR)/tests/tools/run-as \
+CHECKBINS = $(BUILDDIR)/tests/tools/evil-env \
+            $(BUILDDIR)/tests/tools/run-as \
             $(BUILDDIR)/tests/tools/unused-ids \
             $(BUILDDIR)/tests/change_identity \
             $(BUILDDIR)/tests/fail $(BUILDDIR)/tests/env_clear \
@@ -192,6 +193,13 @@ $(BUILDDIR)/tests/str.o:	$(SRCDIR)/tests/str.c \
 				$(SRCDIR)/str.h \
 				$(BUILDDIR)/tests/.sentinel
 	$(CC) -I . -c $(CFLAGS) -o $@ $<
+
+$(BUILDDIR)/tests/tools/evil-env:	$(SRCDIR)/tests/tools/evil-env.c \
+				$(BUILDDIR)/tests/utils.o \
+				$(BUILDDIR)/tests/tools/.sentinel
+	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
+		$(BUILDDIR)/tests/utils.o \
+		$(LDLIBS)
 
 $(BUILDDIR)/tests/tools/run-as:	$(SRCDIR)/tests/tools/run-as.c \
 				$(BUILDDIR)/tests/utils.o \

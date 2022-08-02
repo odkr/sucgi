@@ -83,6 +83,15 @@ checkerr 'too many environment variables.' main
 # shellcheck disable=2086
 unset $vars
 
+checkerr 'an environment variable is malformed.' \
+	evil-env foo "$TESTSDIR/main"
+
+checkerr 'an environment variable is malformed.' \
+	evil-env '=bar' "$TESTSDIR/main"
+
+checkerr 'an environment variable is malformed.' \
+	evil-env '' "$TESTSDIR/main"
+
 eval "export $long_str=\"\$long_str\""
 checkerr 'an environment variable name is too long.' main
 unset "$long_str"

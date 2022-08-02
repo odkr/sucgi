@@ -80,5 +80,5 @@ main (int argc, char **argv)
 	// Flawfinder: ignore
 	execvp(args[0], args);
 
-	die("exec %s: %s.", args[0], strerror(errno));
+	die("run-as: exec %s: %s.", args[0], strerror(errno));
 }
