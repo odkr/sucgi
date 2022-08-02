@@ -26,7 +26,7 @@ More precisely:
 
 * Linux ≥ v5.6 or Apple XNU ≥ v7195.50.7.100.1.
 * A C99 compiler that complies with `POSIX.1-2008`_;
-  e.g., gcc_ ≥ v5.1, clang_ ≥ v3.5, or tcc_ ≥ v0.9.
+  e.g., GCC_ ≥ v5.1, Clang_ ≥ v3.5, or TinyCC_ ≥ v0.9.
 * A C standard library that complies with POSIX.1-2008 and 4.2BSD;
   e.g., glibc_ ≥ v2.1.3 or Apple's Libc.
 * The standard utilities that POSIX.1-2008, including
@@ -150,13 +150,13 @@ Further Information
 GitHub: https://github.com/odkr/sucgi
 
 
-.. _clang: https://clang.llvm.org/
+.. _Clang: https://clang.llvm.org/
 
-.. _gcc: https://gcc.gnu.org/
+.. _GCC: https://gcc.gnu.org/
 
 .. _glibc: https://www.gnu.org/software/libc/
 
-.. _tcc: https://bellard.org/tcc/
+.. _TinyCC: http://www.tinycc.org/ 
 
 .. _XNU: https://github.com/apple-oss-distributions/xnu/
 
@@ -182,7 +182,7 @@ GitHub: https://github.com/odkr/sucgi
               :target: https://sonarcloud.io/summary/new_code?id=odkr_sucgi
 
 .. |reliability| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=reliability_rating
-                    :target: https://sonarcloud.io/summary/new_code?id=odkr_sucgi
+                 :target: https://sonarcloud.io/summary/new_code?id=odkr_sucgi
 
 .. |maintainability| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=sqale_rating
                     :target: https://sonarcloud.io/summary/new_code?id=odkr_sucgi
