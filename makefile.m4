@@ -458,17 +458,19 @@ clean:
 
 cov:
 	test -e cov || mkdir cov
-	cd cov && CC=$(CC) CFLAGS=--coverage ../configure -q && make covgen
+	cd cov && \
+		CC=clang CFLAGS="--coverage -Wno-unknown-attributes" \
+			../configure -q && \
+		make covgen
 
-covgen: $(CHECKBINS)
+covpre: $(CHECKBINS)
+	mkdir -p $(PROJECTDIR)/build/tests/tools || :
 	chown -R $$($(SCRIPTDIR)/realids) .
 	chmod -R u+rw,go+r .
-	for check in $(CHECKS); do				\
-		printf 'checking %s ...\n' "$$check"	;	\
-		TESTSDIR=./build/tests "$$check"	;	\
-		chown -R $$($(SCRIPTDIR)/realids) .	;	\
-		chmod -R u+rw,go+r .			;	\
-	done
+	find . -type d -exec chmod ug+s '{}' +
+
+covgen: covpre check
+
 
 lcov.info: cov
 	lcov -c -d cov -o lcov.info --exclude '*/tests/*'
