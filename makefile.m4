@@ -431,7 +431,6 @@ $(BUILDDIR)/tests/main:	$(SRCDIR)/main.c \
 			$(BUILDDIR)/tests/.sentinel
 	$(CC) -I . -D TESTING=1 -D PACKAGE=fake-$(PACKAGE) \
 		-D VERSION=$(VERSION) $(LDFLAGS) $(CFLAGS) \
-		-Wno-unused-macros \
 		-o $@ $< \
 		$(BUILDDIR)/env.o $(BUILDDIR)/err.o $(BUILDDIR)/file.o \
 		$(BUILDDIR)/path.o $(BUILDDIR)/str.o $(BUILDDIR)/utils.o \
@@ -458,10 +457,7 @@ clean:
 
 cov:
 	test -e cov || mkdir cov
-	cd cov && \
-		CC=clang CFLAGS="--coverage -Wno-unknown-attributes" \
-			../configure -q && \
-		make covgen
+	cd cov && CC=$(CC) CFLAGS=--coverage ../configure -fq && make covgen
 
 covpre: $(CHECKBINS)
 	chown -R $$($(SCRIPTDIR)/realids) .
@@ -501,7 +497,7 @@ install: $(BUILDDIR)/sucgi
 uninstall:
 	rm -f $(CGIBIN)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
 
-.SILENT: analysis check cov cov covgen dist distcheck install
+.SILENT: analysis check cov covpre covgen dist distcheck install
 
 .PHONY: all analysis check clean cov covhtml gcov lcov.info \
 	dist distcheck distclean install uninstall
