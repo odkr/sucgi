@@ -197,7 +197,7 @@ cp -a "$script_dir/tools/." "$tmpdir/."
 
 script="$tmpdir/script.sh"
 cp "$script" "$tmpdir/script"
-chmod -x "$script.sh"
+chmod ugo-x "$script"
 chmod +x "$tmpdir/script"
 
 su="$tmpdir/su.sh"
@@ -208,19 +208,15 @@ cp "$tmpdir/script.sh" "$sg"
 
 ltmin="$tmpdir/ltmin.sh"
 cp "$script" "$ltmin"
-chmod +x "$ltmin"
 
 ltmin="$tmpdir/ltmin.sh"
 cp "$script" "$ltmin"
-chmod +x "$ltmin"
 
 gtmax="$tmpdir/gtmax.sh"
 cp "$script" "$gtmax"
-chmod +x "$gtmax"
 
 nouser="$tmpdir/nouser.sh"
 cp "$script" "$nouser"
-chmod +x "$nouser"
 
 grpw="$tmpdir/grpw.sh"
 cp "$script" "$grpw"
