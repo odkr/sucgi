@@ -29,13 +29,13 @@
 
 
 error
-str_to_ulong (const char *const s, unsigned long *n)
+str_to_ullong (const char *const s, unsigned long long *n)
 {
-	long long m = 0;
+	unsigned long long m = 0;
 	char *end = NULL;
 
 	assert(s);
-	m = strtoll(s, &end, 10);
+	m = strtoull(s, &end, 10);
 	if (*end != '\0') return ERR;
 	if (0 == m && 0 != errno) return ERR_SYS;
 

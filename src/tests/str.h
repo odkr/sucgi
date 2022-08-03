@@ -38,7 +38,7 @@
  */
 
 /*
- * Covert str to an unsigned long and
+ * Covert str to an unsigned long long and
  * store its value in the variable pointed to by n.
  *
  * Return code:
@@ -46,7 +46,7 @@
  *      ERR           Trailing nun-numeric characters.
  *      ERR_SYS       System error. errno(2) should be set.
  */
-error str_to_ulong (const char *const s, unsigned long *n);
+error str_to_ullong (const char *const s, unsigned long long *n);
 
 /*
  * Split s at the first max occurrences of any character in sep and

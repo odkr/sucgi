@@ -16,12 +16,12 @@
  * Aborts the programme if conversion fails.
  */
 void
-str_to_uid(char *s, uid_t *uid) {
-	unsigned long n;
-	if (str_to_ulong(s, &n) != OK) {
+str_to_uid(char *s, uid_t *id) {
+	unsigned long long n;
+	if (str_to_ullong(s, &n) != OK) {
 		die("username: %s is not a number.", s);
 	}
-	*uid = (uid_t) n;
+	*id = (id_t) n;
 }
 
 int

@@ -39,7 +39,6 @@
 	} while (0)
 
 
-
 /*
  * Data types
  */

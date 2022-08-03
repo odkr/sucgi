@@ -18,8 +18,8 @@
  */
 void
 str_to_id(char *s, id_t *id) {
-	unsigned long n;
-	if (str_to_ulong(s, &n) != OK) {
+	unsigned long long n;
+	if (str_to_ullong(s, &n) != OK) {
 		die("runas: %s is not a number.", s);
 	}
 	*id = (id_t) n;
