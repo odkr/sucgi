@@ -40,6 +40,7 @@ change_identity(const struct passwd *const user)
 	uid_t uid = 0;		/* user's UID. */
 	gid_t gid = 0;		/* user's GID. */
 	char *name = NULL;	/* user's name. */
+	int grp_init = -1;	/* Have groups been initialised? */
 
 	assert(user && user->pw_name);
 	name = user->pw_name;
@@ -52,14 +53,19 @@ change_identity(const struct passwd *const user)
 	if (setgroups(1, (gid_t[1]) {gid}) != 0) {
 		fail("setgroups %llu: %s.", (uint64_t) gid, strerror(errno));
 	}
-	if (initgroups(name, (gid_dummy) gid) != 0) {
-		fail("initgroups %s: %s.", name, strerror(errno));
+
+#if defined(__APPLE__) && defined(__MACH__)
+	if (gid > INT_MAX) fail("GID %llu: too large.", (uint64_t) gid);
+	grp_init = initgroups(name, (int) gid);
+#else
+	grp_init = initgroups(name, gid);
+#endif
+	if (grp_init != 0) {
+		fail("initgroups %s %llu: %s.",
+		     name, strerror(errno), (uint64_t) gid);
 	}
 
-	/*
-	 * The real UID and GID need to be set, too. Or else the
-	 * user can call seteuid(2) to gain webserver privileges.
-	 */
+	/* This is paranoid, but better be safe than sorry. */
 	if (setgid(gid) != 0 || getgid() != gid) {
 		char *err = (errno > 0) ? strerror(errno) : "unknown error";
 		fail("setgid %llu: %s.", (uint64_t) gid, err);
@@ -68,19 +74,9 @@ change_identity(const struct passwd *const user)
 		char *err = (errno > 0) ? strerror(errno) : "unknown error";
 		fail("setuid %llu: %s.", (uint64_t) uid, err);
 	}
-	if (setegid(gid) != 0 || getegid() != gid) {
-		char *err = (errno > 0) ? strerror(errno) : "unknown error";
-		fail("setegid %llu: %s.", (uint64_t) gid, err);
-	}
-	if (seteuid(uid) != 0 || geteuid() != uid) {
-		char *err = (errno > 0) ? strerror(errno) : "unknown error";
-		fail("seteuid %llu: %s.", (uint64_t) uid, err);
-	}
 
-	if (setgid(0) == 0) fail("setgid 0: succeeded.");
-	if (setuid(0) == 0) fail("setuid 0: succeeded.");
-	if (setegid(0) == 0) fail("setegid 0: succeeded.");
-	if (seteuid(0) == 0) fail("seteuid 0: succeeded.");
+	if (setgid(0) != -1) fail("setgid 0: succeeded.");
+	if (setuid(0) != -1) fail("setuid 0: succeeded.");
 }
 
 void
