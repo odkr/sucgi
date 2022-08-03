@@ -41,6 +41,15 @@
 
 
 /*
+ * Compiler
+ */
+
+#if !defined(__STDC_VERSION__) || __STDC_VERSION__ < 199901L
+#error suCGI requires a C99-compliant compiler.
+#endif
+
+
+/*
  * Configuration
  */
 
