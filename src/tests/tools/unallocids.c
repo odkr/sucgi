@@ -23,6 +23,7 @@ main (void)
 	gid_t gid = MIN;
 
 	for (; uid < MAX; uid++) {
+		errno = 0;
 		/* cppcheck-suppress getpwuidCalled */
 		pwd = getpwuid(uid);
 		if (!pwd) {
@@ -36,6 +37,7 @@ main (void)
 	if (MAX == uid) die("unallocids: cannot find an unused user ID.");
 
 	for (; gid < MAX; gid++) {
+		errno = 0;
 		/* cppcheck-suppress getgrgidCalled */
 		grp = getgrgid(gid);
 		if (!grp) {

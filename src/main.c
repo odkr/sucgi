@@ -213,8 +213,10 @@ main (void) {
 	 * owner's primary group, not to that of the programme file.
 	 */
 
-	/* suCGI does not aim to be thread-safe. */
-	/* cppcheck-suppress getpwuidCalled */
+	errno = 0;
+
+	/* cppcheck-suppress getpwuidCalled;
+	   suCGI does not aim to be thread-safe. */
 	owner = getpwuid(fstatus.st_uid);
 	if (!owner) {
 		char *err = (errno > 0) ? strerror(errno) : "no such user";
