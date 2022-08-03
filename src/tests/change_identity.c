@@ -19,13 +19,8 @@ main (int argc, char **argv)
 	struct passwd *pwd = NULL;
 	const char *user = NULL;
 
-	switch (argc) {
-		case 2:
-			user = argv[1];
-			break;
-		default:
-			die("usage: change_identity USERNAME");
-	}
+	if (argc != 2) die("usage: change_identity USERNAME");
+	user = argv[1];
 
 	/* cppcheck-suppress getpwnamCalled */
 	pwd = getpwnam(user);

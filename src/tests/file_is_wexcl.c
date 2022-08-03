@@ -34,17 +34,9 @@ main (int argc, char **argv)
 	const char *fname = NULL;
 	id_t uid = 0;
 
-	errno = 0;
-
-	switch (argc) {
-		case 3:
-			str_to_id(argv[1], &uid);
-			fname = argv[2];
-			break;
-		default:
-			die("usage: file_is_wexcl UID GID FNAME");
-			break;
-	}
+	if (argc != 3) die("usage: file_is_wexcl UID GID FNAME");
+	str_to_id(argv[1], &uid);
+	fname = argv[2];
 
 	if (stat(fname, &fstatus) != 0) {
 		die("file_is_wexcl: stat %s: %s.", fname, strerror(errno));

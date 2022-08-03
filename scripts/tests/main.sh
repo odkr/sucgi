@@ -21,6 +21,14 @@ tmpdir chk
 # Prelude
 #
 
+file="$TMPDIR/file"
+touch "$file"
+symlink="$TMPDIR/symlink"
+ln -s "$TMPDIR" "$symlink"
+ln -s "$TMPDIR/loop-a" "$TMPDIR/loop-b"
+ln -s "$TMPDIR/loop-b" "$TMPDIR/loop-a"
+loop="$TMPDIR/loop-a/loop-b/foo"
+
 str_max="$(getconf PATH_MAX .)" && [ "$str_max" ] && 
 	[ "$str_max" -ge 4096 ] || str_max=4096
 long_str="x"
@@ -84,13 +92,13 @@ checkerr 'too many environment variables.' main
 unset $vars
 
 checkerr 'an environment variable is malformed.' \
-	evil-env foo "$TESTSDIR/main"
+	evilenv foo "$TESTSDIR/main"
 
 checkerr 'an environment variable is malformed.' \
-	evil-env '=bar' "$TESTSDIR/main"
+	evilenv '=bar' "$TESTSDIR/main"
 
 checkerr 'an environment variable is malformed.' \
-	evil-env '' "$TESTSDIR/main"
+	evilenv '' "$TESTSDIR/main"
 
 eval "export $long_str=\"\$long_str\""
 checkerr 'an environment variable name is too long.' main
@@ -108,6 +116,12 @@ DOCUMENT_ROOT='' \
 [ "$long_name" ] &&
 	DOCUMENT_ROOT="$long_name" \
 		checkerr '$DOCUMENT_ROOT: filename too long.' main
+
+DOCUMENT_ROOT="$loop" \
+	checkerr '$DOCUMENT_ROOT: Too many levels of symbolic links.' main
+
+DOCUMENT_ROOT="$symlink" \
+	checkerr '$DOCUMENT_ROOT: Too many levels of symbolic links.' main
 
 DOCUMENT_ROOT='/::no-such-file!!' \
 	checkerr '$DOCUMENT_ROOT: No such file or directory.' main
@@ -131,6 +145,12 @@ DOCUMENT_ROOT=/ PATH_TRANSLATED='' \
 [ "$long_name" ] &&
 	DOCUMENT_ROOT=/ PATH_TRANSLATED="$long_name" \
 		checkerr '$PATH_TRANSLATED: filename too long.' main
+
+DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED="$symlink/file" \
+	checkerr '$PATH_TRANSLATED: Too many levels of symbolic links.' main
+
+DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED="$loop" \
+	checkerr '$PATH_TRANSLATED: Too many levels of symbolic links.' main
 
 DOCUMENT_ROOT=/ PATH_TRANSLATED='/::no-such-file!!' \
 	checkerr '$PATH_TRANSLATED: No such file or directory.' main
@@ -164,7 +184,7 @@ cleanup="rm -rf \"\${tmpdir:?}\"; ${cleanup-}"
 catch=x
 [ "${caught-}" ] && exit $((caught + 128))
 
-unused_ids="$(unused-ids)" && [ "$unused_ids" ] ||
+unused_ids="$(unallocids)" && [ "$unused_ids" ] ||
 	abort "failed to find an unused UID and GID."
 
 unused_uid="${unused_ids##*:}"

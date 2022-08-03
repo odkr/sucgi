@@ -59,9 +59,9 @@ path_check_len(const char *const path)
 
 	sub = path;
 	do {
-		/* Flawfinder: ignore (str_cpn writes at most STR_MAX bytes). */
+		/* Flawfinder: ignore (str_cpn is bounded at STR_MAX). */
 		char super[STR_MAX] = "";	/* Super-directory. */
-		size_t super_len = 0;		/* Super-directory path length. */
+		size_t super_len = 0;		/* Super-dir path length. */
 		size_t sub_len = 0;		/* Sub-dir path length. */
 		size_t fname_len = 0;		/* Filename length .*/
 

@@ -17,8 +17,8 @@ main (int argc, char **argv)
 	char *prog = argv[argc - 1];
 	char **envv = calloc((size_t) envc, sizeof(char *)); 
 
-	if (envc < 0) die("usage: evil-env VAR [VAR [...] PROG");
-	if (!envv) die("evil-env: %s.", strerror(errno));
+	if (envc < 0) die("usage: evilenv VAR [VAR [...] PROG");
+	if (!envv) die("evilenv: %s.", strerror(errno));
 
 	/* Flawfinder: ignore */
 	(void) memcpy(envv, &argv[1], (size_t) envc * sizeof(char *));
@@ -26,5 +26,5 @@ main (int argc, char **argv)
 	// Flawfinder: ignore
 	execve(prog, (char *[]) {prog, NULL}, envv);
 
-	die("evil-env: exec %s: %s.", prog, strerror(errno));
+	die("evilenv: exec %s: %s.", prog, strerror(errno));
 }

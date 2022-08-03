@@ -61,7 +61,7 @@ str_eq(const char *const s1, const char *const s2)
 }
 
 bool
-str_fnmatchn(const char *const s, 
+str_matchv(const char *const s, 
            const char *const *const pats, const int flags)
 {
 	for (size_t i = 0; pats[i]; i++) {

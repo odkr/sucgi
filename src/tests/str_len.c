@@ -13,6 +13,7 @@ main (void) {
 	size_t len = 0;
 	/* Flawfinder: ignore */
 	char huge[STR_MAX + 1];
+
 	memset(huge, 'c', STR_MAX);
 	huge[STR_MAX] = '\0';
 	assert(strnlen(huge, STR_MAX) > STR_MAX - 1);

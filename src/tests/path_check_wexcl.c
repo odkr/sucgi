@@ -34,18 +34,10 @@ main (int argc, char **argv)
 	const char *stop = NULL;
 	uid_t uid = 0;
 
-	errno = 0;
-
-	switch (argc) {
-		case 4:
-			str_to_id(argv[1], &uid);
-			fname = argv[2];
-			stop = argv[3];
-			break;
-		default:
-			die("usage: path_check_wexcl UID GID FNAME STOP");
-			break;
-	}
+	if (argc != 4) die("usage: path_check_wexcl UID GID FNAME STOP");
+	str_to_id(argv[1], &uid);
+	fname = argv[2];
+	stop = argv[3];
 
 	return (int) path_check_wexcl(uid, fname, stop);
 }

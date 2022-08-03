@@ -171,8 +171,8 @@ env_sanitise (const char *const keep[], const char *const toss[])
 		reraise(str_split(vars[i], "=", &name, &value));
 		if (str_eq(name, "") || !value) return ERR_VAR_INVALID;
 
-		if ( str_fnmatchn(name, keep, 0) && 
-		    !str_fnmatchn(name, toss, 0))
+		if ( str_matchv(name, keep, 0) && 
+		    !str_matchv(name, toss, 0))
 		{
 			if (setenv(name, value, true) != 0) return ERR_SYS;
 		}

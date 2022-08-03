@@ -20,13 +20,8 @@ main (int argc, char **argv)
 	const char *fname = NULL;
 	error rc = ERR;
 
-	switch (argc) {
-		case 2:
-			fname = argv[1];
-			break;
-		default:
-	 		die("usage: file_safe_open FNAME");
-	}
+	if (argc != 2) die("usage: file_safe_open FNAME");
+	fname = argv[1];
 
 	rc = file_safe_open(fname, O_RDONLY | O_CLOEXEC, &fd);
 	if (rc != OK) return EXIT_FAILURE;

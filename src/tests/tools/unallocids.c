@@ -33,7 +33,7 @@ main (void)
 			}
 		}
 	}
-	if (MAX == uid) die("unused-ids: cannot find an unused user ID.");
+	if (MAX == uid) die("unallocids: cannot find an unused user ID.");
 
 	for (; gid < MAX; gid++) {
 		/* cppcheck-suppress getgrgidCalled */
@@ -46,7 +46,7 @@ main (void)
 			}
 		}
 	}
-	if (MAX == gid) die("unused-ids: cannot find an unused group ID.");
+	if (MAX == gid) die("unallocids: cannot find an unused group ID.");
 
 	// Flawfinder: ignore
 	printf("%lu:%lu\n", (unsigned long) uid, (unsigned long) gid);

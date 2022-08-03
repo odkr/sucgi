@@ -22,14 +22,9 @@ main (int argc, char **argv)
 	char *fspec = NULL;
 	error rc;
 
-	switch (argc) {
-		case 3:
-			name = argv[1];
-			fspec = argv[2];
-			break;
-		default:
-	 		die("usage: env_get_fname VAR FTYPE");
-	}
+	if (argc != 3) die("usage: env_get_fname VAR FTYPE");
+	name = argv[1];
+	fspec = argv[2];
 
 	if (fspec[1] != '\0') {
 		die("env_get_fname: filetype must be a single character.");

@@ -20,6 +20,7 @@ main(void)
 	/* Flawfinder: ignore */
 	char head[STR_MAX] = "";	/* First token. */
 	char *tail = NULL;		/* Remainder. */
+	
 	memset(huge, 'x', STR_MAX);
 	memset(large, 'x', STR_MAX - 1);
 

@@ -36,7 +36,7 @@ then
 
 	export PATH
 	checkerr 'Operation not permitted.' \
-		run-as "$uid" "$gid" change_identity "$user"
+		runas "$uid" "$gid" change_identity "$user"
 
 	checkok "effective: $uid:$gid; real: $uid:$gid." \
 		change_identity "$user"

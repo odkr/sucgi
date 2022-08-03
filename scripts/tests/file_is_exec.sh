@@ -55,7 +55,7 @@ euid="$(id -u)" && [ "$euid" ] ||
 
 [ "$euid" -ne 0 ] && exit
 
-unused_ids="$(unused-ids)" && [ "$unused_ids" ] ||
+unused_ids="$(unallocids)" && [ "$unused_ids" ] ||
 	abort "failed to find an ununsed UID and GID."
 
 chown "$unused_ids" "$fname"

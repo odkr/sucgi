@@ -15,13 +15,8 @@ main (int argc, char **argv)
 	struct stat fstatus;
 	const char *fname = NULL;
 
-	switch (argc) {
-		case 2:
-			fname = argv[1];
-			break;
-		default:
-	 		die("usage: file_is_exec FNAME");
-	}
+	if (argc != 2) die("usage: file_is_exec FNAME");
+	fname = argv[1];
 
 	if (stat(fname, &fstatus) != 0) {
 		die("file_is_exec: stat %s: %s.", fname, strerror(errno));

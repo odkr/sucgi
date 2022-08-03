@@ -19,13 +19,8 @@ main (int argc, char **argv)
 	struct stat fstatus;
 	const char *fname = NULL;
 
-	switch (argc) {
-		case 2:
-			fname = argv[1];
-			break;
-		default:
-	 		die("usage: file_safe_stat FNAME");
-	}
+	if (argc != 2) die("usage: file_safe_stat FNAME");
+	fname = argv[1];
 
 	if (file_safe_stat(fname, &fstatus) == OK) {
 		/* Flawfinder: ignore. */

@@ -11,8 +11,7 @@ readonly script_dir="${0%/*}"
 # shellcheck disable=1091
 . "$script_dir/utils.sh" || exit
 init || exit
-: "${TESTSDIR:=./build/tests}"
-PATH="$TESTSDIR:$TESTSDIR/tools:$script_dir/../../build/tests:$PATH"
+PATH="${TOOLSDIR:=./build/tests/tools}:$script_dir/../build/tests/tools:$PATH"
 tmpdir ru
 
 
@@ -27,7 +26,7 @@ while getopts b:c:p:w:h opt; do
 			regularids - Print the user's regular UID and GID.
 
 			Synopsis:
-				regularids
+			    regularids
 
 			Options:
 			    -h         Show this help screen.
