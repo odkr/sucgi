@@ -89,10 +89,10 @@ str_split(const char *const s, const char *const sep,
 	*tail = strpbrk(s, sep);
 	if (*tail) {
 		size_t len = (size_t) (*tail - s);
-		reraise(str_cpn(len, s, head));
+		check(str_cpn(len, s, head));
 		(*tail)++;
 	} else {
-		reraise(str_cp(s, head));
+		check(str_cp(s, head));
 	}
 
 	return OK;

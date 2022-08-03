@@ -1,5 +1,5 @@
 /*
- * Test reraise.
+ * Test check.
  */
 
 #include <assert.h>
@@ -7,27 +7,27 @@
 
 #include "../err.h"
 
-/* reraise wrapper that should always fail. */
+/* check wrapper that should always fail. */
 error
-reraise_ok (void)
+check_ok (void)
 {
-	reraise(OK);
+	check(OK);
 	/* This point should be reached. */
 	return ERR_SYS;
 }
 
-/* reraise wrapper that should always fail. */
+/* check wrapper that should always fail. */
 error
-reraise_err (void)
+check_err (void)
 {
-	reraise(ERR_SYS);
+	check(ERR_SYS);
 	/* This point should not be reached. */
 	return OK;
 }
 
 int
 main (void) {
-	assert(reraise_ok() != OK);
-	assert(reraise_err() != OK);
+	assert(check_ok() != OK);
+	assert(check_err() != OK);
 	return EXIT_SUCCESS;
 }

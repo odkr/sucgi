@@ -32,10 +32,10 @@
  */
 
 /* Return with err from the current function unless err is OK. */
-#define reraise(err) 						\
+#define check(err) 						\
 	do {							\
-		error _reraise_err = (err);			\
-		if (_reraise_err != OK) return _reraise_err;	\
+		error _check_err = (err);			\
+		if (_check_err != OK) return _check_err;	\
 	} while (0)
 
 

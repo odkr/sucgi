@@ -119,7 +119,7 @@ file_safe_stat(const char *fname, struct stat *fstatus)
 	int rc = -1;		/* Return code. */
 
 	assert(fname);
-	reraise(file_safe_open(fname, O_RDONLY | O_CLOEXEC, &fd));
+	check(file_safe_open(fname, O_RDONLY | O_CLOEXEC, &fd));
 	rc = fstat(fd, &buf);
 	if (close(fd) != 0 || rc != 0) return ERR_SYS;
 	/* Flawfinder: ignore (fstatus is guaranteed to be large enough). */

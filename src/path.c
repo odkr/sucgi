@@ -52,7 +52,7 @@ path_check_len(const char *const path)
 	const char *sub = NULL;
 
 	assert(path);
-	reraise(str_len(path, &path_len));
+	check(str_len(path, &path_len));
 #if PATH_MAX > -1
 	if (path_len > PATH_MAX - 1) return ERR_STR_MAX;
 #endif
@@ -67,7 +67,7 @@ path_check_len(const char *const path)
 
 		if (sep) {
 			super_len = (size_t) (sep - path + 1);
-			reraise(str_cpn(super_len, path, &super));
+			check(str_cpn(super_len, path, &super));
 		}
 
 		sep = strpbrk(sub, "/");
@@ -113,7 +113,7 @@ path_check_wexcl(const uid_t uid, const char *const start,
 	char *file = path;		/* Path to current file. */
 
 	assert(start && stop);
-	reraise(str_cp(start, &path));
+	check(str_cp(start, &path));
 
 	while (true) {
 		struct stat fstatus;

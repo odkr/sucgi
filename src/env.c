@@ -136,11 +136,11 @@ env_get_fname(const char *name, const mode_t ftype,
 	value = getenv(name);
 	if (!value) return ERR_VAR_UNDEF;
 	if (str_eq(value, "")) return ERR_VAR_EMPTY;
-	reraise(path_check_len(value));
-	reraise(file_safe_stat(value, &buf));
+	check(path_check_len(value));
+	check(file_safe_stat(value, &buf));
 	if ((buf.st_mode & S_IFMT) != ftype) return ERR_FTYPE;
 
-	reraise(str_cp(value, fname));
+	check(str_cp(value, fname));
 	/* Flawfinder: ignore (fstatus is guaranteed to be large enough). */
 	if (fstatus) (void) memcpy(fstatus, &buf, sizeof(struct stat));
 	return OK;
@@ -160,7 +160,7 @@ env_sanitise (const char *const keep[], const char *const toss[])
 	 * > info. Bad news if MALLOC_DEBUG_FILE is set to /etc/passwd.)
 	 */
 
-	reraise(env_clear(vars));
+	check(env_clear(vars));
 
 	/* Repopulate the environment. */
 	for (size_t i = 0; i < ENV_MAX && vars[i]; i++) {
@@ -168,7 +168,7 @@ env_sanitise (const char *const keep[], const char *const toss[])
 		char name[STR_MAX] = "";	/* Variable name. */
 		char *value = NULL;		/* Variable value. */
 
-		reraise(str_split(vars[i], "=", &name, &value));
+		check(str_split(vars[i], "=", &name, &value));
 		if (str_eq(name, "") || !value) return ERR_VAR_INVALID;
 
 		if (str_matchv(name, keep, 0) && !str_matchv(name, toss, 0)) {
