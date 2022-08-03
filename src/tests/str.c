@@ -49,8 +49,11 @@ str_splitn(const char *const s, const char *sep, const size_t max,
 {
 	/* cppcheck-suppress unreadVariable */
 	error rc = ERR_SYS;		/* Return code. */
-	char *pivot = (char *) s;	/* Current start of string. */
+	char *pivot = NULL;		/* Current start of string. */
 	size_t i = 0;			/* Iterator. */
+
+	pivot = strndup(s, STR_MAX);
+	if (!pivot) return ERR_SYS;
 
 	assert(subs);
 	for (; i <= max && pivot; i++) {
@@ -68,5 +71,6 @@ str_splitn(const char *const s, const char *sep, const size_t max,
 
 	err:
 		for (size_t j = 0; j < i; j++) free(subs[j]);
+		free(pivot);
 		return rc;
 }

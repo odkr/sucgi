@@ -126,7 +126,7 @@ env_clear(char *vars[])
 
 error
 env_get_fname(const char *name, const mode_t ftype,
-              char **fname, struct stat *fstatus)
+              char (*fname)[STR_MAX], struct stat *fstatus)
 {
 	struct stat buf;	/* Filesystem status of the file. */
 	char *value = NULL;	/* The value of the environment variable. */
@@ -140,9 +140,9 @@ env_get_fname(const char *name, const mode_t ftype,
 	reraise(file_safe_stat(value, &buf));
 	if ((buf.st_mode & S_IFMT) != ftype) return ERR_FTYPE;
 
+	reraise(str_cp(value, fname));
 	/* Flawfinder: ignore (fstatus is guaranteed to be large enough). */
 	if (fstatus) (void) memcpy(fstatus, &buf, sizeof(struct stat));
-	*fname = value;
 	return OK;
 }
 
@@ -171,9 +171,7 @@ env_sanitise (const char *const keep[], const char *const toss[])
 		reraise(str_split(vars[i], "=", &name, &value));
 		if (str_eq(name, "") || !value) return ERR_VAR_INVALID;
 
-		if ( str_matchv(name, keep, 0) && 
-		    !str_matchv(name, toss, 0))
-		{
+		if (str_matchv(name, keep, 0) && !str_matchv(name, toss, 0)) {
 			if (setenv(name, value, true) != 0) return ERR_SYS;
 		}
 	}

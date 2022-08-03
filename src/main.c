@@ -106,8 +106,8 @@ int
 main (void) {
 	struct passwd *owner = NULL;	/* Programme owner. */
 	struct stat fstatus;		/* Programme's filesystem status. */
-	char *doc_root = NULL;		/* $DOCUMENT_ROOT. */
-	char *prog = NULL;		/* $PATH_TRANSLATED. */
+	char doc_root[STR_MAX] = "";	/* $DOCUMENT_ROOT. */
+	char prog[STR_MAX] = "";	/* $PATH_TRANSLATED. */
 	error rc = ERR;			/* A return code. */
 
 

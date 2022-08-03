@@ -26,6 +26,7 @@
 
 #include "attr.h"
 #include "err.h"
+#include "str.h"
 
 
 /*
@@ -102,7 +103,7 @@ error env_clear(char *vars[]);
  *      ERR_VAR_EMPTY  The variable is empty.
  */
 error env_get_fname(const char *name, const mode_t ftype,
-                    char **fname, struct stat *fstatus);
+                    char (*fname)[STR_MAX], struct stat *fstatus);
 
 /*
  * Unset every environment variable the name of which (a) does not match a

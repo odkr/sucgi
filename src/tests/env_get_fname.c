@@ -16,26 +16,26 @@ int
 main (int argc, char **argv)
 {
 	struct stat fstatus;
-	mode_t ftype = 0;
-	char *name = NULL;
-	char *fname = NULL;
-	char *fspec = NULL;
+	char fname[STR_MAX] = "";
+	char *ftype = NULL;
+	char *var = NULL;
+	mode_t fmode = 0;
 	error rc;
 
 	if (argc != 3) die("usage: env_get_fname VAR FTYPE");
-	name = argv[1];
-	fspec = argv[2];
+	var = argv[1];
+	ftype = argv[2];
 
-	if (fspec[1] != '\0') {
+	if (strnlen(ftype, STR_MAX) > 1) {
 		die("env_get_fname: filetype must be a single character.");
 	}
 
-	switch(fspec[0]) {
+	switch(ftype[0]) {
 		case 'f':
-			ftype = S_IFREG;
+			fmode = S_IFREG;
 			break;
 		case 'd':
-			ftype = S_IFDIR;
+			fmode = S_IFDIR;
 			break;
 		case '\0':
 			die("env_get_fname: filetype is empty.");
@@ -43,7 +43,7 @@ main (int argc, char **argv)
 			die("env_get_fname: filetype must be 'd' or 'f'.");
 	}
 
-	rc = env_get_fname(name, ftype, &fname, &fstatus);
+	rc = env_get_fname(var, fmode, &fname, &fstatus);
 
 	if (OK == rc) {
 		/* Flawfinder: ignore. */
@@ -56,7 +56,7 @@ main (int argc, char **argv)
 		       (unsigned long) fstatus.st_size);
 	} else {
 		die("env_get_fname: env_get_fname %s %s returned %d.",
-		    name, fspec, rc);
+		    var, ftype, rc);
 	}
 
 	return EXIT_SUCCESS;
