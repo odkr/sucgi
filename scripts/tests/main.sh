@@ -197,6 +197,7 @@ cp -a "$script_dir/tools/." "$tmpdir/."
 
 script="$tmpdir/script.sh"
 cp "$script" "$tmpdir/script"
+chmod -x "$script.sh"
 chmod +x "$tmpdir/script"
 
 su="$tmpdir/su.sh"
