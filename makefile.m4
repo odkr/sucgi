@@ -39,7 +39,7 @@ CHECKBINS = $(BUILDDIR)/tests/tools/evilenv \
             $(BUILDDIR)/tests/tools/runas \
             $(BUILDDIR)/tests/tools/unallocids \
             $(BUILDDIR)/tests/tools/username \
-            $(BUILDDIR)/tests/change_identity \
+            $(BUILDDIR)/tests/drop_privs \
             $(BUILDDIR)/tests/fail $(BUILDDIR)/tests/env_clear \
             $(BUILDDIR)/tests/env_get_fname \
 	    $(BUILDDIR)/tests/env_sanitise \
@@ -60,7 +60,7 @@ CHECKBINS = $(BUILDDIR)/tests/tools/evilenv \
             $(BUILDDIR)/tests/str_len \
             $(BUILDDIR)/tests/str_split
 
-CHECKS = $(SCRIPTDIR)/tests/change_identity.sh \
+CHECKS = $(SCRIPTDIR)/tests/drop_privs.sh \
          $(SCRIPTDIR)/tests/fail.sh \
          $(BUILDDIR)/tests/env_clear \
          $(SCRIPTDIR)/tests/env_get_fname.sh \
@@ -227,7 +227,7 @@ $(BUILDDIR)/tests/tools/username:	$(SRCDIR)/tests/tools/username.c \
 	$(LDLIBS)
 
 
-$(BUILDDIR)/tests/change_identity:	$(SRCDIR)/tests/change_identity.c \
+$(BUILDDIR)/tests/drop_privs:	$(SRCDIR)/tests/drop_privs.c \
 				$(BUILDDIR)/tests/utils.o \
 				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
 				$(BUILDDIR)/utils.o \

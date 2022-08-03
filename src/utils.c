@@ -35,7 +35,7 @@
 
 
 void
-change_identity(const struct passwd *const user)
+drop_privs(const struct passwd *const user)
 {
 	uid_t uid = 0;		/* user's UID. */
 	gid_t gid = 0;		/* user's GID. */
@@ -62,7 +62,7 @@ change_identity(const struct passwd *const user)
 #endif
 	if (grp_init != 0) {
 		fail("initgroups %s %llu: %s.",
-		     name, strerror(errno), (uint64_t) gid);
+		     name, (uint64_t) gid, strerror(errno));
 	}
 
 	/* This is paranoid, but better be safe than sorry. */

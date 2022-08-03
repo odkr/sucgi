@@ -19,17 +19,17 @@ main (int argc, char **argv)
 	struct passwd *pwd = NULL;
 	const char *user = NULL;
 
-	if (argc != 2) die("usage: change_identity USERNAME");
+	if (argc != 2) die("usage: drop_privs USERNAME");
 	user = argv[1];
 
 	/* cppcheck-suppress getpwnamCalled */
 	pwd = getpwnam(user);
 	if (!pwd) {
 		char *err = (errno > 0) ? strerror(errno) : "no such user";
-		die("change_identity: getpwnam %s: %s.", user, err);
+		die("drop_privs: getpwnam %s: %s.", user, err);
 	}
 
-	change_identity(pwd);
+	drop_privs(pwd);
 
 	/* cppcheck-suppress invalidPrintfArgType_uint */
 	/* Flawfinder: ignore */

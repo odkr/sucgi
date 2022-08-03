@@ -229,7 +229,7 @@ main (void) {
 	 * Drop privileges.
 	 */
 
-	change_identity(owner);
+	drop_privs(owner);
 
 
 	/*

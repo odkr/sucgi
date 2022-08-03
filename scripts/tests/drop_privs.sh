@@ -36,11 +36,11 @@ then
 
 	export PATH
 	checkerr 'Operation not permitted.' \
-		runas "$uid" "$gid" change_identity "$user"
+		runas "$uid" "$gid" drop_privs "$user"
 
 	checkok "effective: $uid:$gid; real: $uid:$gid." \
-		change_identity "$user"
+		drop_privs "$user"
 else
 	checkerr 'Operation not permitted.' \
-		change_identity "$LOGNAME"
+		drop_privs "$LOGNAME"
 fi
