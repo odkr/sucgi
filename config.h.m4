@@ -5,10 +5,7 @@ define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
  * suCGI configuration.
  */
 
-/*
- * This is config.h's include guard.
- * Leave it alone. It's on duty.
- */
+/* This is config.h's include guard. Leave it alone. It's on duty. */
 #if !defined(CONFIG_H)
 #define CONFIG_H
 
@@ -35,9 +32,9 @@ define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
 
 /*
  * Interpreters to run scripts the executable bit of which is NOT set.
- * Array of key-value pairs, where filename endings are given as keys and
- * interpreters as values; must be terminated with a pair of NULLs.
- * Filename endings must be given including the leading dot (".").
+ * Array of key-value pairs, where filename endings are given as keys
+ * and interpreters as values; must be terminated with a pair of NULLs.
+ * Filename endings must be given including the leading dot.
  * Interpreters are searched for in SECURE_PATH (see below).
  */
 #define SCRIPT_HANDLERS	{					\
