@@ -74,6 +74,7 @@ done
 shift $((OPTIND - 1))
 unset opt
 
+[ "$#" -gt 0 ] && abort 'too many operands.'
 [ "$quiet" ] && exec >/dev/null
 
 
