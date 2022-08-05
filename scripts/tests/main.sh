@@ -239,7 +239,7 @@ mkfifo "$fifo"
 #
 
 DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED="$file" \
-	checkerr "document root /tmp is not in $user's home directory." main
+	checkerr "document root $TMPDIR is not in $user's home directory." main
 
 DOCUMENT_ROOT="$root_symlink" PATH_TRANSLATED="$file" \
 	checkerr "document root / is not in $user's home directory." main
