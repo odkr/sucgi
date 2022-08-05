@@ -115,7 +115,7 @@ int
 main (void) {
 	struct passwd *owner = NULL;	/* Programme owner. */
 	struct stat fstatus;		/* Programme's filesystem status. */
-	char DOC_ROOT_PAT[STR_MAX] = "";	/* $DOCUMENT_ROOT. */
+	char doc_root[STR_MAX] = "";	/* $DOCUMENT_ROOT. */
 	char prog[STR_MAX] = "";	/* $PATH_TRANSLATED. */
 	error rc = ERR;			/* A return code. */
 
@@ -150,7 +150,7 @@ main (void) {
 	 * Check whether DOCUMENT_ROOT makes sense.
 	 */
 
-	rc = env_get_fname("DOCUMENT_ROOT", S_IFDIR, &DOC_ROOT_PAT, NULL);
+	rc = env_get_fname("DOCUMENT_ROOT", S_IFDIR, &doc_root, NULL);
 	switch (rc) {
 		case OK:
 			break;
@@ -173,7 +173,7 @@ main (void) {
 			     __FILE__, __LINE__ - 20, rc);
 	}
 
-	if (fnmatch(DOC_ROOT_PAT, DOC_ROOT_PAT, FNM_PATHNAME | FNM_PERIOD) != 0) {
+	if (fnmatch(DOC_ROOT_PAT, doc_root, FNM_PATHNAME | FNM_PERIOD) != 0) {
 		fail("$DOCUMENT_ROOT: does not match %s.", DOC_ROOT_PAT);
 	}
 
@@ -205,8 +205,8 @@ main (void) {
 			      __FILE__, __LINE__ - 20, rc);
 	}
 
-	if (!path_contains(DOC_ROOT_PAT, prog)) {
-		fail("$PATH_TRANSLATED: not in document root %s.", DOC_ROOT_PAT);
+	if (!path_contains(doc_root, prog)) {
+		fail("$PATH_TRANSLATED: not in document root %s.", doc_root);
 	}
 
 	if (0 == fstatus.st_uid) {
@@ -255,9 +255,9 @@ main (void) {
 	 *	chown -R smith:smith acme
 	 */
 
-	if (!path_contains(owner->pw_dir, DOC_ROOT_PAT)) {
+	if (!path_contains(owner->pw_dir, doc_root)) {
 		fail("document root %s is not in %s's home directory.",
-		     DOC_ROOT_PAT, owner->pw_name);
+		     doc_root, owner->pw_name);
 	}
 
 
