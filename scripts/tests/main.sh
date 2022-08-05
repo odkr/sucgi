@@ -247,7 +247,7 @@ DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED="$file" \
 DOCUMENT_ROOT="$outside" PATH_TRANSLATED="$file" \
 	checkerr "document root $TMPDIR is not in $user's home directory." main
 
-DOCUMENT_ROOT="$home/.." PATH_TRANSLATED="$script" \
+DOCUMENT_ROOT="$home/../../../../../../$TMPDIR" PATH_TRANSLATED="$script" \
 	checkerr "not in $user's home directory." main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$su" \
