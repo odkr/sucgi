@@ -20,6 +20,16 @@ tmpdir chk
 # Prelude
 #
 
+ruid="$(regularuid)" && [ "$ruid" ] ||
+	abort "failed to get non-root user ID of caller."
+user="$(username "$ruid")" && [ "$user" ] ||
+	abort "failed to get username associated with ID $ruid."
+rgid="$(id -g "$user")" && [ "$rgid" ] ||
+	abort "failed to get ID of $user's primary group."
+
+home="$(homedir "$user")" && [ "$home" ] ||
+	abort "failed to get $user's home directory."
+
 file="$TMPDIR/file"
 touch "$file"
 dir="$TMPDIR/dir"
@@ -28,6 +38,7 @@ root_symlink="$TMPDIR/root"
 ln -s / "$root_symlink"
 root_dotdot="$TMPDIR/../../../../../../../../../../../../../../../../../.."
 
+chown -R "$ruid:$rgid" "$TMPDIR"
 
 str_max="$(getconf PATH_MAX .)" && [ "$str_max" ] && 
 	[ "$str_max" -ge 4096 ] || str_max=4096
@@ -65,16 +76,6 @@ true="$(command -v true >/dev/null 2>&1 || :)" || :
 	abort "true: exited with status $?."
 true_dir="$(dirname "$true")" && [ "$true_dir" ] ||
 	abort "$true: failed to get directory."
-
-ruid="$(regularuid)" && [ "$ruid" ] ||
-	abort "failed to get non-root user ID of caller."
-user="$(username "$ruid")" && [ "$user" ] ||
-	abort "failed to get username associated with ID $ruid."
-rgid="$(id -g "$user")" && [ "$rgid" ] ||
-	abort "failed to get ID of $user's primary group."
-
-home="$(homedir "$user")" && [ "$home" ] ||
-	abort "failed to get $user's home directory."
 
 
 #
