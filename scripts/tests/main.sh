@@ -13,7 +13,6 @@ readonly script_dir="${0%/*}"
 init || exit
 : "${TESTSDIR:=./build/tests}"
 PATH="$TESTSDIR:$TESTSDIR/tools:$script_dir/../../build/tests:$PATH"
-
 tmpdir chk
 
 
@@ -23,11 +22,12 @@ tmpdir chk
 
 file="$TMPDIR/file"
 touch "$file"
-symlink="$TMPDIR/symlink"
-ln -s "$TMPDIR" "$symlink"
-ln -s "$TMPDIR/loop-a" "$TMPDIR/loop-b"
-ln -s "$TMPDIR/loop-b" "$TMPDIR/loop-a"
-loop="$TMPDIR/loop-a/loop-b/foo"
+dir="$TMPDIR/dir"
+mkdir "$dir"
+root_symlink="$TMPDIR/root"
+ln -s / "$root_symlink"
+root_dotdot="$TMPDIR/../../../../../../../../.."
+
 
 str_max="$(getconf PATH_MAX .)" && [ "$str_max" ] && 
 	[ "$str_max" -ge 4096 ] || str_max=4096
@@ -61,7 +61,10 @@ fi
 
 true="$(command -v true >/dev/null 2>&1 || :)" || :
 : "${true:=/usr/bin/true}"
-"$true" || abort "true: exited with status $?."
+"$true" ||
+	abort "true: exited with status $?."
+true_dir="$(dirname "$true")" && [ "$true_dir" ] ||
+	abort "$true: failed to get directory."
 
 ruid="$(regularuid)" && [ "$ruid" ] ||
 	abort "failed to get non-root user ID of caller."
@@ -110,59 +113,53 @@ DOCUMENT_ROOT='' \
 	checkerr 'DOCUMENT_ROOT: is the empty string.' main
 
 [ "$long_path" ] &&
-	DOCUMENT_ROOT="$long_path" \
+	FAKE_DOC_ROOT='/*' DOCUMENT_ROOT="$long_path" \
 		checkerr '$DOCUMENT_ROOT: path too long.' main
 
 [ "$long_name" ] &&
 	DOCUMENT_ROOT="$long_name" \
 		checkerr '$DOCUMENT_ROOT: filename too long.' main
 
-DOCUMENT_ROOT="$loop" \
-	checkerr '$DOCUMENT_ROOT: Too many levels of symbolic links.' main
-
-DOCUMENT_ROOT="$symlink" \
-	checkerr '$DOCUMENT_ROOT: Too many levels of symbolic links.' main
-
 DOCUMENT_ROOT='/::no-such-file!!' \
 	checkerr '$DOCUMENT_ROOT: No such file or directory.' main
 
-DOCUMENT_ROOT="$0" \
+DOCUMENT_ROOT="$file" \
 	checkerr '$DOCUMENT_ROOT: not a directory.' main
 
-DOCUMENT_ROOT=. \
-	checkerr '$DOCUMENT_ROOT: does not match /*.' main
-
-DOCUMENT_ROOT=/ \
+DOCUMENT_ROOT="$TMPDIR" \
 	checkerr 'PATH_TRANSLATED: not set.' main
 
-DOCUMENT_ROOT=/ PATH_TRANSLATED='' \
+DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED='' \
 	checkerr 'PATH_TRANSLATED: is the empty string.' main
 
 [ "$long_path" ] &&
-	DOCUMENT_ROOT=/ PATH_TRANSLATED="$long_path" \
+	DOCUMENT_ROOT="$PWD" PATH_TRANSLATED="$long_path" \
 		checkerr '$PATH_TRANSLATED: path too long.' main
 
 [ "$long_name" ] &&
-	DOCUMENT_ROOT=/ PATH_TRANSLATED="$long_name" \
+	DOCUMENT_ROOT="$PWD" PATH_TRANSLATED="$long_name" \
 		checkerr '$PATH_TRANSLATED: filename too long.' main
 
-DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED="$symlink/file" \
-	checkerr '$PATH_TRANSLATED: Too many levels of symbolic links.' main
-
-DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED="$loop" \
-	checkerr '$PATH_TRANSLATED: Too many levels of symbolic links.' main
-
-DOCUMENT_ROOT=/ PATH_TRANSLATED='/::no-such-file!!' \
+DOCUMENT_ROOT="$PWD" PATH_TRANSLATED="$PWD/::no-such-file!!" \
 	checkerr '$PATH_TRANSLATED: No such file or directory.' main
+
+DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED="$dir" \
+	checkerr '$PATH_TRANSLATED: not a regular file.' main
+
+DOCUMENT_ROOT="$true_dir" PATH_TRANSLATED="$true" \
+	checkerr 'owned by the superuser.' main
+
+DOCUMENT_ROOT=/ PATH_TRANSLATED="$true" \
+	checkerr '$DOCUMENT_ROOT: does not match /*/*.' main
+
+DOCUMENT_ROOT="$root_symlink" PATH_TRANSLATED="$true" \
+	checkerr '$DOCUMENT_ROOT: does not match /*/*.' main
+
+DOCUMENT_ROOT="$root_dotdot" PATH_TRANSLATED="$true" \
+	checkerr '$DOCUMENT_ROOT: does not match /*/*.' main
 
 DOCUMENT_ROOT="$home" PATH_TRANSLATED="$true" \
 	checkerr "\$PATH_TRANSLATED: not in document root $home." main
-
-DOCUMENT_ROOT="$home" PATH_TRANSLATED="$home" \
-	checkerr '$PATH_TRANSLATED: not a regular file.' main
-
-DOCUMENT_ROOT=/ PATH_TRANSLATED="$true" \
-	checkerr 'owned by the superuser.' main
 
 
 #
@@ -194,6 +191,10 @@ unused_gid="${unused_ids%%:*}"
 [ "$unused_gid" ] || abort "cannot parse unused GID."
 
 cp -a "$script_dir/tools/." "$tmpdir/."
+
+root_symlink="$tmpdir/root"
+ln -s / "$root_symlink"
+root_dotdot="$tmpdir/../../../../../../../../../../../../.."
 
 script="$tmpdir/script.sh"
 cp "$script" "$tmpdir/script"
@@ -240,7 +241,13 @@ mkfifo "$fifo"
 # Root checks
 #
 
-DOCUMENT_ROOT="/" PATH_TRANSLATED="$script" \
+DOCUMENT_ROOT=/tmp PATH_TRANSLATED="$script" \
+	checkerr "document root /tmp is not in $user's home directory." main
+
+DOCUMENT_ROOT="$root_symlink" PATH_TRANSLATED="$script" \
+	checkerr "document root / is not in $user's home directory." main
+
+DOCUMENT_ROOT="$root_dotdot" PATH_TRANSLATED="$script" \
 	checkerr "document root / is not in $user's home directory." main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$su" \

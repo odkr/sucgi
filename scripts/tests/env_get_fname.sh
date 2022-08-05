@@ -63,40 +63,33 @@ ln -s "$TMPDIR" "$symlink"
 #
 
 unset var
-checkerr "env_get_fname: env_get_fname var f returned 10." \
+checkerr "env_get_fname: env_get_fname var f returned 11." \
 	env_get_fname var f
 
 var='' \
-	checkerr "env_get_fname: env_get_fname var f returned 8." \
+	checkerr "env_get_fname: env_get_fname var f returned 9." \
 		env_get_fname var f
 
 var="$long_str" \
-	checkerr "env_get_fname: env_get_fname var f returned 6." \
-		env_get_fname var f
-
-var="$long_path" \
-	checkerr "env_get_fname: env_get_fname var f returned 6." \
-		env_get_fname var f
-
-var="$long_name" \
-	checkerr "env_get_fname: env_get_fname var f returned 3." \
-		env_get_fname var f
-
-var="$symlink" \
 	checkerr "env_get_fname: env_get_fname var f returned 7." \
 		env_get_fname var f
 
+var="$long_path" \
+	checkerr "env_get_fname: env_get_fname var f returned 7." \
+		env_get_fname var f
+
+var="$long_name" \
+	checkerr "env_get_fname: env_get_fname var f returned 4." \
+		env_get_fname var f
+
 var="$file" \
-	checkerr "env_get_fname: env_get_fname var d returned 4." \
+	checkerr "env_get_fname: env_get_fname var d returned 5." \
 		env_get_fname var d
 
 var="$TMPDIR" \
-	checkerr "env_get_fname: env_get_fname var f returned 4." \
+	checkerr "env_get_fname: env_get_fname var f returned 5." \
 		env_get_fname var f
 
 var="$file" \
 	checkok "UID $uid" \
 		env_get_fname var f
-
-
-exit 0

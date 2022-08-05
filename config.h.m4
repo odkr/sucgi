@@ -16,7 +16,7 @@ define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
  * neither ('/') nor leading dots ('.'). Should correspond to the UserDir
  * directive of your Apache configuration (or its equivalent).
  */
-#define DOC_ROOT "/home/*/public_html"
+#define DOC_ROOT_PAT "/home/*/public_html"
 
 /*
  * Smallest UID that may have been assigned to a regular user.

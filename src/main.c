@@ -53,8 +53,8 @@
  * Configuration
  */
 
-#if !defined(DOC_ROOT)
-#define DOC_ROOT "/home/*/public_html"
+#if !defined(DOC_ROOT_PAT)
+#define DOC_ROOT_PAT "/home/*/public_html"
 #endif
 
 #if !defined(SECURE_PATH)
@@ -89,8 +89,8 @@
 
 #if defined(TESTING) && TESTING
 
-#undef DOC_ROOT
-#define DOC_ROOT "/*"
+#undef DOC_ROOT_PAT
+#define DOC_ROOT_PAT "/*/*"
 
 #undef FNM_PATHNAME
 #define FNM_PATHNAME 0
@@ -115,7 +115,7 @@ int
 main (void) {
 	struct passwd *owner = NULL;	/* Programme owner. */
 	struct stat fstatus;		/* Programme's filesystem status. */
-	char doc_root[STR_MAX] = "";	/* $DOCUMENT_ROOT. */
+	char DOC_ROOT_PAT[STR_MAX] = "";	/* $DOCUMENT_ROOT. */
 	char prog[STR_MAX] = "";	/* $PATH_TRANSLATED. */
 	error rc = ERR;			/* A return code. */
 
@@ -130,7 +130,7 @@ main (void) {
 			break;
 		case ERR_SYS:
 			fail("environment clean-up: %s.", strerror(errno));
-		case ERR_ENV_MAX:
+		case ERR_VAR_MAX:
 			fail("too many environment variables.");
 		case ERR_STR_MAX:
 			fail("an environment variable name is too long.");
@@ -150,15 +150,17 @@ main (void) {
 	 * Check whether DOCUMENT_ROOT makes sense.
 	 */
 
-	rc = env_get_fname("DOCUMENT_ROOT", S_IFDIR, &doc_root, NULL);
+	rc = env_get_fname("DOCUMENT_ROOT", S_IFDIR, &DOC_ROOT_PAT, NULL);
 	switch (rc) {
 		case OK:
 			break;
 		case ERR_SYS:
 			fail("$DOCUMENT_ROOT: %s.", strerror(errno));
-		case ERR_FNAME_LEN:
+		case ERR_CONV:
+			fail("$DOCUMENT_ROOT: non-integer file descriptor.");
+		case ERR_FILE_NAME:
 			fail("$DOCUMENT_ROOT: filename too long.");
-		case ERR_FTYPE:
+		case ERR_FILE_TYPE:
 			fail("$DOCUMENT_ROOT: not a directory.");
 		case ERR_STR_MAX:
 			fail("$DOCUMENT_ROOT: path too long.");
@@ -168,11 +170,11 @@ main (void) {
 			fail("DOCUMENT_ROOT: is the empty string.");
 		default:
 			fail("%s:%d: env_get_fname returned %u.",
-			      __FILE__, __LINE__ - 18, rc);
+			     __FILE__, __LINE__ - 20, rc);
 	}
 
-	if (fnmatch(DOC_ROOT, doc_root, FNM_PATHNAME | FNM_PERIOD) != 0) {
-		fail("$DOCUMENT_ROOT: does not match %s.", DOC_ROOT);
+	if (fnmatch(DOC_ROOT_PAT, DOC_ROOT_PAT, FNM_PATHNAME | FNM_PERIOD) != 0) {
+		fail("$DOCUMENT_ROOT: does not match %s.", DOC_ROOT_PAT);
 	}
 
 
@@ -186,9 +188,11 @@ main (void) {
 			break;
 		case ERR_SYS:
 			fail("$PATH_TRANSLATED: %s.", strerror(errno));
-		case ERR_FNAME_LEN:
+		case ERR_CONV:
+			fail("$DOCUMENT_ROOT: non-integer file descriptor.");
+		case ERR_FILE_NAME:
 			fail("$PATH_TRANSLATED: filename too long.");
-		case ERR_FTYPE:
+		case ERR_FILE_TYPE:
 			fail("$PATH_TRANSLATED: not a regular file.");
 		case ERR_STR_MAX:
 			fail("$PATH_TRANSLATED: path too long.");
@@ -198,11 +202,11 @@ main (void) {
 			fail("PATH_TRANSLATED: is the empty string.");
 		default:
 			fail("%s:%d: env_get_fname returned %u.",
-			      __FILE__, __LINE__ - 19, rc);
+			      __FILE__, __LINE__ - 20, rc);
 	}
 
-	if (!path_contains(doc_root, prog)) {
-		fail("$PATH_TRANSLATED: not in document root %s.", doc_root);
+	if (!path_contains(DOC_ROOT_PAT, prog)) {
+		fail("$PATH_TRANSLATED: not in document root %s.", DOC_ROOT_PAT);
 	}
 
 	if (0 == fstatus.st_uid) {
@@ -211,7 +215,9 @@ main (void) {
 	if (0 == fstatus.st_gid) {
 		fail("%s: owned by the supergroup.", prog);
 	}
-	if (MAX_UID < fstatus.st_uid || fstatus.st_uid < MIN_UID) {
+	if ((uid_t) MAX_UID < fstatus.st_uid || 
+	    (uid_t) MIN_UID > fstatus.st_uid) 
+	{
 		fail("%s: owned by non-regular UID %llu.",
 		     prog, (uint64_t) fstatus.st_uid);
 	}
@@ -249,9 +255,9 @@ main (void) {
 	 *	chown -R smith:smith acme
 	 */
 
-	if (!path_contains(owner->pw_dir, doc_root)) {
+	if (!path_contains(owner->pw_dir, DOC_ROOT_PAT)) {
 		fail("document root %s is not in %s's home directory.",
-		     doc_root, owner->pw_name);
+		     DOC_ROOT_PAT, owner->pw_name);
 	}
 
 
@@ -268,7 +274,7 @@ main (void) {
 			break;
 		case ERR_SYS:
 			fail("%s: %s.", prog, strerror(errno));
-		case ERR_NOT_EXCLW:
+		case ERR_FILE_WEXCL:
 		        fail("%s: can be altered by users other than %s.",
 			     prog, owner->pw_name);
 		default:

@@ -116,12 +116,12 @@ env_clear(char *vars[])
 	environ = &var;
 
 	if (!vars) return OK;
-	for (size_t n = 0; n < ENV_MAX; n++) {
+	for (size_t n = 0; n < VAR_MAX; n++) {
 		vars[n] = env[n];
 		if (!env[n]) return OK;
 	}
 
-	return ERR_ENV_MAX;
+	return ERR_VAR_MAX;
 }
 
 error
@@ -137,10 +137,11 @@ env_get_fname(const char *name, const mode_t ftype,
 	if (!value) return ERR_VAR_UNDEF;
 	if (str_eq(value, "")) return ERR_VAR_EMPTY;
 	check(path_check_len(value));
-	check(file_safe_stat(value, &buf));
-	if ((buf.st_mode & S_IFMT) != ftype) return ERR_FTYPE;
+	/* Flawfinder: ignore; fname is guaranteed to be large enough. */
+	if (!realpath(value, *fname)) return ERR_SYS;
+	check(file_safe_stat(*fname, &buf));
+	if ((buf.st_mode & S_IFMT) != ftype) return ERR_FILE_TYPE;
 
-	check(str_cp(value, fname));
 	/* Flawfinder: ignore (fstatus is guaranteed to be large enough). */
 	if (fstatus) (void) memcpy(fstatus, &buf, sizeof(struct stat));
 	return OK;
@@ -149,8 +150,8 @@ env_get_fname(const char *name, const mode_t ftype,
 error
 env_sanitise (const char *const keep[], const char *const toss[])
 {
-	/* Flawfinder: ignore (env_clear adds at most ENV_MAX entries). */
-	char *vars[ENV_MAX] = {NULL};	/* Backup of the environment. */
+	/* Flawfinder: ignore (env_clear adds at most VAR_MAX entries). */
+	char *vars[VAR_MAX] = {NULL};	/* Backup of the environment. */
 
 	/*
 	 * Words of wisdom from the authors of suexec.c:
@@ -163,7 +164,7 @@ env_sanitise (const char *const keep[], const char *const toss[])
 	check(env_clear(vars));
 
 	/* Repopulate the environment. */
-	for (size_t i = 0; i < ENV_MAX && vars[i]; i++) {
+	for (size_t i = 0; i < VAR_MAX && vars[i]; i++) {
 		/* Flawfinder: ignore (str_split respects STR_MAX). */
 		char name[STR_MAX] = "";	/* Variable name. */
 		char *value = NULL;		/* Variable value. */

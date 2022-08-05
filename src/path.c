@@ -81,7 +81,7 @@ path_check_len(const char *const path)
 			sub = NULL;
 		}
 
-		if (fname_len > MAX_FNAME) return ERR_FNAME_LEN;
+		if (fname_len > MAX_FNAME) return ERR_FILE_NAME;
 
 		if (!str_eq(super, "")) {
  			long name_max = pathconf(super, _PC_NAME_MAX);
@@ -90,7 +90,7 @@ path_check_len(const char *const path)
 			if (name_max < 0) {
 				if (errno > 0) return ERR_SYS;
 			} else if (fname_len > (size_t) name_max) {
-				return ERR_FNAME_LEN;
+				return ERR_FILE_NAME;
 			}
 
 			if (path_max < 0) {
@@ -119,7 +119,7 @@ path_check_wexcl(const uid_t uid, const char *const start,
 		struct stat fstatus;
 
 		if (stat(file, &fstatus) != 0) return ERR_SYS;
-		if (!file_is_wexcl(uid, &fstatus)) return ERR_NOT_EXCLW;
+		if (!file_is_wexcl(uid, &fstatus)) return ERR_FILE_WEXCL;
 		if (str_eq(file, stop) ||
 		    str_eq(file, "/")  ||
 		    str_eq(file, ".")) break;

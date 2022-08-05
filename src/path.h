@@ -38,7 +38,7 @@
  *
  * Return code:
  *      OK             The path is within limits.
- *      ERR_FNAME_LEN  The filename of a path segment is too long.
+ *      ERR_FILE_NAME  The filename of a path segment is too long.
  *      ERR_STR_MAX    The path or a path segment is too long.
  *      ERR_SYS        System failure. errno(2) should be set.
  */
@@ -50,7 +50,7 @@ error path_check_len(const char *const path);
  *
  * Return code:
  *      OK             User has exclusive write access.
- *      ERR_NOT_EXCLW  User does not have exclusive write access.
+ *      ERR_FILE_WEXCL  User does not have exclusive write access.
  *      ERR_STR_MAX    The path is longer than STR_MAX - 1.
  *      ERR_SYS        System failure. errno(2) should be set.
  */

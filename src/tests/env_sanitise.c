@@ -35,12 +35,12 @@ error
 env_sanitise_(const char *keep, const char *toss)
 {
 	/* Flawfinder: ignore */
-	char *keepv[ENV_MAX] = {NULL};	/* Array of keep patterns. */
+	char *keepv[VAR_MAX] = {NULL};	/* Array of keep patterns. */
 	/* Flawfinder: ignore */
-	char *tossv[ENV_MAX] = {NULL};	/* Array of toss patterns. */
+	char *tossv[VAR_MAX] = {NULL};	/* Array of toss patterns. */
 
-	assert(str_splitn(keep, " \f\n\r\t\v", ENV_MAX, keepv, NULL) == OK);
-	assert(str_splitn(toss, " \f\n\r\t\v", ENV_MAX, tossv, NULL) == OK);
+	assert(str_splitn(keep, " \f\n\r\t\v", VAR_MAX, keepv, NULL) == OK);
+	assert(str_splitn(toss, " \f\n\r\t\v", VAR_MAX, tossv, NULL) == OK);
 	return env_sanitise(
 	        (const char *const *const) keepv,
 	        (const char *const *const) tossv

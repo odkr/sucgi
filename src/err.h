@@ -46,12 +46,13 @@
 typedef enum {
 	OK = EXIT_SUCCESS,	/* Success. */
 	ERR = EXIT_FAILURE,	/* Generic error. Should be used sparingly. */
-	ERR_ENV_MAX,		/* Too many environment variables. */
-	ERR_FNAME_LEN,		/* Filename too long. */
-	ERR_FTYPE,		/* File is of the wrong type. */
-	ERR_NOT_EXCLW,		/* File not exclusively writably by user. */
-	ERR_STR_MAX,		/* String too long. */
 	ERR_SYS,		/* System error. errno should be set. */
+	ERR_CONV,		/* Conversion error. */
+	ERR_FILE_NAME,		/* Filename too long. */
+	ERR_FILE_TYPE,		/* Filetype is wrong. */
+	ERR_FILE_WEXCL,		/* File not writable exclusively by user. */
+	ERR_STR_MAX,		/* String too long. */
+	ERR_VAR_MAX,		/* Too many environment variables. */
 	ERR_VAR_EMPTY,		/* Environment variable is empty. */
 	ERR_VAR_INVALID,	/* Environment variable is ill-formed. */
 	ERR_VAR_UNDEF		/* Environment variable is undefined. */

@@ -34,7 +34,7 @@
  */
 
 /* Maximum number of environment variables. */
-#define ENV_MAX 256
+#define VAR_MAX 256
 
 
 /*
@@ -73,11 +73,11 @@ extern const char *const env_toss[2];
 /*
  * Clear the environment and save a copy of the old environment to vars.
  * If vars is NULL, the old environment is not saved. vars must have
- * enough space to hold ENV_MAX variables.
+ * enough space to hold VAR_MAX variables.
  *
  * Return code:
  *      OK           Success.
- *      ERR_ENV_MAX  Encountered more than ENV_MAX environment variables.
+ *      ERR_VAR_MAX  Encountered more than VAR_MAX environment variables.
  */
 error env_clear(char *vars[]);
 
@@ -96,7 +96,7 @@ error env_clear(char *vars[]);
  *
  * Return code:
  *      OK             Success.
- *      ERR_FNAME_LEN  A filename in the path is too long.
+ *      ERR_FILE_NAME  A filename in the path is too long.
  *      ERR_STR_MAX    The whole path is too long.
  *      ERR_SYS        System failure. errno(2) should be set.
  *      ERR_VAR_UNDEF  The variable is undefined.
@@ -139,7 +139,7 @@ error env_get_fname(const char *name, const mode_t ftype,
  *
  * Return code:
  * 	OK               Success.
- *      ERR_ENV_MAX      Encountered more than ENV_MAX environment variables.
+ *      ERR_VAR_MAX      Encountered more than VAR_MAX environment variables.
  * 	ERR_STR_MAX      A variable name is longer than STR_MAX - 1 bytes.
  *	ERR_VAR_INVALID  A variable is not of the form key=value.
  * 	ERR_SYS          System error. errno(2) should be set.

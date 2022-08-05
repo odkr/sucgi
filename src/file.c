@@ -66,19 +66,24 @@ file_is_wexcl(const uid_t uid, const struct stat *const fstatus)
 error
 file_safe_open(const char *fname, const int flags, int *fd)
 {
+	
 	struct open_how how = {
 		.flags = (long long unsigned int) flags,
         	.resolve = RESOLVE_NO_SYMLINKS
 	};
+	long rc = -1;
 
 	assert(fname);
 	/*
 	 * RESOLVE_NO_SYMLINKS ensures that fname contains no symlinks.
 	 * See below for more details.
 	 */
-	*fd = (int) syscall(__NR_openat2, AT_FDCWD, fname,
-	                    &how, sizeof(struct open_how));
-	if (*fd < 0) return ERR_SYS;
+	rc = syscall(__NR_openat2, AT_FDCWD, fname,
+	             &how, sizeof(struct open_how));
+	if (rc < 0) return ERR_SYS;
+	if (rc > INT_MAX) return ERR_CONV;
+
+	*fd = (int) rc;
 	return OK;
 }
 
