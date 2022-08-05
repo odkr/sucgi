@@ -115,8 +115,10 @@ int
 main (void) {
 	struct passwd *owner = NULL;	/* Programme owner. */
 	struct stat fstatus;		/* Programme's filesystem status. */
+	/* cppcheck-suppress cert-STR05-C; not a constant. */
 	/* Flawfinder: ignore; env_get_fname should respect STR_MAX. */
 	char doc_root[STR_MAX] = "";	/* $DOCUMENT_ROOT. */
+	/* cppcheck-suppress cert-STR05-C; not a constant. */
 	/* Flawfinder: ignore; env_get_fname should respect STR_MAX. */
 	char prog[STR_MAX] = "";	/* $PATH_TRANSLATED. */
 	error rc = ERR;			/* A return code. */

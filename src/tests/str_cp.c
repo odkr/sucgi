@@ -13,10 +13,13 @@
 
 int
 main (void) {
+	/* cppcheck-suppress cert-STR05-C; not a constant. */
 	/* Flawfinder: ignore */
 	char large[STR_MAX] = "";	/* A string just within limits. */
+	/* cppcheck-suppress cert-STR05-C; not a constant. */
 	/* Flawfinder: ignore */
 	char huge[STR_MAX + 1] = "";	/* A string that exceeds STR_MAX. */
+	/* cppcheck-suppress cert-STR05-C; not a constant. */
 	/* Flawfinder: ignore */
 	char s[STR_MAX] = "";		/* A string. */
 

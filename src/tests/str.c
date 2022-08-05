@@ -57,6 +57,7 @@ str_splitn(const char *const s, const char *sep, const size_t max,
 
 	assert(subs);
 	for (; i <= max && pivot; i++) {
+		/* cppcheck-suppress cert-STR05-C; not a constant. */
 		/* Flawfinder: ignore */
 		char sub[STR_MAX] = "";
 		rc = str_split(pivot, sep, &sub, &pivot);

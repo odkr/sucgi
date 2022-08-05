@@ -91,6 +91,7 @@ CPPCHECKFLAGS =	-f -q --error-exitcode=8 --inconclusive \
 	--language=c --std=c99 --library=posix --platform=unix64 \
 	--suppress=missingIncludeSystem --inline-suppr \
 	-D __GNUC__ -I .
+PYTHONPATH = __PYTHONPATH
 
 
 #
@@ -429,14 +430,12 @@ $(BUILDDIR)/tests/main:	$(SRCDIR)/main.c \
 
 analysis:
 	! grep -ri fixme $(SRCDIR) $(SCRIPTDIR)
-	cppcheck $(CPPCHECKFLAGS) --enable=all \
+	cppcheck $(CPPCHECKFLAGS) --enable=all --addon=$(SCRIPTDIR)/cert.py \
 		-D __NR_openat2=437 -U O_NOFOLLOW_ANY $(SRCDIR)
-	cppcheck $(CPPCHECKFLAGS) --enable=all \
-		-U __NR_openat2 -D O_NOFOLLOW_ANY=0x20000000 $(SRCDIR)/file.c
 	cppcheck $(CPPCHECKFLAGS) --enable=unusedFunction $(SRCDIR)/*.c
 	#cppcheck $(CPPCHECKFLAGS) --addon=misra.py $(SRCDIR)
 	flawfinder --error-level=1 -m 0 -D -Q .
-	find $(SCRIPTDIR) -type f | xargs shellcheck configure
+	find $(SCRIPTDIR) -type f ! -name '*.py' | xargs shellcheck configure
 
 check: $(CHECKBINS)
 	$(SCRIPTDIR)/check -t $(BUILDDIR)/tests $(CHECKS)
@@ -444,7 +443,9 @@ check: $(CHECKBINS)
 clean:
 	rm -rf $(BUILDDIR) cov $(DISTNAME)
 	rm -f $(DISTAR) $(DISTAR).asc lcov.info
-	find . -type d -name 'tmp-*' -exec rm '{}' +
+	find . -type d -name 'tmp-*' -exec rm -rf '{}' +
+	find $(SRCDIR) -type f '(' -name '*.ctu-info' -o -name '*.dump' ')' \
+		-exec rm -f '{}' +
 
 cov:
 	test -e cov || mkdir cov

@@ -16,6 +16,7 @@ int
 main (int argc, char **argv)
 {
 	struct stat fstatus;
+	/* cppcheck-suppress cert-STR05-C; not a constant. */
 	/* Flawfinder: ignore */
 	char fname[STR_MAX] = "";
 	char *ftype = NULL;

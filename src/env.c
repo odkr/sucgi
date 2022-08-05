@@ -166,6 +166,7 @@ env_sanitise (const char *const keep[], const char *const toss[])
 
 	/* Repopulate the environment. */
 	for (size_t i = 0; i < VAR_MAX && vars[i]; i++) {
+		/* cppcheck-suppress cert-STR05-C; not a constant. */
 		/* Flawfinder: ignore; str_split respects STR_MAX. */
 		char name[STR_MAX] = "";	/* Variable name. */
 		char *value = NULL;		/* Variable value. */

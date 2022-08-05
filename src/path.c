@@ -59,6 +59,7 @@ path_check_len(const char *const path)
 
 	sub = path;
 	do {
+		/* cppcheck-suppress cert-STR05-C; not a constant. */
 		/* Flawfinder: ignore; str_cpn respects STR_MAX. */
 		char super[STR_MAX] = "";	/* Super-directory. */
 		size_t super_len = 0;		/* Super-dir path length. */
@@ -108,6 +109,7 @@ error
 path_check_wexcl(const uid_t uid, const char *const start,
                  const char *const stop)
 {
+	/* cppcheck-suppress cert-STR05-C; not a constant. */
 	/* Flawfinder: ignore; str_cp respects STR_MAX. */
 	char path[STR_MAX] = "";	/* Copy of path. */
 	char *file = path;		/* Path to current file. */

@@ -27,6 +27,7 @@ main (int argc, char **argv)
 	}
 
 	for (i = 2; i < argc; i++) {
+		/* cppcheck-suppress cert-STR05-C; not a constant. */
 		/* Flawfinder: ignore */
 		char suffix[STR_MAX] = "";
 		char *handler = NULL;

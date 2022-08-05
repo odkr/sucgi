@@ -47,6 +47,7 @@ main (void) {
 
 	n = 0;
 	for (var = env; *var; var++) {
+		/* cppcheck-suppress cert-STR05-C; not a constant. */
 		/* Flawfinder: ignore */
 		char name[STR_MAX] = "";
 		char *value = NULL;
@@ -67,6 +68,7 @@ main (void) {
 	assert(env_clear(NULL) == OK);
 	
 	for (int i = 0; i <= VAR_MAX; i++) {
+		/* cppcheck-suppress cert-STR05-C; not a constant. */
 		/* Flawfinder: ignore */
 		char name[STR_MAX] = "";
 		
