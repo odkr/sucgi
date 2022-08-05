@@ -193,6 +193,9 @@ unused_gid="${unused_ids%%:*}"
 
 cp -a "$script_dir/tools/." "$tmpdir/."
 
+outside="$tmpdir/outside"
+ln -s "$TMPDIR" "$outside"
+
 script="$tmpdir/script.sh"
 cp "$script" "$tmpdir/script"
 chmod ugo-x "$script"
@@ -241,11 +244,11 @@ mkfifo "$fifo"
 DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED="$file" \
 	checkerr "document root $TMPDIR is not in $user's home directory." main
 
-DOCUMENT_ROOT="$root_symlink" PATH_TRANSLATED="$file" \
-	checkerr "document root / is not in $user's home directory." main
+DOCUMENT_ROOT="$outside" PATH_TRANSLATED="$file" \
+	checkerr "document root $TMPDIR is not in $user's home directory." main
 
-DOCUMENT_ROOT="$root_dotdot" PATH_TRANSLATED="$file" \
-	checkerr "document root / is not in $user's home directory." main
+DOCUMENT_ROOT="$home/.." PATH_TRANSLATED="$script" \
+	checkerr "not in $user's home directory." main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$su" \
 	checkerr "$su: owned by the superuser." main
