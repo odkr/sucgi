@@ -201,7 +201,7 @@ regularuid() (
 # register it for deletion via $cleanup, and set it as $TMPDIR.
 tmpdir() {
 	[ "${__tmpdir_tmpdir-}" ] && return
-	__tmpdir_prefix="${1:?}" __tmpdir_dir="${2:-"${TMPDIR:-.}"}"
+	__tmpdir_prefix="${1:?}" __tmpdir_dir="${2:-"${TMPDIR:-/tmp}"}"
 	__tmpdir_real="$(cd -P "$__tmpdir_dir" && pwd)" &&
 		[ "$__tmpdir_real" ] && [ -d "$__tmpdir_real" ] ||
 			abort "failed to get real path of $__tmpdir_dir."
