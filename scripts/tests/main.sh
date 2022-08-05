@@ -26,7 +26,7 @@ dir="$TMPDIR/dir"
 mkdir "$dir"
 root_symlink="$TMPDIR/root"
 ln -s / "$root_symlink"
-root_dotdot="$TMPDIR/../../../../../../../../.."
+root_dotdot="$TMPDIR/../../../../../../../../../../../../../../../../../.."
 
 
 str_max="$(getconf PATH_MAX .)" && [ "$str_max" ] && 
@@ -113,7 +113,7 @@ DOCUMENT_ROOT='' \
 	checkerr 'DOCUMENT_ROOT: is the empty string.' main
 
 [ "$long_path" ] &&
-	FAKE_DOC_ROOT='/*' DOCUMENT_ROOT="$long_path" \
+	DOCUMENT_ROOT="$long_path" \
 		checkerr '$DOCUMENT_ROOT: path too long.' main
 
 [ "$long_name" ] &&
@@ -192,10 +192,6 @@ unused_gid="${unused_ids%%:*}"
 
 cp -a "$script_dir/tools/." "$tmpdir/."
 
-root_symlink="$tmpdir/root"
-ln -s / "$root_symlink"
-root_dotdot="$tmpdir/../../../../../../../../../../../../.."
-
 script="$tmpdir/script.sh"
 cp "$script" "$tmpdir/script"
 chmod ugo-x "$script"
@@ -241,13 +237,13 @@ mkfifo "$fifo"
 # Root checks
 #
 
-DOCUMENT_ROOT=/tmp PATH_TRANSLATED=/tmp/foo \
+DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED="$file" \
 	checkerr "document root /tmp is not in $user's home directory." main
 
-DOCUMENT_ROOT="$root_symlink" PATH_TRANSLATED=/tmp/foo \
+DOCUMENT_ROOT="$root_symlink" PATH_TRANSLATED="$file" \
 	checkerr "document root / is not in $user's home directory." main
 
-DOCUMENT_ROOT="$root_dotdot" PATH_TRANSLATED=/tmp/foo \
+DOCUMENT_ROOT="$root_dotdot" PATH_TRANSLATED="$file" \
 	checkerr "document root / is not in $user's home directory." main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$su" \
