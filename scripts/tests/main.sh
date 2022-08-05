@@ -241,13 +241,13 @@ mkfifo "$fifo"
 # Root checks
 #
 
-DOCUMENT_ROOT=/tmp PATH_TRANSLATED="$script" \
+DOCUMENT_ROOT=/tmp PATH_TRANSLATED=/tmp/foo \
 	checkerr "document root /tmp is not in $user's home directory." main
 
-DOCUMENT_ROOT="$root_symlink" PATH_TRANSLATED="$script" \
+DOCUMENT_ROOT="$root_symlink" PATH_TRANSLATED=/tmp/foo \
 	checkerr "document root / is not in $user's home directory." main
 
-DOCUMENT_ROOT="$root_dotdot" PATH_TRANSLATED="$script" \
+DOCUMENT_ROOT="$root_dotdot" PATH_TRANSLATED=/tmp/foo \
 	checkerr "document root / is not in $user's home directory." main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$su" \
