@@ -82,7 +82,7 @@ the build yourself (see `BUILDING.rst`_).
 ----
 
 Adapt *config.h* to your needs.
-Most importantly, adapt *DOC_ROOT*, *MIN_UID* and *MAX_UID*.
+Most importantly, adapt *DOC_ROOT_PAT*, *MIN_UID* and *MAX_UID*.
 suCGI is configured at compile-time, you cannot do this later.
 
 ----
@@ -104,7 +104,7 @@ and then add the following lines to your Apache configuration::
         Action application/x-httpd-php /cgi-bin/sucgi
     </Directory>
 
-The directory should correspond to *DOC_ROOT* in *config.h*.
+The directory should correspond to *DOC_ROOT_PAT* in *config.h*.
 
 Restart Apache::
 
