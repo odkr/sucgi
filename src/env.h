@@ -50,7 +50,7 @@
  *
  * Adopted from Apache's suEXEC. There should be no need to adapt this list.
  */
-/* Flawfinder: ignore (array is constant). */
+/* Flawfinder: ignore; array is constant. */
 extern const char *const env_keep[49];
 
 /*
@@ -62,7 +62,7 @@ extern const char *const env_keep[49];
  *
  * Adopted from Apache's suEXEC. There should be no need to adapt this list.
  */
-/* Flawfinder: ignore (array is constant). */
+/* Flawfinder: ignore; array is constant. */
 extern const char *const env_toss[2];
 
 
@@ -103,6 +103,7 @@ error env_clear(char *vars[]);
  *      ERR_VAR_EMPTY  The variable is empty.
  */
 error env_get_fname(const char *name, const mode_t ftype,
+                    /* Flawfinder: ignore; realpath should respect PATH_MAX. */
                     char (*fname)[STR_MAX], struct stat *fstatus);
 
 /*

@@ -55,7 +55,7 @@
  *      ERR_STR_MAX  src is longer than STR_MAX - 1 bytes.
  */
 error str_cp(const char *const src,
-             /* Flawfinder: ignore (str_cp writes at most STR_MAX bytes.) */
+             /* Flawfinder: ignore; strncpy copies at most STR_MAX bytes. */
              char (*dest)[STR_MAX]);
 
 /*
@@ -68,7 +68,7 @@ error str_cp(const char *const src,
  *      ERR_STR_MAX  n is larger than STR_MAX - 1 bytes.
  */
 error str_cpn(const size_t n, const char *const src,
-              /* Flawfinder: ignore (str_cpn writes at most STR_MAX bytes.) */
+              /* Flawfinder: ignore; stpncpy copies at most STR_MAX bytes. */
 	      char (*dest)[STR_MAX]);
 
 /* Return true if s1 and s2 are equal and false otherwise. */
@@ -103,7 +103,7 @@ error str_len(const char *const s, size_t *len);
  *      ERR_STR_MAX  s is longer than STR_MAX - 1 bytes.
  */
 error str_split(const char *const s, const char *const sep,
-                /* Flawfinder: ignore (str_split writes at most STR_MAX bytes.) */
+                /* Flawfinder: ignore; str_cp respects STR_MAX. */
 		char (*head)[STR_MAX], char **tail);
 
 

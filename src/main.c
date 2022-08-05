@@ -74,7 +74,7 @@
 #endif
 
 #if MAX_UID <= MIN_UID
-/* Flawfinder: ignore (this is not a function ¯\_(ツ)_/¯). */
+/* Flawfinder: ignore; this is not a function ¯\_(ツ)_/¯. */
 #error MAX_UID is smaller than or equal to MIN_UID.
 #endif
 
@@ -115,7 +115,9 @@ int
 main (void) {
 	struct passwd *owner = NULL;	/* Programme owner. */
 	struct stat fstatus;		/* Programme's filesystem status. */
+	/* Flawfinder: ignore; env_get_fname should respect STR_MAX. */
 	char doc_root[STR_MAX] = "";	/* $DOCUMENT_ROOT. */
+	/* Flawfinder: ignore; env_get_fname should respect STR_MAX. */
 	char prog[STR_MAX] = "";	/* $PATH_TRANSLATED. */
 	error rc = ERR;			/* A return code. */
 
@@ -215,8 +217,8 @@ main (void) {
 	if (0 == fstatus.st_gid) {
 		fail("%s: owned by the supergroup.", prog);
 	}
-	if ((uid_t) MAX_UID < fstatus.st_uid || 
-	    (uid_t) MIN_UID > fstatus.st_uid) 
+	if (fstatus.st_uid < (uid_t) MIN_UID || 
+	    fstatus.st_uid > (uid_t) MAX_UID) 
 	{
 		fail("%s: owned by non-regular UID %llu.",
 		     prog, (uint64_t) fstatus.st_uid);
@@ -291,7 +293,7 @@ main (void) {
 		/* run_script never returns. */
 		run_script(prog, (struct pair []) SCRIPT_HANDLERS);
 	} else {
-		/* Flawfinder: ignore (suCGI's point is to do this safely). */
+		/* Flawfinder: ignore; suCGI's point is to do this safely. */
 		execl(prog, prog, NULL);
 	}
 

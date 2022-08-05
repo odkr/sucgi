@@ -16,6 +16,7 @@ int
 main (int argc, char **argv)
 {
 	struct stat fstatus;
+	/* Flawfinder: ignore */
 	char fname[STR_MAX] = "";
 	char *ftype = NULL;
 	char *var = NULL;

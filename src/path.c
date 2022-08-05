@@ -59,7 +59,7 @@ path_check_len(const char *const path)
 
 	sub = path;
 	do {
-		/* Flawfinder: ignore (str_cpn is bounded at STR_MAX). */
+		/* Flawfinder: ignore; str_cpn respects STR_MAX. */
 		char super[STR_MAX] = "";	/* Super-directory. */
 		size_t super_len = 0;		/* Super-dir path length. */
 		size_t sub_len = 0;		/* Sub-dir path length. */
@@ -108,7 +108,7 @@ error
 path_check_wexcl(const uid_t uid, const char *const start,
                  const char *const stop)
 {
-	/* Flawfinder: ignore (str_cp copies at most STR_MAX bytes). */
+	/* Flawfinder: ignore; str_cp respects STR_MAX. */
 	char path[STR_MAX] = "";	/* Copy of path. */
 	char *file = path;		/* Path to current file. */
 
