@@ -63,7 +63,7 @@ str_splitn(const char *const s, const char *sep, const size_t max,
 
 	assert(subs);
 	for (; (i <= max) && (pivot != NULL); i++) {
-		/* Flawfinder: ignore; str_split respects STR_MAX. */
+		/* RATS: ignore; str_split respects STR_MAX. */
 		char sub[STR_MAX] = {0};
 		rc = str_split(pivot, sep, &sub, &pivot);
 		if (rc != OK) goto err;

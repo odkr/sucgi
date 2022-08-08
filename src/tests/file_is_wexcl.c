@@ -29,6 +29,7 @@ main (int argc, char **argv)
 	}
 	fname = argv[2];
 
+	/* RATS: ignore */
 	if (stat(fname, &fstatus) != 0) {
 		die("file_is_wexcl: stat %s: %s.", fname, strerror(errno));
 	}

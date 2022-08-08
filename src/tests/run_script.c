@@ -31,7 +31,7 @@ main (int argc, char **argv)
 	}
 
 	for (i = 2; i < argc; i++) {
-		/* Flawfinder: ignore */
+		/* RATS: ignore */
 		char suffix[STR_MAX] = {0};
 		char *handler = NULL;
 		error rc = ERR;

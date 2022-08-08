@@ -20,10 +20,10 @@ main (int argc, char **argv)
 	if (envc < 0) die("usage: evilenv VAR [VAR [...] PROG");
 	if (!envv) die("evilenv: %s.", strerror(errno));
 
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	(void) memcpy(envv, &argv[1], (size_t) envc * sizeof(char *));
 
-	// Flawfinder: ignore
+	// RATS: ignore
 	execve(prog, (char *[]) {prog, NULL}, envv);
 
 	die("evilenv: exec %s: %s.", prog, strerror(errno));

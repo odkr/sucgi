@@ -60,8 +60,8 @@ misra-c2012-9.3:src/tests/env_sanitise.c:33
 // to be cast to size_t in str.c, path.c, as well as in tests/tools/runas.c.
 // And truncation cannot occur in any of those cases.
 misra-c2012-10.8:src/str.c:90
-misra-c2012-10.8:src/path.c:103
-misra-c2012-10.8:src/path.c:135
+misra-c2012-10.8:src/path.c:104
+misra-c2012-10.8:src/path.c:136
 misra-c2012-10.8:src/tests/tools/runas.c:32
 
 // Rule 15.1 advises that goto not be used. But sometimes goto is the
@@ -73,7 +73,7 @@ misra-c2012-15.1:src/tests/str.c:71
 // However, this would make the for loops in check_path_len in path.c
 // and in str_splitn in tests/str.c harder to grok.
 misra-c2012-15.4:src/tests/str.c:65
-misra-c2012-15.4:src/path.c:84
+misra-c2012-15.4:src/path.c:85
 
 // Rule 16.3 requires that every case in a switch statement ends with a break. 
 // But switch statments in main.c, without exception, call fail from err.c,
@@ -103,9 +103,9 @@ misra-c2012-17.1:src/tests/*.c
 // substract one pointer from another and both of those pointers point to
 // the same array; Cppcheck reports false positives.
 misra-c2012-18.4:src/str.c:90
-misra-c2012-18.4:src/path.c:103
-misra-c2012-18.4:src/path.c:125
-misra-c2012-18.4:src/path.c:135
+misra-c2012-18.4:src/path.c:104
+misra-c2012-18.4:src/path.c:126
+misra-c2012-18.4:src/path.c:136
 
 // Rule 20.5 advises that #undef should not be used. However, main only
 // uses #undef when TESTING is set.
@@ -142,7 +142,7 @@ misra-c2012-21.8:src/tests/env*.c
 // misinterpretation of the rule and, consequently, fails to recognise all
 // functions that set errno.
 misra-c2012-22.10:src/main.c:241
-misra-c2012-22.10:src/path.c:55
+misra-c2012-22.10:src/path.c:56
 misra-c2012-22.10:src/tests/drop_privs.c:28
 misra-c2012-22.10:src/tests/tools/unallocids.c:29
 misra-c2012-22.10:src/tests/tools/unallocids.c:42
@@ -165,12 +165,12 @@ getgrgidCalled
 // FIXME: Cppcheck fails to find configurations for some functions in path.c,
 // despite being given appropriate definitions.
 ConfigurationNotChecked:src/path.c:48
-ConfigurationNotChecked:src/path.c:57
-ConfigurationNotChecked:src/path.c:80
+ConfigurationNotChecked:src/path.c:58
+ConfigurationNotChecked:src/path.c:81
 ConfigurationNotChecked:src/path.c:98
-ConfigurationNotChecked:src/path.c:107
+ConfigurationNotChecked:src/path.c:108
 
 // Cppcheck sometimes fails to recognise that a variable is accessed.
-unreadVariable:src/path.c:72
 unreadVariable:src/path.c:73
+unreadVariable:src/path.c:74
 unreadVariable:src/tests/str.c:57

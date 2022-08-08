@@ -76,7 +76,7 @@
 #endif
 
 #if MAX_UID <= MIN_UID
-/* Flawfinder: ignore; I have no idea what Flawfinder sees here ¯\_(ツ)_/¯. */
+/* RATS: ignore; I have no idea what Flawfinder sees here ¯\_(ツ)_/¯. */
 #error MAX_UID is smaller than or equal to MIN_UID.
 #endif
 
@@ -116,9 +116,9 @@ int
 main (void) {
 	struct passwd *owner = NULL;	/* Programme owner. */
 	struct stat fstatus;		/* Programme's filesystem status. */
-	/* Flawfinder: ignore; env_get_fname should respect STR_MAX. */
+	/* RATS: ignore; env_get_fname should respect STR_MAX. */
 	char doc_root[STR_MAX] = {0};	/* $DOCUMENT_ROOT. */
-	/* Flawfinder: ignore; env_get_fname should respect STR_MAX. */
+	/* RATS: ignore; env_get_fname should respect STR_MAX. */
 	char prog[STR_MAX] = {0};	/* $PATH_TRANSLATED. */
 	error rc = ERR;			/* A return code. */
 
@@ -295,7 +295,7 @@ main (void) {
 		/* run_script never returns. */
 		run_script(prog, (struct pair []) SCRIPT_HANDLERS);
 	} else {
-		/* Flawfinder: ignore; suCGI's point is to do this safely. */
+		/* RATS: ignore; suCGI's point is to do this safely. */
 		(void) execl(prog, prog, NULL);
 	}
 

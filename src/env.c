@@ -38,7 +38,7 @@
  */
 
 /* Default environment variables to keep. */
-/* Flawfinder: ignore; array is constant. */
+/* RATS: ignore; array is constant. */
 const char *const env_keep[49] = {
 	"AUTH_TYPE",
 	"CONTENT_LENGTH",
@@ -92,7 +92,7 @@ const char *const env_keep[49] = {
 };
 
 /* Default environment variables to toss. */
-/* Flawfinder: ignore; array is constant. */
+/* RATS: ignore; array is constant. */
 const char *const env_toss[2] = {
 	"HTTP_PROXY",
 	NULL	/* Array terminator. DO NOT REMOVE. */
@@ -123,24 +123,24 @@ env_clear(char *vars[])
 
 error
 env_get_fname(const char *name, const mode_t ftype,
-              /* Flawfinder: ignore; realpath should respect PATH_MAX. */
+              /* RATS: ignore; realpath should respect PATH_MAX. */
               char (*fname)[STR_MAX], struct stat *fstatus)
 {
 	struct stat buf;		/* Filesystem status of the file. */
 	const char *value = NULL;	/* Value of the given variable. */
 
 	assert(name && fname);
-	/* Flawfinder: ignore; value is checked below, extensively. */
+	/* RATS: ignore; value is checked below, extensively. */
 	value = getenv(name);
 	if (!value) return ERR_VAR_UNDEF;
 	if (str_eq(value, "")) return ERR_VAR_EMPTY;
 	check(path_check_len(value));
-	/* Flawfinder: ignore; fname is guaranteed to be >= PATH_MAX. */
+	/* RATS: ignore; fname is guaranteed to be >= PATH_MAX. */
 	if (!realpath(value, *fname)) return ERR_SYS;
 	check(file_safe_stat(*fname, &buf));
 	if ((buf.st_mode & S_IFMT) != ftype) return ERR_FILE_TYPE;
 
-	/* Flawfinder: ignore; fstatus is guaranteed to be large enough. */
+	/* RATS: ignore; fstatus is guaranteed to be large enough. */
 	if (fstatus != NULL) (void) memcpy(fstatus, &buf, sizeof(struct stat));
 	return OK;
 }
@@ -148,7 +148,7 @@ env_get_fname(const char *name, const mode_t ftype,
 error
 env_sanitise (const char *const keep[], const char *const toss[])
 {
-	/* Flawfinder: ignore; env_clear respects VAR_MAX. */
+	/* RATS: ignore; env_clear respects VAR_MAX. */
 	char *vars[VAR_MAX] = {NULL};	/* Backup of the environment. */
 
 	/*
@@ -163,7 +163,7 @@ env_sanitise (const char *const keep[], const char *const toss[])
 
 	/* Repopulate the environment. */
 	for (size_t i = 0; (i < VAR_MAX) && (vars[i] != NULL); i++) {
-		/* Flawfinder: ignore; str_split respects STR_MAX. */
+		/* RATS: ignore; str_split respects STR_MAX. */
 		char name[STR_MAX] = {0};	/* Variable name. */
 		char *value = NULL;		/* Variable value. */
 

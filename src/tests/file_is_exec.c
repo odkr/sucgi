@@ -18,6 +18,7 @@ main (int argc, char **argv)
 	if (argc != 2) die("usage: file_is_exec FNAME");
 	fname = argv[1];
 
+	/* RATS: ignore */
 	if (stat(fname, &fstatus) != 0) {
 		die("file_is_exec: stat %s: %s.", fname, strerror(errno));
 	}

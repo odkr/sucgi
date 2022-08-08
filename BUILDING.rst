@@ -110,7 +110,8 @@ all
     Alias for "sucgi" and the default target.
 
 analysis
-    Analyse the code with Cppcheck and Flawfinder, if they are installed.
+    Analyse the code with Cppcheck_, Flawfinder_, RATS_, and
+    _ShellCheck, if they are installed.
 
 check
     Perform tests. Must be run as the superuser to perform all tests.
@@ -146,3 +147,11 @@ uninstall
 .. _Clang: https://clang.llvm.org/
 
 .. _LCOV: https://github.com/linux-test-project/lcov
+
+.. _Cppcheck: https://cppcheck.sourceforge.io/
+
+.. _Flawfinder: https://dwheeler.com/flawfinder/
+
+.. _RATS: https://github.com/andrew-d/rough-auditing-tool-for-security
+
+.. _ShellCheck: https://www.shellcheck.net/

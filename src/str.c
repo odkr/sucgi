@@ -31,11 +31,11 @@
 
 error
 str_cp(const char *const src,
-       /* Flawfinder: ignore; strncpy copies at most STR_MAX bytes. */
+       /* RATS: ignore; strncpy copies at most STR_MAX bytes. */
        char (*dest)[STR_MAX])
 {
 	assert(src && dest);
-	/* Flawfinder: ignore; null-termination is checked for below. */
+	/* RATS: ignore; null-termination is checked for below. */
 	(void) strncpy(*dest, src, STR_MAX);
 	if ('\0' == (*dest)[STR_MAX - 1U]) return OK;
 	return ERR_STR_MAX;
@@ -43,7 +43,7 @@ str_cp(const char *const src,
 
 error
 str_cpn(const size_t n, const char *const src,
-        /* Flawfinder: ignore; stpncpy copies at most STR_MAX bytes. */
+        /* RATS: ignore; stpncpy copies at most STR_MAX bytes. */
 	char (*dest)[STR_MAX])
 {
 	assert(src && dest);
@@ -82,7 +82,7 @@ str_len(const char *const s, size_t *len)
 
 error
 str_split(const char *const s, const char *const sep,
-          /* Flawfinder: ignore; str_cp respects STR_MAX. */
+          /* RATS: ignore; str_cp respects STR_MAX. */
           char (*head)[STR_MAX], char **tail)
 {
 	*tail = strpbrk(s, sep);

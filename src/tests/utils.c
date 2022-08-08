@@ -32,7 +32,7 @@ die (const char *const message, ...)
 	va_list ap;
 
 	va_start(ap, message);
-	/* Flawfinder: ignore; format strings are always literals. */
+	/* RATS: ignore; format strings are always literals. */
 	(void) vfprintf(stderr, message, ap);
 	va_end(ap);
 	(void) fputs("\n", stderr);

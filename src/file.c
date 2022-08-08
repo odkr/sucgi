@@ -108,7 +108,7 @@ file_safe_open(const char *fname, const int flags, int *fd)
 	 * TODO: Discuss that suCGI is insecure if an attacker can change user
 	 * files in the threat model.
 	 */
-	/* Flawfinder: ignore; symlinks are not followed. */
+	/* RATS: ignore; symlinks are not followed. */
 	*fd = open(fname, flags | O_NOFOLLOW_ANY);
 	if (*fd < 0) return ERR_SYS;
 	return OK;
@@ -131,7 +131,7 @@ file_safe_stat(const char *fname, struct stat *fstatus)
 	check(file_safe_open(fname, O_RDONLY | O_CLOEXEC, &fd));
 	rc = fstat(fd, &buf);
 	if ((close(fd) != 0) || (rc != 0)) return ERR_SYS;
-	/* Flawfinder: ignore; fstatus is guaranteed to be large enough. */
+	/* RATS: ignore; fstatus is guaranteed to be large enough. */
 	if (fstatus != NULL) (void) memcpy(fstatus, &buf, sizeof(struct stat));
 	return OK;
 }

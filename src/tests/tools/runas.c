@@ -26,7 +26,7 @@ main (int argc, char **argv)
 	if (str_to_id(argv[1], &uid) != OK) die("runas: cannot parse UID.");
 	if (str_to_id(argv[2], &gid) != OK) die("runas: cannot parse GID.");
 
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	(void) memcpy(args, &argv[3],
 	              /* argc - 2 to copy the terminating NULL. */
 		      (size_t) (argc - 2) * sizeof(char *));
@@ -49,7 +49,7 @@ main (int argc, char **argv)
 	if (setgid(0) != -1) die("runas: setgid 0: succeeded.");
 	if (setuid(0) != -1) die("runas: setuid 0: succeeded.");
 
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	(void) execvp(args[0], args);
 
 	die("runas: exec %s: %s.", args[0], strerror(errno));

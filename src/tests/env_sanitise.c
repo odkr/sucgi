@@ -27,9 +27,9 @@
 static error
 env_sanitise_(const char *keep, const char *toss)
 {
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	char *keepv[VAR_MAX] = {NULL};	/* Array of keep patterns. */
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	char *tossv[VAR_MAX] = {NULL};	/* Array of toss patterns. */
 
 	assert(str_splitn(keep, " \f\n\r\t\v", VAR_MAX, keepv, NULL) == OK);
@@ -47,7 +47,7 @@ env_sanitise_(const char *keep, const char *toss)
 
 int
 main (void) {
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	char huge[STR_MAX + 1U] = {0};	/* A huge string. */
 	const char *var = NULL;		/* An environment variable. */
 
@@ -80,21 +80,21 @@ main (void) {
 	assert(setenv("bar", "bar", 1) == 0);
 	assert(setenv("baz", "baz", 1) == 0);
 	assert(env_sanitise_("foo", "") == OK);
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	var = getenv("foo");
 	assert(var);
 	assert(str_eq(var, "foo"));
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	var = getenv("bar");
 	assert(!var);
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	var = getenv("baz");
 	assert(!var);
 
 	assert(env_init(1) == OK);
 	assert(setenv("foo", "foo", 1) == 0);
 	assert(env_sanitise_("", "") == OK);
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	var = getenv("foo");
 	assert(!var);
 
@@ -103,14 +103,14 @@ main (void) {
 	assert(setenv("bar", "bar", 1) == 0);
 	assert(setenv("baz", "baz", 1) == 0);
 	assert(env_sanitise_("foo b*", "foo") == OK);
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	var = getenv("foo");
 	assert(!var);
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	var = getenv("bar");
 	assert(var);
 	assert(str_eq(var, "bar"));
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	var = getenv("baz");
 	assert(var);
 	assert(str_eq(var, "baz"));
@@ -127,23 +127,23 @@ main (void) {
 	assert(setenv("tab", "\t", 1) == 0);
 	assert(setenv("lf", "\n", 1) == 0);
 	assert(env_sanitise_("empty assign space tab lf", "") == OK);
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	var = getenv("empty");
 	assert(var);
 	assert(str_eq(var, ""));
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	var = getenv("assign");
 	assert(var);
 	assert(str_eq(var, "==bar=="));
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	var = getenv("space");
 	assert(var);
 	assert(str_eq(var, " "));
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	var = getenv("tab");
 	assert(var);
 	assert(str_eq(var, "\t"));
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	var = getenv("lf");
 	assert(var);
 	assert(str_eq(var, "\n"));

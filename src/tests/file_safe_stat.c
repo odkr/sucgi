@@ -23,7 +23,7 @@ main (int argc, char **argv)
 	fname = argv[1];
 
 	if (file_safe_stat(fname, &fstatus) == OK) {
-		/* Flawfinder: ignore. */
+		/* RATS: ignore. */
 		(void) printf(
 			"file_safe_stat: "
 			"inode %lu, UID %lu, GID %lu, mode %o, size %lub.\n",

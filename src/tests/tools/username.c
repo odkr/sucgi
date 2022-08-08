@@ -32,7 +32,7 @@ main (int argc, char **argv)
 		}
 	}
 
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	(void) puts(pwd->pw_name);
 
 	return EXIT_SUCCESS;

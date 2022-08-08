@@ -11,7 +11,7 @@
 int
 main (void) {
 	size_t len = 0;
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	char huge[STR_MAX + 1U];
 
 	(void) memset(huge, 'c', STR_MAX);

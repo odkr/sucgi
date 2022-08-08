@@ -99,7 +99,7 @@ run_script(const char *const script, const struct pair pairs[])
 			fail("script handler %d: path is empty.", i + 1);
 		}
 
-		/* Flawfinder: ignore; suCGI's point is to do this safely. */
+		/* RATS: ignore; suCGI's point is to do this safely. */
 		(void) execlp(interpreter, interpreter, script, NULL);
 		fail("exec %s %s: %s.", interpreter, script, strerror(errno));
 	}

@@ -16,7 +16,7 @@ int
 main (int argc, char **argv)
 {
 	struct stat fstatus;
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	char fname[STR_MAX] = {0};
 	char *ftype = NULL;
 	char *var = NULL;
@@ -49,7 +49,7 @@ main (int argc, char **argv)
 	rc = env_get_fname(var, fmode, &fname, &fstatus);
 
 	if (OK == rc) {
-		/* Flawfinder: ignore. */
+		/* RATS: ignore. */
 		(void) printf(
 			"file_safe_stat: "
 			"inode %lu, UID %lu, GID %lu, mode %o, size %lub.\n",

@@ -31,7 +31,7 @@ main (int argc, char **argv)
 
 	drop_privs(pwd);
 
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	(void) printf("effective: %lu:%lu; real: %lu:%lu.\n",
 	              (unsigned long) geteuid(), (unsigned long) getegid(),
 	              (unsigned long) getuid(),  (unsigned long) getgid());

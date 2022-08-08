@@ -50,6 +50,7 @@
 static error
 pc_check_len(const size_t len, const int pc, const char *const path)
 {
+	/* RATS: ignore; this TOCTOU gap is harmless. */
  	long max = pathconf(path, pc);
 
 	if (errno != 0) return ERR_SYS;
@@ -63,7 +64,7 @@ pc_check_len(const size_t len, const int pc, const char *const path)
 error
 path_check_len(const char *const path)
 {
-	/* Flawfinder: ignore; str_cpn respects STR_MAX. */
+	/* RATS: ignore; str_cpn respects STR_MAX. */
 	char super[STR_MAX] = {0};	/* Current super-path. */
 	const char *sub = path;		/* Current sub-path. */
 	const char *sep = NULL;		/* Position of current separator. */
@@ -144,7 +145,7 @@ error
 path_check_wexcl(const uid_t uid, const char *const start,
                  const char *const stop)
 {
-	/* Flawfinder: ignore; str_cp respects STR_MAX. */
+	/* RATS: ignore; str_cp respects STR_MAX. */
 	char path[STR_MAX] = {0};	/* Copy of path. */
 	char *file = path;		/* Path to current file. */
 
@@ -154,6 +155,7 @@ path_check_wexcl(const uid_t uid, const char *const start,
 	while (true) {
 		struct stat buf;	/* Status of the current file. */
 
+		/* RATS: ignore; this TOCTOU gap is harmless. */
 		if (stat(file, &buf) != 0) return ERR_SYS;
 		if (!file_is_wexcl(uid, &buf)) return ERR_FILE_WEXCL;
 		if (str_eq(file, stop) ||

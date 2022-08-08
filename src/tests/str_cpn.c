@@ -13,11 +13,11 @@
 
 int
 main (void) {
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	char large[STR_MAX] = {0};	/* A string just within limits. */
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	char huge[STR_MAX + 1U] = {0};	/* A string that exceeds STR_MAX. */
-	/* Flawfinder: ignore */
+	/* RATS: ignore */
 	char s[STR_MAX] = {0};		/* A string. */
 
 	(void) memset(huge, 'x', STR_MAX);

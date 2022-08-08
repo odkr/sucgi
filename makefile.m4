@@ -438,6 +438,7 @@ analysis: clean
 		--addon=$(CPPCHECKDIR)/cert.py --addon=misra.py $(SRCDIR)
 	cppcheck $(CPPCHECKFLAGS) --enable=unusedFunction $(SRCDIR)/*.c
 	flawfinder --error-level=1 -m 0 -D -Q .
+	rats --resultsonly -w3 src
 	find $(SCRIPTDIR) -type f ! -name '*.py' | xargs shellcheck configure
 	! grep -nri fixme $(SRCDIR) $(SCRIPTDIR)
 
