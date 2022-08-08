@@ -38,6 +38,8 @@ misra-c2012-2.5:src/utils.h:23
 misra-c2012-2.5:src/attr.h:27
 // Cppcheck finds that LOG_PERROR is unused. This is a false positive.
 misra-c2012-2.5:src/env.h:47
+// main.c re-defines FNM_PATHNAME, but only for testing.
+misra-c2012-2.5:src/main.c:93
 
 // Rule 3.1 requires that comments do not contain slashes ("/").
 // However, the GNU GPL disclaimer contains a URL.

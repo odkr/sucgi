@@ -87,13 +87,16 @@ CHECKS = $(SCRIPTDIR)/tests/drop_privs.sh \
 # Analysers
 #
 
+CPPCHECKDIR = $(PROJECTDIR)/cppcheck
 CPPCHECKFLAGS =	--quiet --error-exitcode=8 \
 	--language=c --std=c99 --library=posix --platform=unix64 \
-	--project=cppcheck/sucgi.cppcheck --library=cppcheck/library.cfg \
-	-I. -DFILENAME_MAX=4096 -DSIZE_MAX=4294967295U -D__NR_openat2=437 \
-	-DNAME_MAX=255 -DPATH_MAX=1024 -DUID_MAX=2147483647U -DLOG_PERROR=32 \
-	--suppressions-list=cppcheck/suppressions.txt --inline-suppr  \
-	--force --inconclusive
+	--project=$(CPPCHECKDIR)/sucgi.cppcheck \
+	--library=$(CPPCHECKDIR)/library.cfg \
+	--suppressions-list=$(CPPCHECKDIR)/suppressions.txt  \
+	--force --inconclusive \
+	-I. -UTESTING -DFILENAME_MAX=4096U -DSIZE_MAX=4294967295U \
+	-D__NR_openat2=437 -DNAME_MAX=255U -DPATH_MAX=1024U \
+	-DUID_MAX=2147483647U -DLOG_PERROR=32
 
 
 #
@@ -432,7 +435,7 @@ $(BUILDDIR)/tests/main:	$(SRCDIR)/main.c \
 
 analysis: clean
 	cppcheck $(CPPCHECKFLAGS) --enable=all \
-		--addon=$(SCRIPTDIR)/cert.py --addon=misra.py $(SRCDIR)
+		--addon=$(CPPCHECKDIR)/cert.py --addon=misra.py $(SRCDIR)
 	cppcheck $(CPPCHECKFLAGS) --enable=unusedFunction $(SRCDIR)/*.c
 	flawfinder --error-level=1 -m 0 -D -Q .
 	find $(SCRIPTDIR) -type f ! -name '*.py' | xargs shellcheck configure
