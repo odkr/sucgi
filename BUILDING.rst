@@ -110,7 +110,7 @@ all
     Alias for "sucgi" and the default target.
 
 analysis
-    Analyse the code with cppcheck and flawfinder, if they are installed.
+    Analyse the code with Cppcheck and Flawfinder, if they are installed.
 
 check
     Perform tests. Must be run as the superuser to perform all tests.
