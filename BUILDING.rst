@@ -111,7 +111,7 @@ all
 
 analysis
     Analyse the code with Cppcheck_, Flawfinder_, RATS_, and
-    _ShellCheck, if they are installed.
+    ShellCheck_, if they are installed.
 
 check
     Perform tests. Must be run as the superuser to perform all tests.
