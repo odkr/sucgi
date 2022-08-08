@@ -33,9 +33,9 @@ die (const char *const message, ...)
 
 	va_start(ap, message);
 	/* Flawfinder: ignore; format strings are always literals. */
-	vfprintf(stderr, message, ap);
+	(void) vfprintf(stderr, message, ap);
 	va_end(ap);
-	fputs("\n", stderr);
+	(void) fputs("\n", stderr);
 
 	exit(EXIT_FAILURE);
 }

@@ -22,20 +22,19 @@ main (int argc, char **argv)
 	if (argc != 2) die("usage: drop_privs USERNAME");
 	user = argv[1];
 
-	/* cppcheck-suppress getpwnamCalled */
+	errno = 0;
 	pwd = getpwnam(user);
 	if (!pwd) {
-		char *err = (errno > 0) ? strerror(errno) : "no such user";
+		char *err = (0 == errno) ? "no such user" : strerror(errno);
 		die("drop_privs: getpwnam %s: %s.", user, err);
 	}
 
 	drop_privs(pwd);
 
-	/* cppcheck-suppress invalidPrintfArgType_uint */
 	/* Flawfinder: ignore */
-	printf("effective: %llu:%llu; real: %llu:%llu.\n",
-	       (uint64_t) geteuid(), (uint64_t) getegid(),
-	       (uint64_t) getuid(), (uint64_t) getgid());
+	(void) printf("effective: %lu:%lu; real: %lu:%lu.\n",
+	              (unsigned long) geteuid(), (unsigned long) getegid(),
+	              (unsigned long) getuid(),  (unsigned long) getgid());
 
 	return EXIT_SUCCESS;
 }

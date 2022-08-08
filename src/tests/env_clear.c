@@ -10,10 +10,10 @@
 #include "../env.h"
 #include "../err.h"
 #include "../str.h"
+
+#include "env.h"
 #include "utils.h"
 
-
-extern char **environ;
 
 int
 main (void) {
@@ -26,7 +26,7 @@ main (void) {
 	 * Start with a clean environmenet, hopefully.
 	 */
 
-	env_clear(NULL);
+	assert(env_clear(NULL) == OK);
 
 
 	/*
@@ -47,9 +47,8 @@ main (void) {
 
 	n = 0;
 	for (var = env; *var; var++) {
-		/* cppcheck-suppress cert-STR05-C; not a constant. */
 		/* Flawfinder: ignore */
-		char name[STR_MAX] = "";
+		char name[STR_MAX] = {0};
 		char *value = NULL;
 
 		assert(str_split(*var, "=", &name, &value) == OK);
@@ -67,13 +66,12 @@ main (void) {
 	
 	assert(env_clear(NULL) == OK);
 	
-	for (int i = 0; i <= VAR_MAX; i++) {
-		/* cppcheck-suppress cert-STR05-C; not a constant. */
+	for (size_t i = 0; i <= VAR_MAX; i++) {
 		/* Flawfinder: ignore */
-		char name[STR_MAX] = "";
+		char name[STR_MAX] = {0};
 		
 		/* Flawfinder: ignore */
-		assert(snprintf(name, STR_MAX - 1, "foo%d", i) > 0);
+		assert(snprintf(name, STR_MAX - 1U, "foo%zu", i) > 0);
 		assert(setenv(name, "foo", true) == 0);
 	}
 

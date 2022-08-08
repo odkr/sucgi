@@ -53,8 +53,10 @@
  * Configuration
  */
 
-#if !defined(DOC_ROOT_PAT)
-#define DOC_ROOT_PAT "/home/*/public_html"
+#if !defined(TESTING) || !TESTING
+
+#if !defined(DOC_ROOT_PATTERN)
+#define DOC_ROOT_PATTERN "/home/*/public_html"
 #endif
 
 #if !defined(SECURE_PATH)
@@ -62,19 +64,19 @@
 #endif
 
 #if !defined(MIN_UID)
-#define MIN_UID 1000
-#elif MIN_UID < 0 || (defined(UID_MIN) && MIN_UID < UID_MIN)
+#define MIN_UID 1000U
+#elif MIN_UID < 0u || (defined(UID_MIN) && MIN_UID < UID_MIN)
 #error MIN_UID is too small.
 #endif
 
 #if !defined(MAX_UID)
-#define MAX_UID 30000
+#define MAX_UID 30000U
 #elif (defined(UID_MAX) && MIN_UID > UID_MAX)
 #error MAX_UID is too large.
 #endif
 
 #if MAX_UID <= MIN_UID
-/* Flawfinder: ignore; this is not a function ¯\_(ツ)_/¯. */
+/* Flawfinder: ignore; I have no idea what Flawfinder sees here ¯\_(ツ)_/¯. */
 #error MAX_UID is smaller than or equal to MIN_UID.
 #endif
 
@@ -82,29 +84,28 @@
 #define SCRIPT_HANDLERS {{.key = ".php", .value = "php"}, {NULL, NULL}}
 #endif
 
+#else /* !defined(TESTING) || !TESTING */
 
-/*
- * Test suite
- */
-
-#if defined(TESTING) && TESTING
-
-#undef DOC_ROOT_PAT
-#define DOC_ROOT_PAT "/*/*"
+#undef DOC_ROOT_PATTERN
+#define DOC_ROOT_PATTERN "/*/*"
 
 #undef FNM_PATHNAME
 #define FNM_PATHNAME 0
 
 #undef MIN_UID
-#define MIN_UID 500
+#define MIN_UID 500U
 
 #undef MAX_UID
-#define MAX_UID 30000
+#define MAX_UID 30000U
+
+#if !defined(SECURE_PATH)
+#define SECURE_PATH "/usr/bin:/bin"
+#endif
 
 #undef SCRIPT_HANDLERS
 #define SCRIPT_HANDLERS {{.key = ".sh", .value = "sh"}, {NULL, NULL}}
 
-#endif /* !defined(TESTING) && TESTING */
+#endif /* !defined(TESTING) || !TESTING */
 
 
 /*
@@ -115,13 +116,13 @@ int
 main (void) {
 	struct passwd *owner = NULL;	/* Programme owner. */
 	struct stat fstatus;		/* Programme's filesystem status. */
-	/* cppcheck-suppress cert-STR05-C; not a constant. */
 	/* Flawfinder: ignore; env_get_fname should respect STR_MAX. */
-	char doc_root[STR_MAX] = "";	/* $DOCUMENT_ROOT. */
-	/* cppcheck-suppress cert-STR05-C; not a constant. */
+	char doc_root[STR_MAX] = {0};	/* $DOCUMENT_ROOT. */
 	/* Flawfinder: ignore; env_get_fname should respect STR_MAX. */
-	char prog[STR_MAX] = "";	/* $PATH_TRANSLATED. */
+	char prog[STR_MAX] = {0};	/* $PATH_TRANSLATED. */
 	error rc = ERR;			/* A return code. */
+
+	errno = 0;
 
 
 	/*
@@ -145,7 +146,7 @@ main (void) {
 			     __FILE__, __LINE__ - 14, rc);
 	}
 
-	if (setenv("PATH", SECURE_PATH, 1) != 0) {
+	if (setenv("PATH", (const char *) SECURE_PATH, 1) != 0) {
 		fail("setenv PATH: %s", strerror(errno));
 	}
 
@@ -161,7 +162,7 @@ main (void) {
 		case ERR_SYS:
 			fail("$DOCUMENT_ROOT: %s.", strerror(errno));
 		case ERR_CONV:
-			fail("$DOCUMENT_ROOT: non-integer file descriptor.");
+			fail("$DOCUMENT_ROOT: syscall exceeded limit.");
 		case ERR_FILE_NAME:
 			fail("$DOCUMENT_ROOT: filename too long.");
 		case ERR_FILE_TYPE:
@@ -177,8 +178,11 @@ main (void) {
 			     __FILE__, __LINE__ - 20, rc);
 	}
 
-	if (fnmatch(DOC_ROOT_PAT, doc_root, FNM_PATHNAME | FNM_PERIOD) != 0) {
-		fail("$DOCUMENT_ROOT: does not match %s.", DOC_ROOT_PAT);
+	if (fnmatch((const char *) DOC_ROOT_PATTERN, doc_root,
+	            FNM_PATHNAME | FNM_PERIOD) != 0)
+	{
+		fail("$DOCUMENT_ROOT: does not match %s.",
+		     (const char *) DOC_ROOT_PATTERN);
 	}
 
 
@@ -193,7 +197,7 @@ main (void) {
 		case ERR_SYS:
 			fail("$PATH_TRANSLATED: %s.", strerror(errno));
 		case ERR_CONV:
-			fail("$DOCUMENT_ROOT: non-integer file descriptor.");
+			fail("$PATH_TRANSLATED: syscall exceeded limit.");
 		case ERR_FILE_NAME:
 			fail("$PATH_TRANSLATED: filename too long.");
 		case ERR_FILE_TYPE:
@@ -219,8 +223,8 @@ main (void) {
 	if (0 == fstatus.st_gid) {
 		fail("%s: owned by the supergroup.", prog);
 	}
-	if (fstatus.st_uid < (uid_t) MIN_UID || 
-	    fstatus.st_uid > (uid_t) MAX_UID) 
+	if ((fstatus.st_uid < (uid_t) MIN_UID) || 
+	    (fstatus.st_uid > (uid_t) MAX_UID)) 
 	{
 		fail("%s: owned by non-regular UID %llu.",
 		     prog, (uint64_t) fstatus.st_uid);
@@ -232,13 +236,9 @@ main (void) {
 	 * owner's primary group, not to that of the programme file.
 	 */
 
-	errno = 0;
-
-	/* cppcheck-suppress getpwuidCalled;
-	   suCGI does not aim to be thread-safe. */
 	owner = getpwuid(fstatus.st_uid);
 	if (!owner) {
-		char *err = (errno > 0) ? strerror(errno) : "no such user";
+		char *err = (0 == errno) ? "no such user" : strerror(errno);
 		fail("%s: getpwuid %llu: %s.",
 		     prog, (uint64_t) fstatus.st_uid, err);
 	}
@@ -296,7 +296,7 @@ main (void) {
 		run_script(prog, (struct pair []) SCRIPT_HANDLERS);
 	} else {
 		/* Flawfinder: ignore; suCGI's point is to do this safely. */
-		execl(prog, prog, NULL);
+		(void) execl(prog, prog, NULL);
 	}
 
 	/* If this point is reached, execution has failed. */

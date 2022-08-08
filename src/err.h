@@ -40,6 +40,15 @@
 
 
 /*
+ * Constants
+ */
+
+#if !defined(LOG_PERROR)
+#define LOG_PERROR 0
+#endif
+
+
+/*
  * Data types
  */
 

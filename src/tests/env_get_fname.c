@@ -16,9 +16,8 @@ int
 main (int argc, char **argv)
 {
 	struct stat fstatus;
-	/* cppcheck-suppress cert-STR05-C; not a constant. */
 	/* Flawfinder: ignore */
-	char fname[STR_MAX] = "";
+	char fname[STR_MAX] = {0};
 	char *ftype = NULL;
 	char *var = NULL;
 	mode_t fmode = 0;
@@ -28,7 +27,7 @@ main (int argc, char **argv)
 	var = argv[1];
 	ftype = argv[2];
 
-	if (strnlen(ftype, STR_MAX) > 1) {
+	if (strnlen(ftype, STR_MAX) > 1u) {
 		die("env_get_fname: filetype must be a single character.");
 	}
 
@@ -41,21 +40,25 @@ main (int argc, char **argv)
 			break;
 		case '\0':
 			die("env_get_fname: filetype is empty.");
+			break;
 		default:
 			die("env_get_fname: filetype must be 'd' or 'f'.");
+			break;
 	}
 
 	rc = env_get_fname(var, fmode, &fname, &fstatus);
 
 	if (OK == rc) {
 		/* Flawfinder: ignore. */
-		printf("file_safe_stat: "
-		       "inode %lu, UID %lu, GID %lu, mode %o, size %lub.\n",
-		       (unsigned long) fstatus.st_ino,
-		       (unsigned long) fstatus.st_uid,
-		       (unsigned long) fstatus.st_gid,
-		       fstatus.st_mode,
-		       (unsigned long) fstatus.st_size);
+		(void) printf(
+			"file_safe_stat: "
+			"inode %lu, UID %lu, GID %lu, mode %o, size %lub.\n",
+			(unsigned long) fstatus.st_ino,
+			(unsigned long) fstatus.st_uid,
+			(unsigned long) fstatus.st_gid,
+			                fstatus.st_mode,
+			(unsigned long) fstatus.st_size
+		);
 	} else {
 		die("env_get_fname: env_get_fname %s %s returned %d.",
 		    var, ftype, rc);

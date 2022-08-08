@@ -47,7 +47,7 @@ then
 	while [ "${#long_name}" -le "$name_max" ]
 		do long_name="${long_name}x"
 	done
-	long_name="$PWD/${long_name}x/x"
+	long_name="$PWD/${long_name}/x"
 fi
 
 
@@ -56,13 +56,17 @@ fi
 #
 
 path_check_len "$long_name" &&
-	abort "path_check_len accepts overy long name."
+	abort "path_check_len accepts overly long name."
 
 path_check_len "$long_path" &&
-	abort "path_check_len accepts overy long path."
+	abort "path_check_len accepts overly long path."
 
 path_check_len "$loop" &&
 	abort "path_check_len accepts symlink loop."
+
+# shellcheck disable=2154
+path_check_len / ||
+	abort "path_check_len refuses $bold/$reset."
 
 # shellcheck disable=2154
 path_check_len "$file" ||

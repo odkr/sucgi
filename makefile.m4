@@ -87,11 +87,13 @@ CHECKS = $(SCRIPTDIR)/tests/drop_privs.sh \
 # Analysers
 #
 
-CPPCHECKFLAGS =	-f -q --error-exitcode=8 --inconclusive \
+CPPCHECKFLAGS =	--quiet --error-exitcode=8 \
 	--language=c --std=c99 --library=posix --platform=unix64 \
-	--suppress=missingIncludeSystem --inline-suppr \
-	-D __GNUC__ -I .
-PYTHONPATH = __PYTHONPATH
+	--project=cppcheck/sucgi.cppcheck --library=cppcheck/library.cfg \
+	-I. -DFILENAME_MAX=4096 -DSIZE_MAX=4294967295U -D__NR_openat2=437 \
+	-DNAME_MAX=255 -DPATH_MAX=1024 -DUID_MAX=2147483647U -DLOG_PERROR=32 \
+	--suppressions-list=cppcheck/suppressions.txt --inline-suppr  \
+	--force --inconclusive
 
 
 #
@@ -428,14 +430,13 @@ $(BUILDDIR)/tests/main:	$(SRCDIR)/main.c \
 	$(BUILDDIR)/path.o $(BUILDDIR)/str.o $(BUILDDIR)/utils.o \
 	$(LDLIBS)
 
-analysis:
-	! grep -ri fixme $(SRCDIR) $(SCRIPTDIR)
-	cppcheck $(CPPCHECKFLAGS) --enable=all --addon=$(SCRIPTDIR)/cert.py \
-		-D __NR_openat2=437 -U O_NOFOLLOW_ANY $(SRCDIR)
+analysis: clean
+	cppcheck $(CPPCHECKFLAGS) --enable=all \
+		--addon=$(SCRIPTDIR)/cert.py --addon=misra.py $(SRCDIR)
 	cppcheck $(CPPCHECKFLAGS) --enable=unusedFunction $(SRCDIR)/*.c
-	#cppcheck $(CPPCHECKFLAGS) --addon=misra.py $(SRCDIR)
 	flawfinder --error-level=1 -m 0 -D -Q .
 	find $(SCRIPTDIR) -type f ! -name '*.py' | xargs shellcheck configure
+	! grep -nri fixme $(SRCDIR) $(SCRIPTDIR)
 
 check: $(CHECKBINS)
 	$(SCRIPTDIR)/check -t $(BUILDDIR)/tests $(CHECKS)
@@ -444,8 +445,6 @@ clean:
 	rm -rf $(BUILDDIR) cov $(DISTNAME)
 	rm -f $(DISTAR) $(DISTAR).asc lcov.info
 	find . -type d -name 'tmp-*' -exec rm -rf '{}' +
-	find $(SRCDIR) -type f '(' -name '*.ctu-info' -o -name '*.dump' ')' \
-		-exec rm -f '{}' +
 
 cov:
 	test -e cov || mkdir cov
@@ -489,7 +488,8 @@ install: $(BUILDDIR)/sucgi
 uninstall:
 	rm -f $(CGIBIN)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
 
-.SILENT: analysis check cov covpre covgen dist distcheck install
+.SILENT: analysis check clean cov covpre covgen \
+	dist distcheck distclean install
 
 .PHONY: all analysis check clean cov covhtml gcov lcov.info \
 	dist distcheck distclean install uninstall

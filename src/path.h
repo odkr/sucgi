@@ -22,12 +22,33 @@
 #if !defined(SRC_PATH_H)
 #define SRC_PATH_H
 
+#include <limits.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdint.h>
 #include <sys/types.h>
 
 #include "attr.h"
 #include "err.h"
 
+
+/*
+ * System
+ */
+
+#if !defined(FILENAME_MAX) || !defined(SIZE_MAX)
+#error suCGI requires a C99-compliant compiler.
+#endif
+
+#if !defined(NAME_MAX) || !defined(PATH_MAX)
+/* Flawfinder: ignore; this is not a call to system(3). */
+#error suCGI requires a POSIX.1-2008-compliant operating system.
+#endif
+
+
+/*
+ * Functions
+ */
 
 /*
  * Check whether:
@@ -38,6 +59,7 @@
  *
  * Return code:
  *      OK             The path is within limits.
+ *      ERR_CONV       pathconf(2) returned an overly large limit.
  *      ERR_FILE_NAME  The filename of a path segment is too long.
  *      ERR_STR_MAX    The path or a path segment is too long.
  *      ERR_SYS        System failure. errno(2) should be set.
@@ -45,8 +67,8 @@
 error path_check_len(const char *const path);
 
 /*
- * Check if the given user has exclusive write access to every directory
- * and the file that comprise path, up to (and including) the path stop.
+ * Check if the given user has exclusive write access to every directory and
+ * the file that comprise the path START, up to (and including) the path STOP.
  *
  * Return code:
  *      OK             User has exclusive write access.
@@ -54,7 +76,7 @@ error path_check_len(const char *const path);
  *      ERR_STR_MAX    The path is longer than STR_MAX - 1.
  *      ERR_SYS        System failure. errno(2) should be set.
  */
-error path_check_wexcl(const uid_t uid, const char *const path,
+error path_check_wexcl(const uid_t uid, const char *const start,
                        const char *const stop);
 
 /*

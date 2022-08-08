@@ -66,13 +66,11 @@ drop_privs(const struct passwd *const user)
 	}
 
 	/* This is paranoid, but better be safe than sorry. */
-	if (setgid(gid) != 0 || getgid() != gid) {
-		char *err = (errno > 0) ? strerror(errno) : "unknown error";
-		fail("setgid %llu: %s.", (uint64_t) gid, err);
+	if (setgid(gid) != 0) {
+		fail("setgid %llu: %s.", (uint64_t) gid, strerror(errno));
 	}
-	if (setuid(uid) != 0 || getuid() != uid) {
-		char *err = (errno > 0) ? strerror(errno) : "unknown error";
-		fail("setuid %llu: %s.", (uint64_t) uid, err);
+	if (setuid(uid) != 0) {
+		fail("setuid %llu: %s.", (uint64_t) uid, strerror(errno));
 	}
 
 	if (setgid(0) != -1) fail("setgid 0: succeeded.");
@@ -96,12 +94,13 @@ run_script(const char *const script, const struct pair pairs[])
 
 		if (!interpreter) {
 			fail("script handler %d: no interpreter.", i + 1);
-		} else if (str_eq(interpreter, "")) {
+		}
+		if (str_eq(interpreter, "")) {
 			fail("script handler %d: path is empty.", i + 1);
 		}
 
 		/* Flawfinder: ignore; suCGI's point is to do this safely. */
-		execlp(interpreter, interpreter, script, NULL);
+		(void) execlp(interpreter, interpreter, script, NULL);
 		fail("exec %s %s: %s.", interpreter, script, strerror(errno));
 	}
 

@@ -26,27 +26,19 @@
 
 
 /*
- * Constants
- */
-
-/* Maximum number of substrings to split up a string into. */
-#define STR_MAX_SUBS 512
-
-
-/*
  * Functions
  */
 
 /*
- * Covert str to an unsigned long long and
- * store its value in the variable pointed to by n.
+ * Covert S to id_t and store its value in the variable pointed to by ID.
  *
  * Return code:
  *      OK            Success.
  *      ERR           Trailing nun-numeric characters.
+ *      ERR_CONV      S is too large to be an ID.
  *      ERR_SYS       System error. errno(2) should be set.
  */
-error str_to_ullong (const char *const s, unsigned long long *n);
+error str_to_id (const char *const s, id_t *id);
 
 /*
  * Split s at the first max occurrences of any character in sep and

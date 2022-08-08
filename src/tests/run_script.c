@@ -13,30 +13,33 @@
 #include "../utils.h"
 #include "utils.h"
 
-#include <stdio.h>
+
+#define MAX_HANDLERS 255U
 
 int
 main (int argc, char **argv)
 {
-	struct pair handlers[argc];
+	struct pair handlers[MAX_HANDLERS];
 	int i = 0;
 
 	if (argc < 2) {
 		die("usage: run_script SCRIPT "
 		    "[SUFFIX=HANDLER [SUFFIX=HANDLER [...]]]");
 	}
+	if ((unsigned long) argc > MAX_HANDLERS) {
+		die("run_script: too many operands.");
+	}
 
 	for (i = 2; i < argc; i++) {
-		/* cppcheck-suppress cert-STR05-C; not a constant. */
 		/* Flawfinder: ignore */
-		char suffix[STR_MAX] = "";
+		char suffix[STR_MAX] = {0};
 		char *handler = NULL;
 		error rc = ERR;
 
 		rc = str_split(argv[i], "=", &suffix, &handler);
 		if (rc != OK) die("run_script: str_split returned %u.", rc);
 
-		char *key = strndup(suffix, STR_MAX - 1);
+		char *key = strndup(suffix, STR_MAX - 1U);
 		if (!key) die("strndup: %s.", strerror(errno));
 
 		handlers[i - 2] = (struct pair) {

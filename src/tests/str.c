@@ -26,20 +26,27 @@
 #include <string.h>
 
 #include "../str.h"
+#include "str.h"
 
 
 error
-str_to_ullong (const char *const s, unsigned long long *n)
+str_to_id (const char *const s, id_t *id)
 {
-	unsigned long long m = 0;
+	unsigned long n = 0;
 	char *end = NULL;
 
 	assert(s);
-	m = strtoull(s, &end, 10);
+	errno = 0;
+	n = strtoul(s, &end, 10);
+	if (errno != 0) return ERR_SYS;
 	if (*end != '\0') return ERR;
-	if (0 == m && 0 != errno) return ERR_SYS;
+#if defined(UID_MAX)
+	if (n > UID_MAX) return ERR_CONV;
+#else
+	if (n > (unsigned long) UINT_MAX) return ERR_CONV;
+#endif /* defined(UID_MAX) */
 
-	*n = (unsigned long) m;
+	*id = (id_t) n;
 	return OK;
 }
 
@@ -47,7 +54,6 @@ error
 str_splitn(const char *const s, const char *sep, const size_t max,
            char **subs, size_t *n)
 {
-	/* cppcheck-suppress unreadVariable */
 	error rc = ERR_SYS;		/* Return code. */
 	char *pivot = NULL;		/* Current start of string. */
 	size_t i = 0;			/* Iterator. */
@@ -56,22 +62,22 @@ str_splitn(const char *const s, const char *sep, const size_t max,
 	if (!pivot) return ERR_SYS;
 
 	assert(subs);
-	for (; i <= max && pivot; i++) {
-		/* cppcheck-suppress cert-STR05-C; not a constant. */
-		/* Flawfinder: ignore */
-		char sub[STR_MAX] = "";
+	for (; (i <= max) && (pivot != NULL); i++) {
+		/* Flawfinder: ignore; str_split respects STR_MAX. */
+		char sub[STR_MAX] = {0};
 		rc = str_split(pivot, sep, &sub, &pivot);
 		if (rc != OK) goto err;
 		subs[i] = strndup(sub, STR_MAX);
 		if (!subs[i]) goto err;
 	}
-	subs[++i] = NULL;
+	i++;
+	subs[i] = NULL;
 
-	if (n) *n = i;
+	if (n != NULL) *n = i;
 	return OK;
 
 	err:
-		for (size_t j = 0; j < i; j++) free(subs[j]);
+		for (size_t j = 0U; j < i; j++) free(subs[j]);
 		free(pivot);
 		return rc;
 }

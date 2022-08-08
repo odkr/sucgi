@@ -16,19 +16,19 @@ define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
  * neither ('/') nor leading dots ('.'). Should correspond to the UserDir
  * directive of your Apache configuration (or its equivalent).
  */
-#define DOC_ROOT_PAT "/home/*/public_html"
+#define DOC_ROOT_PATTERN "/home/*/public_html"
 
 /*
  * Smallest UID that may have been assigned to a regular user.
  * On most systems, this will be 500 (e.g., macOS) or 1000 (e.g, Debian).
  */
-#define MIN_UID 1000
+#define MIN_UID 1000U
 
 /*
  * Largest UID that may have been assigned to a regular user.
  * On most systems, this will be 60,000 (though some use 32,767 for nobody).
  */
-#define MAX_UID 30000
+#define MAX_UID 30000U
 
 /*
  * Interpreters to run scripts the executable bit of which is NOT set.

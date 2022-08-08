@@ -31,16 +31,17 @@ env_init(const size_t n, ...)
 	va_list ap;	/* Variadic argument. */
 	size_t i = 0;	/* Iterator. */
 
-	assert(n > 0);
+	assert(n > 0U);
 	environ = calloc(n, sizeof(char *));
 	if (!environ) return ERR_SYS;
 
 	va_start(ap, n);
-	for (; i < n - 1; i++) {
+	for (; i < (n - 1u); i++) {
 		char *var = va_arg(ap, char *);
 		assert(var);
 		environ[i] = var;
 	}
+
 	va_end(ap);
 	environ[i] = NULL;
 

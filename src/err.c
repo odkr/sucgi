@@ -27,11 +27,6 @@
 #include "err.h"
 
 
-#if !LOG_PERROR
-#define LOG_PERROR 0
-#endif
-
-
 void
 fail(const char *const message, ...)
 {
@@ -42,6 +37,5 @@ fail(const char *const message, ...)
 	vsyslog(LOG_ERR, message, ap);
 	va_end(ap);
 	closelog();
-
 	exit(EXIT_FAILURE);
 }

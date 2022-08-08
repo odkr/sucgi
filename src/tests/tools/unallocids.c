@@ -24,13 +24,12 @@ main (void)
 
 	for (; uid < MAX; uid++) {
 		errno = 0;
-		/* cppcheck-suppress getpwuidCalled */
 		pwd = getpwuid(uid);
 		if (!pwd) {
-			if (errno) {
-				errno = 0;
-			} else {
+			if (0 == errno) {
 				break;
+			} else {
+				errno = 0;
 			}
 		}
 	}
@@ -38,20 +37,19 @@ main (void)
 
 	for (; gid < MAX; gid++) {
 		errno = 0;
-		/* cppcheck-suppress getgrgidCalled */
 		grp = getgrgid(gid);
 		if (!grp) {
-			if (errno) {
-				errno = 0;
-			} else {
+			if (0 == errno) {
 				break;
+			} else {
+				errno = 0;
 			}
 		}
 	}
 	if (MAX == gid) die("unallocids: cannot find an unused group ID.");
 
 	// Flawfinder: ignore
-	printf("%lu:%lu\n", (unsigned long) uid, (unsigned long) gid);
+	(void) printf("%lu:%lu\n", (unsigned long) uid, (unsigned long) gid);
 
-	exit(EXIT_SUCCESS);
+	return EXIT_SUCCESS;
 }

@@ -17,13 +17,6 @@
 
 
 /*
- * Globals
- */
-
-extern char **environ;
-
-
-/*
  * Functions
  */
 
@@ -31,7 +24,7 @@ extern char **environ;
  * Run env_sanitise with the given patterns, and return its return code.
  * Patters are whitespace-separated strings.
  */
-error
+static error
 env_sanitise_(const char *keep, const char *toss)
 {
 	/* Flawfinder: ignore */
@@ -54,28 +47,27 @@ env_sanitise_(const char *keep, const char *toss)
 
 int
 main (void) {
-	/* cppcheck-suppress cert-STR05-C; not a constant. */
 	/* Flawfinder: ignore */
-	char huge[STR_MAX + 1] = "";	/* A huge string. */
-	char *var = NULL;		/* An environment variable. */
+	char huge[STR_MAX + 1U] = {0};	/* A huge string. */
+	const char *var = NULL;		/* An environment variable. */
 
 
 	/*
 	 * Failures
 	 */
 
-	memset(huge, 'x', STR_MAX);
-	assert(strnlen(huge, STR_MAX + 1) == STR_MAX);
-	env_init(2, huge);
+	(void) memset(huge, 'x', STR_MAX);
+	assert(strnlen(huge, STR_MAX + 1U) == STR_MAX);
+	assert(env_init(2, huge) == OK);
 	assert(env_sanitise_("", "") == ERR_STR_MAX);
 
-	env_init(2, "");
+	assert(env_init(2, "") == OK);
 	assert(env_sanitise_("", "") == ERR_VAR_INVALID);
 
-	env_init(2, "foo");
+	assert(env_init(2, "foo") == OK);
 	assert(env_sanitise_("foo", "") == ERR_VAR_INVALID);
 
-	env_init(2, "=bar");
+	assert(env_init(2, "=bar") == OK);
 	assert(env_sanitise_("bar", "") == ERR_VAR_INVALID);
 
 
@@ -83,7 +75,7 @@ main (void) {
 	 * Simple tests
 	 */
 
-	env_init(1);
+	assert(env_init(1) == OK);
 	assert(setenv("foo", "foo", 1) == 0);
 	assert(setenv("bar", "bar", 1) == 0);
 	assert(setenv("baz", "baz", 1) == 0);
@@ -99,14 +91,14 @@ main (void) {
 	var = getenv("baz");
 	assert(!var);
 
-	env_init(1);
+	assert(env_init(1) == OK);
 	assert(setenv("foo", "foo", 1) == 0);
 	assert(env_sanitise_("", "") == OK);
 	/* Flawfinder: ignore */
 	var = getenv("foo");
 	assert(!var);
 
-	env_init(1);
+	assert(env_init(1) == OK);
 	assert(setenv("foo", "foo", 1) == 0);
 	assert(setenv("bar", "bar", 1) == 0);
 	assert(setenv("baz", "baz", 1) == 0);
@@ -128,7 +120,7 @@ main (void) {
 	 * Odd values
 	 */
 
-	env_init(1);
+	assert(env_init(1) == OK);
 	assert(setenv("empty", "", 1) == 0);
 	assert(setenv("assign", "==bar==", 1) == 0);
 	assert(setenv("space", " ", 1) == 0);

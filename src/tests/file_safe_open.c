@@ -25,7 +25,7 @@ main (int argc, char **argv)
 
 	rc = file_safe_open(fname, O_RDONLY | O_CLOEXEC, &fd);
 	if (rc != OK) return EXIT_FAILURE;
-	close(fd);
+	(void) close(fd);
 
 	return EXIT_SUCCESS;
 }

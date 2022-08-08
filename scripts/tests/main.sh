@@ -67,7 +67,7 @@ then
 	while [ "${#long_name}" -le "$name_max" ]
 		do long_name="${long_name}x"
 	done
-	long_name="$PWD/${long_name}x/x"
+	long_name="$PWD/${long_name}/x"
 fi
 
 true="$(command -v true >/dev/null 2>&1 || :)" || :

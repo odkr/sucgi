@@ -51,19 +51,6 @@ main (void) {
 
 
 	/*
-	 * Empty paths
-	 */
-
-	assert(!path_contains("", "/"));
-	assert(!path_contains("", "."));
-	assert(!path_contains("", "foo"));
-	assert(!path_contains("/", ""));
-	assert(!path_contains(".", ""));
-	assert(!path_contains("foo", ""));
-	assert(!path_contains("", ""));	
-
-
-	/*
 	 * All good
 	 */
 

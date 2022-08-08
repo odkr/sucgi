@@ -11,19 +11,6 @@
 #include "../utils.h"
 #include "../str.h"
 
-/*
- * Convert a string to a user ID.
- * Aborts the programme if conversion fails.
- */
-void
-str_to_uid(char *s, uid_t *id) {
-	unsigned long long n;
-	if (str_to_ullong(s, &n) != OK) {
-		die("username: %s is not a number.", s);
-	}
-	*id = (id_t) n;
-}
-
 int
 main (int argc, char **argv)
 {
@@ -31,22 +18,22 @@ main (int argc, char **argv)
 	uid_t uid = 0;
 
 	if (argc != 2) die("usage: username UID.");
-	str_to_uid(argv[1], &uid);
+	if (str_to_id(argv[1], &uid) != OK) die("username: cannot parse UID.");
 
-	/* cppcheck-suppress getpwuidCalled */
+	errno = 0;
 	pwd = getpwuid(uid);
 	if (!pwd) {
-		if (errno) {
-			die("username: getpwuid %llu: %s.",
-			    (uint64_t) uid, strerror(errno));
-		} else {
+		if (0 == errno) {
 			die("username: getpwuid %llu: no such user.",
 			    (uint64_t) uid);
+		} else {
+			die("username: getpwuid %llu: %s.",
+			    (uint64_t) uid, strerror(errno));
 		}
 	}
 
 	/* Flawfinder: ignore */
-	puts(pwd->pw_name);
+	(void) puts(pwd->pw_name);
 
-	exit(EXIT_SUCCESS);
+	return EXIT_SUCCESS;
 }

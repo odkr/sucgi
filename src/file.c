@@ -29,14 +29,17 @@
 
 #if defined(__linux__)
 #include <linux/version.h>
+#if defined(LINUX_VERSION_CODE) && defined(KERNEL_VERSION)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0)
 #include <linux/openat2.h>
 #include <sys/syscall.h>
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0) */
+#endif /* defined(LINUX_VERSION_CODE) && defined(KERNEL_VERSION) */
 #elif defined(__APPLE__) && defined(__MACH__)
 #include <TargetConditionals.h>
-#endif /* defined(__linux__) ... defined(__APPLE__) && defined(__MACH__) */
+#endif /* defined(__linux__) ... defined(__MACH__) && defined(__APPLE__) */
 
+#include "file.h"
 #include "err.h"
 #include "str.h"
 
@@ -45,19 +48,20 @@ bool
 file_is_exec(const struct stat *const fstatus)
 {
 	assert(fstatus);
-
-	if (fstatus->st_uid != geteuid() && fstatus->st_gid != getegid()) {
+	if ((fstatus->st_uid != geteuid()) && 
+	    (fstatus->st_gid != getegid()))
+	{
 		return fstatus->st_mode & S_IXOTH;
 	}
-	return (fstatus->st_mode & S_IXUSR) || (fstatus->st_mode & S_IXGRP);
+	return (fstatus->st_mode & S_IXUSR) || 
+	       (fstatus->st_mode & S_IXGRP);
 }
 
 bool
 file_is_wexcl(const uid_t uid, const struct stat *const fstatus)
 {
 	assert(fstatus);
-
-	return uid == fstatus->st_uid        &&
+	return  (uid == fstatus->st_uid)     &&
 	       !(fstatus->st_mode & S_IWGRP) &&
 	       !(fstatus->st_mode & S_IWOTH);
 }
@@ -126,8 +130,8 @@ file_safe_stat(const char *fname, struct stat *fstatus)
 	assert(fname);
 	check(file_safe_open(fname, O_RDONLY | O_CLOEXEC, &fd));
 	rc = fstat(fd, &buf);
-	if (close(fd) != 0 || rc != 0) return ERR_SYS;
+	if ((close(fd) != 0) || (rc != 0)) return ERR_SYS;
 	/* Flawfinder: ignore; fstatus is guaranteed to be large enough. */
-	if (fstatus) (void) memcpy(fstatus, &buf, sizeof(struct stat));
+	if (fstatus != NULL) (void) memcpy(fstatus, &buf, sizeof(struct stat));
 	return OK;
 }

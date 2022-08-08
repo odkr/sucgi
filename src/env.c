@@ -37,9 +37,6 @@
  * Globals
  */
 
-/* The environment. */
-extern char **environ;
-
 /* Default environment variables to keep. */
 /* Flawfinder: ignore; array is constant. */
 const char *const env_keep[49] = {
@@ -129,11 +126,11 @@ env_get_fname(const char *name, const mode_t ftype,
               /* Flawfinder: ignore; realpath should respect PATH_MAX. */
               char (*fname)[STR_MAX], struct stat *fstatus)
 {
-	struct stat buf;	/* Filesystem status of the file. */
-	char *value = NULL;	/* The value of the environment variable. */
+	struct stat buf;		/* Filesystem status of the file. */
+	const char *value = NULL;	/* Value of the given variable. */
 
 	assert(name && fname);
-	/* Flawfinder: ignore; value is check below, extensively. */
+	/* Flawfinder: ignore; value is checked below, extensively. */
 	value = getenv(name);
 	if (!value) return ERR_VAR_UNDEF;
 	if (str_eq(value, "")) return ERR_VAR_EMPTY;
@@ -144,7 +141,7 @@ env_get_fname(const char *name, const mode_t ftype,
 	if ((buf.st_mode & S_IFMT) != ftype) return ERR_FILE_TYPE;
 
 	/* Flawfinder: ignore; fstatus is guaranteed to be large enough. */
-	if (fstatus) (void) memcpy(fstatus, &buf, sizeof(struct stat));
+	if (fstatus != NULL) (void) memcpy(fstatus, &buf, sizeof(struct stat));
 	return OK;
 }
 
@@ -165,12 +162,17 @@ env_sanitise (const char *const keep[], const char *const toss[])
 	check(env_clear(vars));
 
 	/* Repopulate the environment. */
-	for (size_t i = 0; i < VAR_MAX && vars[i]; i++) {
-		/* cppcheck-suppress cert-STR05-C; not a constant. */
+	for (size_t i = 0; (i < VAR_MAX) && (vars[i] != NULL); i++) {
 		/* Flawfinder: ignore; str_split respects STR_MAX. */
-		char name[STR_MAX] = "";	/* Variable name. */
+		char name[STR_MAX] = {0};	/* Variable name. */
 		char *value = NULL;		/* Variable value. */
 
+		/*
+		 * FIXME: value should be sanitised
+		 *        before it is passed to setenv.
+		 *
+		 * This violates SEI CERT C recommendations STR02 and ENV03.
+		 */
 		check(str_split(vars[i], "=", &name, &value));
 		if (str_eq(name, "") || !value) return ERR_VAR_INVALID;
 

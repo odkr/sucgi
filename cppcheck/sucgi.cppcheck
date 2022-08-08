@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<project version="1">
+	<paths>
+		<dir name="src"/>
+	</paths>
+	<includedir>
+		<dir name="."/>
+	</includedir>
+	<defines>
+		<define name="__GNUC__"/>
+		<define name="__linux__"/>
+		<undefine name="TESTING"/>
+	</defines>
+</project>

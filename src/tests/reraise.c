@@ -8,7 +8,7 @@
 #include "../err.h"
 
 /* check wrapper that should always fail. */
-error
+static error
 check_ok (void)
 {
 	check(OK);
@@ -17,7 +17,7 @@ check_ok (void)
 }
 
 /* check wrapper that should always fail. */
-error
+static error
 check_err (void)
 {
 	check(ERR_SYS);

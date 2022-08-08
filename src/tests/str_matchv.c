@@ -8,24 +8,22 @@
 
 #include "../str.h"
 
-typedef const char *const cchar;
-#include <stdio.h>
 int
 main (void) {
-	assert(str_matchv("foo", (cchar[]) {"foo", NULL}, 0));
-	assert(str_matchv("foo", (cchar[]) {"f*", NULL}, 0));
-	assert(str_matchv("foo", (cchar[]) {"b", "f*", NULL}, 0));
-	assert(str_matchv("foo", (cchar[]) {"f*", "b", NULL}, 0));
-	assert(str_matchv("foo", (cchar[]) {"f*", "", NULL}, 0));
-	assert(str_matchv("foo", (cchar[]) {"", "f*", NULL}, 0));
-	assert(str_matchv(".", (cchar[]) {".", "*", NULL}, 0));
+	assert(str_matchv("foo", (const char *const[]) {"foo", NULL}, 0));
+	assert(str_matchv("foo", (const char *const[]) {"f*", NULL}, 0));
+	assert(str_matchv("foo", (const char *const[]) {"b", "f*", NULL}, 0));
+	assert(str_matchv("foo", (const char *const[]) {"f*", "b", NULL}, 0));
+	assert(str_matchv("foo", (const char *const[]) {"f*", "", NULL}, 0));
+	assert(str_matchv("foo", (const char *const[]) {"", "f*", NULL}, 0));
+	assert(str_matchv(".",   (const char *const[]) {".", "*", NULL}, 0));
 
-	assert(!str_matchv("foo", (cchar[]) {"bar", NULL}, 0));
-	assert(!str_matchv("foo", (cchar[]) {"b*", NULL}, 0));
-	assert(!str_matchv("foo", (cchar[]) {"b*", "z*", NULL}, 0));
-	assert(!str_matchv("foo", (cchar[]) {"b*", "", NULL}, 0));
-	assert(!str_matchv("foo", (cchar[]) {"", NULL}, 0));
-	assert(!str_matchv(".", (cchar[]) {"*", NULL}, FNM_PERIOD));
+	assert(!str_matchv("foo", (const char *const[]) {"bar", NULL}, 0));
+	assert(!str_matchv("foo", (const char *const[]) {"b*", NULL}, 0));
+	assert(!str_matchv("foo", (const char *const[]) {"b*", "z*", NULL}, 0));
+	assert(!str_matchv("foo", (const char *const[]) {"b*", "", NULL}, 0));
+	assert(!str_matchv("foo", (const char *const[]) {"", NULL}, 0));
+	assert(!str_matchv(".",   (const char *const[]) {"*", NULL}, FNM_PERIOD));
 
 	/* All good. */
 	return EXIT_SUCCESS;

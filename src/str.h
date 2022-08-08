@@ -30,14 +30,24 @@
 
 
 /*
+ * System
+ */
+
+#if !defined(PATH_MAX)
+/* Flawfinder: ignore; this is not a call to system(3). */
+#error suCGI requires a POSIX.1-2008-compliant operating system.
+#endif
+
+
+/*
  * Constants
  */
 
 /* Maximum length of strings in bytes, including the terminating nullbyte. */
 #if PATH_MAX > 4096
-#define STR_MAX PATH_MAX
+#define STR_MAX ((size_t) PATH_MAX)
 #else
-#define STR_MAX 4096
+#define STR_MAX ((size_t) 4096)
 #endif
 
 

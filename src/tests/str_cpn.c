@@ -13,38 +13,35 @@
 
 int
 main (void) {
-	/* cppcheck-suppress cert-STR05-C; not a constant. */
 	/* Flawfinder: ignore */
-	char large[STR_MAX] = "";	/* A string just within limits. */
-	/* cppcheck-suppress cert-STR05-C; not a constant. */
+	char large[STR_MAX] = {0};	/* A string just within limits. */
 	/* Flawfinder: ignore */
-	char huge[STR_MAX + 1] = "";	/* A string that exceeds STR_MAX. */
-	/* cppcheck-suppress cert-STR05-C; not a constant. */
+	char huge[STR_MAX + 1U] = {0};	/* A string that exceeds STR_MAX. */
 	/* Flawfinder: ignore */
-	char s[STR_MAX] = "";		/* A string. */
+	char s[STR_MAX] = {0};		/* A string. */
 
 	(void) memset(huge, 'x', STR_MAX);
-	(void) memset(large, 'x', STR_MAX - 1);
+	(void) memset(large, 'x', STR_MAX - 1U);
 
 	/* Test overly long string. */
-	memset(huge, 'x', STR_MAX);
-	assert(strnlen(huge, STR_MAX + 1) == STR_MAX);
+	(void) memset(huge, 'x', STR_MAX);
+	assert(strnlen(huge, STR_MAX + 1U) == STR_MAX);
 	assert(str_cpn(STR_MAX, huge, &s) == ERR_STR_MAX);
-	assert(str_cpn(STR_MAX - 1, huge, &s) == OK);
+	assert(str_cpn(STR_MAX - 1U, huge, &s) == OK);
 	assert(str_eq(s, large));
 
 	/* Test long string. */
-	memset(large, 'x', STR_MAX - 1);
-	assert(strnlen(large, STR_MAX) == STR_MAX - 1);
-	assert(str_cpn(STR_MAX - 1, large, &s) == OK);
+	(void) memset(large, 'x', STR_MAX - 1U);
+	assert(strnlen(large, STR_MAX) == STR_MAX - 1U);
+	assert(str_cpn(STR_MAX - 1U, large, &s) == OK);
 	assert(str_eq(s, large));
 
 	/* Simple test. */
-	assert(str_cpn(STR_MAX - 1, "foo", &s) == OK);
+	assert(str_cpn(STR_MAX - 1U, "foo", &s) == OK);
 	assert(str_eq(s, "foo"));
 
 	/* Test empty string. */
-	assert(str_cpn(STR_MAX - 1, "", &s) == OK);
+	assert(str_cpn(STR_MAX - 1U, "", &s) == OK);
 	assert(str_eq(s, ""));
 
 	/* Test truncation */

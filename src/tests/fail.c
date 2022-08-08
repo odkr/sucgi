@@ -8,7 +8,8 @@
 
 #include "../err.h"
 
-int main (void) {
+int
+main (void) {
 	fail("foo.");
 
 	/* This point should not be reached. */

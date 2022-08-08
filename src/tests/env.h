@@ -22,15 +22,8 @@
 #define SRC_TESTS_ENV_H
 
 #include "../attr.h"
+#include "../env.h"
 #include "../err.h"
-
-
-/*
- * Globals
- */
-
-/* The environment. */
-extern char **environ;
 
 
 /*
@@ -41,6 +34,10 @@ extern char **environ;
  * Create a new environment with space for at least n elements
  * and initialise with the given variadic arguments,
  * which must be strings.
+ * 
+ * Return code:
+ * 	OK               Success.
+ * 	ERR_SYS          System error. errno(2) should be set.
  */
 error env_init(const size_t n, ...);
 

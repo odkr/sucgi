@@ -34,12 +34,15 @@
  */
 
 /* Maximum number of environment variables. */
-#define VAR_MAX 256
+#define VAR_MAX 256U
 
 
 /*
  * Globals
  */
+
+/* The environment. */
+extern char **environ;
 
 /*
  * Environment variables to keep.
@@ -50,6 +53,7 @@
  *
  * Adopted from Apache's suEXEC. There should be no need to adapt this list.
  */
+
 /* Flawfinder: ignore; array is constant. */
 extern const char *const env_keep[49];
 
@@ -62,6 +66,7 @@ extern const char *const env_keep[49];
  *
  * Adopted from Apache's suEXEC. There should be no need to adapt this list.
  */
+
 /* Flawfinder: ignore; array is constant. */
 extern const char *const env_toss[2];
 

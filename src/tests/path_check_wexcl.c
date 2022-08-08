@@ -14,19 +14,6 @@
 #include "str.h"
 
 
-/*
- * Convert a string to an ID.
- * Aborts the programme if conversion fails.
- */
-void
-str_to_id(char *s, id_t *id) {
-	unsigned long long n;
-	if (str_to_ullong(s, &n) != OK) {
-		die("path_check_wexcl: %s is not a number.", s);
-	}
-	*id = (id_t) n;
-}
-
 int
 main (int argc, char **argv)
 {
@@ -34,8 +21,12 @@ main (int argc, char **argv)
 	const char *stop = NULL;
 	uid_t uid = 0;
 
-	if (argc != 4) die("usage: path_check_wexcl UID GID FNAME STOP");
-	str_to_id(argv[1], &uid);
+	if (argc != 4) {
+		die("usage: path_check_wexcl UID GID FNAME STOP");
+	}
+	if (str_to_id(argv[1], &uid) != OK) {
+		die("path_check_wexcl: cannot parse UID.");
+	}
 	fname = argv[2];
 	stop = argv[3];
 

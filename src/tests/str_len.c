@@ -12,19 +12,19 @@ int
 main (void) {
 	size_t len = 0;
 	/* Flawfinder: ignore */
-	char huge[STR_MAX + 1];
+	char huge[STR_MAX + 1U];
 
-	memset(huge, 'c', STR_MAX);
+	(void) memset(huge, 'c', STR_MAX);
 	huge[STR_MAX] = '\0';
-	assert(strnlen(huge, STR_MAX) > STR_MAX - 1);
+	assert(strnlen(huge, STR_MAX) > STR_MAX - 1U);
 	assert(str_len(huge, &len) == ERR_STR_MAX);
-	assert(0 == len);
+	assert(0U == len);
 
 	assert(str_len("", &len) == OK);
-	assert(0 == len);
+	assert(0U == len);
 
 	assert(str_len("a", &len) == OK);
-	assert(1 == len);
+	assert(1U == len);
 
 	return EXIT_SUCCESS;
 }
