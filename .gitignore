@@ -9,14 +9,11 @@
 *.o
 *.tgz
 *.tgz.asc
-build
 cov
-config.h
+local.env
 lcov.info
 makefile
-stds
 tests/*
 !tests/*.c
 !tests/*.h
 !tests/*.sh
-!tests/check

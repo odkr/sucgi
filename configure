@@ -7,8 +7,13 @@
 
 set -Ceu
 
-readonly script_dir="${0%/*}"
-. "$script_dir/scripts/utils.sh" || exit
+script_dir="$(dirname "$0")" && [ "$script_dir" ] || {
+	echo "failed to locate $0." >&2
+	exit 8
+}
+readonly script_dir
+cd "$script_dir" || exit
+. ./tools/lib.sh || exit
 init
 tmpdir tmp .
 
@@ -44,29 +49,30 @@ add_macros() {
 # Options
 #
 
-# shellcheck disable=1091
-. "$script_dir/configure.env" || exit
-
 OPTIND=1 OPTARG='' opt=''
-force='' quiet=''
-while getopts fqh opt; do
+force='' quiet='' conf=configure.env
+while getopts c:dfqh opt; do
 	case $opt in
+		(c) conf="$OPTARG" ;;
+		(d) conf=devel.env ;;
 		(f) force=x ;;
 		(q) quiet=x ;;
 		(h) exec cat <<-EOF ;;
 			configure - Generate build configuration.
 
 			Options:
-			    -f  Overwrite existing files.
-			    -h  Show this help screen.
-			    -q  Be quiet.
+			    -c FILE  Read build configuration from FILE
+			             (default: $conf).
+			    -d       Short for -c devel.env.
+			    -f       Overwrite existing files.
+			    -h       Show this help screen.
+			    -q       Be quiet.
 
 			Environment:
 			    CC          The C compiler.
 			    CFLAGS      Flags to pass to the C compiler.
-			    PROJECTDIR  Top-level directory of the repository.
 
-			See README.md for details.
+			See README.rst and docs/BUILDING.rst for details.
 			EOF
 		(*) exit 8
 	esac
@@ -75,48 +81,16 @@ shift $((OPTIND - 1))
 unset opt
 
 [ "$#" -gt 0 ] && abort 'too many operands.'
+[ "$conf" ] || abort "$bold-c$reset$red: no filename given."
+[ -e "$conf" ] || abort "$bold$conf$reset$red: no such file." 
 [ "$quiet" ] && exec >/dev/null
 
-
-#
-# Base directory
-#
-
-if [ "${PROJECTDIR-}" ]
-then
-	printf 'Project directory: '
-
-	if ! isportable "$PROJECTDIR"
-	then
-		# shellcheck disable=2154
-		echo "${red}name is not portable.$reset"
-		unset PROJECTDIR
-	elif ! [ -e "$PROJECTDIR" ]
-	then
-		# shellcheck disable=2154
-		echo "${red}directory does not exist.$reset"
-		unset PROJECTDIR
-	elif ! [ -d "$PROJECTDIR" ]
-	then
-		# shellcheck disable=2154
-		echo "${red}not a directory.$reset"
-		unset PROJECTDIR
-	else
-		echo "$PROJECTDIR"
-	fi
-fi
-
-if ! [ "${PROJECTDIR-}" ]
-then
-	if isportable "$script_dir"
-		then PROJECTDIR="$script_dir"
-		else PROJECTDIR=.
-	fi
-fi
+# shellcheck disable=1091
+. "$conf" || exit
 
 
 #
-# Check if gcc or clang are available.
+# Check if gcc, clang, or tcc are available.
 #
 
 printf 'C compiler: '
@@ -134,11 +108,12 @@ fi
 
 if [ "$CC" ] && command -v "$CC" >/dev/null 2>&1
 then
+	printf '%s' "$bold" >&2
 	echo "$CC"
+	printf '%s' "$reset" >&2
 else
 	CC=
-	# shellcheck disable=2154
-	echo "\a${red}none found.$reset"
+	echo 'none found!'
 fi
 
 
@@ -188,8 +163,10 @@ then
 	done
 
 	if [ "$n" -eq 0 ]
-		then printf -- ' -\n'
-		else echo
+	then
+		echo ' none!'
+	else
+		echo
 	fi
 
 	unset cflags flag n pid
@@ -201,11 +178,10 @@ fi
 #
 
 errc=0 filec=0 genc=0
-for input in "$PROJECTDIR/"*.m4
+for input in *.m4
 do
-	[ "$input" = "$PROJECTDIR/*.in" ] && break
-	name="$(basename "$input")" ||
-		abort "$input: failed to get basename."
+	[ "$input" = "*.m4" ] && break
+	name="$(basename "$input")" || abort "$input: failed to get basename."
 	output="${name%.m4}"
 	filec=$((filec + 1))
 
@@ -216,15 +192,14 @@ do
 		then
 			printf '\a' >&2
 			warn "${yellow}not overwriting $bold$output$reset," \
-			"give $bold-f$reset to force."
+			     "give $bold-f$reset to force."
 		fi
 		continue
 	fi
 
 	swap="$TMPDIR/$output"
-	if m4	-D__CC="${CC-}"				\
-		-D__CFLAGS="${CFLAGS# }"		\
-		-D__PROJECTDIR="${PROJECTDIR%/}"	\
+	if m4	-D__CC="${CC-}"			\
+		-D__CFLAGS="${CFLAGS# }"	\
 		"$input" >"$swap"
 	then
 		mv "$swap" "$output"
@@ -246,15 +221,15 @@ then
 	then
 		printf '\a' >&2
 		warn "$red$bold$errc$reset$red of $bold$filec$reset" \
-		"${red}file(s) could not be generated.$reset"
+		     "${red}file(s) could not be generated.$reset"
 	elif [ $genc -lt $filec ]
 	then
 		printf '\a' >&2
 		warn "$yellow$bold$genc$reset$yellow of $bold$filec$reset" \
-		"${yellow}file(s) generated.$reset"
+		     "${yellow}file(s) generated.$reset"
 	else
 		warn "$green$bold$genc$reset$green of $bold$filec$reset" \
-		"${green}file(s) generated.$reset"
+		     "${green}file(s) generated.$reset"
 	fi
 fi
 

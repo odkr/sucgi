@@ -9,12 +9,13 @@
 suCGI
 =====
 
-Run CGI programmes under the UID and GID of their owner.
+Run CGI scripts with the permissions of their owner.
 
-suCGI checks if the programme pointed to by the environment variable
-*PATH_TRANSLATED* is secure, sets the process' effective UID and GID 
-to the UID and the GID of that programme's owner, cleans up the
-environment, and then runs the programme.
+suCGI checks whether the CGI script pointed to by the environment variable
+*PATH_TRANSLATED* is owned by a regular user, sets the real and the effective
+UID, the real and the effective GID, and the supplementary groups of the
+process to the UID, the GID, and the groups of that user respectively,
+cleans up the environment, and then runs the script.
 
 
 Requirements
@@ -27,13 +28,15 @@ More precisely:
 * Linux ≥ v5.6 or Apple XNU ≥ v7195.50.7.100.1.
 * A C99 compiler that complies with `POSIX.1-2008`_;
   e.g., GCC_ ≥ v5.1, Clang_ ≥ v3.5, or TinyCC_ ≥ v0.9.
-* A C standard library that complies with POSIX.1-2008 and 4.2BSD;
-  e.g., glibc_ ≥ v2.1.3 or Apple's Libc.
+* A C standard library that complies with POSIX.1-2008 as well as 4.4BSD,
+  supports the *_BSD_SOURCE*, the *_DARWIN_C_SOURCE*, or the *_DEFAULT_SOURCE*
+  feature test macro, and implements realpath_ safely; 
+  e.g., glibc_ ≥ v2.28 or Apple's Libc.
 * The standard utilities that POSIX.1-2008, including
   its X/Open system interface extension, mandates.
+* A 64-bit architecture.
 
-Save for Linux ≥ v5.6 and XNU ≥ v7195.50.7.100.1 respectively, any
-post-2015 GNU/Linux or macOS system should meet those requirements.
+Any post-2021 GNU/Linux or macOS system should meet those requirements.
 You may need to install the standard build tools, however.
 
 Arch-based GNU/Linux systems::
@@ -57,9 +60,9 @@ macOS::
 Installation 
 ============
 
-**Do NOT use suCGI at this point!**
-
-**You use suCGI at your own risk!**
+**Do NOT use suCGI at this point!** This repository exists to facilitate
+continuous integration with static code checkers and in-house testing,
+*not* to distribute code to the public.
 
 ----
 
@@ -75,21 +78,23 @@ Generate *config.h* and *makefile* by::
 
 If ``configure`` succeeded, move on to the next step.
 
-Otherwise, generate *config.h* by ``m4 config.h.in >config.h`` and
-*makefile* by ``m4 makefile.in >makefile``. Alternatively, configure
-the build yourself (see `BUILDING.rst`_).
+Otherwise, generate *makefile* by ``m4 makefile.in >makefile``.
+Alternatively, configure the build yourself (see `docs/BUILDING.rst`_).
 
 ----
 
-Adapt *config.h* to your needs.
-Most importantly, adapt *DOC_ROOT_PATTERN*, *MIN_UID* and *MAX_UID*.
-suCGI is configured at compile-time, you cannot do this later.
+suCGI is configured at compile-time. Adapt *config.h*, most importantly
+*DOC_ROOT_PATTERN*, *MIN_UID*, *MAX_UID*, *MIN_GID*, and *MAX_GID*. 
 
 ----
 
 Compile and install suCGI by::
 
     make install
+
+``make install`` will do nothing if suCGI is already installed and the
+file modification time of the installed binary is more recent than that
+of the binary that has just been built.
 
 You can uninstall suCGI by ``make uninstall``.
 
@@ -110,7 +115,8 @@ Restart Apache::
 
     apache2ctl -t && apache2ctl restart
 
-PHP scripts in */home* should now be run under the UID and GID of their owner.
+PHP scripts in */home* should now be run with the permissions of
+their respective owners.
 
 
 Documentation
@@ -162,7 +168,7 @@ GitHub: https://github.com/odkr/sucgi
 
 .. _`POSIX.1-2008`: https://pubs.opengroup.org/onlinepubs/9699919799.2008edition/
 
-.. _`BUILDING.rst`: BUILDING.rst
+.. _`docs/BUILDING.rst`: docs/BUILDING.rst
 
 .. _Apache: https://httpd.apache.org/
 

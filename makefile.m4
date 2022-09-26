@@ -1,118 +1,81 @@
 changequote([, ])dnl
 define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
-
 .POSIX:
 
 #
-# Compiler settings
+# Compiler
 #
 
 ifdef([__CC], [ifelse(__CC, [], [], [CC = __CC
 ])], [])dnl
-CFLAGS = default([__CFLAGS], [-D_DEFAULT_SOURCE=1 -D_BSD_SOURCE=1 -O2 -s])
+dnl TODO: Add -DNDEBUG once the software is mature enough.
+CFLAGS = default([__CFLAGS], [-O2 -s -ftrapv])
 
 
 #
-# Repository settings
+# Objects
 #
 
-PACKAGE = suCGI
-VERSION = 0
-PROJECTDIR = default([__PROJECTDIR], .)
+core_objs = lib.a(err.o) lib.a(str.o)
 
-
-#
-# Directories
-#
-
-SRCDIR = $(PROJECTDIR)/src
-SCRIPTDIR = $(PROJECTDIR)/scripts
-BUILDDIR = build
-COVDIR = cov
+check_err_objs = lib.a(err.o) lib.a(tools/lib.o)
+check_env_objs = lib.a(env.o) lib.a(tools/lib.o)
+check_file_objs = lib.a(file.o) lib.a(tools/lib.o)
+check_gids_objs = lib.a(gids.o) lib.a(tools/lib.o)
+check_path_objs = lib.a(path.o) lib.a(tools/lib.o)
+check_priv_objs = lib.a(priv.o) lib.a(tools/lib.o)
+check_scpt_objs = lib.a(scpt.o) lib.a(tools/lib.o)
+check_str_objs = lib.a(str.o) lib.a(tools/lib.o)
 
 
 #
 # Tests
 #
 
-CHECKBINS = $(BUILDDIR)/tests/tools/evilenv \
-            $(BUILDDIR)/tests/tools/runas \
-            $(BUILDDIR)/tests/tools/unallocids \
-            $(BUILDDIR)/tests/tools/username \
-            $(BUILDDIR)/tests/drop_privs \
-            $(BUILDDIR)/tests/fail $(BUILDDIR)/tests/env_clear \
-            $(BUILDDIR)/tests/env_get_fname \
-	    $(BUILDDIR)/tests/env_sanitise \
-            $(BUILDDIR)/tests/main \
-            $(BUILDDIR)/tests/file_is_exec \
-            $(BUILDDIR)/tests/file_is_wexcl \
-            $(BUILDDIR)/tests/file_safe_open \
-            $(BUILDDIR)/tests/file_safe_stat \
-            $(BUILDDIR)/tests/path_check_len \
-            $(BUILDDIR)/tests/path_check_wexcl \
-            $(BUILDDIR)/tests/path_contains \
-            $(BUILDDIR)/tests/reraise \
-            $(BUILDDIR)/tests/run_script \
-            $(BUILDDIR)/tests/str_cp \
-            $(BUILDDIR)/tests/str_cpn \
-            $(BUILDDIR)/tests/str_eq \
-            $(BUILDDIR)/tests/str_matchv \
-            $(BUILDDIR)/tests/str_len \
-            $(BUILDDIR)/tests/str_split
+check_bins =	tools/evilenv tools/runas tools/unallocids tools/getlogname \
+		tests/error tests/env_clear tests/env_file_openat tests/env_get_fname \
+		tests/env_name_valid tests/env_restore tests/main \
+		tests/file_is_exec tests/file_is_wexcl tests/file_safe_open \
+		tests/file_safe_stat tests/gids_get_list tests/priv_drop \
+		tests/path_check_wexcl tests/path_contains \
+		tests/scpt_get_handler tests/str_cp tests/str_matchv \
+		tests/str_split tests/try
 
-CHECKS = $(SCRIPTDIR)/tests/drop_privs.sh \
-         $(SCRIPTDIR)/tests/fail.sh \
-         $(BUILDDIR)/tests/env_clear \
-         $(SCRIPTDIR)/tests/env_get_fname.sh \
-	 $(BUILDDIR)/tests/env_sanitise \
-         $(SCRIPTDIR)/tests/main.sh \
-         $(SCRIPTDIR)/tests/file_is_exec.sh \
-         $(SCRIPTDIR)/tests/file_is_wexcl.sh \
-         $(SCRIPTDIR)/tests/file_safe_open.sh \
-         $(SCRIPTDIR)/tests/file_safe_stat.sh \
-         $(SCRIPTDIR)/tests/path_check_len.sh \
-         $(SCRIPTDIR)/tests/path_check_wexcl.sh \
-         $(BUILDDIR)/tests/path_contains \
-         $(BUILDDIR)/tests/reraise \
-         $(SCRIPTDIR)/tests/run_script.sh \
-         $(BUILDDIR)/tests/str_cp \
-         $(BUILDDIR)/tests/str_cpn \
-         $(BUILDDIR)/tests/str_eq \
-         $(BUILDDIR)/tests/str_matchv \
-         $(BUILDDIR)/tests/str_len \
-         $(BUILDDIR)/tests/str_split
+checks =	tests/error.sh tests/env_clear tests/env_file_openat.sh tests/env_get_fname.sh \
+		tests/env_name_valid tests/env_restore tests/main.sh \
+		tests/file_is_exec.sh tests/file_is_wexcl.sh \
+		tests/file_safe_open.sh tests/file_safe_stat.sh \
+		tests/gids_get_list.sh tests/priv_drop.sh \
+		tests/path_check_wexcl.sh tests/path_contains \
+		tests/scpt_get_handler tests/str_cp \
+		tests/str_matchv tests/str_split tests/try
 
 
 #
 # Analysers
 #
 
-CPPCHECKDIR = $(PROJECTDIR)/cppcheck
-CPPCHECKFLAGS =	--quiet --error-exitcode=8 \
-	--language=c --std=c99 --library=posix --platform=unix64 \
-	--project=$(CPPCHECKDIR)/sucgi.cppcheck \
-	--library=$(CPPCHECKDIR)/library.cfg \
-	--suppressions-list=$(CPPCHECKDIR)/suppressions.txt  \
-	--force --inconclusive \
-	-I. -UTESTING -DFILENAME_MAX=4096U -DSIZE_MAX=4294967295U \
-	-D__NR_openat2=437 -DNAME_MAX=255U -DPATH_MAX=1024U \
-	-DUID_MAX=2147483647U -DLOG_PERROR=32
+cppchk_flags =	--quiet --error-exitcode=8 \
+		--language=c --std=c99 --library=posix --platform=unix64 \
+		--project=cppcheck/sucgi.cppcheck \
+		--library=cppcheck/library.cfg \
+		--suppressions-list=cppcheck/suppressions.txt  \
+		--force --inconclusive \
+		-UTESTING -D__NR_openat2=437 -DPATH_MAX=1024U \
+		-DUID_MAX=2147483647U -DLOG_PERROR=32
+
+cppchk_addons =	--addon=cppcheck/cert.py --addon=misra.py
 
 
 #
 # Distribution
 #
 
-DISTNAME = $(PACKAGE)-$(VERSION)
-DISTAR = $(DISTNAME).tgz
-
-DISTFILES = $(PROJECTDIR)/config.h.m4 \
-            $(PROJECTDIR)/configure \
-            $(PROJECTDIR)/configure.env \
-            $(PROJECTDIR)/makefile.m4 \
-            $(PROJECTDIR)/README.rst \
-            $(SCRIPTDIR) \
-            $(SRCDIR)
+package = sucgi
+version = 0
+dist_name = $(package)-$(version)
+dist_ar = $(dist_name).tgz
+dist_files = *.c *.h *.m4 configure configure.env README.rst tests tools
 
 
 #
@@ -120,382 +83,159 @@ DISTFILES = $(PROJECTDIR)/config.h.m4 \
 #
 
 PREFIX = /usr/local
-WWWGRP = www-data
-CGIBIN = /usr/lib/cgi-bin
+WWW_GRP = www-data
+CGI_BIN = /usr/lib/cgi-bin
 
 
 #
 # Targets
 #
 
-all: $(BUILDDIR)/sucgi
+all: sucgi
 
-$(BUILDDIR)/.sentinel:
-	test -e $(BUILDDIR) || mkdir -p $(BUILDDIR)
-	touch $(BUILDDIR)/.sentinel
+lib.a(env.o): env.c env.h defs.h $(core_objs) lib.a(file.o) lib.a(path.o)
 
-$(BUILDDIR)/tests/.sentinel: $(BUILDDIR)/.sentinel
-	test -e $(BUILDDIR)/tests || mkdir -p $(BUILDDIR)/tests
-	touch $(BUILDDIR)/tests/.sentinel
+lib.a(err.o): err.c err.h defs.h
 
-$(BUILDDIR)/tests/tools/.sentinel: $(BUILDDIR)/tests/.sentinel
-	test -e $(BUILDDIR)/tools/tests || mkdir -p $(BUILDDIR)/tests/tools
-	touch $(BUILDDIR)/tests/tools/.sentinel
+lib.a(file.o): file.c file.h defs.h $(core_objs) lib.a(path.o)
 
-$(BUILDDIR)/env.o:	$(SRCDIR)/env.c $(SRCDIR)/env.h	\
-			$(SRCDIR)/attr.h $(SRCDIR)/err.h $(SRCDIR)/str.h \
-			$(BUILDDIR)/.sentinel
-	$(CC) -I . -c $(CFLAGS) -o $@ $<
+lib.a(gids.o): gids.c gids.h defs.h lib.a(err.o)
 
-$(BUILDDIR)/err.o:	$(SRCDIR)/err.c $(SRCDIR)/err.h \
-			$(SRCDIR)/attr.h \
-			$(BUILDDIR)/.sentinel
-	$(CC) -I . -c $(CFLAGS) -o $@ $<
+lib.a(path.o): path.c path.h defs.h $(core_objs)
 
-$(BUILDDIR)/file.o:	$(SRCDIR)/file.c $(SRCDIR)/file.h \
-			$(SRCDIR)/attr.h $(SRCDIR)/err.h \
-			$(SRCDIR)/path.h $(SRCDIR)/str.h \
-			$(BUILDDIR)/.sentinel
-	$(CC) -I . -c $(CFLAGS) -o $@ $<
+lib.a(priv.o): priv.o priv.h defs.h lib.a(err.o)
 
-$(BUILDDIR)/path.o:	$(SRCDIR)/path.c $(SRCDIR)/path.h \
-			$(SRCDIR)/attr.h $(SRCDIR)/err.h $(SRCDIR)/str.h \
-			$(BUILDDIR)/.sentinel
-	$(CC) -I . -c $(CFLAGS) -o $@ $<
+lib.a(scpt.o): scpt.c scpt.h defs.h $(core_objs)
 
-$(BUILDDIR)/str.o:	$(SRCDIR)/str.c $(SRCDIR)/str.h \
-			$(SRCDIR)/attr.h $(SRCDIR)/err.h \
-			$(BUILDDIR)/.sentinel
-	$(CC) -I . -c $(CFLAGS) -o $@ $<
+lib.a(str.o): str.c str.h defs.h lib.a(err.o)
 
-$(BUILDDIR)/utils.o:	$(SRCDIR)/utils.c $(SRCDIR)/utils.h \
-			$(SRCDIR)/attr.h $(SRCDIR)/err.h $(SRCDIR)/str.h \
-			$(BUILDDIR)/.sentinel
-	$(CC) -I . -c $(CFLAGS) -o $@ $<
+lib.a(tools/lib.o): tools/lib.c tools/lib.h defs.h lib.a(err.o) lib.a(str.o)
 
-$(BUILDDIR)/sucgi:	$(SRCDIR)/main.c config.h \
-			$(BUILDDIR)/env.o $(BUILDDIR)/err.o \
-			$(BUILDDIR)/file.o $(BUILDDIR)/path.o \
-			$(BUILDDIR)/str.o $(BUILDDIR)/utils.o \
-			$(BUILDDIR)/.sentinel
-	$(CC) -I . -DPACKAGE=$(PACKAGE) -DVERSION=$(VERSION) \
-	$(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/env.o $(BUILDDIR)/err.o $(BUILDDIR)/file.o \
-	$(BUILDDIR)/path.o $(BUILDDIR)/str.o $(BUILDDIR)/utils.o \
-	$(LDLIBS)
+lib.a:	lib.a(env.o)  lib.a(err.o)  lib.a(file.o) lib.a(gids.o) \
+	lib.a(path.o) lib.a(priv.o) lib.a(scpt.o) lib.a(str.o)
 
-$(BUILDDIR)/tests/env.o:	$(SRCDIR)/tests/env.c \
-				$(SRCDIR)/tests/env.h \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . -c $(CFLAGS) -o $@ $<
+.c:
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a $(LDLIBS)
 
-$(BUILDDIR)/tests/utils.o:	$(SRCDIR)/tests/utils.c \
-				$(SRCDIR)/tests/utils.h \
-				$(SRCDIR)/str.h \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . -c $(CFLAGS) -o $@ $<
+sucgi: sucgi.c config.h defs.h lib.a
 
-$(BUILDDIR)/tests/str.o:	$(SRCDIR)/tests/str.c \
-				$(SRCDIR)/str.h \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . -c $(CFLAGS) -o $@ $<
+tests/error: tests/error.c lib.a(err.o) 
 
-$(BUILDDIR)/tests/tools/evilenv:	$(SRCDIR)/tests/tools/evilenv.c \
-					$(BUILDDIR)/tests/utils.o \
-					$(BUILDDIR)/tests/tools/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-		$(BUILDDIR)/tests/utils.o \
-		$(LDLIBS)
+tests/env_clear: tests/env_clear.c $(check_env_objs)
 
-$(BUILDDIR)/tests/tools/runas:	$(SRCDIR)/tests/tools/runas.c \
-				$(BUILDDIR)/tests/utils.o \
-				$(BUILDDIR)/tests/str.o \
-				$(BUILDDIR)/str.o \
-				$(BUILDDIR)/tests/tools/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/tests/str.o $(BUILDDIR)/tests/utils.o \
-	$(BUILDDIR)/str.o \
-	$(LDLIBS)
+tests/env_file_openat: tests/env_file_openat.c $(check_env_objs)
 
-$(BUILDDIR)/tests/tools/unallocids:	$(SRCDIR)/tests/tools/unallocids.c \
-					$(BUILDDIR)/tests/utils.o \
-					$(BUILDDIR)/tests/tools/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/tests/utils.o \
-	$(LDLIBS)
+tests/env_get_fname: tests/env_get_fname.c $(check_env_objs)
 
-$(BUILDDIR)/tests/tools/username:	$(SRCDIR)/tests/tools/username.c \
-					$(BUILDDIR)/tests/utils.o \
-					$(BUILDDIR)/tests/tools/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/tests/str.o $(BUILDDIR)/tests/utils.o \
-	$(BUILDDIR)/str.o \
-	$(LDLIBS)
+tests/env_name_valid: tests/env_name_valid.c $(check_env_objs)
 
+tests/env_restore: tests/env_restore.c $(check_env_objs)
 
-$(BUILDDIR)/tests/drop_privs:	$(SRCDIR)/tests/drop_privs.c \
-				$(BUILDDIR)/tests/utils.o \
-				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
-				$(BUILDDIR)/utils.o \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/tests/utils.o \
-	$(BUILDDIR)/err.o $(BUILDDIR)/str.o $(BUILDDIR)/utils.o \
-	$(LDLIBS)
+tests/file_is_exec: tests/file_is_exec.c $(check_file_objs)
 
-$(BUILDDIR)/tests/fail:		$(SRCDIR)/tests/fail.c \
-				$(BUILDDIR)/err.o \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/err.o \
-	$(LDLIBS)
+tests/file_is_wexcl: tests/file_is_wexcl.c $(check_file_objs)
 
-$(BUILDDIR)/tests/env_clear:	$(SRCDIR)/tests/env_clear.c \
-				$(BUILDDIR)/tests/utils.o \
-				$(BUILDDIR)/env.o \
-				$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
-				$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/tests/utils.o \
-	$(BUILDDIR)/env.o $(BUILDDIR)/err.o $(BUILDDIR)/file.o \
-	$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
-	$(LDLIBS)
+tests/file_safe_open: tests/file_safe_open.c $(check_file_objs)
 
-$(BUILDDIR)/tests/env_get_fname:	$(SRCDIR)/tests/env_get_fname.c \
-					$(BUILDDIR)/tests/utils.o \
-					$(BUILDDIR)/env.o \
-					$(BUILDDIR)/err.o \
-					$(BUILDDIR)/file.o \
-					$(BUILDDIR)/path.o \
-					$(BUILDDIR)/str.o \
-					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/tests/utils.o \
-	$(BUILDDIR)/env.o $(BUILDDIR)/err.o $(BUILDDIR)/file.o \
-	$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
-	$(LDLIBS)
+tests/file_safe_stat: tests/file_safe_stat.c $(check_file_objs)
 
-$(BUILDDIR)/tests/env_sanitise:	$(SRCDIR)/tests/env_sanitise.c \
-				$(BUILDDIR)/tests/env.o \
-				$(BUILDDIR)/tests/str.o \
-				$(BUILDDIR)/tests/utils.o \
-				$(BUILDDIR)/env.o $(BUILDDIR)/err.o \
-				$(BUILDDIR)/file.o $(BUILDDIR)/path.o \
-				$(BUILDDIR)/str.o \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/tests/env.o $(BUILDDIR)/tests/str.o \
-	$(BUILDDIR)/tests/utils.o \
-	$(BUILDDIR)/env.o $(BUILDDIR)/err.o $(BUILDDIR)/file.o \
-	$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
-	$(LDLIBS)
+tests/gids_get_list: tests/gids_get_list.c $(check_gids_objs)
 
-$(BUILDDIR)/tests/file_is_exec:	$(SRCDIR)/tests/file_is_exec.c \
-				$(BUILDDIR)/tests/utils.o \
-				$(BUILDDIR)/file.o \
-				$(BUILDDIR)/str.o \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/tests/utils.o \
-	$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
-	$(LDLIBS)
+tests/path_contains: tests/path_contains.c $(check_path_objs) 
 
-$(BUILDDIR)/tests/file_is_wexcl:	$(SRCDIR)/tests/file_is_wexcl.c \
-					$(BUILDDIR)/tests/str.o \
-					$(BUILDDIR)/tests/utils.o \
-					$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
-					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/tests/str.o $(BUILDDIR)/tests/utils.o \
-	$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
-	$(LDLIBS)
+tests/path_check_wexcl:	tests/path_check_wexcl.c $(check_path_objs)
 
-$(BUILDDIR)/tests/file_safe_open:	$(SRCDIR)/tests/file_safe_open.c \
-					$(BUILDDIR)/tests/utils.o \
-					$(BUILDDIR)/file.o \
-					$(BUILDDIR)/str.o \
-					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/tests/utils.o \
-	$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
-	$(LDLIBS)
+tests/priv_drop: tests/priv_drop.c $(check_priv_objs) 
 
-$(BUILDDIR)/tests/file_safe_stat:	$(SRCDIR)/tests/file_safe_stat.c \
-					$(BUILDDIR)/tests/utils.o \
-					$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
-					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/tests/utils.o \
-	$(BUILDDIR)/file.o $(BUILDDIR)/str.o \
-	$(LDLIBS)
+tests/scpt_get_handler: tests/scpt_get_handler.c $(check_scpt_objs)
 
-$(BUILDDIR)/tests/path_check_len:	$(SRCDIR)/tests/path_check_len.c \
-					$(BUILDDIR)/tests/utils.o \
-					$(BUILDDIR)/file.o \
-					$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
-					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/tests/utils.o \
-	$(BUILDDIR)/file.o $(BUILDDIR)/path.o $(BUILDDIR)/str.o \
-	$(LDLIBS)
+tests/str_cp: tests/str_cp.c $(check_str_objs) 
 
-$(BUILDDIR)/tests/path_check_wexcl:	$(SRCDIR)/tests/path_check_wexcl.c \
-					$(BUILDDIR)/tests/str.o \
-					$(BUILDDIR)/tests/utils.o \
-					$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
-					$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
-					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/tests/str.o $(BUILDDIR)/tests/utils.o \
-	$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
-	$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
-	$(LDLIBS)
+tests/str_eq: tests/str_eq.c $(check_str_objs) 
 
-$(BUILDDIR)/tests/path_contains:	$(SRCDIR)/tests/path_contains.c \
-					$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
-					$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
-					$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
-	-o $@ $< \
-	$(BUILDDIR)/err.o $(BUILDDIR)/file.o \
-	$(BUILDDIR)/path.o $(BUILDDIR)/str.o \
-	$(LDLIBS)
+tests/str_matchv: tests/str_matchv.c $(check_str_objs) 
 
-$(BUILDDIR)/tests/reraise:	$(SRCDIR)/tests/reraise.c \
-				$(BUILDDIR)/err.o \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS)  \
-	-o $@ $< \
-	$(BUILDDIR)/err.o \
-	$(LDLIBS)
+tests/str_split: tests/str_split.c $(check_str_objs)
 
-$(BUILDDIR)/tests/run_script:	$(SRCDIR)/tests/run_script.c \
-				$(BUILDDIR)/tests/utils.o \
-				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
-				$(BUILDDIR)/utils.o \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/tests/utils.o \
-	$(BUILDDIR)/err.o $(BUILDDIR)/str.o $(BUILDDIR)/utils.o \
-	$(LDLIBS)
+tests/try: tests/try.c $(check_err_objs)
 
-$(BUILDDIR)/tests/str_cp:	$(SRCDIR)/tests/str_cp.c \
-				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
-	$(LDLIBS)
+tests/main: sucgi.c config.h defs.h lib.a
+	$(CC) -D TESTING=1 $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a $(LDLIBS)
 
-$(BUILDDIR)/tests/str_cpn:	$(SRCDIR)/tests/str_cpn.c \
-				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
-	$(LDLIBS)
+tools/evilenv: tools/evilenv.c lib.a(tools/lib.o)
 
-$(BUILDDIR)/tests/str_eq:	$(SRCDIR)/tests/str_eq.c \
-				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
-	$(LDLIBS)
+tools/runas: tools/runas.c lib.a(tools/lib.o)
 
-$(BUILDDIR)/tests/str_matchv:	$(SRCDIR)/tests/str_matchv.c \
-				$(BUILDDIR)/str.o \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/str.o \
-	$(LDLIBS)
+tools/unallocids: tools/unallocids.c lib.a(tools/lib.o)
 
-$(BUILDDIR)/tests/str_len:	$(SRCDIR)/tests/str_len.c \
-				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
-	$(LDLIBS)
-
-$(BUILDDIR)/tests/str_split:	$(SRCDIR)/tests/str_split.c \
-				$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
-				$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/err.o $(BUILDDIR)/str.o \
-	$(LDLIBS)
-
-$(BUILDDIR)/tests/main:	$(SRCDIR)/main.c \
-			$(BUILDDIR)/env.o $(BUILDDIR)/err.o \
-			$(BUILDDIR)/file.o $(BUILDDIR)/path.o \
-			$(BUILDDIR)/str.o $(BUILDDIR)/utils.o \
-			$(BUILDDIR)/tests/.sentinel
-	$(CC) -I . -D TESTING=1 -D PACKAGE=fake-$(PACKAGE) \
-	-D VERSION=$(VERSION) $(LDFLAGS) $(CFLAGS) -o $@ $< \
-	$(BUILDDIR)/env.o $(BUILDDIR)/err.o $(BUILDDIR)/file.o \
-	$(BUILDDIR)/path.o $(BUILDDIR)/str.o $(BUILDDIR)/utils.o \
-	$(LDLIBS)
-
-analysis: clean
-	cppcheck $(CPPCHECKFLAGS) --enable=all \
-		--addon=$(CPPCHECKDIR)/cert.py --addon=misra.py $(SRCDIR)
-	cppcheck $(CPPCHECKFLAGS) --enable=unusedFunction $(SRCDIR)/*.c
-	flawfinder --error-level=1 -m 0 -D -Q .
-	rats --resultsonly -w3 src
-	find $(SCRIPTDIR) -type f ! -name '*.py' | xargs shellcheck configure
-	! grep -nri fixme $(SRCDIR) $(SCRIPTDIR)
-
-check: $(CHECKBINS)
-	$(SCRIPTDIR)/check -t $(BUILDDIR)/tests $(CHECKS)
+tools/getlogname: tools/getlogname.c lib.a(tools/lib.o)
 
 clean:
-	rm -rf $(BUILDDIR) cov $(DISTNAME)
-	rm -f $(DISTAR) $(DISTAR).asc lcov.info
-	find . -type d -name 'tmp-*' -exec rm -rf '{}' +
+	find . '(' -name '*.o' \
+        -o -name '*.ctu-info' -o -name '*.dump' \
+        -o -name '*.gcda' -o -name '*.gcno' \
+        -o -name 'tmp-*' \
+       ')' -exec rm -rf '{}' +
+	rm -rf lib.a cov sucgi $(check_bins) $(dist_name) $(dist_name).*
 
-cov:
-	test -e cov || mkdir cov
-	cd cov && CC=$(CC) CFLAGS=--coverage ../configure -fq && make covgen
+analysis:
+	find * ! -name 'makefile*' -exec grep -nri fixme '{}' +
+	flawfinder --error-level=1 -m 0 -D -Q .
+	rats --resultsonly -w3 .
+	cppcheck $(cppchk_flags) --enable=all $(cppchk_addons) .
+	cppcheck $(cppchk_flags) --enable=unusedFunction *.c .
+	find * -type f -name '*.sh' -exec shellcheck configure '{}' +
 
-covpre: $(CHECKBINS)
-	chown -R $$($(SCRIPTDIR)/regularids) .
-	chmod -R u+rw,go+r .
-	find . -type d -exec chmod ug+s '{}' +
+check: $(check_bins)
+	tools/check.sh $(checks)
 
-covgen: covpre check
-	chmod -R u+rw,go+r .
+cov: clean
+	make CC=$(CC) CFLAGS=--coverage $(check_bins)
+	-tools/check.sh -s $(checks)
 
 lcov.info: cov
-	lcov -c -d cov -o lcov.info --exclude '*/tests/*'
+	lcov -c -d . -o lcov.info --exclude '*/tests/*' --exclude '*/tools/*'
 
-cov/html/index.html: lcov.info
-	test -e cov/html || mkdir cov/html
-	genhtml -o cov/html lcov.info
+cov/index.html: lcov.info
+	genhtml -o cov lcov.info
 
-covhtml: cov/html/index.html
+covhtml: cov/index.html
 
-dist: $(DISTAR) $(DISTAR).asc
-
-distcheck:
-	$(SCRIPTDIR)/distcheck $(DISTNAME)
+dist: $(dist_ar) $(dist_ar).asc
 
 distclean: clean
-	rm -f makefile config.h
+	rm -f config.h lcov.info makefile
 
-$(DISTAR): $(DISTFILES)
-	$(SCRIPTDIR)/dist -a $(DISTAR) $(DISTNAME) $(DISTFILES)
+distcheck: $(dist_ar)
+	tar -xzf $(dist_ar)
+	$(dist_name)/configure
+	cd $(dist_name) && make all check dist
+	rm -rf $(dist_ar)
 
-$(DISTAR).asc: $(DISTAR)
-	gpg -qab --batch --yes $(DISTAR)
+$(dist_ar): clean
+	mkdir $(dist_name)
+	cp -r $(dist_files) $(dist_name)
+	chmod -R u+rw,go= $(dist_name)
+	tar -czf $(dist_ar) $(dist_name)
+	rm -rf $(dist_name)
 
-install: $(BUILDDIR)/sucgi
-	$(SCRIPTDIR)/install -b $(BUILDDIR) -p "$(DESTDIR)$(PREFIX)" \
-		-c $(CGIBIN) -w $(WWWGRP)
+$(dist_ar).asc: $(dist_ar)
+	gpg -qab --batch --yes $(dist_ar)
+
+$(DESTDIR)/$(PREFIX)/libexec/sucgi: sucgi
+	cp sucgi $(DESTDIR)/$(PREFIX)/libexec
+	chown $(DESTDIR)/$(PREFIX)/libexec/sucgi root:$(WWW_GRP)
+	chmod u=rws,g=x,o= $(DESTDIR)/$(PREFIX)/libexec/sucgi
+
+$(CGI_BIN)/sucgi: $(DESTDIR)/$(PREFIX)/libexec/sucgi
+	ln -s $(DESTDIR)/$(PREFIX)/libexec/sucgi $(CGI_BIN)/sucgi
+
+install: $(DESTDIR)/$(PREFIX)/libexec/sucgi $(CGI_BIN)/sucgi
 
 uninstall:
-	rm -f $(CGIBIN)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
+	rm -f $(CGI_BIN)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
 
-.SILENT: analysis check clean cov covpre covgen \
-	dist distcheck distclean install
-
-.PHONY: all analysis check clean cov covhtml gcov lcov.info \
+.PHONY:	all analysis check clean cov covhtml \
 	dist distcheck distclean install uninstall
 
 .IGNORE: analysis
