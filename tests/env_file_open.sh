@@ -1,5 +1,5 @@
 #!/bin/sh
-# Test if env_file_openat only returns safe filenames.
+# Test if env_file_open only returns safe filenames.
 # shellcheck disable=1091,2015
 
 #
@@ -61,30 +61,30 @@ ln -s "$outside" "$in_to_out"
 #
 
 unset var
-checkerr 'env_file_openat: $var: unset or empty.' \
-	 env_file_openat / var
+checkerr 'env_file_open: $var: unset or empty.' \
+	 env_file_open / var
 
 var=
-checkerr 'env_file_openat: $var: unset or empty.' env_file_openat / var
+checkerr 'env_file_open: $var: unset or empty.' env_file_open / var
 
 var="/$long_str" \
-checkerr 'env_file_openat: $var: path too long.' env_file_openat / var
+checkerr 'env_file_open: $var: path too long.' env_file_open / var
 
 var="/$long_path" \
-checkerr 'env_file_openat: $var: path too long.' env_file_openat / var
+checkerr 'env_file_open: $var: path too long.' env_file_open / var
 
 var="/$long_name" \
-checkerr 'env_file_openat: $var: File name too long.' env_file_openat / var
+checkerr 'env_file_open: $var: File name too long.' env_file_open / var
 
 var="$outside" \
-checkerr "env_file_openat: \$var: not in $jail." env_file_openat "$jail" var
+checkerr "env_file_open: \$var: not in $jail." env_file_open "$jail" var
 
 var="$inside" \
-checkok "uid=$uid" env_file_openat / var
+checkok "uid=$uid" env_file_open / var
 
 var="$in_to_out" \
-checkerr "env_file_openat: \$var: not in $jail." env_file_openat "$jail" var
+checkerr "env_file_open: \$var: not in $jail." env_file_open "$jail" var
 
 var="$out_to_in" \
-checkok "uid=$uid" env_file_openat "$jail" var
+checkok "uid=$uid" env_file_open "$jail" var
 
