@@ -62,9 +62,9 @@ void die(const char *const message, ...);
  * Covert S to an ID and store its value in the variable pointed to by ID.
  *
  * Return code:
- *      SC_OK       Success.
- *      SC_ERR_CNV  S could not be converted.
- *      SC_ERR_SYS  System error. errno(2) should be set.
+ *      OK       Success.
+ *      ERR_CNV  S could not be converted.
+ *      ERR_SYS  System error. errno(2) should be set.
  */
 __attribute__((warn_unused_result))
 enum error str_to_id (const char *const s, id_t *id);
