@@ -129,7 +129,6 @@ uninstall
     Uninstall suCGI.
 
 
-
 .. _Clang: https://clang.llvm.org/
 
 .. _Cppcheck: https://cppcheck.sourceforge.io/
