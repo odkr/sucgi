@@ -21,32 +21,32 @@ struct tcase {
 /* Tests. */
 const struct tcase tests[] = {
 	/* Simple errors. */
-	{"file", NULL, SC_ERR_SCPT_NO_SFX},
-	{".", NULL, SC_ERR_SCPT_ONLY_SFX},
-	{".sh", NULL, SC_ERR_SCPT_ONLY_SFX},
-	{".py", NULL, SC_ERR_SCPT_ONLY_SFX},
-	{"file.null", NULL, SC_ERR_SCPT_NO_HDL},
-	{"file.empty", NULL, SC_ERR_SCPT_NO_HDL},
-	{"file.py", NULL, SC_ERR_SCPT_NO_HDL},
-	{"file.post", NULL, SC_ERR_SCPT_NO_HDL},
+	{"file", NULL, ERR_SCPT_NO_SFX},
+	{".", NULL, ERR_SCPT_ONLY_SFX},
+	{".sh", NULL, ERR_SCPT_ONLY_SFX},
+	{".py", NULL, ERR_SCPT_ONLY_SFX},
+	{"file.null", NULL, ERR_SCPT_NO_HDL},
+	{"file.empty", NULL, ERR_SCPT_NO_HDL},
+	{"file.py", NULL, ERR_SCPT_NO_HDL},
+	{"file.post", NULL, ERR_SCPT_NO_HDL},
 
 	/* Empty string shenanigans. */
-	{" ", NULL, SC_ERR_SCPT_NO_SFX},
-	{". ", NULL, SC_ERR_SCPT_ONLY_SFX},
-	{".sh ", NULL, SC_ERR_SCPT_ONLY_SFX},
-	{".py ",NULL, SC_ERR_SCPT_ONLY_SFX},
-	{" .null", NULL, SC_ERR_SCPT_NO_HDL},
-	{" .empty", NULL, SC_ERR_SCPT_NO_HDL},
-	{" .py", NULL, SC_ERR_SCPT_NO_HDL},
-	{" .post", NULL, SC_ERR_SCPT_NO_HDL},
-	{" . ", NULL, SC_ERR_SCPT_NO_HDL},
+	{" ", NULL, ERR_SCPT_NO_SFX},
+	{". ", NULL, ERR_SCPT_ONLY_SFX},
+	{".sh ", NULL, ERR_SCPT_ONLY_SFX},
+	{".py ",NULL, ERR_SCPT_ONLY_SFX},
+	{" .null", NULL, ERR_SCPT_NO_HDL},
+	{" .empty", NULL, ERR_SCPT_NO_HDL},
+	{" .py", NULL, ERR_SCPT_NO_HDL},
+	{" .post", NULL, ERR_SCPT_NO_HDL},
+	{" . ", NULL, ERR_SCPT_NO_HDL},
 
 	/* Simple test. */
-	{"file.sh", "sh", SC_OK},
-	{"file.", "dot", SC_OK},
+	{"file.sh", "sh", OK},
+	{"file.", "dot", OK},
 
 	/* Terminator. */
-	{NULL, NULL, SC_OK}
+	{NULL, NULL, OK}
 };
 
 /* Prefixes should make no difference. */

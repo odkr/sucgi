@@ -36,16 +36,12 @@
 
 
 /*
- * getgrouplist(3) is neither in POSIX.1-2008 nor in 4.4BSD, and its
- * implementations differ, so re-inventing the wheel seemed the most
+ * getgrouplist(3) is neither in POSIX.1-2008 nor 4.4BSD, and its
+ * implementations differ. So re-inventing the wheel seemed the most
  * straightforward course of action.
- * 
- * ==========================================================================
- * CAVEATS
- * --------------------------------------------------------------------------
- * The function signature and the semantics of gids_get_list
- * differ subtly from those of getgrouplist(3), if subtly.
- * --------------------------------------------------------------------------
+ *
+ * Note, the function signature and the semantics of gids_get_list
+ * differ from those of getgrouplist(3), if subtly.
  */
 enum error
 gids_get_list(const char *const logname, const gid_t gid,
@@ -77,8 +73,8 @@ gids_get_list(const char *const logname, const gid_t gid,
 	}
 	endgrent();
 
-	if (errno != 0) return SC_ERR_SYS;
-	if (*n > NGROUPS_MAX) return SC_ERR_GIDS_MAX;
-	return SC_OK;
+	if (errno != 0) return ERR_SYS;
+	if (*n > NGROUPS_MAX) return ERR_GIDS_MAX;
+	return OK;
 }
 

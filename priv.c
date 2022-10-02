@@ -41,12 +41,12 @@ enum error
 priv_drop(const uid_t uid, const gid_t gid,
           const int ngids, const gid_t gids[ngids])
 {
-	if (setgroups(ngids, gids) != 0) return SC_ERR_SYS;
-	if (setgid(gid) != 0) return SC_ERR_SYS;
-	if (setuid(uid) != 0) return SC_ERR_SYS;
-	if (setgroups(1, (gid_t [1]) {gid}) != -1) return SC_ERR_PRIV;
-	if (setgid(0) != -1) return SC_ERR_PRIV;
-	if (setuid(0) != -1) return SC_ERR_PRIV;
+	if (setgroups(ngids, gids) != 0) return ERR_SYS;
+	if (setgid(gid) != 0) return ERR_SYS;
+	if (setuid(uid) != 0) return ERR_SYS;
+	if (setgroups(1, (gid_t [1]) {gid}) != -1) return ERR_PRIV;
+	if (setgid(0) != -1) return ERR_PRIV;
+	if (setuid(0) != -1) return ERR_PRIV;
 
-	return SC_OK;
+	return OK;
 }

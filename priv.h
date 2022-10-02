@@ -34,9 +34,9 @@
  * is the number of group IDs in GIDS.
  *
  * Return code:
- *      SC_OK        Success.
- *      SC_ERR_PRIV  Privileges could be resumed.
- *      SC_ERR_SYS   System error. errno(2) should be set.
+ *      OK        Success.
+ *      ERR_PRIV  Privileges could be resumed.
+ *      ERR_SYS   System error. errno(2) should be set.
  */
 __attribute__((nonnull(4), warn_unused_result))
 enum error priv_drop(const uid_t uid, const gid_t gid,

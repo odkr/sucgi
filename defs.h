@@ -27,5 +27,8 @@
 #define __attribute__(attr)
 #endif
 
+/* Wrap CODE in `do { ... } while (0)`. */
+#define STMT(code) do { code } while (0)
+
 
 #endif /* !defined(DEFS_H) */

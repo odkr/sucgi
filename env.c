@@ -46,20 +46,20 @@
  */
 
 /* Characters allowed in environment variable names. */
-#define VAR_NAME_CHARS "ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789" \
-                       "abcdefghijklmnopqrstuvwxyz"
+#define ENV_VAR_CHARS "ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789" \
+                      "abcdefghijklmnopqrstuvwxyz"
 
 /*
  * Globals
  */
 
 /*
- * Environment variables to keep.
+ * Safe environment variables.
  *
  * Array of shell wildcard patterns. See fnmatch(3) for the syntax.
  * Variables are only kept if their name matches one of these patterns.
- * The array must be NULL-terminated. $PATH is always set to SECURE_PATH.
  * Patterns should be shorter than PATH_MAX bytes.
+ * The array must be NULL-terminated.
  *
  * The list below has been adopted from:
  *      - RFC 3876
@@ -73,9 +73,10 @@
  *      - the mod_ssl documentation
  *        <https://httpd.apache.org/docs/2.4/mod/mod_ssl.html>
  *
- * There should be no need for changes.
+ * The list must include DOCUMENT_ROOT and PATH_TRANSLATED. HOME, PATH, and
+ * USER_NAME are set, regardless of whether they appear in this list.
  */
-const char *const env_keep[] = {
+const char *const env_safe_vars[] = {
 	"AUTH_TYPE",
 	"CONTENT_LENGTH",
 	"CONTENT_TYPE",
@@ -193,31 +194,13 @@ const char *const env_keep[] = {
 	NULL	/* Array terminator. DO NOT REMOVE. */
 };
 
-/*
- * Environment variables to toss even if they match a pattern in env_keep.
- *
- * Array of shell wildcard patterns. See fnmatch(3) for the syntax.
- * Variables are thrown out if their name matches one of these patterns.
- * The array must be NULL-terminated. $PATH is always set to SECURE_PATH.
- * Patterns should be shorter than PATH_MAX bytes.
- *
- * The list below has been adopted from Apache's suEXEC.
- * There should be no need for changes.
- */
-const char *const env_toss[] = {
-	"IFS",
-	"HTTP_PROXY",
-	"PATH",
-	NULL	/* Array terminator. DO NOT REMOVE. */
-};
-
 
 /*
  * Functions
  */
 
 enum error
-env_clear(const char *(*const vars)[SC_ENV_MAX])
+env_clear(const char *(*const vars)[ENV_MAX])
 {
 	static char *var;	/* First environment variable. */
 	char **env;		/* Copy of the environ pointer. */
@@ -226,21 +209,18 @@ env_clear(const char *(*const vars)[SC_ENV_MAX])
 	env = environ;
 	environ = &var;
 
-	if (!vars) return SC_OK;
-	for (int n = 0; n < SC_ENV_MAX; n++) {
+	if (!vars) return OK;
+	for (int n = 0; n < ENV_MAX; n++) {
 		(*vars)[n] = env[n];
-		if (!env[n]) return SC_OK;
+		if (!env[n]) return OK;
 	}
 
-	return SC_ERR_ENV_MAX;
+	return ERR_ENV_MAX;
 }
 
-/* Note in docs: jail must be canonical, and fname may have been assigned a value;
- * this is useful for error messages, i.e., if it ain't realpath that fails,
- * then we know we are dealing with a canonical path. */
 enum error
-env_file_openat(const char *const jail, const char *const varname,
-                const int flags, const char **const fname, int *const fd)
+env_file_open(const char *const jail, const char *const varname,
+              const int flags, const char **const fname, int *const fd)
 {
 	const char *value;	/* Unchecked variable value. */
 
@@ -253,52 +233,28 @@ env_file_openat(const char *const jail, const char *const varname,
 
 	/* RATS: ignore; value is checked below. */
 	value = getenv(varname);
-	if (!value || *value == '\0') return SC_ERR_ENV_NIL; 
-	if (strnlen(value, STR_MAX) >= STR_MAX) return SC_ERR_ENV_LEN;
+	if (!value || *value == '\0') return ERR_ENV_NIL; 
+	if (strnlen(value, STR_MAX) >= STR_MAX) return ERR_ENV_LEN;
 	*fname = realpath(value, NULL);
-	if (!*fname) return SC_ERR_SYS;
-	if (strnlen(*fname, STR_MAX) >= STR_MAX) return SC_ERR_ENV_LEN;
-	if (!path_contains(jail, *fname)) return SC_ERR_ENV_MAL;
+	if (!*fname) return ERR_SYS;
+	if (strnlen(*fname, STR_MAX) >= STR_MAX) return ERR_ENV_LEN;
+	if (!path_contains(jail, *fname)) return ERR_ENV_MAL;
 	try(file_safe_open(*fname, flags, fd));
 
-	return SC_OK;
-}
-
-enum error
-env_get_fname(const char *name, const mode_t ftype,
-              const char **const fname, struct stat *const fstatus)
-{
-	const char *value;	/* Unchecked variable value. */
-
-	assert(name[0] != '\0');
-	assert(ftype != 0);
-
-	/* RATS: ignore; value is checked below. */
-	value = getenv(name);
-	if (!value || value[0] == '\0') return SC_ERR_ENV_NIL;
-	if (strnlen(value, STR_MAX) >= STR_MAX) return SC_ERR_ENV_LEN;
-	*fname = realpath(value, NULL);
-	if (!*fname) return SC_ERR_SYS;	
-	if (strnlen(*fname, STR_MAX) >= STR_MAX) return SC_ERR_ENV_LEN;
-	try(file_safe_stat(*fname, fstatus));
-	if ((fstatus->st_mode & S_IFMT) != ftype) return SC_ERR_FTYPE;
-
-	return SC_OK;
+	return OK;
 }
 
 bool
-env_name_valid(const char *const s)
+env_name_valid(const char *const name)
 {
 	/* Check if the name is the empty string or starts with a digit. */
-	if (*s == '\0' || isdigit(*s)) return false;
-	/* Check if first non-valid character is NUL. */
-	return (s[strspn(s, VAR_NAME_CHARS)] == '\0');
+	if (*name == '\0' || isdigit(*name)) return false;
+	/* Check if the first non-valid character is the terminating NUL. */
+	return (name[strspn(name, ENV_VAR_CHARS)] == '\0');
 }
 
 enum error
-env_restore(const char *vars[],
-            const char *const keep[],
-	    const char *const toss[])
+env_restore(const char *vars[], const char *const patterns[])
 {
 	assert(*vars);
 
@@ -309,18 +265,23 @@ env_restore(const char *vars[],
 		size_t len;		/* Variable length. */
 
 		len = strnlen(vars[i], STR_MAX);
-		if (len >= STR_MAX) return SC_ERR_ENV_LEN;
-		if (len == 0) return SC_ERR_ENV_MAL;
+		if (len >= STR_MAX) return ERR_ENV_LEN;
+		if (len == 0) return ERR_ENV_MAL;
 
 		try(str_split(vars[i], "=", &name, &value));
-		/* keep may contain wildcards, so name has to be checked. */
-		if (!env_name_valid(name)) return SC_ERR_ENV_MAL;
-		if (!value) return SC_ERR_ENV_MAL;
+		/* patv may contain wildcards, so name has to be checked. */
+		if (!env_name_valid(name)) return ERR_ENV_MAL;
+		if (!value) return ERR_ENV_MAL;
 
-		if (str_matchv(name, keep, 0) && !str_matchv(name, toss, 0)) {
-			if (setenv(name, value, true) != 0) return SC_ERR_SYS;
-		}
+        	for (int j = 0; patterns[j]; j++) {
+        		if (fnmatch(patterns[j], name, 0) == 0) {
+                                if (setenv(name, value, true) != 0) {
+                                        return ERR_SYS;
+                                }
+        		        break;
+        		}
+        	}
 	}
 
-	return SC_OK;
+	return OK;
 }

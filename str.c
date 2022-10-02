@@ -45,17 +45,8 @@ str_cp(const size_t n, const char *const src, char dest[n + 1])
 	len = (size_t) (end - dest);
 	dest[len] = '\0';
 
-	if (src[len] == '\0') return SC_OK;
-	return SC_ERR_STR_LEN;
-}
-
-bool
-str_matchv(const char *const s, const char *const patv[], const int flags)
-{
-	for (int i = 0; patv[i]; i++) {
-		if (fnmatch(patv[i], s, flags) == 0) return true;
-	}
-	return false;
+	if (src[len] == '\0') return OK;
+	return ERR_STR_LEN;
 }
 
 enum error
@@ -66,12 +57,12 @@ str_split(const char *const s, const char *const sep,
 	*tail = strpbrk(s, sep);
 	if (*tail) {
 		size_t len = (size_t) (*tail - s);
-		if (len >= STR_MAX) return SC_ERR_STR_LEN;
+		if (len >= STR_MAX) return ERR_STR_LEN;
 		(void) (str_cp(len, s, *head));
 		(*tail)++;
 	} else {
 		try(str_cp(STR_MAX - 1, s, *head));
 	}
 
-	return SC_OK;
+	return OK;
 }

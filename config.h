@@ -7,20 +7,33 @@
 #define CONFIG_H
 
 
-/* FIXME */
-#define DOC_ROOT_BASE "/home"
-
-
-#define DOC_ROOT_PATH "~/public_html"
+/*
+ * CGI scripts are only executed if they are inside this path.
+ *
+ * Should correspond to the UserDir directive of your Apache configuation
+ * (or the equivalent directive of the webserver you use); for example:
+ *
+ *     - UserDir public_html -> "/home"
+ *     - UserDir /srv/web -> "/srv/web"
+ */
+#define JAIL "/home"
 
 /*
- * CGI scripts are only executed if they are inside a directory matching
- * this shell wildcard pattern. See fnmatch(3) for the sytax. '*' matches
- * neither ('/') nor leading dots ('.'). Should correspond to the UserDir FIXME
- * directive of your Apache configuration (or its equivalent).
+ * The document root of user websites.
+ *
+ * Must match the UserDir directive of your Apache configuration
+ * (or the equivalent directive of the webserver you use).
+ *
+ * Supports tilde and variable expansion. See wordexp(3) for details.
+ *
+ * For example:
+ *
+ *     - UserDir public_html -> "~/public_html"
+ *     - UserDir /srv/web -> "/srv/web/$USER_NAME"
+ *
  */
+#define DOC_ROOT "~/public_html"
 
-#define DOC_ROOT_PATTERN "~/public_html"
 /*
  * Smallest UID that may have been assigned to a regular user.
  * On most systems, this will be 500 (e.g., macOS) or 1,000 (e.g, Debian).
@@ -48,20 +61,21 @@
 
 /*
  * Handlers to run CGI scripts with if their executable is NOT set.
- * Array of filename suffix-handler pairs. The filename suffix must
- * be given including the leading dot (e.g., ".php"). The handler is
- * looked up in $PATH if its filename is relative (e.g., "php");
- * keep in mind that $PATH is overriden with SECURE_PATH (see below).
+ * Array of filename suffix-handler pairs.
+ * 
+ * The filename suffix must be given including the leading dot (e.g., ".php").
+ * The handler is looked up in $PATH if its name is relative (e.g., "php");
+ * but keep in mind that $PATH is overriden with PATH (see below).
+ *
  * The array must be terminated with a pair of NULLs.
  */
-#define SCRIPT_HANDLERS	{					\
+#define HANDLERS	{					\
 	{".php", "php"},					\
 	{NULL, NULL}	/* Array terminator. DO NOT REMOVE. */	\
 }
 
 /* Secure $PATH. */
-#define SECURE_PATH "/usr/bin:/bin"
-
+#define PATH "/usr/bin:/bin"
 
 /* 
  * Secure file permission mask.

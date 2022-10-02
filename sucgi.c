@@ -1,5 +1,5 @@
 /*
- * Run CGI programmes under the UID and GID of their owner.
+ * Run CGI scripts with the permissions of their owner.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -55,11 +55,11 @@
 
 #if !defined(NDEBUG) && defined(TESTING) && TESTING
 
-#undef DOC_ROOT_FLAGS
-#define DOC_ROOT_FLAGS FNM_PERIOD
+#undef JAIL
+#define JAIL "/"
 
-#undef DOC_ROOT_PATTERN
-#define DOC_ROOT_PATTERN "/*/*"
+#undef DOC_ROOT
+#define DOC_ROOT "$DOCUMENT_ROOT"
 
 #undef MIN_UID
 #define MIN_UID 500U
@@ -73,8 +73,8 @@
 #undef MAX_GID
 #define MAX_GID 30000U
 
-#undef SCRIPT_HANDLERS
-#define SCRIPT_HANDLERS {{".sh", "sh"}, {NULL, NULL}}
+#undef HANDLERS
+#define HANDLERS {{".sh", "sh"}, {NULL, NULL}}
 
 #endif /* !defined(NDEBUG) && defined(TESTING) && TESTING */
 
@@ -83,17 +83,13 @@
  * Configuration
  */
 
-#if !defined DOC_ROOT_FLAGS
-#define DOC_ROOT_FLAGS (FNM_PATHNAME | FNM_PERIOD)
-#endif
+#if !defined(JAIL)
+#error JAIL has not been set.
+#endif /* !defined(JAIL) */
 
-#if !defined(DOC_ROOT_BASE)
-#error DOC_ROOT_BASE has not been set.
-#endif /* !defined(DOC_ROOT_BASE) */
-
-#if !defined(DOC_ROOT_PATTERN)
-#error DOC_ROOT_PATTERN has not been set.
-#endif /* !defined(DOC_ROOT_PATTERN) */
+#if !defined(DOC_ROOT)
+#error DOC_ROOT has not been set.
+#endif /* !defined(DOC_ROOT) */
 
 #if MIN_UID <= 0 
 #error MIN_UID must be greater than 0.
@@ -111,12 +107,12 @@
 #error MAX_GID is smaller than MIN_GID.
 #endif /* MAX_GID <= MIN_GID */
 
-#if !defined(SECURE_PATH)
-#error SECURE_PATH has not been set.
+#if !defined(PATH)
+#error PATH has not been set.
 #endif
 
-#if !defined(SCRIPT_HANDLERS)
-#error SCRIPT_HANDLERS has not been set.
+#if !defined(HANDLERS)
+#error HANDLERS has not been set.
 #endif
 
 
@@ -128,6 +124,7 @@ int
 main(void) {
 	errno = 0;
 
+
 	/*
 	 * Words of wisdom from the authors of suEXEC:
 	 *
@@ -136,14 +133,14 @@ main(void) {
 	 * > info. Bad news if MALLOC_DEBUG_FILE is set to /etc/passwd.)
 	 */
 
-	const char *vars[SC_ENV_MAX];	/* Backup of environ(2). */
+	const char *vars[ENV_MAX];	/* Backup of environ(2). */
 	enum error rc;			/* Return code. */
 
 	rc = env_clear(&vars);
 	switch (rc) {
-		case SC_OK:
+		case OK:
 			break;
-		case SC_ERR_ENV_MAX:
+		case ERR_ENV_MAX:
 			error("too many environment variables.");
 		default:
 			error("%s:%d: env_clear returned %u.",
@@ -180,15 +177,15 @@ main(void) {
 	 * Restore the environment variables needed by CGI scripts.
 	 */
 
-	rc = env_restore(vars, env_keep, env_toss);
+	rc = env_restore(vars, env_safe_vars);
 	switch (rc) {
-		case SC_OK:
+		case OK:
 			break;
-		case SC_ERR_SYS:
+		case ERR_SYS:
 			error("setenv: %s.", strerror(errno));
-		case SC_ERR_ENV_MAL:
+		case ERR_ENV_MAL:
 			error("an environment variable is malformed.");
-		case SC_ERR_ENV_LEN:
+		case ERR_ENV_LEN:
 			error("an environment variable is too long.");
 		default:
 			error("%s:%d: env_restore returned %u.",
@@ -200,129 +197,74 @@ main(void) {
 	 * Check whether $DOCUMENT_ROOT makes sense.
 	 */
 
-	const char *doc_root;		/* $DOCUMENT_ROOT itself. */
-	const char *doc_root_base;	/* $DOCUMENT_ROOT base directory. */
-	int doc_root_fd;		/* $DOCUMENT_ROOT file descriptor. */
+	const char *doc_root;		/* $DOCUMENT_ROOT. */
+	const char *doc_base;		/* Base directory. */
+	int doc_fd;			/* File descriptor. */
 
-	doc_root_base = realpath(DOC_ROOT_BASE, NULL);
-	if (!doc_root_base) {
-		error("realpath %s: %s.", DOC_ROOT_BASE, strerror(errno));
+	doc_base = realpath(JAIL, NULL);
+	if (!doc_base) {
+		error("realpath %s: %s.", JAIL, strerror(errno));
 	}
 
-	assert(doc_root_base);
-	assert(*doc_root_base != '\0');
-	assert(strcmp(realpath(doc_root_base, NULL), doc_root_base) == 0);
+	assert(doc_base);
+	assert(*doc_base != '\0');
+	assert(strcmp(realpath(doc_base, NULL), doc_base) == 0);
 
-	rc = env_file_openat(doc_root_base, "DOCUMENT_ROOT",
-	                     O_RDONLY | O_CLOEXEC | O_DIRECTORY,
-			     &doc_root, &doc_root_fd);
+	rc = env_file_open(doc_base, "DOCUMENT_ROOT",
+	                   O_RDONLY | O_CLOEXEC | O_DIRECTORY,
+			   &doc_root, &doc_fd);
 
 	switch (rc) {
-		case SC_OK:
+		case OK:
 			break;
-		case SC_ERR_SYS:
+		case ERR_SYS:
 			error("$DOCUMENT_ROOT: %s.", strerror(errno));
-		case SC_ERR_ENV_LEN:
-			error("$DOCUMENT_ROOT: path is too long.");
-		case SC_ERR_ENV_MAL:
-			error("$DOCUMENT_ROOT: not in %s.", DOC_ROOT_BASE);
-		case SC_ERR_ENV_NIL:
+		case ERR_ENV_LEN:
+			error("$DOCUMENT_ROOT: path too long.");
+		case ERR_ENV_MAL:
+			error("$DOCUMENT_ROOT: not within %s.", JAIL);
+		case ERR_ENV_NIL:
 			error("$DOCUMENT_ROOT: unset or empty.");
 		default:
-			error("%s:%d: env_file_openat returned %u.",
+			error("%s:%d: env_file_open returned %u.",
 			      __FILE__, __LINE__ - 17, rc);
 	}
 
-	if (close(doc_root_fd) != 0) {
+	if (close(doc_fd) != 0) {
 		error("close $DOCUMENT_ROOT: %s.", strerror(errno));
 	}
 
-#if 0
-	rc = env_get_fname("DOCUMENT_ROOT", S_IFDIR,
-	                   &doc_root, &doc_root_stat);
-
-	switch (rc) {
-		case SC_OK:
-			break;
-		case SC_ERR_SYS:
-			error("$DOCUMENT_ROOT: %s.", strerror(errno));
-		case SC_ERR_FTYPE:
-			error("$DOCUMENT_ROOT: not a directory.");
-		case SC_ERR_ENV_LEN:
-			error("$DOCUMENT_ROOT: resolved path is too long.");
-		case SC_ERR_ENV_NIL:
-			error("$DOCUMENT_ROOT: unset or empty.");
-		default:
-			error("%s:%d: env_get_fname returned %u.",
-			      __FILE__, __LINE__ - 14, rc);
-	}
-#endif
 	assert(doc_root);
 	assert(*doc_root != '\0');
-	assert(doc_root_fd > -1);
+	assert(doc_fd > -1);
 	assert(strnlen(doc_root, STR_MAX) < STR_MAX);
 	assert(strncmp(realpath(doc_root, NULL), doc_root, STR_MAX) == 0);
 
-#if 0
-	/*
-	 * TODO: we check later whether the doc root is within $HOME.
-	 * if we checked that the doc root matches "~/<doc_root>",
-	 * say public_html, then this would be as good, and simpler
-	 * to set up.
-	 */
-
-	if (fnmatch((const char *) DOC_ROOT_PATTERN, doc_root,
-	            DOC_ROOT_FLAGS) != 0)
-	{
-		error("$DOCUMENT_ROOT: does not match %s.",
-		      (const char *) DOC_ROOT_PATTERN);
-	}
-#endif
 
 	/*
 	 * Check if $PATH_TRANSLATED makes sense.
 	 */
-#if 0
-	rc = env_get_fname("PATH_TRANSLATED", S_IFREG,
-	                   &path_trans, &path_stat);
-	switch (rc) {
-		case SC_OK:
-			break;
-		case SC_ERR_SYS:
-			error("$PATH_TRANSLATED: %s.", strerror(errno));
-		case SC_ERR_FTYPE:
-			error("$PATH_TRANSLATED: not a regular file.");
-		case SC_ERR_STR_LEN:
-			error("$PATH_TRANSLATED: resolved path is too long.");
-		case SC_ERR_ENV_NIL:
-			error("$PATH_TRANSLATED: unset or empty.");
-		default:
-			error("%s:%d: env_get_fname returned %u.",
-			      __FILE__, __LINE__ - 20, rc);
-	}
-#endif
 
 	const char *path_trans;		/* $PATH_TRANSLATED. */
-	int path_fd;			/* $PATH_TRANSLATED file descriptor. */
-	struct stat path_stat;		/* $PATH_TRANSLATED metadata. */
+	struct stat path_stat;		/* Filesystem metadata. */
+	int path_fd;			/* File descriptor. */
 
-	rc = env_file_openat(doc_root, "PATH_TRANSLATED",
-	                     O_RDONLY | O_CLOEXEC,
-			     &path_trans, &path_fd);
+	rc = env_file_open(doc_root, "PATH_TRANSLATED", O_RDONLY | O_CLOEXEC,
+			   &path_trans, &path_fd);
 
 	switch (rc) {
-		case SC_OK:
+		case OK:
 			break;
-		case SC_ERR_SYS:
+		case ERR_SYS:
 			error("$PATH_TRANSLATED: %s.", strerror(errno));
-		case SC_ERR_ENV_LEN:
-			error("$PATH_TRANSLATED: path is too long.");
-		case SC_ERR_ENV_MAL:
-			error("$PATH_TRANSLATED: not in $DOCUMENT_ROOT.");
-		case SC_ERR_ENV_NIL:
+		case ERR_ENV_LEN:
+			error("$PATH_TRANSLATED: path too long.");
+		case ERR_ENV_MAL:
+			error("$PATH_TRANSLATED: not within $DOCUMENT_ROOT.");
+		case ERR_ENV_NIL:
 			error("$PATH_TRANSLATED: unset or empty.");
 		default:
-			error("%s:%d: env_file_openat returned %u.",
+			error("%s:%d: env_file_open returned %u.",
 			      __FILE__, __LINE__ - 17, rc);
 	}
 
@@ -338,19 +280,14 @@ main(void) {
 		error("$PATH_TRANSLATED: not a regular file.");
 	}
 
-#if 0
-	if (!path_contains(doc_root, path_trans)) {
-		error("$PATH_TRANSLATED: not in document root %s.", doc_root);
-	}
-#endif
 
 	/*
 	 * Check if $PATH_TRANSLATED is owned by a regular user.
 	 */
 
 	struct passwd *owner;		/* $PATH_TRANSLATED's owner. */
-	gid_t owner_gids[NGROUPS_MAX];	/* Groups the owner is in. */
-	int owner_ngids;		/* Number of those groups. */
+	gid_t gids[NGROUPS_MAX];	/* Groups they are a member of. */
+	int ngids;			/* Number of those groups. */
 
 	if (path_stat.st_uid < MIN_UID || path_stat.st_uid > MAX_UID) {
 		error("%s: owned by privileged UID %llu.",
@@ -359,8 +296,8 @@ main(void) {
 
 	owner = getpwuid(path_stat.st_uid);
 	if (!owner) {
-		char *err = (errno == 0) ? "no such user" : strerror(errno);
-		error("getpwuid %llu: %s.", (uint64_t) path_stat.st_uid, err);
+		error("getpwuid %llu: %s.", (uint64_t) path_stat.st_uid, 
+		      errno == 0 ? "no such user" : strerror(errno));
 	}
 
 	/* Paranoia is a virtue. */
@@ -369,25 +306,24 @@ main(void) {
 		      (uint64_t) path_stat.st_uid, owner->pw_name);
 	}
 
-	rc = gids_get_list(owner->pw_name, owner->pw_gid,
-	                   &owner_gids, &owner_ngids);
+	rc = gids_get_list(owner->pw_name, owner->pw_gid, &gids, &ngids);
 	switch (rc) {
-		case SC_OK:
+		case OK:
 			break;
-		case SC_ERR_SYS:
+		case ERR_SYS:
 			error("getgrent: %s.", strerror(errno));
-		case SC_ERR_GIDS_MAX:
+		case ERR_GIDS_MAX:
 			error("%s: in too many groups.", owner->pw_name);
 		default:
 			error("%s:%d: gids_get_list returned %u.",
 			      __FILE__, __LINE__ - 11, rc);
 	}
 
-	assert(owner_ngids > 0);
+	assert(ngids > 0);
 
-	for (int i = 0; i < owner_ngids; i++) {
-		const gid_t gid = owner_gids[i];
-		
+	for (int i = 0; i < ngids; i++) {
+		const gid_t gid = gids[i];
+
 		if (gid < MIN_GID || gid > MAX_GID) {
 			error("%s: member of privileged group %llu.",
 			      owner->pw_name, (uint64_t) gid);
@@ -401,14 +337,13 @@ main(void) {
 
 	if (seteuid(0) != 0) error("seteuid 0: %s.", strerror(errno));
 
-	rc = priv_drop(owner->pw_uid, owner->pw_gid, owner_ngids, owner_gids);
+	rc = priv_drop(owner->pw_uid, owner->pw_gid, ngids, gids);
 	switch (rc) {
-		case SC_OK:
+		case OK:
 			break;
-		case SC_ERR_SYS:
-			error("failed to drop privileges: %s.",
-			      strerror(errno));
-		case SC_ERR_PRIV:
+		case ERR_SYS:
+			error("drop privileges: %s.", strerror(errno));
+		case ERR_PRIV:
 			error("could resume privileges.");
 		default:
 			error("%s:%d: priv_drop returned %u.",
@@ -422,102 +357,6 @@ main(void) {
 
 
 	/*
-	 * Guard against system operators making a mistake like:
-	 *
-	 *	cd /home/ismith/public_html/wp-plugins
-	 *	cp -a /home/doe/public_html/wp-plugins/acme ./acme
-	 *	chown -R jsmith:jsmith acme
-	 *
-	 * Also a second line of defence against users
-	 * attempting to break out of their home directory.
-	 */
-
-	if (!path_contains(owner->pw_dir, doc_root)) {
-		error("$DOCUMENT_ROOT: not in %s.", owner->pw_dir);
-	}
-
-
-	/*
-	 * FIXME: Factor out and add documentation.
-	 */
-
-	wordexp_t doc_root_exp;		/* Expected $DOCUMENT_ROOT. */
-	int wordexp_rc;			/* wordexp return code. */
-
-	wordexp_rc = wordexp((const char *) {DOC_ROOT_PATH},
-	                     &doc_root_exp, WRDE_NOCMD | WRDE_UNDEF);
-	switch (wordexp_rc) {
-		case 0:
-			break;
-		default:
-			error("%s:%d: wordexp returned %d.",
-			      __FILE__, __LINE__ - 7, wordexp_rc);
-	}
-
-	if (doc_root_exp.we_wordc < 1) {
-		error("FIXME!");
-	}	
-	if (strcmp(doc_root_exp.we_wordv[0], doc_root) != 0) {
-		error("FIXME!");
-	}
-
-
-	/*
-	 * There should be no need to run a hidden file or a file that resides
-	 * in a hidden directory. So if $PATH_TRANSLATED does contain a hidden
-	 * file or directory, this probably indicates a configuration error.
-	 */
-
-	/* path_trans is guaranteed to be canonical. */
-	if (strstr(path_trans, "/.")) {
-		error("%s: path contains hidden files.", path_trans);
-	}
-
-
-	/*
-	 * Although the set-user-ID and the set-group-ID on execute bits
-	 * should be harmless, it would be odd for them to be set for a
-	 * file that is owned by a regular user, So if either of them is
-	 * set, this probably indicates a configuration error.
-	 */
-
-	if (path_stat.st_mode & S_ISUID) {
-		error("%s: set-user-ID on execute bit set.", path_trans);
-	}
-	if (path_stat.st_mode & S_ISGID) {
-		error("%s: set-group-ID on execute bit set.", path_trans);
-	}
-
-
-	/*
-	 * If the webserver is (mis-)configured to allow visitors to change
-	 * user files and a user (accidentally) set the permissions of a
-	 * web-accessible script to be writable by the webserver or even
-	 * the world, then visitors can run arbitrary code as that user.
-	 *
-	 * Also ensures that the document root and the CGI scripts are
-	 * both owned by the same UID, namely, owner->pw_uid.
-	 */
-
-	char path_cur[STR_MAX];		/* Sub-path of $PATH_TRANSLATED. */
-
-	rc = path_check_wexcl(owner->pw_uid, owner->pw_dir,
-	                      path_trans, &path_cur);
-	switch (rc) {
-		case SC_OK:
-			break;
-		case SC_ERR_SYS:
-			error("open %s: %s.", path_cur, strerror(errno));
-		case SC_ERR_PATH_WEXCL:
-		        error("%s: writable by users other than %s.",
-			      path_cur, owner->pw_name);
-		default:
-			error("%s:%d: path_check_wexcl returned %u.",
-			      __FILE__, __LINE__ - 11, rc);
-	}
-
-
-	/*
 	 * Set up a safer environment.
 	 */
 
@@ -525,7 +364,11 @@ main(void) {
 		error("setenv DOCUMENT_ROOT: %s.", strerror(errno));
 	}
 
-	if (setenv("PATH", (const char *const) SECURE_PATH, true) != 0) {
+	if (setenv("HOME", owner->pw_dir, true) != 0) {
+		error("setenv HOME: %s.", strerror(errno));
+	}
+
+	if (setenv("PATH", PATH, true) != 0) {
 		error("setenv PATH: %s.", strerror(errno));
 	}
 
@@ -545,6 +388,114 @@ main(void) {
 
 
 	/*
+	 * Guard against system operators making a mistake like:
+	 *
+	 *	cd /home/ismith/public_html/wp-plugins
+	 *	cp -a /home/doe/public_html/wp-plugins/acme ./acme
+	 *	chown -R jsmith:jsmith acme
+	 *
+	 * Also a second line of defence against a user
+	 * breaking out of their home directory.
+	 */
+
+	if (!path_contains(owner->pw_dir, doc_root)) {
+		error("$DOCUMENT_ROOT: not in %s.", owner->pw_dir);
+	}
+
+
+	/*
+	 * Verify $DOCUMENT_ROOT.
+	 * FIXME: Not unit-tested.
+	 */
+
+	wordexp_t doc_exp;		/* Expected $DOCUMENT_ROOT. */
+	int wordexp_rc;			/* wordexp return code. */
+
+	wordexp_rc = wordexp((const char *) {DOC_ROOT},
+	                     &doc_exp, WRDE_NOCMD | WRDE_UNDEF);
+
+	switch (wordexp_rc) {
+		case 0:
+			break;
+		case WRDE_BADCHAR:
+			error("%s: unquoted meta-character.", DOC_ROOT);
+		case WRDE_BADVAL:
+			error("%s: refers to undefined variable.", DOC_ROOT);
+		case WRDE_CMDSUB:
+      			error("%s: command substitution.", DOC_ROOT);
+		case WRDE_NOSPACE:
+			error("%s: not enough memory to expand.", DOC_ROOT);
+		case WRDE_SYNTAX:
+			error("%s: syntax error.", DOC_ROOT);
+		default:
+			error("%s:%d: wordexp returned %d.",
+			      __FILE__, __LINE__ - 8, wordexp_rc);
+	}
+
+	if (doc_exp.we_wordc < 1) {
+		error("%s: failed to shell-expand.", DOC_ROOT);
+	}	
+	if (strcmp(doc_exp.we_wordv[0], doc_root) != 0) {
+		error("$DOCUMENT_ROOT: not %s.", doc_exp.we_wordv[0]);
+	}
+
+
+	/*
+	 * There should be no need to run hidden files or a files that reside
+	 * in hidden directories. So if $PATH_TRANSLATED does contain a hidden
+	 * file or directory, this probably indicates a configuration error.
+	 */
+
+	/* path_trans is guaranteed to be canonical. */
+	if (strstr(path_trans, "/.")) {
+		error("%s: path contains hidden files.", path_trans);
+	}
+
+
+	/*
+	 * Although the set-user-ID and the set-group-ID on execute bits
+	 * should be harmless, it would be odd for them to be set for a
+	 * file that is owned by a regular user. So if either of them is
+	 * set, this probably indicates a configuration error.
+	 */
+
+	if (path_stat.st_mode & S_ISUID) {
+		error("%s: set-user-ID on execute bit set.", path_trans);
+	}
+	if (path_stat.st_mode & S_ISGID) {
+		error("%s: set-group-ID on execute bit set.", path_trans);
+	}
+
+
+	/*
+	 * If the webserver is (mis-)configured to allow visitors to change
+	 * user files and a user (accidentally) set the permissions of a
+	 * web-accessible script to be writable by the webserver or even
+	 * the world, then visitors can run arbitrary code as that user.
+	 *
+	 * Also ensures that the document root and the CGI scripts are
+	 * owned by the same UID, namely, owner->pw_uid.
+	 */
+
+	char path_cur[STR_MAX];		/* Sub-path of $PATH_TRANSLATED. */
+
+	rc = path_check_wexcl(owner->pw_uid, owner->pw_dir,
+	                      path_trans, &path_cur);
+	switch (rc) {
+		case OK:
+			break;
+		case ERR_SYS:
+			error("open %s: %s.", path_cur, strerror(errno));
+		case ERR_PATH_WEXCL:
+		        error("%s: writable by users other than %s.",
+			      path_cur, owner->pw_name);
+		default:
+			error("%s:%d: path_check_wexcl returned %u.",
+			      __FILE__, __LINE__ - 11, rc);
+	}
+
+
+	/*
 	 * Run the programme.
 	 */
 
@@ -558,21 +509,18 @@ main(void) {
 		error("exec %s: %s.", path_trans, strerror(errno));
 	}
 
-	rc = scpt_get_handler((const struct scpt_ent []) SCRIPT_HANDLERS,
+	rc = scpt_get_handler((const struct scpt_ent []) HANDLERS,
 	                      path_trans, &path_handler);
 	switch (rc) {
-		case SC_OK:
+		case OK:
 			break;
-		case SC_ERR_SCPT_NO_HDL:
+		case ERR_SCPT_NO_HDL:
 			error("%s: no handler registered.", path_trans);
-		/* FIXME: This should be impossible and not be checked for. */
-		case SC_ERR_SCPT_ONLY_SFX:
-			error("%s: filename starts with a dot.", path_trans);
-		case SC_ERR_SCPT_NO_SFX:
+		case ERR_SCPT_NO_SFX:
 			error("%s: has no filename suffix.", path_trans);
 		default:
 			error("%s:%d: scpt_get_handler returned %u.",
-			      __FILE__, __LINE__ - 10, rc);
+			      __FILE__, __LINE__ - 7, rc);
 	}
 
 	assert(path_handler);

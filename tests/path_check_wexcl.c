@@ -24,7 +24,7 @@ main (int argc, char **argv)
 
 	if (argc != 4) {
 		die("usage: path_check_wexcl UID SUPER SUB");
-	} else if (str_to_id(argv[1], &uid) != SC_OK) {
+	} else if (str_to_id(argv[1], &uid) != OK) {
 		die("path_check_wexcl: could not parse UID.");
 	}
 	
@@ -33,11 +33,11 @@ main (int argc, char **argv)
 
 	rc = path_check_wexcl(uid, parent, fname, &cur);
 	switch (rc) {
-		case SC_OK:
+		case OK:
 			break;
-		case SC_ERR_SYS:
+		case ERR_SYS:
 			croak("open %s: %s.", cur, strerror(errno));
-		case SC_ERR_PATH_WEXCL:
+		case ERR_PATH_WEXCL:
 		        croak("%s: writable by UIDs other than %llu.",
 			      cur, (uint64_t) uid);
 		default:

@@ -31,12 +31,8 @@
  * Macros
  */
 
-/* Return with RC from the current function unless RC equals SC_OK. */
-#define try(rc) 					\
-	do {						\
-		enum error _try_rc = (rc);		\
-		if (_try_rc != SC_OK) return _try_rc;	\
-	} while (0)
+/* Return with RC from the current function unless RC equals OK. */
+#define try(rc) STMT( enum error _try = (rc); if (_try != OK) return _try; )
 
 
 /*
@@ -44,22 +40,22 @@
  */
 
 enum error {
-	SC_OK = 0,		/* Success. */
-	SC_ERR_SYS,		/* System error. errno should be set. */
-	SC_ERR_CNV,		/* Value could not be converted. */
-	SC_ERR_FTYPE,		/* Filetype is wrong. */
-	SC_ERR_GIDS_MAX,	/* User belongs to too many groups. */
-	SC_ERR_PATH_OUT,	/* A file is outside of a given path. */
-	SC_ERR_PATH_WEXCL,	/* Path not exclusively writable by user. */
-	SC_ERR_PRIV,		/* Privileges could be resumed. */
-	SC_ERR_SCPT_NO_HDL,	/* No script handler registered. */
-	SC_ERR_SCPT_NO_SFX,	/* Filename has no suffix. */
-	SC_ERR_SCPT_ONLY_SFX,	/* Filename starts with a dot. */
-	SC_ERR_STR_LEN,		/* String is too long. */
-	SC_ERR_ENV_LEN,		/* Too long environment variable. */
-	SC_ERR_ENV_MAL,		/* Malformed environment variable. */
-	SC_ERR_ENV_MAX,		/* Too many environment variables. */
-	SC_ERR_ENV_NIL		/* Unset or empty environment variable. */
+	OK = 0,		        /* Success. */
+	ERR_SYS,		/* System error. errno should be set. */
+	ERR_CNV,		/* Value could not be converted. */
+	ERR_FTYPE,		/* Filetype is wrong. */
+	ERR_GIDS_MAX,	        /* User belongs to too many groups. */
+	ERR_PATH_OUT,	        /* A file is outside of a given path. */
+	ERR_PATH_WEXCL,	        /* Path not exclusively writable by user. */
+	ERR_PRIV,		/* Privileges could be resumed. */
+	ERR_SCPT_NO_HDL,	/* No script handler registered. */
+	ERR_SCPT_NO_SFX,	/* Filename has no suffix. */
+	ERR_SCPT_ONLY_SFX,	/* Filename starts with a dot. */
+	ERR_STR_LEN,		/* String is too long. */
+	ERR_ENV_LEN,		/* Too long environment variable. */
+	ERR_ENV_MAL,		/* Malformed environment variable. */
+	ERR_ENV_MAX,		/* Too many environment variables. */
+	ERR_ENV_NIL		/* Unset or empty environment variable. */
 };
 
 

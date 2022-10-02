@@ -26,20 +26,19 @@
 
 
 /*
- * Fetch the groups that the user named LOGNAME is a member of and store
+ * Fetch all groups that the user named LOGNAME is a member of and store
  * BASEGID as well the IDs of those groups in GIDS and the total number
  * of group IDs, including BASEGID, in N. GIDS must be large enough to
  * hold NGROUPS_MAX entries.
  *
  * Return code:
- *      SC_OK            Success.
- *      SC_ERR_GIDS_MAX  LOGNAME belongs to more than NGROUPS_MAX groups.
- *      SC_ERR_SYS       getgrent failed. errno(2) should be set.
+ *      OK            Success.
+ *      ERR_GIDS_MAX  LOGNAME belongs to more than NGROUPS_MAX groups.
+ *      ERR_SYS       getgrent failed. errno(2) should be set.
  */
 __attribute__((nonnull(3, 4), warn_unused_result))
-enum error
-gids_get_list(const char *const logname, const gid_t gid,
-              gid_t (*const gids)[NGROUPS_MAX], int *const n);
+enum error gids_get_list(const char *const logname, const gid_t gid,
+                         gid_t (*const gids)[NGROUPS_MAX], int *const n);
 
 
 #endif /* !defined(GIDS_H) */

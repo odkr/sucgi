@@ -63,6 +63,7 @@ file_is_exec(const struct stat *const fstatus)
 	mode_t fmode = fstatus->st_mode;	/* Permissions. */
 
 	if (fuid != euid && fgid != egid) return (fmode & S_IXOTH);
+
 	return (fuid == euid && (fmode & S_IXUSR)) ||
 	       (fgid == egid && (fmode & S_IXGRP));
 }
@@ -100,16 +101,16 @@ file_safe_open(const char *const fname, const int flags, int *const fd)
 
 	assert(*fname != '\0');
 
-	memset(&how, 0, sizeof(how));
+	(void) memset(&how, 0, sizeof(how));
 	how.flags = (uint64_t) flags;
 	how.resolve = RESOLVE_NO_SYMLINKS | RESOLVE_NO_MAGICLINKS;
 
 	rc = syscall(__NR_openat2, AT_FDCWD, fname, &how, sizeof(how));
-	if (rc < 0) return SC_ERR_SYS;
-	if (rc > INT_MAX) return SC_ERR_CNV;
+	if (rc < 0) return ERR_SYS;
+	if (rc > INT_MAX) return ERR_CNV;
 
 	*fd = (int) rc;
-	return SC_OK;
+	return OK;
 }
 
 #elif defined(O_NOFOLLOW_ANY)
@@ -120,8 +121,8 @@ file_safe_open(const char *const fname, const int flags, int *const fd)
 
 	/* RATS: ignore; see above. */
 	*fd = open(fname, flags | O_NOFOLLOW_ANY);
-	if (*fd < 0) return SC_ERR_SYS;
-	return SC_OK;
+	if (*fd < 0) return ERR_SYS;
+	return OK;
 }
 
 #else
@@ -140,7 +141,7 @@ file_safe_stat(const char *const fname, struct stat *const fstatus)
 
 	try(file_safe_open(fname, O_RDONLY | O_CLOEXEC, &fd));
 	rc = fstat(fd, fstatus);		
-	if ((close(fd) != 0) || (rc != 0)) return SC_ERR_SYS;
+	if ((close(fd) != 0) || (rc != 0)) return ERR_SYS;
 
-	return SC_OK;
+	return OK;
 }

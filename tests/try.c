@@ -12,25 +12,25 @@
 static enum error
 try_ok (void)
 {
-	try(SC_OK);
+	try(OK);
 	
-	return SC_ERR_SYS;
+	return ERR_SYS;
 }
 
 /* try wrapper that should always fail. */
 static enum error
 try_err (void)
 {
-	try(SC_ERR_SYS);
+	try(ERR_SYS);
 
 	/* This point should not be reached. */
-	return SC_OK;
+	return OK;
 }
 
 int
 main (void) {
-	if (try_ok() != SC_ERR_SYS) die("try: did not ignore SC_OK");
-	if (try_err() != SC_ERR_SYS) die("try: ignored error.");
+	if (try_ok() != ERR_SYS) die("try: did not ignore SC_OK");
+	if (try_err() != ERR_SYS) die("try: ignored error.");
 
 	return EXIT_SUCCESS;
 }

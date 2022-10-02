@@ -22,7 +22,7 @@ main (int argc, char **argv)
 	if (argc != 2) die("usage: file_safe_stat FNAME");
 
 	fname = argv[1];
-	if (file_safe_stat(fname, &fstatus) != SC_OK) {
+	if (file_safe_stat(fname, &fstatus) != OK) {
 		die("file_safe_stat: open %s: %s.", fname, strerror(errno));
 	}
 

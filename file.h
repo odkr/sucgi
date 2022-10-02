@@ -46,9 +46,9 @@ bool file_is_wexcl(const uid_t uid, const struct stat *const fstatus);
  * FNAME must not contain symbolic links.
  *
  * Return code:
- *      SC_OK        Success.
- *      SC_ERR_CNV*  File descriptor is too large (Linux only).
- *      SC_ERR_SYS   System failure. errno(2) should be set.
+ *      OK        Success.
+ *      ERR_CNV*  File descriptor is too large (Linux only).
+ *      ERR_SYS   System failure. errno(2) should be set.
  *
  *      Errors marked with an asterisk should be impossible.
  */

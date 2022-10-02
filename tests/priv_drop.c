@@ -27,19 +27,19 @@ main (int argc, char **argv)
 	errno = 0;
 	user = getpwnam(logname);
 	if (user == NULL) {
-		char *err = (errno == 0) ? "no such user" : strerror(errno);
-		croak("getpwnam %s: %s.", logname, err);
+		croak("getpwnam %s: %s.", logname,
+                      errno == 0 ? "no such user" : strerror(errno));
 	}
 
 	rc = priv_drop(user->pw_uid, user->pw_gid, 1,
 	               (gid_t[1]) {user->pw_gid});
 	switch (rc) {
-		case SC_OK:
+		case OK:
 			break;
-		case SC_ERR_SYS:
+		case ERR_SYS:
 			croak("failed to set IDs or groups: %s.",
 			     strerror(errno));
-		case SC_ERR_PRIV:
+		case ERR_PRIV:
 			croak("could resume privileges.");
 		default:
 			croak("unexpected return code %u.", rc);

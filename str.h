@@ -54,23 +54,11 @@
  * DEST must be large enough to hold N + 1 bytes.
  *
  * Return code:
- *      SC_OK           Success.
- *      SC_ERR_STR_LEN  SRC was truncated.
+ *      OK           Success.
+ *      ERR_STR_LEN  SRC was truncated.
  */
 __attribute((nonnull(2, 3)))
 enum error str_cp(const size_t n, const char *const src, char dest[n + 1]);
-
-/*
- * Check if S matches any of the shell wildcard patterns in PATV.
- * PATV must be NULL-terminated. See fnmatch(3) for the syntax and flags.
- *
- * Note, though fnmatch is defined in POSIX.1-2008 as a pattern matching
- * function for srings in general, not just filenames, it is probably
- * best to only use it for strings that are shorter than PATH_MAX bytes.
- */
-__attribute__((nonnull(1, 2), pure, warn_unused_result))
-bool str_matchv(const char *const s, const char *const patv[],
-                const int flags);
 
 /*
  * Split S at the first occurence of any character in SEP and store a copy of
@@ -78,8 +66,8 @@ bool str_matchv(const char *const s, const char *const patv[],
  * pointer to the substring starting after that character in TAIL.
  *
  * Return code:
- *      SC_OK           Success.
- *      SC_ERR_STR_LEN  S is too long.
+ *      OK           Success.
+ *      ERR_STR_LEN  S is too long.
  */
 __attribute__((nonnull(1, 2, 3, 4), warn_unused_result))
 enum error str_split(const char *const s, const char *const sep,

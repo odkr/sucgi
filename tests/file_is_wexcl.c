@@ -22,7 +22,7 @@ main (int argc, char **argv)
 		die("usage: file_is_wexcl UID FNAME");
 	}
 
-	if (str_to_id(argv[1], &uid) != SC_OK) {
+	if (str_to_id(argv[1], &uid) != OK) {
 		die("file_check_wexcl: could not parse UID.");
 	}
 

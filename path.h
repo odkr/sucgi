@@ -38,16 +38,14 @@
  * named FNAME and each parent directory of FNAME up to the path PARENT
  * and store a copy of the last path checked in CUR.
  *
- * ==========================================================================
  * PARENT and FNAME must be canonical.
- * ==========================================================================
  *
  * Return code:
- *      SC_OK              Success.
- *      SC_ERR_CNV*        File descriptor is too large (Linux only).
- *      SC_ERR_PATH_OUT    FNAME is not within PARENT.
- *      SC_ERR_PATH_WEXCL  UID does not have exclusive write access to FNAME.
- *      SC_ERR_SYS         open(2) or stat(2) error. errno(2) should be set.
+ *      OK              Success.
+ *      ERR_CNV*        File descriptor is too large (Linux only).
+ *      ERR_PATH_OUT    FNAME is not within PARENT.
+ *      ERR_PATH_WEXCL  UID does not have exclusive write access to FNAME.
+ *      ERR_SYS         open(2) or stat(2) error. errno(2) should be set.
  *
  *      Errors marked with an asterisk should be impossible.
  */
@@ -59,9 +57,7 @@ enum error path_check_wexcl(const uid_t uid, const char *const parent,
 /*
  * Check if the path PARENT names a super-directory of the file named FNAME.
  *
- * ==========================================================================
  * PARENT and FNAME must be canonical.
- * ==========================================================================
  */
 __attribute__((nonnull(1, 2), pure, warn_unused_result))
 bool path_contains(const char *const parent, const char *const fname);

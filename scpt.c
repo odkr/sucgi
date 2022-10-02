@@ -36,7 +36,7 @@
 
 
 enum error
-scpt_get_handler(const struct scpt_ent hdb[], const char *const scpt,
+scpt_get_handler(const struct scpt_ent handlerdb[], const char *const scpt,
                  const char **const handler)
 {
 	char path[STR_MAX];	/* Copy of scpt for basename(3). */
@@ -48,21 +48,21 @@ scpt_get_handler(const struct scpt_ent hdb[], const char *const scpt,
 	try(str_cp(STR_MAX, scpt, path));
 	fname = basename(path);
 	suffix = strrchr(fname, '.');
-	if (!suffix) return SC_ERR_SCPT_NO_SFX;
-	if (suffix == fname) return SC_ERR_SCPT_ONLY_SFX;
+	if (!suffix) return ERR_SCPT_NO_SFX;
+	if (suffix == fname) return ERR_SCPT_ONLY_SFX;
 
-	for (int i = 0; hdb[i].suffix; i++) {
-		const struct scpt_ent ent = hdb[i];
-		
+	for (int i = 0; handlerdb[i].suffix; i++) {
+		const struct scpt_ent ent = handlerdb[i];
+
 		if (strcmp(suffix, ent.suffix) == 0) {
 			if (!ent.handler || *(ent.handler) == '\0') {
-				return SC_ERR_SCPT_NO_HDL;
+				return ERR_SCPT_NO_HDL;
 			}
 
 			*handler = ent.handler;
-			return SC_OK;
+			return OK;
 		}
 	}
 
-	return SC_ERR_SCPT_NO_HDL;
+	return ERR_SCPT_NO_HDL;
 }

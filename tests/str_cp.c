@@ -21,24 +21,24 @@ struct tcase {
 /* Tests. */
 const struct tcase tests[] = {
 	/* Simple test. */
-	{STR_MAX - 1U, "foo", "foo", SC_OK},
+	{STR_MAX - 1U, "foo", "foo", OK},
 
 	/* Almost out of bounds. */
-	{1, "x", "x", SC_OK},
+	{1, "x", "x", OK},
 	
 	/* Truncation. */
-	{3, "abcd", "abc", SC_ERR_STR_LEN},
+	{3, "abcd", "abc", ERR_STR_LEN},
 
 	/* Truncate to 0. */
-	{0, "foo", "", SC_ERR_STR_LEN},
+	{0, "foo", "", ERR_STR_LEN},
 
 	/* Empty strings. */
-	{STR_MAX - 1U, "", "", SC_OK},
-	{1, "", "", SC_OK},
-	{0, "", "", SC_OK},
+	{STR_MAX - 1U, "", "", OK},
+	{1, "", "", OK},
+	{0, "", "", OK},
 
 	/* Terminator. */
-	{0, NULL, NULL, SC_OK}
+	{0, NULL, NULL, OK}
 };
 
 

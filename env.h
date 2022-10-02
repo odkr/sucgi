@@ -34,7 +34,7 @@
  */
 
 /* Maximum number of environment variables. */
-#define SC_ENV_MAX 192
+#define ENV_MAX 192
 
 
 
@@ -49,13 +49,7 @@ extern char **environ;
  * Environment variables to keep.
  * NULL-terminated array of shell wildcard patterns.
  */
-extern const char *const env_keep[];
-
-/*
- * Environment variables to toss even if they match a pattern in env_keep.
- * NULL-terminated array of shell wildcard patterns.
- */
-extern const char *const env_toss[];
+extern const char *const env_safe_vars[];
 
 
 /*
@@ -65,43 +59,41 @@ extern const char *const env_toss[];
 /*
  * Clear the environment and store a copy of the old environment in VARS.
  * If VARS is NULL, the old environment is discarded. VARS must point to
- * a memory area that is large enough to hold SC_ENV_MAX variables.
+ * a memory area that is large enough to hold ENV_MAX variables.
  *
  * Return code:
- *      SC_OK           Success.
- *      SC_ERR_ENV_MAX  There are more than SC_ENV_MAX environment variables.
+ *      OK           Success.
+ *      ERR_ENV_MAX  There are more than ENV_MAX environment variables.
  */
 __attribute__((warn_unused_result))
-enum error env_clear(const char *(*const vars)[SC_ENV_MAX]);
+enum error env_clear(const char *(*const vars)[ENV_MAX]);
 
 /*
- * FIXME: Documentation is missing.
- */
-enum error
-env_file_openat(const char *const jail, const char *const varname,
-                const int flags, const char **const fname, int *const fd);
-
-/*
- * Read a path from the environement variable NAME, canonicalise it, and check
- * whether none of its segments is a hidden file and wheter the given file is
- * of the type FTYPE; if so, store a pointer to the canonicalised path in
- * FNAME and a pointer to the file's filesystem status in FSTATUS. FNAME is
- * allocated enough memory to hold the path and should be freed by the caller.
+ * Read a filename from the environment variable VARNAME, canonicalise it,
+ * check whether it resides within the directory JAIL, and, if so, open the
+ * file, and store a pointer to the canonicalised filename in FNAME and
+ * its file descriptor in FD.
+ *
+ * JAIL must be to canonical path. If the filename contains symbolic links
+ * at the time the file is opened, an EMLINK error is raised.
+ *
+ * FNAME is allocated anough memory to hold the canonicalised filename
+ * and should be freed by the caller.
  *
  * Return code:
- *      SC_OK             Success.
- *      SC_ERR_CNV*       File descriptor is larger than INT_MAX (Linux only).
- *      SC_ERR_FTYPE      File is not of the given type.
- *      SC_ERR_STR_LEN    Path is longer than STR_MAX - 1 bytes.
- *      SC_ERR_SYS        System error. errno(2) should be set.
- *      SC_ERR_ENV_NIL    The variable NAME is undefined or empty.
+ *      OK           Success.
+ *      ERR_CNV*     File descriptor is too large (Linux only).
+ *      ERR_ENV_LEN  The filename is longer than STR_MAX - 1 bytes.
+ *      ERR_ENV_MAL  The file resides outside of the given jail.
+ *	ERR_ENV_NIL  The environment variable is undefined or empty.
+ *      ERR_SYS      System failure. errno(2) should be set.
  *
  *      Errors marked with an asterisk should be impossible.
  */
-__attribute__((nonnull(1, 3, 4), warn_unused_result))
-enum error env_get_fname(const char *name, const mode_t ftype,
-                         const char **const fname,
-			 struct stat *const fstatus);
+enum error
+env_file_open(const char *const jail, const char *const varname,
+              const int flags, const char **const fname, int *const fd);
+
 
 /*
  * Check if a string S is a valid environment variable name.
@@ -110,20 +102,16 @@ __attribute__((nonnull(1), pure, warn_unused_result))
 bool env_name_valid(const char *const s);
 
 /*
- * Restore every environment variable in VARS the name of which matches a
- * a pattern in KEEP and does NOT match a pattern in TOSS, where patterns
- * are shell wildcard patterns. See fnmatch(3) for the syntax.
+ * Restore every environment variable in the list of environment variables
+ * VARS that matches one of the shell wildcard patterns in PATTERNS.
+ * See fnmatch(3) for the syntax.
  *
- * ==========================================================================
- * CAVEATS
- * --------------------------------------------------------------------------
- * An attacker may populate the environment with variables that are not
- * termianted by NUL. If the memory region after such a variable contains
- * a NUL within STR_MAX - 1 bytes from the start of the variable, then
- * setenv(3) will overshoot and dump the contents of that memory region
- * into the environment. That said, suCGI should not be privy to any 
- * information that is not in the environment already, so such an
- * attack should be pointless.
+ * Note, an attacker may populate the environment with variables that are
+ * not NUL-termianted. If the memory region after such a variable contains
+ * a NUL within STR_MAX - 1 bytes from the start of the variable, setenv(3)
+ * will overshoot and dump the contents of that memory region into the
+ * environment. That said, suCGI should not be privy to any information not
+ * in the environment already, so such an attack should be pointless.
  *
  * If VARS contains multiple assignments to the same variable name, it
  * depends on the system's libc how many and which of those assignments
@@ -135,21 +123,18 @@ bool env_name_valid(const char *const s);
  * access the environment, and such APIs usually use getenv(3), and
  * getenv(3) is usually implemented so that it returns a variable's
  * authoritative value. So this should not be an issue, usually.
- * ==========================================================================
  *
  * Return code:
- *      SC_OK            Success.
- *      SC_ERR_ENV_LEN   An environment variable is too long.
- *      SC_ERR_ENV_MAL   An environment variable is malformed.
- *      SC_ERR_STR_LEN*  Some string is too long.
- *      SC_ERR_SYS       setenv(3) failed. errno(2) should be set.
+ *      OK            Success.
+ *      ERR_ENV_LEN   An environment variable is too long.
+ *      ERR_ENV_MAL   An environment variable is malformed.
+ *      ERR_STR_LEN*  Some string is too long.
+ *      ERR_SYS       setenv(3) failed. errno(2) should be set.
  *
  *      Errors marked with an asterisk should be impossible.
  */
-__attribute__((nonnull(1, 2, 3), warn_unused_result))
-enum error env_restore (const char *vars[],
-                        const char *const keep[],
-			const char *const toss[]);
+__attribute__((nonnull(1, 2), warn_unused_result))
+enum error env_restore (const char *vars[], const char *const patterns[]);
 
 
 #endif /* !defined(ENV_H) */

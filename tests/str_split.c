@@ -28,28 +28,28 @@ char huge[STR_MAX + 1U] = {0};
 /* Tests. */
 const struct tcase tests[] = {
 	/* Overly long string. */
-	{huge, ",", large, NULL, SC_ERR_STR_LEN},
+	{huge, ",", large, NULL, ERR_STR_LEN},
 
 	/* Barely fitting string. */
-	{large, ",", large, NULL, SC_OK},
+	{large, ",", large, NULL, OK},
 
 	/* Simple test. */
-	{"a,b", ",", "a", "b", SC_OK},
+	{"a,b", ",", "a", "b", OK},
 
 	/* Empty strings. */
-	{",b", ",", "", "b", SC_OK},
-	{"a,", ",", "a", "", SC_OK},
-	{"a,b", "", "a,b", NULL, SC_OK},
+	{",b", ",", "", "b", OK},
+	{"a,", ",", "a", "", OK},
+	{"a,b", "", "a,b", NULL, OK},
 
 	/* Environment-like tests. */
-	{"foo=bar", "=", "foo", "bar", SC_OK},
-	{"foo=", "=", "foo", "", SC_OK},
-	{"foo==bar", "=", "foo", "=bar", SC_OK},
-	{"=bar", "=", "", "bar", SC_OK},
-	{"foo", "=", "foo", NULL, SC_OK},
+	{"foo=bar", "=", "foo", "bar", OK},
+	{"foo=", "=", "foo", "", OK},
+	{"foo==bar", "=", "foo", "=bar", OK},
+	{"=bar", "=", "", "bar", OK},
+	{"foo", "=", "foo", NULL, OK},
 
 	/* Terminator. */
-	{NULL, NULL, NULL, NULL, SC_OK}
+	{NULL, NULL, NULL, NULL, OK}
 };
 
 

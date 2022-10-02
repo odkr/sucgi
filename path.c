@@ -53,27 +53,30 @@ path_check_wexcl(const uid_t uid, const char *const parent,
 	assert(strcmp(realpath(fname, NULL), fname) == 0);
 
 	/* FIXME: Not checked for! */
-	if (!path_contains(parent, fname)) return SC_ERR_PATH_OUT;
+	if (!path_contains(parent, fname)) return ERR_PATH_OUT;
 
-	/* Start after the parent-directory, unless it is the root directory. */
+	/* Start after the parent-directory, unless it is /. */
 	ptr = fname + (strcmp(parent, "/") == 0 ? 0 : strlen(parent));
 	do {
 		struct stat buf;	/* Current file's status. */
 		size_t len;		/* Current flename's length. */
 
-		/* Move to next path separator, but do not skip the root directory. */
+		/* 
+		 * Move to next path separator, 
+		 * but do not skip the root directory.
+		 */
 		ptr += ptr == fname && *fname == '/' ? 1 : strcspn(ptr, "/");
 		len = (size_t) (ptr - fname);
-		if (len >= STR_MAX) return SC_ERR_STR_LEN;
+		if (len >= STR_MAX) return ERR_STR_LEN;
 		(void) str_cp(len, fname, *cur);
 
 		try(file_safe_stat(*cur, &buf));
-		if (!file_is_wexcl(uid, &buf)) return SC_ERR_PATH_WEXCL;
+		if (!file_is_wexcl(uid, &buf)) return ERR_PATH_WEXCL;
 
 		ptr += strspn(ptr, "/");
 	} while (*ptr != '\0');
 
-	return SC_OK;
+	return OK;
 }
 
 bool
@@ -88,7 +91,7 @@ path_contains(const char *const parent, const char *const fname)
 
 	/* The root directory cannot be contained by any path. */
 	if (strcmp(fname, "/") == 0) return false;
-	/* The root directory contains any absolute path. */
+	/* The root directory contains any absolute path, save for itself. */
 	if (strcmp(parent, "/") == 0 && *fname == '/') return true;
 	/* By fiat, the working directory cannot be contained by any path. */
 	if (strcmp(fname, ".") == 0) return false;

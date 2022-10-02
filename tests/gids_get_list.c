@@ -24,7 +24,7 @@ main (int argc, char **argv)
 
 	if (argc != 3) {
 		die("usage: gids_get_list LOGNAME GID");
-	} else if (str_to_id(argv[2], &gid) != SC_OK) {
+	} else if (str_to_id(argv[2], &gid) != OK) {
 		die("gid_get_list: could not parse GID.");
 	}
 
@@ -32,11 +32,11 @@ main (int argc, char **argv)
 
 	rc = gids_get_list(logname, gid, &gids, &ngids);
 	switch (rc) {
-		case SC_OK:
+		case OK:
 			break;
-		case SC_ERR_SYS:
+		case ERR_SYS:
 			croak("getgrent: %s.", strerror(errno));
-		case SC_ERR_GIDS_MAX:
+		case ERR_GIDS_MAX:
 			croak("%s: in too many groups.", logname);
 		default:
 			croak("unexpected return code %u.", rc);

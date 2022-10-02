@@ -18,13 +18,13 @@ main (int argc, char **argv)
 {
 	int fd;
 	const char *fname = NULL;
-	enum error rc = SC_OK;
+	enum error rc = OK;
 
 	if (argc != 2) die("usage: file_safe_open FNAME");
 
 	fname = argv[1];
 	rc = file_safe_open(fname, O_RDONLY | O_CLOEXEC, &fd);
-	if (rc != SC_OK) return EXIT_FAILURE;
+	if (rc != OK) return EXIT_FAILURE;
 	(void) close(fd);
 
 	return EXIT_SUCCESS;

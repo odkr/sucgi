@@ -43,17 +43,17 @@ struct scpt_ent {
 
 /*
  * Find a script handler matching the filename suffix of SCPT in the array
- * of filename suffix-script handler pairs HDB and store it in HANDLER.
+ * of filename suffix-script handler pairs HANDLERDB and store it in HANDLER.
  *
  * Return code:
- *      SC_OK                 Success.
- *      SC_ERR_SCPT_NO_HDL    No handler registered. 
- *      SC_ERR_SCPT_ONLY_SFX  Filename starts with a dot (".").
- *      SC_ERR_SCPT_NO_SFX    Filename has no filename suffix.
- *      SC_ERR_STR_LEN        Filename is longer than STR_MAX - 1 bytes.
+ *      OK                 Success.
+ *      ERR_SCPT_NO_HDL    No handler registered. 
+ *      ERR_SCPT_ONLY_SFX  Filename starts with a dot (".").
+ *      ERR_SCPT_NO_SFX    Filename has no filename suffix.
+ *      ERR_STR_LEN        Filename is longer than STR_MAX - 1 bytes.
  */
 __attribute__((nonnull(1, 2, 3), pure, warn_unused_result))
-enum error scpt_get_handler(const struct scpt_ent hdb[],
+enum error scpt_get_handler(const struct scpt_ent handlerdb[],
                             const char *const scpt,
                             const char **const handler);
 
