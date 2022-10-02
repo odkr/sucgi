@@ -8,7 +8,8 @@ abort() {
 	exit 8
 }
 
-# Exit the with $signo + 128 if $catch. Otherwise set $caught to $signo. 
+# Exit with status $signo + 128 if $catch is set.
+# Otherwise set $caught to $signo. 
 catch() {
 	signo="${1:?}"
 	sig="$(kill -l "$signo")" && [ "$sig" ] || sig="signal $signo"
@@ -60,7 +61,7 @@ cleanup() {
 	exit "$status"
 }
 
-# Register signals, set PATH, global variables, a umask, and enable colours.
+# Register signals, set variables, a umask, and enable colours.
 init() {
 	trap cleanup EXIT;
 	trap 'catch 1' HUP;
@@ -85,7 +86,7 @@ init() {
 		esac
 	fi
 	# shellcheck disable=2034
-	readonly reset bold green red
+	readonly reset bold green red yellow
 
 	readonly lf="
 "
