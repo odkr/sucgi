@@ -98,21 +98,25 @@ printf 'C compiler: '
 : "${CC:=}"
 if ! [ "$CC" ]
 then
-	for cc in gcc clang tcc c99 cc; do
-		if "$cc" -v 2>&1 | grep -q "$cc"; then
+	for cc in gcc clang tcc
+	do
+		if
+			command -v "$cc" >/dev/null &&
+			"$cc" -v 2>&1 | grep -q "$cc"
+		then
 			CC="$cc"
 			break
 		fi
 	done
+	unset cc
+
+	! [ "$CC" ] && command -v c99 >/dev/null && CC=c99
 fi
 
-if [ "$CC" ] && command -v "$CC" >/dev/null 2>&1
+if [ "$CC" ]
 then
-	printf '%s' "$bold" >&2
 	echo "$CC"
-	printf '%s' "$reset" >&2
 else
-	CC=
 	echo 'none found!'
 fi
 
@@ -164,7 +168,7 @@ then
 
 	if [ "$n" -eq 0 ]
 	then
-		echo ' none!'
+		echo ' none supported.'
 	else
 		echo
 	fi
