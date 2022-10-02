@@ -128,7 +128,7 @@ DOCUMENT_ROOT='/::no-such-file!!' \
 	checkerr '$DOCUMENT_ROOT: No such file or directory.' main
 
 DOCUMENT_ROOT="$file" \
-	checkerr '$DOCUMENT_ROOT: not a directory.' main
+	checkerr '$DOCUMENT_ROOT: Not a directory.' main
 
 DOCUMENT_ROOT="$TMPDIR" \
 	checkerr 'PATH_TRANSLATED: unset or empty.' main
@@ -154,16 +154,16 @@ DOCUMENT_ROOT="$true_dir" PATH_TRANSLATED="$true" \
 	checkerr 'owned by privileged UID 0.' main
 
 DOCUMENT_ROOT=/ PATH_TRANSLATED="$file" \
-	checkerr '$DOCUMENT_ROOT: does not match /*/*.' main
+	checkerr '$DOCUMENT_ROOT: not within /.' main
 
 DOCUMENT_ROOT="$root_symlink" PATH_TRANSLATED="$file" \
-	checkerr '$DOCUMENT_ROOT: does not match /*/*.' main
+	checkerr '$DOCUMENT_ROOT: not within /.' main
 
 DOCUMENT_ROOT="$root_dotdot" PATH_TRANSLATED="$file" \
-	checkerr '$DOCUMENT_ROOT: does not match /*/*.' main
+	checkerr '$DOCUMENT_ROOT: not within /.' main
 
 DOCUMENT_ROOT="$home" PATH_TRANSLATED="$file" \
-	checkerr "\$PATH_TRANSLATED: not in document root $home." main
+	checkerr "\$PATH_TRANSLATED: not within \$DOCUMENT_ROOT." main
 
 
 #
