@@ -14,8 +14,8 @@ Run CGI scripts with the permissions of their owner.
 suCGI checks whether the CGI script pointed to by the environment variable
 *PATH_TRANSLATED* is owned by a regular user, sets the real and the effective
 UID, the real and the effective GID, and the supplementary groups of the
-process to the UID, the GID, and the groups of that user respectively,
-cleans up the environment, and then runs the script.
+process to the UID, the GID, and the groups of that user, cleans up the
+environment, and then runs the script.
 
 
 Requirements
@@ -78,13 +78,13 @@ Generate *config.h* and *makefile* by::
 
 If ``configure`` succeeded, move on to the next step.
 
-Otherwise, generate *makefile* by ``m4 makefile.in >makefile``.
+Otherwise, generate *makefile* by ``m4 makefile.m4 >makefile``.
 Alternatively, configure the build yourself (see `docs/BUILDING.rst`_).
 
 ----
 
 suCGI is configured at compile-time. Adapt *config.h*, most importantly
-*DOC_ROOT_PATTERN*, *MIN_UID*, *MAX_UID*, *MIN_GID*, and *MAX_GID*. 
+*JAIL*, *DOC_ROOT*, *MIN_UID*, *MAX_UID*, *MIN_GID*, and *MAX_GID*. 
 
 ----
 
@@ -109,7 +109,7 @@ and then add the following lines to your Apache configuration::
         Action application/x-httpd-php /cgi-bin/sucgi
     </Directory>
 
-The directory should correspond to *DOC_ROOT_PATTERN* in *config.h*.
+The directory should correspond to *JAIL* in *config.h*.
 
 Restart Apache::
 
@@ -167,6 +167,8 @@ GitHub: https://github.com/odkr/sucgi
 .. _XNU: https://github.com/apple-oss-distributions/xnu/
 
 .. _`POSIX.1-2008`: https://pubs.opengroup.org/onlinepubs/9699919799.2008edition/
+
+.. _realpath: https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword=realpath
 
 .. _`docs/BUILDING.rst`: docs/BUILDING.rst
 
