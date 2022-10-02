@@ -10,7 +10,7 @@
 
 #include "lib.h"
 
-#define SC_ARGS_MAX 255
+#define ARGS_MAX 255
 
 int
 main (int argc, char **argv)
@@ -19,9 +19,9 @@ main (int argc, char **argv)
 	gid_t gid = 0;
 
 	if (argc < 4) die("usage: runas UID GID PROG [ARG [ARG [...]]]");
-	if (argc > SC_ARGS_MAX) die("runas: too many operands.");
-	if (str_to_id(argv[1], &uid) != SC_OK) die("runas: cannot parse UID.");
-	if (str_to_id(argv[2], &gid) != SC_OK) die("runas: cannot parse GID.");
+	if (argc > ARGS_MAX) die("runas: too many operands.");
+	if (str_to_id(argv[1], &uid) != OK) die("runas: cannot parse UID.");
+	if (str_to_id(argv[2], &gid) != OK) die("runas: cannot parse GID.");
 
 	if (setgroups(1, (gid_t[1]) {gid}) != 0) {
 		die("runas: setgroups %llu: %s.",

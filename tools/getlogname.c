@@ -18,7 +18,7 @@ main (int argc, char **argv)
 	uid_t uid = 0;			/* UID. */
 
 	if (argc != 2) die("usage: getlogname UID.");
-	if (str_to_id(argv[1], &uid) != SC_OK) {
+	if (str_to_id(argv[1], &uid) != OK) {
 		die("getlogname: cannot parse UID.");
 	}
 

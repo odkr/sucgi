@@ -56,9 +56,9 @@ str_to_id (const char *const s, id_t *id)
 
 	errno = 0;
 	n = strtoul(s, &end, 10);
-	if (errno != 0) return SC_ERR_SYS;
-	if (*end != '\0') return SC_ERR_CNV;
+	if (errno != 0) return ERR_SYS;
+	if (*end != '\0') return ERR_CNV;
 
 	*id = (id_t) n;
-	return SC_OK;
+	return OK;
 }
