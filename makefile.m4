@@ -33,22 +33,21 @@ check_str_objs = lib.a(str.o) lib.a(tools/lib.o)
 #
 
 check_bins =	tools/evilenv tools/runas tools/unallocids tools/getlogname \
-		tests/error tests/env_clear tests/env_file_openat tests/env_get_fname \
+		tests/error tests/env_clear tests/env_file_open \
 		tests/env_name_valid tests/env_restore tests/main \
 		tests/file_is_exec tests/file_is_wexcl tests/file_safe_open \
 		tests/file_safe_stat tests/gids_get_list tests/priv_drop \
 		tests/path_check_wexcl tests/path_contains \
-		tests/scpt_get_handler tests/str_cp tests/str_matchv \
-		tests/str_split tests/try
+		tests/scpt_get_handler tests/str_cp tests/str_split tests/try
 
-checks =	tests/error.sh tests/env_clear tests/env_file_openat.sh tests/env_get_fname.sh \
+checks =	tests/error.sh tests/env_clear tests/env_file_open.sh \
 		tests/env_name_valid tests/env_restore tests/main.sh \
 		tests/file_is_exec.sh tests/file_is_wexcl.sh \
 		tests/file_safe_open.sh tests/file_safe_stat.sh \
 		tests/gids_get_list.sh tests/priv_drop.sh \
 		tests/path_check_wexcl.sh tests/path_contains \
 		tests/scpt_get_handler tests/str_cp \
-		tests/str_matchv tests/str_split tests/try
+		tests/str_split tests/try
 
 
 #
@@ -123,7 +122,7 @@ tests/error: tests/error.c lib.a(err.o)
 
 tests/env_clear: tests/env_clear.c $(check_env_objs)
 
-tests/env_file_openat: tests/env_file_openat.c $(check_env_objs)
+tests/env_file_open: tests/env_file_open.c $(check_env_objs)
 
 tests/env_get_fname: tests/env_get_fname.c $(check_env_objs)
 
@@ -153,8 +152,6 @@ tests/str_cp: tests/str_cp.c $(check_str_objs)
 
 tests/str_eq: tests/str_eq.c $(check_str_objs) 
 
-tests/str_matchv: tests/str_matchv.c $(check_str_objs) 
-
 tests/str_split: tests/str_split.c $(check_str_objs)
 
 tests/try: tests/try.c $(check_err_objs)
@@ -180,11 +177,11 @@ clean:
 
 analysis:
 	find * ! -name 'makefile*' -exec grep -nri fixme '{}' +
-	flawfinder --error-level=1 -m 0 -D -Q .
-	rats --resultsonly -w3 .
-	cppcheck $(cppchk_flags) --enable=all $(cppchk_addons) .
-	cppcheck $(cppchk_flags) --enable=unusedFunction *.c .
-	find * -type f -name '*.sh' -exec shellcheck configure '{}' +
+	#flawfinder --error-level=1 -m 0 -D -Q .
+	#rats --resultsonly -w3 .
+	#cppcheck $(cppchk_flags) --enable=all $(cppchk_addons) .
+	#cppcheck $(cppchk_flags) --enable=unusedFunction *.c .
+	#find * -type f -name '*.sh' -exec shellcheck configure '{}' +
 
 check: $(check_bins)
 	tools/check.sh $(checks)
@@ -204,7 +201,7 @@ covhtml: cov/index.html
 dist: $(dist_ar) $(dist_ar).asc
 
 distclean: clean
-	rm -f config.h lcov.info makefile
+	rm -f lcov.info makefile
 
 distcheck: $(dist_ar)
 	tar -xzf $(dist_ar)
