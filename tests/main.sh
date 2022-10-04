@@ -185,16 +185,19 @@ cleanup="rm -rf \"\${tmpdir:?}\"; ${cleanup-}"
 catch=x
 [ "${caught-}" ] && exit $((caught + 128))
 
-unused_ids="$(unallocids)" && [ "$unused_ids" ] ||
-	abort "failed to find an unused UID and GID."
+eval "$(unallocids)" && [ "$unalloc_uid" ] && [ "$unalloc_gid" ] ||
+        abort "failed to find an unallocated UID and GID."
 
 # shellcheck disable=2086
 set -- $unused_ids
 [ $# -eq 2 ] ||
 	abort "unallocids: unparsable output."
 
-unused_uid="$1"
-unused_gid="$2"
+eval "$(unallocids)" && [ "$uid" ] && [ "$gid" ] ||
+        abort "failed to find an unallocated UID and GID."
+
+unalloc_uid="$1"
+unalloc_gid="$2"
 
 cp -a "$script_dir/../tools/." "$tmpdir/."
 
@@ -236,7 +239,7 @@ chown 0 "$su"
 chgrp 0 "$sg"
 chown 1:1 "$ltmin"
 chown 30001:30001 "$gtmax"
-chown "$unused_uid" "$nouser"
+chown "$unalloc_uid" "$nouser"
 
 fifo="$tmpdir/fifo"
 mkfifo "$fifo"
@@ -268,7 +271,7 @@ DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$gtmax" \
 	checkerr "$gtmax: owned by non-regular UID 30001." main main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$nouser" \
-	checkerr "$nouser: getpwuid $unused_uid: no such user." main
+	checkerr "$nouser: getpwuid $unalloc_uid: no such user." main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$grpw" \
 	checkerr "$grpw: can be altered by users other than $user." main

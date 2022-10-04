@@ -49,7 +49,7 @@ main (void)
 	if (MAX == gid) die("unallocids: cannot find an unused group ID.");
 
 	// RATS: ignore
-	(void) printf("uid=%llu gid=%llu\n", \
+	(void) printf("unalloc_uid=%llu unalloc_gid=%llu\n", \
 	              (unsigned long long) uid,
 		      (unsigned long long) gid);
 
