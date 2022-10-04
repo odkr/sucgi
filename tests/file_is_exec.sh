@@ -21,8 +21,15 @@ tmpdir chk
 #
 
 umask 0777
+
+euid="$(id -u)" && [ "$euid" ] ||
+	abort "failed to get process' effective UID."
+egid="$(id -g)" && [ "$egid" ] ||
+	abort "failed to get process' effective GID."
+
 fname="$TMPDIR/file"
 touch "$fname"
+chown "$euid:$egid" "$fname"
 
 no="ugo= ug=,o=x"
 for mode in $no
