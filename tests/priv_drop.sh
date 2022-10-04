@@ -30,7 +30,7 @@ then
 	uid="$(regularuid)" && [ "$uid" ] ||
 		abort "failed to get non-root user ID of caller."
 	# shellcheck disable=2154
-	user="$(logname "$uid")" && [ "$user" ] ||
+	user="$(getlogname "$uid")" && [ "$user" ] ||
 		abort "failed to get name of user with ID $bold$uid$reset$red."
 	gid="$(id -g "$user")" && [ "$gid" ] ||
 		abort "failed to get ID of $user's primary group."
