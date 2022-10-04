@@ -28,7 +28,7 @@ main (int argc, char **argv)
 	}
 
 	/* RATS: ignore. */
-	(void) printf("uid=%llu gid=%llu mode=%llu size=%llu\n",
+	(void) printf("uid=%llu gid=%llu mode=%o size=%llu\n",
 	              (unsigned long long) fstatus.st_uid,
 	              (unsigned long long) fstatus.st_gid,
 	                                   fstatus.st_mode,

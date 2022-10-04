@@ -17,3 +17,8 @@ tests/*
 !tests/*.c
 !tests/*.h
 !tests/*.sh
+tools/*
+!tools/*.c
+!tools/*.h
+!tools/*.sh
+sucgi-*
