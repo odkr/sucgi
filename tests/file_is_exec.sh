@@ -62,10 +62,10 @@ euid="$(id -u)" && [ "$euid" ] ||
 
 [ "$euid" -ne 0 ] && exit
 
-eval "$(unallocids)" && [ "$uid" ] && [ "$gid" ] ||
+eval "$(unallocids)" && [ "$unalloc_uid" ] && [ "$unalloc_gid" ] ||
 	abort "failed to find an unallocated UID and GID."
 
-chown "$uid:$gid" "$fname"
+chown "$unalloc_uid:$unalloc_gid" "$fname"
 
 chmod o= "$fname"
 file_is_exec "$fname" &&

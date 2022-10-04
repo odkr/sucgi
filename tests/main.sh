@@ -188,11 +188,6 @@ catch=x
 eval "$(unallocids)" && [ "$unalloc_uid" ] && [ "$unalloc_gid" ] ||
         abort "failed to find an unallocated UID and GID."
 
-# shellcheck disable=2086
-set -- $unused_ids
-[ $# -eq 2 ] ||
-	abort "unallocids: unparsable output."
-
 eval "$(unallocids)" && [ "$uid" ] && [ "$gid" ] ||
         abort "failed to find an unallocated UID and GID."
 
