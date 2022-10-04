@@ -71,13 +71,13 @@ Please take the time to read and evaluate the source code.
 
 ----
 
-Generate *config.h* and *makefile* by::
+Generate the *makefile* by::
 
     ./configure
 
 If ``configure`` succeeded, move on to the next step.
 
-Otherwise, generate *makefile* by ``m4 makefile.m4 >makefile``.
+Otherwise, generate the *makefile* by ``m4 makefile.m4 >makefile``.
 Alternatively, configure the build yourself (see `docs/BUILDING.rst`_).
 
 ----
