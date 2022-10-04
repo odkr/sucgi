@@ -39,7 +39,7 @@ then
 	checkerr 'Operation not permitted.' \
 		runas "$uid" "$gid" priv_drop "$user"
 
-	checkok "euid=$uid egid=$gid ruid=$uid rgid=$gid." priv_drop "$user"
+	checkok "euid=$uid egid=$gid ruid=$uid rgid=$gid" priv_drop "$user"
 else
 	checkerr 'Operation not permitted.' priv_drop "$LOGNAME"
 fi
