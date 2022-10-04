@@ -34,7 +34,6 @@ More precisely:
   e.g., glibc_ ≥ v2.28 or Apple's Libc.
 * The standard utilities that POSIX.1-2008, including
   its X/Open system interface extension, mandates.
-* A 64-bit architecture.
 
 Any post-2021 GNU/Linux or macOS system should meet those requirements.
 You may need to install the standard build tools, however.
