@@ -18,7 +18,7 @@ main (int argc, char **argv)
 {
 	char *jail;		/* Jail directory. */
 	char *var;		/* Variable name. */
-	struct stat fstatus;	/* File's filesystem status. */
+	struct stat fstatus;	/* Filesystem metadata. */
 	const char *fname;	/* Filename. */
 	int fd;			/* File descriptor. */
 	enum error rc;		/* Return code. */
@@ -49,11 +49,11 @@ main (int argc, char **argv)
 	}
 
 	/* RATS: ignore. */
-	(void) printf(
-		"uid=%llu gid=%llu mode=%o size=%llu\n",
-		(uint64_t) fstatus.st_uid,  (uint64_t) fstatus.st_gid,
-		           fstatus.st_mode, (uint64_t) fstatus.st_size
-	);
+	(void) printf("uid=%llu gid=%llu mode=%o size=%llu\n",
+	              (unsigned long long) fstatus.st_uid,
+	              (unsigned long long) fstatus.st_gid,
+	                                   fstatus.st_mode,
+	              (unsigned long long) fstatus.st_size);
 
 	return EXIT_SUCCESS;
 }

@@ -39,13 +39,16 @@ enum error
 scpt_get_handler(const struct scpt_ent handlerdb[], const char *const scpt,
                  const char **const handler)
 {
+	/* RATS: ignore; path is bounds-checked. */
 	char path[STR_MAX];	/* Copy of scpt for basename(3). */
 	const char *fname;	/* Filename portion of scpt. */
 	const char *suffix;	/* Filename suffix. */
 
 	assert(*scpt != '\0');
 
+	/* basename may alter the path it is given. */
 	try(str_cp(STR_MAX, scpt, path));
+	/* RATS: ignore; no matching on path is performed. */
 	fname = basename(path);
 	suffix = strrchr(fname, '.');
 	if (!suffix) return ERR_SCPT_NO_SFX;

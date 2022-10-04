@@ -10,7 +10,7 @@
 
 
 /* Test case. */
-struct tcase {
+struct signature {
 	const char *parent;
 	const char *fname;
 	const bool ret;
@@ -18,7 +18,7 @@ struct tcase {
 
 
 /* Tests. */
-const struct tcase tests[] = {
+const struct signature tests[] = {
 	/* Absolute paths. */
 	{"/", "/foo", true},
 	{"/foo", "/foo/bar", true},
@@ -56,7 +56,7 @@ int
 main (void)
 {
 	for (int i = 0; tests[i].parent; i++) {
-		const struct tcase t = tests[i];
+		const struct signature t = tests[i];
 		bool ret;
 
 		ret = path_contains(t.parent, t.fname);

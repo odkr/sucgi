@@ -133,6 +133,7 @@ main(void) {
 	 * > info. Bad news if MALLOC_DEBUG_FILE is set to /etc/passwd.)
 	 */
 
+	/* RATS: ignore; env_clear respects ENV_MAX. */
 	const char *vars[ENV_MAX];	/* Backup of environ(2). */
 	enum error rc;			/* Return code. */
 
@@ -162,11 +163,11 @@ main(void) {
 
 	if (setegid(proc_rgid) != 0) {
 		error("setegid %llu: %s.",
-		      (uint64_t) proc_rgid, strerror(errno));
+		      (unsigned long long) proc_rgid, strerror(errno));
 	}
 	if (seteuid(proc_ruid) != 0) {
 		error("seteuid %llu: %s.",
-		      (uint64_t) proc_ruid, strerror(errno));
+		      (unsigned long long) proc_ruid, strerror(errno));
 	}
 
 	assert(geteuid() == proc_ruid);
@@ -201,6 +202,11 @@ main(void) {
 	const char *doc_base;		/* Base directory. */
 	int doc_fd;			/* File descriptor. */
 
+        if (strnlen(JAIL, STR_MAX) >= STR_MAX) {
+                error("path to jail directory is too long.");
+        }
+
+        /* RATS: ignore; this use of realpath should be safe. */
 	doc_base = realpath(JAIL, NULL);
 	if (!doc_base) {
 		error("realpath %s: %s.", JAIL, strerror(errno));
@@ -208,6 +214,8 @@ main(void) {
 
 	assert(doc_base);
 	assert(*doc_base != '\0');
+        assert(strnlen(doc_base, STR_MAX) < STR_MAX);
+        /* RATS: ignore; this use of realpath should be safe. */
 	assert(strcmp(realpath(doc_base, NULL), doc_base) == 0);
 
 	rc = env_file_open(doc_base, "DOCUMENT_ROOT",
@@ -238,6 +246,7 @@ main(void) {
 	assert(*doc_root != '\0');
 	assert(doc_fd > -1);
 	assert(strnlen(doc_root, STR_MAX) < STR_MAX);
+        /* RATS: ignore; this use of realpath should be safe. */
 	assert(strncmp(realpath(doc_root, NULL), doc_root, STR_MAX) == 0);
 
 
@@ -271,6 +280,7 @@ main(void) {
 	assert(path_trans);
 	assert(*path_trans != '\0');
 	assert(strnlen(path_trans, STR_MAX) < STR_MAX);
+        /* RATS: ignore; this use of realpath should be safe. */
 	assert(strncmp(realpath(path_trans, NULL), path_trans, STR_MAX) == 0);
 	
 	if (fstat(path_fd, &path_stat) != 0) {
@@ -291,19 +301,20 @@ main(void) {
 
 	if (path_stat.st_uid < MIN_UID || path_stat.st_uid > MAX_UID) {
 		error("%s: owned by privileged UID %llu.",
-		      path_trans, (uint64_t) path_stat.st_uid);
+		      path_trans, (unsigned long long) path_stat.st_uid);
 	}
 
 	owner = getpwuid(path_stat.st_uid);
 	if (!owner) {
-		error("getpwuid %llu: %s.", (uint64_t) path_stat.st_uid, 
-		      errno == 0 ? "no such user" : strerror(errno));
+		error("getpwuid %llu: %s.",
+		      (unsigned long long) path_stat.st_uid,
+		      (errno == 0) ? "no such user" : strerror(errno));
 	}
 
 	/* Paranoia is a virtue. */
 	if (path_stat.st_uid != owner->pw_uid) {
 		error("getpwuid %llu: returned wrong user %s.",
-		      (uint64_t) path_stat.st_uid, owner->pw_name);
+		      (unsigned long long) path_stat.st_uid, owner->pw_name);
 	}
 
 	rc = gids_get_list(owner->pw_name, owner->pw_gid, &gids, &ngids);
@@ -326,7 +337,7 @@ main(void) {
 
 		if (gid < MIN_GID || gid > MAX_GID) {
 			error("%s: member of privileged group %llu.",
-			      owner->pw_name, (uint64_t) gid);
+			      owner->pw_name, (unsigned long long) gid);
 		}
 	}
 
@@ -384,6 +395,7 @@ main(void) {
 		error("chdir %s: %s.", doc_root, strerror(errno));
 	}
 
+	/* RATS: ignore; the umask is the user's responsibility. */
 	umask(umask(0) | UMASK);
 
 
@@ -477,6 +489,7 @@ main(void) {
 	 * owned by the same UID, namely, owner->pw_uid.
 	 */
 
+	/* RATS: ignore; path_check_wexcl respects STR_MAX. */
 	char path_cur[STR_MAX];		/* Sub-path of $PATH_TRANSLATED. */
 
 	rc = path_check_wexcl(owner->pw_uid, owner->pw_dir,

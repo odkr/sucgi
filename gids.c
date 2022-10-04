@@ -45,6 +45,7 @@
  */
 enum error
 gids_get_list(const char *const logname, const gid_t gid,
+              /* RATS: ignore; gids is bounds-checked. */
               gid_t (*const gids)[NGROUPS_MAX], int *const n)
 {
 	struct group *grp;

@@ -4,6 +4,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -27,11 +28,11 @@ main (int argc, char **argv)
 	}
 
 	/* RATS: ignore. */
-	(void) printf(
-		"uid=%llu gid=%llu mode=%o size=%llu\n",
-		(uint64_t) fstatus.st_uid,  (uint64_t) fstatus.st_gid,
-			   fstatus.st_mode, (uint64_t) fstatus.st_size
-	);
+	(void) printf("uid=%llu gid=%llu mode=%llu size=%llu\n",
+	              (unsigned long long) fstatus.st_uid,
+	              (unsigned long long) fstatus.st_gid,
+	                                   fstatus.st_mode,
+	              (unsigned long long) fstatus.st_size);
 
 	return EXIT_SUCCESS;
 }

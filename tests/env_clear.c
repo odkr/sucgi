@@ -29,6 +29,7 @@ main (void) {
 	nvars = 0;
 	req(setenv("foo", "bar", 1) == 0, "setenv: %s.", strerror(errno));
 	req(env_clear(&env) == OK, "failed to clear the environment.");
+        /* RATS: ignore */
 	req(!getenv("foo"), "getenv foo: did not return NULL.");
 	for (var = (const char**) environ; *var; var++) nvars++;
 	req(nvars == 0, "environment not empty.");

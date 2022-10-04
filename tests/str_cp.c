@@ -11,7 +11,7 @@
 
 
 /* Test case. */
-struct tcase {
+struct signature {
 	size_t n;
 	const char *src;
 	const char *dest;
@@ -19,7 +19,7 @@ struct tcase {
 };
 
 /* Tests. */
-const struct tcase tests[] = {
+const struct signature tests[] = {
 	/* Simple test. */
 	{STR_MAX - 1U, "foo", "foo", OK},
 
@@ -45,7 +45,7 @@ const struct tcase tests[] = {
 int
 main (void) {
 	for (int i = 0; tests[i].src; i++) {
-		struct tcase t = tests[i];
+		struct signature t = tests[i];
 		char dest[STR_MAX] = {0};	/* RATS: ignore */
 		enum error ret; 
 		

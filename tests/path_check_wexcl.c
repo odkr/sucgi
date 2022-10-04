@@ -16,15 +16,17 @@
 int
 main (int argc, char **argv)
 {
+	/* RATS: ignore */
+	char cur[STR_MAX];	/* Current directory. */
 	const char *parent;	/* Parent directory. */
 	const char *fname;	/* Filename. */
-	char cur[STR_MAX];	/* Current directory. */
 	uid_t uid;		/* User ID. */
 	enum error rc;		/* Return code. */
 
 	if (argc != 4) {
 		die("usage: path_check_wexcl UID SUPER SUB");
-	} else if (str_to_id(argv[1], &uid) != OK) {
+	}
+	if (str_to_id(argv[1], &uid) != OK) {
 		die("path_check_wexcl: could not parse UID.");
 	}
 	
@@ -44,7 +46,7 @@ main (int argc, char **argv)
 			croak("unexpected return code %u.", rc);
 	}
 
-	puts(cur);
+	(void) puts(cur);
 
 	return EXIT_SUCCESS;
 }

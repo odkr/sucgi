@@ -32,7 +32,11 @@
  */
 
 /* Return with RC from the current function unless RC equals OK. */
-#define try(rc) STMT( enum error _try = (rc); if (_try != OK) return _try; )
+#define try(rc) 					\
+	do { 						\
+		enum error _try_rc = (rc);		\
+		if (_try_rc != OK) return _try_rc;	\
+	} while (0)
 
 
 /*
@@ -45,7 +49,7 @@ enum error {
 	ERR_CNV,		/* Value could not be converted. */
 	ERR_FTYPE,		/* Filetype is wrong. */
 	ERR_GIDS_MAX,	        /* User belongs to too many groups. */
-	ERR_PATH_OUT,	        /* A file is outside of a given path. */
+	ERR_PATH_OUT,		/* A file is outside of a given path. */
 	ERR_PATH_WEXCL,	        /* Path not exclusively writable by user. */
 	ERR_PRIV,		/* Privileges could be resumed. */
 	ERR_SCPT_NO_HDL,	/* No script handler registered. */

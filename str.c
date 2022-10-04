@@ -36,7 +36,9 @@
 #include "str.h"
 
 enum error
-str_cp(const size_t n, const char *const src, char dest[n + 1])
+str_cp(const size_t n, const char *const src,
+       /* RATS: ignore; must be checked by developers. */
+       char dest[n + 1U])
 {
 	char *end;	/* Position of last byte of src. */
 	size_t len;	/* Length of src. */

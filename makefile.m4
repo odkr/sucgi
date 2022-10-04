@@ -6,10 +6,9 @@ define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
 # Compiler
 #
 
-ifdef([__CC], [ifelse(__CC, [], [], [CC = __CC
+ifdef([__CC__], [ifelse(__CC__, [], [], [CC = __CC__
 ])], [])dnl
-dnl TODO: Add -DNDEBUG once the software is mature enough.
-CFLAGS = default([__CFLAGS], [-O2 -s -ftrapv])
+CFLAGS = default([__CFLAGS__], [-O2 -s -ftrapv])
 
 
 #
@@ -54,16 +53,15 @@ checks =	tests/error.sh tests/env_clear tests/env_file_open.sh \
 # Analysers
 #
 
-cppchk_flags =	--quiet --error-exitcode=8 \
-		--language=c --std=c99 --library=posix --platform=unix64 \
-		--project=cppcheck/sucgi.cppcheck \
-		--library=cppcheck/library.cfg \
-		--suppressions-list=cppcheck/suppressions.txt  \
-		--force --inconclusive \
-		-UTESTING -D__NR_openat2=437 -DPATH_MAX=1024U \
-		-DUID_MAX=2147483647U -DLOG_PERROR=32
+cppcheck_flags =	--quiet --error-exitcode=8 \
+			--language=c --std=c99 \
+			--library=posix --platform=unix64 \
+			--project=cppcheck/sucgi.cppcheck \
+			--library=cppcheck/library.cfg \
+			--suppressions-list=cppcheck/suppressions.txt \
+			--force --inconclusive
 
-cppchk_addons =	--addon=cppcheck/cert.py --addon=misra.py
+cppcheck_addons =	--addon=cppcheck/cert.py --addon=misra.py
 
 
 #
@@ -113,6 +111,7 @@ lib.a(tools/lib.o): tools/lib.c tools/lib.h defs.h lib.a(err.o) lib.a(str.o)
 lib.a:	lib.a(env.o)  lib.a(err.o)  lib.a(file.o) lib.a(gids.o) \
 	lib.a(path.o) lib.a(priv.o) lib.a(scpt.o) lib.a(str.o)
 
+dnl TODO: Add -DNDEBUG once the software is mature enough.
 .c:
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a $(LDLIBS)
 
@@ -157,7 +156,7 @@ tests/str_split: tests/str_split.c $(check_str_objs)
 tests/try: tests/try.c $(check_err_objs)
 
 tests/main: sucgi.c config.h defs.h lib.a
-	$(CC) -D TESTING=1 $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a $(LDLIBS)
+	$(CC) -DTESTING=1 $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a $(LDLIBS)
 
 tools/evilenv: tools/evilenv.c lib.a(tools/lib.o)
 
@@ -177,10 +176,11 @@ clean:
 
 analysis:
 	find * ! -name 'makefile*' -exec grep -nri fixme '{}' +
-	#flawfinder --error-level=1 -m 0 -D -Q .
-	#rats --resultsonly -w3 .
-	#cppcheck $(cppchk_flags) --enable=all $(cppchk_addons) .
-	#cppcheck $(cppchk_flags) --enable=unusedFunction *.c .
+	flawfinder --error-level=1 -m 0 -D -Q .
+	find . '(' -name '*.c' -o -name '*.h' ')' \
+	-exec rats --resultsonly -w3 '{}' +
+	cppcheck $(cppcheck_flags) --enable=all $(cppcheck_addons) .
+	cppcheck $(cppcheck_flags) --enable=unusedFunction *.h *.c
 	#find * -type f -name '*.sh' -exec shellcheck configure '{}' +
 
 check: $(check_bins)

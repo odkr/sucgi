@@ -200,7 +200,8 @@ const char *const env_safe_vars[] = {
  */
 
 enum error
-env_clear(const char *(*const vars)[ENV_MAX])
+env_clear(/* RATS: ignore; vars is bound-checked. */
+	  const char *(*const vars)[ENV_MAX])
 {
 	static char *var;	/* First environment variable. */
 	char **env;		/* Copy of the environ pointer. */
@@ -226,6 +227,8 @@ env_file_open(const char *const jail, const char *const varname,
 
 	assert(*jail != '\0');
 	assert(*varname != '\0');
+        assert(strnlen(jail, STR_MAX) < STR_MAX);
+        /* RATS: ignore; this use of realpath should be safe. */
 	assert(strcmp(jail, realpath(jail, NULL)) == 0);
 	assert(flags != 0);
 	assert(fname);
@@ -235,6 +238,7 @@ env_file_open(const char *const jail, const char *const varname,
 	value = getenv(varname);
 	if (!value || *value == '\0') return ERR_ENV_NIL; 
 	if (strnlen(value, STR_MAX) >= STR_MAX) return ERR_ENV_LEN;
+        /* RATS: ignore; this use of realpath should be safe. */
 	*fname = realpath(value, NULL);
 	if (!*fname) return ERR_SYS;
 	if (strnlen(*fname, STR_MAX) >= STR_MAX) return ERR_ENV_LEN;

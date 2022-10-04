@@ -35,32 +35,33 @@
 
 /*
  * Check if the user with ID UID has exclusive write access to the file
- * named FNAME and each parent directory of FNAME up to the path PARENT
+ * named FNAME and each parent directory of FNAME up to the path PAR
  * and store a copy of the last path checked in CUR.
  *
- * PARENT and FNAME must be canonical.
+ * PAR and FNAME must be sanitised and canonical.
  *
  * Return code:
  *      OK              Success.
  *      ERR_CNV*        File descriptor is too large (Linux only).
- *      ERR_PATH_OUT    FNAME is not within PARENT.
+ *      ERR_PATH_OUT    FNAME is not within PAR.
  *      ERR_PATH_WEXCL  UID does not have exclusive write access to FNAME.
  *      ERR_SYS         open(2) or stat(2) error. errno(2) should be set.
  *
  *      Errors marked with an asterisk should be impossible.
  */
 __attribute__((nonnull(2, 3, 4), warn_unused_result))
-enum error path_check_wexcl(const uid_t uid, const char *const parent,
+enum error path_check_wexcl(const uid_t uid, const char *const par,
                             const char *const fname,
+			    /* RATS: ignore; cur is bounds-checked. */
                             char (*const cur)[STR_MAX]);
 
 /*
- * Check if the path PARENT names a super-directory of the file named FNAME.
+ * Check if the path PAR names a super-directory of the file named FNAME.
  *
- * PARENT and FNAME must be canonical.
+ * PAR and FNAME must be sanitisied and canonical.
  */
 __attribute__((nonnull(1, 2), pure, warn_unused_result))
-bool path_contains(const char *const parent, const char *const fname);
+bool path_contains(const char *const par, const char *const fname);
 
 
 #endif /* !defined(PATH_H) */

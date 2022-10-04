@@ -40,23 +40,26 @@
 
 
 enum error
-path_check_wexcl(const uid_t uid, const char *const parent,
+path_check_wexcl(const uid_t uid, const char *const par,
+                 /* RATS: ignore; cur is bounds-checked. */
                  const char *const fname, char (*const cur)[STR_MAX])
 {
 	const char *ptr;	/* Current position in filename. */
 
-	assert(*parent != '\0');
+	assert(*par != '\0');
 	assert(*fname != '\0');
-	assert(strnlen(parent, STR_MAX) < STR_MAX);
+	assert(strnlen(par, STR_MAX) < STR_MAX);
 	assert(strnlen(fname, STR_MAX) < STR_MAX);
-	assert(strcmp(realpath(parent, NULL), parent) == 0);
+        /* RATS: ignore; this use of realpath should be safe. */
+        assert(strcmp(realpath(par, NULL), par) == 0);
+        /* RATS: ignore; this use of realpath should be safe. */
 	assert(strcmp(realpath(fname, NULL), fname) == 0);
 
-	/* FIXME: Not checked for! */
-	if (!path_contains(parent, fname)) return ERR_PATH_OUT;
+	/* FIXME: Not unit-tested. */
+	if (!path_contains(par, fname)) return ERR_PATH_OUT;
 
-	/* Start after the parent-directory, unless it is /. */
-	ptr = fname + (strcmp(parent, "/") == 0 ? 0 : strlen(parent));
+	/* RATS: ignore; path_check_wexcl should only receive sane paths. */
+	ptr = fname + (strcmp(par, "/") == 0 ? 0 : strlen(par));
 	do {
 		struct stat buf;	/* Current file's status. */
 		size_t len;		/* Current flename's length. */
@@ -80,25 +83,26 @@ path_check_wexcl(const uid_t uid, const char *const parent,
 }
 
 bool
-path_contains(const char *const parent, const char *const fname)
+path_contains(const char *const par, const char *const fname)
 {
 	size_t len;		/* Parent-directory length. */
 
-	assert(*parent != '\0');
+	assert(*par != '\0');
 	assert(*fname != '\0');
-	assert(strnlen(parent, STR_MAX) < STR_MAX);
+	assert(strnlen(par, STR_MAX) < STR_MAX);
 	assert(strnlen(fname, STR_MAX) < STR_MAX);
 
 	/* The root directory cannot be contained by any path. */
 	if (strcmp(fname, "/") == 0) return false;
 	/* The root directory contains any absolute path, save for itself. */
-	if (strcmp(parent, "/") == 0 && *fname == '/') return true;
+	if (strcmp(par, "/") == 0 && *fname == '/') return true;
 	/* By fiat, the working directory cannot be contained by any path. */
 	if (strcmp(fname, ".") == 0) return false;
 	/* The working directory contains any relative path. */
-	if (strcmp(parent, ".") == 0 && *fname != '/') return true;
+	if (strcmp(par, ".") == 0 && *fname != '/') return true;
 
-	len = strlen(parent);
+	/* RATS: ignore; path_contains should only receive sane paths. */
+	len = strlen(par);
 	if (fname[len] != '/') return false;
-	return strncmp(parent, fname, len) == 0;
+	return strncmp(par, fname, len) == 0;
 }

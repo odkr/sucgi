@@ -24,7 +24,8 @@ main (int argc, char **argv)
 
 	if (argc != 3) {
 		die("usage: gids_get_list LOGNAME GID");
-	} else if (str_to_id(argv[2], &gid) != OK) {
+	}
+	if (str_to_id(argv[2], &gid) != OK) {
 		die("gid_get_list: could not parse GID.");
 	}
 
@@ -42,7 +43,10 @@ main (int argc, char **argv)
 			croak("unexpected return code %u.", rc);
 	}
 
-	for (int i = 0; i < ngids; i++) printf("%llu\n", (uint64_t) gids[i]);
+	for (int i = 0; i < ngids; i++) {
+		/* RATS: ignore */
+		(void) printf("%llu\n", (unsigned long long) gids[i]);
+	}
 
 	return EXIT_SUCCESS;
 }

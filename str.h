@@ -38,10 +38,10 @@
 #if PATH_MAX <= 2048
 #define STR_MAX PATH_MAX
 #else /* PATH_MAX <= 2048 */
-#define STR_MAX 2048
+#define STR_MAX 2048U
 #endif /* PATH_MAX <= 2048 */
 #else /* defined(PATH_MAX) && PATH_MAX > -1 */
-#define STR_MAX 1024
+#define STR_MAX 1024U
 #endif /* defined(PATH_MAX) && PATH_MAX > -1 */
 
 
@@ -58,7 +58,9 @@
  *      ERR_STR_LEN  SRC was truncated.
  */
 __attribute((nonnull(2, 3)))
-enum error str_cp(const size_t n, const char *const src, char dest[n + 1]);
+enum error str_cp(const size_t n, const char *const src,
+                  /* RATS: ignore; must be checked by developers. */
+                  char dest[n + 1]);
 
 /*
  * Split S at the first occurence of any character in SEP and store a copy of

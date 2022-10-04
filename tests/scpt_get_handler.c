@@ -11,7 +11,7 @@
 
 
 /* Test case. */
-struct tcase {
+struct signature {
 	const char *scpt;
 	const char *handler;
 	const enum error ret;
@@ -19,7 +19,7 @@ struct tcase {
 
 
 /* Tests. */
-const struct tcase tests[] = {
+const struct signature tests[] = {
 	/* Simple errors. */
 	{"file", NULL, ERR_SCPT_NO_SFX},
 	{".", NULL, ERR_SCPT_ONLY_SFX},
@@ -72,13 +72,15 @@ main (void)
 {
 	for (int i = 0; tests[i].scpt; i++) {
  		for (int j = 0; prefixes[j]; j++) {
-			const struct tcase t = tests[i];
+			/* RATS: ignore */
+			char scpt[STR_MAX] = {0};
+			const struct signature t = tests[i];
 			const char *prefix = prefixes[j];
 			const char *handler = NULL;
-			char scpt[STR_MAX] = {0};
 			enum error ret;	
 			int n;
-			
+		
+			/* RATS: ignore */
 			n = snprintf(scpt, STR_MAX, "%s%s", prefix, t.scpt);
 			if (n >= STR_MAX) {
 				croak("test %d: input too long.", i);

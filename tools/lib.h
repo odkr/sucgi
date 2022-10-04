@@ -55,6 +55,8 @@
 /*
  * Print MESSAGE to STDERR and exit with status EXIT_FAILURE.
  */
+
+/* RATS: ignore; this is not a call to printf. */
 __attribute__((format(printf, 1, 2), nonnull(1), noreturn))
 void die(const char *const message, ...);
 

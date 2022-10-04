@@ -66,7 +66,8 @@ extern const char *const env_safe_vars[];
  *      ERR_ENV_MAX  There are more than ENV_MAX environment variables.
  */
 __attribute__((warn_unused_result))
-enum error env_clear(const char *(*const vars)[ENV_MAX]);
+enum error env_clear(/* RATS: ignore; vars is bound-checked. */
+	             const char *(*const vars)[ENV_MAX]);
 
 /*
  * Read a filename from the environment variable VARNAME, canonicalise it,
@@ -96,10 +97,10 @@ env_file_open(const char *const jail, const char *const varname,
 
 
 /*
- * Check if a string S is a valid environment variable name.
+ * Check if the string NAME is a valid environment variable name.
  */
 __attribute__((nonnull(1), pure, warn_unused_result))
-bool env_name_valid(const char *const s);
+bool env_name_valid(const char *const name);
 
 /*
  * Restore every environment variable in the list of environment variables

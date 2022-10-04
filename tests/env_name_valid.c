@@ -10,14 +10,14 @@
 
 
 /* Test case. */
-struct tcase {
+struct signature {
 	const char *name;
 	const bool ret;
 };
 
 
 /* Tests. */
-const struct tcase tests[] = {
+const struct signature tests[] = {
 	/* Invalid names. */
 	{"", false},
 	{" foo", false},
@@ -47,7 +47,7 @@ int
 main (void)
 {
 	for (int i = 0; tests[i].name; i++) {
-		const struct tcase t = tests[i];
+		const struct signature t = tests[i];
 		bool ret;
 
 		ret = env_name_valid(t.name);

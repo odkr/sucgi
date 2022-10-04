@@ -26,10 +26,10 @@
  */
 
 /* Test case. */
-struct tcase {
-	char *env_vars[ENV_MAX];
-	const char *env_safe_vars[ENV_MAX];
-	const char *env_clean[ENV_MAX];
+struct signature {
+	char *env_vars[ENV_MAX];		/* RATS: ignore */
+	const char *env_safe_vars[ENV_MAX];	/* RATS: ignore */
+	const char *env_clean[ENV_MAX];		/* RATS: ignore */
 	const enum error ret;
 };
 
@@ -42,7 +42,7 @@ struct tcase {
 char huge[STR_MAX + 1U] = {0};	/* RATS: ignore */
 
 /* Tests. */
-struct tcase tests[] = {
+struct signature tests[] = {
 	/* Errors. */
 	{{huge, NULL}, NIL, NIL, ERR_ENV_LEN},
 	{{"", NULL}, NIL, NIL, ERR_ENV_MAL},
@@ -82,7 +82,8 @@ struct tcase tests[] = {
  */
 
 static enum error
-env_init(char *const vars[ENV_MAX])
+env_init(/* RATS: ignore */
+	 char *const vars[ENV_MAX])
 {
 	size_t n = 0;
 
@@ -104,8 +105,9 @@ main (void) {
 	(void) memset((void *) huge, 'x', STR_MAX);
 
 	for (int i = 0; tests[i].env_vars[0]; i++) {
-		const struct tcase t = tests[i];
+		/* RATS: ignore */
 		const char *vars[ENV_MAX];
+		const struct signature t = tests[i];
 		enum error ret;
 
 		req(env_init(t.env_vars) == OK,
@@ -121,13 +123,15 @@ main (void) {
 
 		for (int j = 0; t.env_clean[j]; j++) {
 			const char *v = t.env_clean[j];
+			const char *val;
+			/* RATS: ignore */
 			char name[STR_MAX];
 			char *exp;
-			char *val;
 
 			req(str_split(v, "=", &name, &exp) == OK,
 			    "failed to split variable %s.", v);
 
+                        /* RATS: ignore */
 			val = getenv(name);
 			
 			if (val && !exp) {

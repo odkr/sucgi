@@ -11,7 +11,7 @@
 
 
 /* Test case. */
-struct tcase {
+struct signature {
 	const char *s;
 	const char *sep;
 	const char *head;
@@ -20,13 +20,15 @@ struct tcase {
 };
 
 /* A string just within limits. */
+/* RATS: ignore */
 char large[STR_MAX] = {0};
 
 /* A string that exceeds STR_MAX. */
+/* RATS: ignore */
 char huge[STR_MAX + 1U] = {0};
 
 /* Tests. */
-const struct tcase tests[] = {
+const struct signature tests[] = {
 	/* Overly long string. */
 	{huge, ",", large, NULL, ERR_STR_LEN},
 
@@ -61,7 +63,8 @@ main(void)
 	(void) memset(large, 'x', STR_MAX - 1U);
 
 	for (int i = 0; tests[i].s; i++) {
-		const struct tcase t = tests[i];
+		const struct signature t = tests[i];
+		/* RATS: ignore */
 		char head[STR_MAX] = {0};
 		char *tail;
 		enum error ret;

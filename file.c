@@ -62,7 +62,7 @@ file_is_exec(const struct stat *const fstatus)
 	gid_t fgid = fstatus->st_gid;		/* Owner GID. */
 	mode_t fmode = fstatus->st_mode;	/* Permissions. */
 
-	if (fuid != euid && fgid != egid) return (fmode & S_IXOTH);
+	if (fuid != euid && fgid != egid) return fmode & S_IXOTH;
 
 	return (fuid == euid && (fmode & S_IXUSR)) ||
 	       (fgid == egid && (fmode & S_IXGRP));

@@ -28,7 +28,7 @@ main (int argc, char **argv)
 	user = getpwnam(logname);
 	if (user == NULL) {
 		croak("getpwnam %s: %s.", logname,
-                      errno == 0 ? "no such user" : strerror(errno));
+                      (errno == 0) ? "no such user" : strerror(errno));
 	}
 
 	rc = priv_drop(user->pw_uid, user->pw_gid, 1,
@@ -46,11 +46,11 @@ main (int argc, char **argv)
 	}
 
 	/* RATS: ignore */
-	(void) printf(
-		"euid=%llu egid=%llu ruid=%llu rgid=%llu\n",
-		(uint64_t) geteuid(), (uint64_t) getegid(),
-		(uint64_t) getuid(),  (uint64_t) getgid()
-	);
+	(void) printf("euid=%llu egid=%llu ruid=%llu rgid=%llu\n",
+	              (unsigned long long) geteuid(),
+	              (unsigned long long) getegid(),
+	              (unsigned long long) getuid(),
+	              (unsigned long long) getgid());
 
 	return EXIT_SUCCESS;
 }
