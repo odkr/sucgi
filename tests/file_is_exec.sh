@@ -63,7 +63,7 @@ euid="$(id -u)" && [ "$euid" ] ||
 [ "$euid" -ne 0 ] && exit
 
 eval "$(unallocids)" && [ "$uid" ] && [ "$gid" ] ||
-	abort "failed to find an ununsed UID and GID."
+	abort "failed to find an unallocated UID and GID."
 
 chown "$uid:$gid" "$fname"
 
