@@ -196,7 +196,7 @@ set -- $unused_ids
 unused_uid="$1"
 unused_gid="$2"
 
-cp -a "$script_dir/tools/." "$tmpdir/."
+cp -a "$script_dir/../tools/." "$tmpdir/."
 
 outside="$tmpdir/outside"
 ln -s "$TMPDIR" "$outside"
