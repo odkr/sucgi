@@ -202,8 +202,8 @@ do
 	fi
 
 	swap="$TMPDIR/$output"
-	if m4	-D__CC="${CC-}"			\
-		-D__CFLAGS="${CFLAGS# }"	\
+	if m4	-D__CC__="${CC-}"		\
+		-D__CFLAGS__="${CFLAGS# }"	\
 		"$input" >"$swap"
 	then
 		mv "$swap" "$output"
