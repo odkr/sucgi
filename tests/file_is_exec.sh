@@ -62,10 +62,10 @@ euid="$(id -u)" && [ "$euid" ] ||
 
 [ "$euid" -ne 0 ] && exit
 
-unused_ids="$(unallocids)" && [ "$unused_ids" ] ||
+eval "$(unallocids)" && [ "$uid" ] && [ "$gid" ] ||
 	abort "failed to find an ununsed UID and GID."
 
-chown "$unused_ids" "$fname"
+chown "$uid:$gid" "$fname"
 
 chmod o= "$fname"
 file_is_exec "$fname" &&
