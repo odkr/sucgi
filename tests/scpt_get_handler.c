@@ -82,7 +82,7 @@ main (void)
 		
 			/* RATS: ignore */
 			n = snprintf(scpt, STR_MAX, "%s%s", prefix, t.scpt);
-			if (n >= STR_MAX) {
+			if (n >= (long long) STR_MAX) {
 				croak("test %d: input too long.", i);
 			}
 

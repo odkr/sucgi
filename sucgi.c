@@ -55,8 +55,8 @@
 
 #if !defined(NDEBUG) && defined(TESTING) && TESTING
 
-#undef JAIL
-#define JAIL "/"
+#undef JAIL_DIR
+#define JAIL_DIR "/"
 
 #undef DOC_ROOT
 #define DOC_ROOT "$DOCUMENT_ROOT"
@@ -83,9 +83,9 @@
  * Configuration
  */
 
-#if !defined(JAIL)
-#error JAIL has not been set.
-#endif /* !defined(JAIL) */
+#if !defined(JAIL_DIR)
+#error JAIL_DIR has not been set.
+#endif /* !defined(JAIL_DIR) */
 
 #if !defined(DOC_ROOT)
 #error DOC_ROOT has not been set.
@@ -198,30 +198,29 @@ main(void) {
 	 * Check whether $DOCUMENT_ROOT makes sense.
 	 */
 
+	const char *jail_dir;		/* Jail directory. */
 	const char *doc_root;		/* $DOCUMENT_ROOT. */
-	const char *doc_base;		/* Base directory. */
-	int doc_fd;			/* File descriptor. */
+	int doc_fd;			/* -- " -- file descriptor. */
 
-        if (strnlen(JAIL, STR_MAX) >= STR_MAX) {
+        if (strnlen(JAIL_DIR, STR_MAX) >= STR_MAX) {
                 error("path to jail directory is too long.");
         }
 
         /* RATS: ignore; this use of realpath should be safe. */
-	doc_base = realpath(JAIL, NULL);
-	if (!doc_base) {
-		error("realpath %s: %s.", JAIL, strerror(errno));
+	jail_dir = realpath(JAIL_DIR, NULL);
+	if (!jail_dir) {
+		error("realpath %s: %s.", JAIL_DIR, strerror(errno));
 	}
 
-	assert(doc_base);
-	assert(*doc_base != '\0');
-        assert(strnlen(doc_base, STR_MAX) < STR_MAX);
+	assert(jail_dir);
+	assert(*jail_dir != '\0');
+        assert(strnlen(jail_dir, STR_MAX) < STR_MAX);
         /* RATS: ignore; this use of realpath should be safe. */
-	assert(strcmp(realpath(doc_base, NULL), doc_base) == 0);
+	assert(strcmp(realpath(jail_dir, NULL), jail_dir) == 0);
 
-	rc = env_file_open(doc_base, "DOCUMENT_ROOT",
+	rc = env_file_open(jail_dir, "DOCUMENT_ROOT",
 	                   O_RDONLY | O_CLOEXEC | O_DIRECTORY,
 			   &doc_root, &doc_fd);
-
 	switch (rc) {
 		case OK:
 			break;
@@ -230,16 +229,12 @@ main(void) {
 		case ERR_ENV_LEN:
 			error("$DOCUMENT_ROOT: path too long.");
 		case ERR_ENV_MAL:
-			error("$DOCUMENT_ROOT: not within %s.", JAIL);
+			error("$DOCUMENT_ROOT: not within %s.", JAIL_DIR);
 		case ERR_ENV_NIL:
 			error("$DOCUMENT_ROOT: unset or empty.");
 		default:
 			error("%s:%d: env_file_open returned %u.",
 			      __FILE__, __LINE__ - 17, rc);
-	}
-
-	if (close(doc_fd) != 0) {
-		error("close $DOCUMENT_ROOT: %s.", strerror(errno));
 	}
 
 	assert(doc_root);
@@ -249,18 +244,21 @@ main(void) {
         /* RATS: ignore; this use of realpath should be safe. */
 	assert(strncmp(realpath(doc_root, NULL), doc_root, STR_MAX) == 0);
 
+	if (close(doc_fd) != 0) {
+		error("close $DOCUMENT_ROOT: %s.", strerror(errno));
+	}
+
 
 	/*
 	 * Check if $PATH_TRANSLATED makes sense.
 	 */
 
 	const char *path_trans;		/* $PATH_TRANSLATED. */
-	struct stat path_stat;		/* Filesystem metadata. */
-	int path_fd;			/* File descriptor. */
+	struct stat path_stat;		/* -- " -- filesystem metadata. */
+	int path_fd;			/* -- " -- file descriptor. */
 
 	rc = env_file_open(doc_root, "PATH_TRANSLATED", O_RDONLY | O_CLOEXEC,
 			   &path_trans, &path_fd);
-
 	switch (rc) {
 		case OK:
 			break;
@@ -425,7 +423,6 @@ main(void) {
 
 	wordexp_rc = wordexp((const char *) {DOC_ROOT},
 	                     &doc_exp, WRDE_NOCMD | WRDE_UNDEF);
-
 	switch (wordexp_rc) {
 		case 0:
 			break;

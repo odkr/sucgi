@@ -28,7 +28,7 @@
 /* Test case. */
 struct signature {
 	char *env_vars[ENV_MAX];		/* RATS: ignore */
-	const char *env_safe_vars[ENV_MAX];	/* RATS: ignore */
+	const char *safe_vars[ENV_MAX];		/* RATS: ignore */
 	const char *env_clean[ENV_MAX];		/* RATS: ignore */
 	const enum error ret;
 };
@@ -88,7 +88,7 @@ env_init(/* RATS: ignore */
 	size_t n = 0;
 
 	while (vars[n]) n++;
-	environ = calloc(n + 1, sizeof(char *));
+	environ = calloc(n + 1U, sizeof(char *));
 	if (!environ) return ERR_SYS;
 	for (size_t i = 0; i < n; i++) environ[i] = vars[i];
 
@@ -115,7 +115,7 @@ main (void) {
 		req(env_clear(&vars) == OK,
 		    "failed to clear the environment.");
 
-		ret = env_restore(vars, t.env_safe_vars);
+		ret = env_restore(vars, t.safe_vars);
 
 		req(ret == t.ret,
 		    "test %d: env_restore returned %u, not %u.",

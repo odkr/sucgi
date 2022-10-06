@@ -16,7 +16,7 @@
  *     - UserDir public_html -> "/home"
  *     - UserDir /srv/web -> "/srv/web"
  */
-#define JAIL "/home"
+#define JAIL_DIR "/home"
 
 /*
  * The document root of user websites.
@@ -38,26 +38,26 @@
  * Smallest UID that may have been assigned to a regular user.
  * On most systems, this will be 500 (e.g., macOS) or 1,000 (e.g, Debian).
  */
-#define MIN_UID 1000U
+#define MIN_UID 1000
 
 /*
  * Largest UID that may have been assigned to a regular user.
  * On most systems, this will be 60,000 (though some use 32,767 for nobody).
  */
-#define MAX_UID 30000U
+#define MAX_UID 30000
 
 /*
  * Smallest GID that may have been assigned to a regular user.
  * On most systems, this will be 500 or 1,000 (e.g, Debian).
  * However, some systems (e.g., macOS) make no such distinction.
  */
-#define MIN_GID 1000U
+#define MIN_GID 1000
 
 /*
  * Largest GID that may have been assigned to a regular user.
  * On most systems, this will be 30,000 or 60,000 (Debian).
  */
-#define MAX_GID 30000U
+#define MAX_GID 30000
 
 /*
  * Handlers to run CGI scripts with if their executable is NOT set.

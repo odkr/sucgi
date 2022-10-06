@@ -44,13 +44,27 @@ misra-c2012-8.2:priv.h:42
 misra-c2012-8.2:str.h:61
 misra-c2012-8.2:str.h:75
 
-// Rule 8.6 requires that every symbol with external linkage has a 
-// unique name. This generates a large number of false positives.
-misra-c2012-8.6
+// Rule 8.4 requires that a declaration is visible when a value is defined.
+// Adhering to this rule would make defining test cases unwieldy.
+misra-c2012-8.4:tests/*.c
+
+// Rule 8.6 requires that every symbol with external linkage has a unique
+// name. Cppcheck applies this rule to `main`, and hence generates a large
+// number of false positives.
+misra-c2012-8.6:sucgi.c:124
+misra-c2012-8.6:tests/*.c
+misra-c2012-8.6:tools/*.c
+
+// Rule 8.11 advises that the size of external arrays should be given
+// explicitly. But that the list of patterns that match safe environment
+// variables is initialised upon declaration, constant, and would be
+// unwieldy to change if its size were given explicitly.
+misra-c2012-8.11:env.h:52
 
 // Rule 9.3 requires that arrays not be partially initialised. However,
 // variables representing the environment are sometimes initialised to
 // a single-element, NULL-terminated array during testing.
+misra-c2012-9.3:tests/env_restore.c:45
 misra-c2012-9.3:tests/env_restore.c:110
 
 // Rule 10.8 requires that values not be cast to wider types. This is to
@@ -61,23 +75,25 @@ misra-c2012-10.8:path.c:72
 misra-c2012-10.8:str.c:47
 
 // Rule 12.1 advises that operator precedence be explicit.
-// The precedence of the below expressions should be clear enough, however.
+// However, the precedence of the below expressions should be clear enough.
 misra-c2012-12.1:env.c:239
 misra-c2012-12.1:env.c:255
 misra-c2012-12.1:file.c:65
 misra-c2012-12.1:file.c:67
 misra-c2012-12.1:file.c:68
+misra-c2012-12.1:path.c:71
 misra-c2012-12.1:path.c:98
 misra-c2012-12.1:path.c:102
 misra-c2012-12.1:scpt.c:61
-misra-c2012-12.1:sucgi.c:302
+misra-c2012-12.1:sucgi.c:300
+misra-c2012-12.1:sucgi.c:336
 misra-c2012-12.1:tests/scpt_get_handler.c:95
 misra-c2012-12.1:tests/str_cp.c:58
 misra-c2012-12.1:tests/str_split.c:78
 misra-c2012-12.1:tests/str_split.c:82
 
 // Rule 13.4 advises that the result of an assignment operator not be used.
-// However, `while ((grp = getgrent()))` is idiomatic.
+// But `while ((grp = getgrent()))` is idiomatic.
 misra-c2012-13.4:gids.c:58
 
 // Rule 14.4 requires that conditionals are of boolean type. However,
@@ -85,9 +101,9 @@ misra-c2012-13.4:gids.c:58
 // code less idiomatic and readable. So tests for `NULL` are exempted.
 misra-c2012-14.4:gids.c:58
 misra-c2012-14.4:str.c:60
-misra-c2012-14.4:sucgi.c:462
+misra-c2012-14.4:sucgi.c:459
+misra-c2012-14.4:sucgi.c:471
 misra-c2012-14.4:sucgi.c:474
-misra-c2012-14.4:sucgi.c:477
 misra-c2012-14.4:tests/env_restore.c:90
 
 // Rule 15.1 advises that goto not be used. But sometimes goto is the
@@ -122,14 +138,13 @@ misra-c2012-16.3:tests/priv_drop.c
 // cases. However, Cppcheck reports the following false positives:
 misra-c2012-16.6:sucgi.c:141
 misra-c2012-16.6:sucgi.c:182
-misra-c2012-16.6:sucgi.c:225
-misra-c2012-16.6:sucgi.c:264
-misra-c2012-16.6:sucgi.c:321
-misra-c2012-16.6:sucgi.c:352
-misra-c2012-16.6:sucgi.c:352
-misra-c2012-16.6:sucgi.c:429
-misra-c2012-16.6:sucgi.c:497
-misra-c2012-16.6:sucgi.c:527
+misra-c2012-16.6:sucgi.c:224
+misra-c2012-16.6:sucgi.c:262
+misra-c2012-16.6:sucgi.c:319
+misra-c2012-16.6:sucgi.c:350
+misra-c2012-16.6:sucgi.c:426
+misra-c2012-16.6:sucgi.c:494
+misra-c2012-16.6:sucgi.c:524
 misra-c2012-16.6:tests/env_file_open.c:32
 misra-c2012-16.6:tests/gids_get_list.c:35
 misra-c2012-16.6:tests/path_check_wexcl.c:37
@@ -153,12 +168,14 @@ misra-c2012-17.1:tools/*.c
 misra-c2012-18.4:path.c:72
 misra-c2012-18.4:str.c:47
 misra-c2012-18.4:str.c:61
-// This is an addition, but the result cannot be out-of-bounds.
+// These are additions, but the results cannot be out-of-bounds.
+misra-c2012-18.4:path.c:62
+misra-c2012-18.4:path.c:71
 misra-c2012-18.4:path.c:79
 
 // Rule 18.8 requires that variable-length arrays not be used. However,
 // this would not allow to declare an array with NGROUPS_MAX members.
-misra-c2012-18.8:sucgi.c:299
+misra-c2012-18.8:sucgi.c:297
 misra-c2012-18.8:tests/gids_get_list.c
 
 // Rule 20.1 advises not to use the '#' and '##' operators in macros.
@@ -210,9 +227,13 @@ misra-c2012-21.1:str.c:26
 misra-c2012-21.1:sucgi.c:22
 misra-c2012-21.1:sucgi.c:23
 misra-c2012-21.1:sucgi.c:26
-// defs.h defines __attribute__ as the empty string if a compiler does not
-// support GNU C. This is a standard idiom.
+// defs.h defines __attribute__ as the empty string if the compiler
+// does not support GNU C. This is a standard idiom.
 misra-c2012-21.1:defs.h:27
+
+// Rule 21.3 requires that memory not be allocated dynamically.
+// However, the test suite needs to do so to initialise the environment.
+misra-c2012-21.3:tests/env_restore.c:91
 
 // Rule 21.6 requires that the standard I/O functions should not be used.
 // But path.h does not do that; it imports stdio.h to define FILENAME_MAX.
@@ -236,7 +257,7 @@ misra-c2012-21.8:tests/env*.c
 // on a misreading of the rule and, consequently, fails to recognise all
 // functions that set errno.
 misra-c2012-22.10:gids.c:77
-misra-c2012-22.10:sucgi.c:311
+misra-c2012-22.10:sucgi.c:309
 misra-c2012-22.10:tests/priv_drop.c:30
 misra-c2012-22.10:tools/unallocids.c:29
 misra-c2012-22.10:tools/unallocids.c:42

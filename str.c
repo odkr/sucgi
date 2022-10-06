@@ -63,7 +63,7 @@ str_split(const char *const s, const char *const sep,
 		(void) (str_cp(len, s, *head));
 		(*tail)++;
 	} else {
-		try(str_cp(STR_MAX - 1, s, *head));
+		try(str_cp(STR_MAX - 1U, s, *head));
 	}
 
 	return OK;

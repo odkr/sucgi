@@ -270,7 +270,7 @@ env_restore(const char *vars[], const char *const patterns[])
 
 		len = strnlen(vars[i], STR_MAX);
 		if (len >= STR_MAX) return ERR_ENV_LEN;
-		if (len == 0) return ERR_ENV_MAL;
+		if (len == 0U) return ERR_ENV_MAL;
 
 		try(str_split(vars[i], "=", &name, &value));
 		/* patv may contain wildcards, so name has to be checked. */

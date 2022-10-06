@@ -59,7 +59,7 @@ path_check_wexcl(const uid_t uid, const char *const par,
 	if (!path_contains(par, fname)) return ERR_PATH_OUT;
 
 	/* RATS: ignore; path_check_wexcl should only receive sane paths. */
-	ptr = fname + (strcmp(par, "/") == 0 ? 0 : strlen(par));
+	ptr = fname + ((strcmp(par, "/") == 0) ? 0U : strlen(par));
 	do {
 		struct stat buf;	/* Current file's status. */
 		size_t len;		/* Current flename's length. */
@@ -68,7 +68,7 @@ path_check_wexcl(const uid_t uid, const char *const par,
 		 * Move to next path separator, 
 		 * but do not skip the root directory.
 		 */
-		ptr += ptr == fname && *fname == '/' ? 1 : strcspn(ptr, "/");
+		ptr += (ptr == fname && *fname == '/') ? 1U : strcspn(ptr, "/");
 		len = (size_t) (ptr - fname);
 		if (len >= STR_MAX) return ERR_STR_LEN;
 		(void) str_cp(len, fname, *cur);

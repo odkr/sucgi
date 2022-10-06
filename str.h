@@ -60,7 +60,7 @@
 __attribute((nonnull(2, 3)))
 enum error str_cp(const size_t n, const char *const src,
                   /* RATS: ignore; must be checked by developers. */
-                  char dest[n + 1]);
+                  char dest[n + 1U]);
 
 /*
  * Split S at the first occurence of any character in SEP and store a copy of
