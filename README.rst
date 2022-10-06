@@ -83,7 +83,7 @@ Alternatively, configure the build yourself (see `docs/BUILDING.rst`_).
 ----
 
 suCGI is configured at compile-time. Adapt *config.h*, most importantly
-*JAIL*, *DOC_ROOT*, *MIN_UID*, *MAX_UID*, *MIN_GID*, and *MAX_GID*. 
+*JAIL_DIR*, *DOC_ROOT*, *MIN_UID*, *MAX_UID*, *MIN_GID*, and *MAX_GID*. 
 
 ----
 
@@ -108,7 +108,7 @@ and then add the following lines to your Apache configuration::
         Action application/x-httpd-php /cgi-bin/sucgi
     </Directory>
 
-The directory should correspond to *JAIL* in *config.h*.
+The directory should correspond to *JAIL_DIR* in *config.h*.
 
 Restart Apache::
 
