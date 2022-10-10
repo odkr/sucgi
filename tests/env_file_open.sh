@@ -64,27 +64,27 @@ unset var
 checkerr 'env_file_open: $var: unset or empty.' \
 	 env_file_open / var
 
-var=
-checkerr 'env_file_open: $var: unset or empty.' env_file_open / var
+checkerr 'env_file_open: $var: unset or empty.' \
+	var= env_file_open / var
 
-var="/$long_str" \
-checkerr 'env_file_open: $var: path too long.' env_file_open / var
+checkerr 'env_file_open: $var: path too long.' \
+	var="/$long_str" env_file_open / var
 
-var="/$long_path" \
-checkerr 'env_file_open: $var: path too long.' env_file_open / var
+checkerr 'env_file_open: $var: path too long.' \
+	var="/$long_path" env_file_open / var
 
-var="/$long_name" \
-checkerr 'env_file_open: $var: File name too long.' env_file_open / var
+checkerr 'env_file_open: $var: File name too long.' \
+	var="/$long_name" env_file_open / var
 
-var="$outside" \
-checkerr "env_file_open: \$var: not in $jail." env_file_open "$jail" var
+checkerr "env_file_open: \$var: not in $jail." \
+	var="$outside" env_file_open "$jail" var
 
-var="$inside" \
-checkok "uid=$uid" env_file_open / var
+checkerr "env_file_open: \$var: not in $jail." \
+	var="$in_to_out" env_file_open "$jail" var
 
-var="$in_to_out" \
-checkerr "env_file_open: \$var: not in $jail." env_file_open "$jail" var
+checkok "uid=$uid" \
+	var="$inside" env_file_open / var
 
-var="$out_to_in" \
-checkok "uid=$uid" env_file_open "$jail" var
+checkok "uid=$uid" \
+	var="$out_to_in" env_file_open "$jail" var
 

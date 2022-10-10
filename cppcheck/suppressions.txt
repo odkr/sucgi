@@ -1,4 +1,17 @@
 //
+// SEI CERT C
+//
+
+// Rule STR05 recommends that pointers to literals be qualified with `const`.
+// However, the below are assignments to a global variable, and therefore
+// cannot be qualified thusly. Equivalent to MISRA C:2012 rule 7.4.
+cert-STR05-C:tools/badenv.c:49
+cert-STR05-C:tools/getlogname.c:42
+cert-STR05-C:tools/runas.c:41
+cert-STR05-C:tools/unallocid.c:42
+
+
+//
 // MISRA C:2012
 //
 
@@ -23,7 +36,7 @@ misra-c2012-2.5:env.c:26
 misra-c2012-2.5:err.c:24
 misra-c2012-2.5:err.c:25
 misra-c2012-2.5:err.c:26
-// `__attribute__` is used; this is a false positive.
+// __attribute__ is used; this is a false positive.
 misra-c2012-2.5:defs.h:27
 
 // Rule 3.1 requires that comments do not contain slashes ("/").
@@ -37,6 +50,14 @@ misra-c2012-3.1:*:1
 // arguments and expected return values.
 misra-c2012-5.7:tests/*.c
 
+// Rule 7.4 requires that pointers to literals be qualified with `const`.
+// However, the below are assignmebts to a global variable, and therefore
+// cannot be qualified thusly. Equivalent to SEI CERT C rule STR05.
+misra-c2012-7.4:tools/badenv.c:49
+misra-c2012-7.4:tools/getlogname.c:42
+misra-c2012-7.4:tools/runas.c:41
+misra-c2012-7.4:tools/unallocid.c:42
+
 // Rule 8.2 requires that functions are given in prototype form.
 // Cppcheck reports the following false positives:
 misra-c2012-8.2:gids.h:40
@@ -49,7 +70,7 @@ misra-c2012-8.2:str.h:75
 misra-c2012-8.4:tests/*.c
 
 // Rule 8.6 requires that every symbol with external linkage has a unique
-// name. Cppcheck applies this rule to `main`, and hence generates a large
+// name. Cppcheck applies this rule to main, and hence generates a large
 // number of false positives.
 misra-c2012-8.6:sucgi.c:124
 misra-c2012-8.6:tests/*.c
@@ -67,15 +88,22 @@ misra-c2012-8.11:env.h:52
 misra-c2012-9.3:tests/env_restore.c:45
 misra-c2012-9.3:tests/env_restore.c:110
 
+// Rule 10.3 requires that values shall not be assigned to variables of a
+// different or a narrower type. However, `argv += optind` is idiomatic.
+misra-c2012-10.3:tools/runas.c:69
+misra-c2012-10.3:tools/unallocid.c:77
+
 // Rule 10.8 requires that values not be cast to wider types. This is to
 // ensure that truncation errors occur consistently on all systems. However, 
 // some values have to be cast to size_t, and those values cannot be
 // truncated at any rate (they must be smaller than SIZE_MAX).
 misra-c2012-10.8:path.c:72
 misra-c2012-10.8:str.c:47
+misra-c2012-10.8:tools/badenv.c:106
+misra-c2012-10.8:tools/badenv.c:118
 
 // Rule 12.1 advises that operator precedence be explicit.
-// However, the precedence of the below expressions should be clear enough.
+// However, the precedence of the expressions below should be clear enough.
 misra-c2012-12.1:env.c:239
 misra-c2012-12.1:env.c:255
 misra-c2012-12.1:file.c:65
@@ -92,23 +120,34 @@ misra-c2012-12.1:tests/str_cp.c:58
 misra-c2012-12.1:tests/str_split.c:78
 misra-c2012-12.1:tests/str_split.c:82
 
-// Rule 13.4 advises that the result of an assignment operator not be used.
+// Rule 13.4 advises that results of assignments not be used.
 // But `while ((grp = getgrent()))` is idiomatic.
 misra-c2012-13.4:gids.c:58
+// So is `while ((optchar = getopt(argc, argv, "...")) != -1)`.
+misra-c2012-13.4:tools/badenv.c:55
+misra-c2012-13.4:tools/getlogname.c:45
+misra-c2012-13.4:tools/runas.c:44
+misra-c2012-13.4:tools/unallocid.c:46
 
 // Rule 14.4 requires that conditionals are of boolean type. However,
-// this implies that `NULL` has to be tested for explicitly, which makes
-// code less idiomatic and readable. So tests for `NULL` are exempted.
+// this implies that NULL has to be tested for explicitly, which makes
+// code less idiomatic and readable. So tests for NULL are exempted.
 misra-c2012-14.4:gids.c:58
 misra-c2012-14.4:str.c:60
 misra-c2012-14.4:sucgi.c:459
 misra-c2012-14.4:sucgi.c:471
 misra-c2012-14.4:sucgi.c:474
 misra-c2012-14.4:tests/env_restore.c:90
+misra-c2012-14.4:tools/lib.c:54
+misra-c2012-14.4:tools/badenv.c:119
 
-// Rule 15.1 advises that goto not be used. But sometimes goto is the
-// most straightforward way to jump to the next iteration of a loop.
+// Rule 15.1 advises that goto not be used. But sometimes goto is the most
+// straightforward way to jump to the next iteration or out of a loop.
 misra-c2012-15.1:gids.c:60
+
+// Rule 15.4 advises that no more than one break or goto statemente be
+// used to leave a loop. Sometimes this leads to less straightforward code.
+misra-c2012-15.4:tools/unallocid.c:94
 
 // Rule 15.5 advises that functions have a single point of exit to ensure that
 // cleanup routines are run. But none of suCGI's functions does any cleanup. 
@@ -116,25 +155,24 @@ misra-c2012-15.1:gids.c:60
 misra-c2012-15.5
 
 // Rule 15.6 requires that the body of conditionals or loops be a compound
-// statement. SEI CERT C rule EXP19 does so, too. The point of these rules
-// is to avoid mistakes if more statements are added later. I ignore this
-// this rule if, and only if, a condition and its body fit on a single
-// line, since I find oneliners easier to read.
-//TODO: Use individual exemptions.
+// statement. I ignore this this rule if, and only if, a condition and its
+// body fit on a single line, since I find oneliners easier to read.
+// Equivalent to SEI CERT C rule EXP19. 
+// TODO: Use individual exemptions.
 misra-c2012-15.6
 
-// Rule 16.3 requires that every case in a `switch` expression ends with
-// a `break`. But the switch statements in sucgi.c, without exception,
-// call `error` from err.c, exiting the programme. So `break`s would be
+// Rule 16.3 requires that every case in a switch expression ends with
+// a break. But the switch statements in sucgi.c, without exception,
+// call error from err.c, exiting the programme. So breaks would be
 // unreachable and noisy. The same goes for many tests, which call
-// `croak` from tools/lib.h or `die` from tools/lib.c.
+// croak from tools/lib.h or die from tools/lib.c.
 misra-c2012-16.3:sucgi.c
 misra-c2012-16.3:tests/env_file_open.c
 misra-c2012-16.3:tests/gids_get_list.c
 misra-c2012-16.3:tests/path_check_wexcl.c
 misra-c2012-16.3:tests/priv_drop.c
 
-// Rule 16.6 requires that every `switch` expression covers at least two
+// Rule 16.6 requires that every switch expression covers at least two
 // cases. However, Cppcheck reports the following false positives:
 misra-c2012-16.6:sucgi.c:141
 misra-c2012-16.6:sucgi.c:182
@@ -150,21 +188,28 @@ misra-c2012-16.6:tests/gids_get_list.c:35
 misra-c2012-16.6:tests/path_check_wexcl.c:37
 misra-c2012-16.6:tests/priv_drop.c:36
 
-// Rule 17.1 requires that no function accept varadic arguments, because such
-// arguments cannot be type-checked by the compiler. But `error` in err.c
-// wraps `vsyslog`(3). And there is no other way to do this. Also, every
-// compiler that supports the GNU C function attribute `printf`, Clang and
-// and GCC, for instance, will type-check those arguments.
+// Rule 17.1 requires that no function accept varadic arguments. But error
+// in err.c wraps vsyslog(3). And there is no other way to do this. Also,
+// every compiler that supports the GNU C function attribute printf, Clang
+// and and GCC, for instance, will type-check those arguments.
 misra-c2012-17.1:err.c
 // A blanket exemption for the test suite.
 misra-c2012-17.1:tools/*.c
 
+// Rule 17.8 advises that function arguments not be modified.
+// However, `argc += optind` and `argv += optind` are idiomatic.
+misra-c2012-17.8:tools/runas.c:68
+misra-c2012-17.8:tools/runas.c:69
+misra-c2012-17.8:tools/unallocid.c:76
+misra-c2012-17.8:tools/unallocid.c:77
+
 // Rule 18.4 advises to avoid pointer arithmetics. However, heeding this
 // advice would render `path_check_wexcl` in path.c and `str_cp` and 
-// `str_split` in str.c much more complex, and slower. The exceptions
-// below also meet rules 18.2 and 18.4, since they only substract one
-// pointer from another, both of which point to the same array; in those
-// cases Cppcheck, reports false positives.
+// `str_split` in str.c much more complex.
+//
+// The exceptions below also meet rules 18.2 and 18.4, since (a) they only
+// substract one pointer from another and (b) both pointers point to the
+// same array; in those cases, Cppcheck reports false positives.
 misra-c2012-18.4:path.c:72
 misra-c2012-18.4:str.c:47
 misra-c2012-18.4:str.c:61
@@ -172,6 +217,9 @@ misra-c2012-18.4:str.c:61
 misra-c2012-18.4:path.c:62
 misra-c2012-18.4:path.c:71
 misra-c2012-18.4:path.c:79
+// `argv += optind` is idiomatic and should never be out-of-bounds.
+misra-c2012-18.4:tools/runas.c:69
+misra-c2012-18.4:tools/unallocid.c:77
 
 // Rule 18.8 requires that variable-length arrays not be used. However,
 // this would not allow to declare an array with NGROUPS_MAX members.
@@ -179,7 +227,7 @@ misra-c2012-18.8:sucgi.c:297
 misra-c2012-18.8:tests/gids_get_list.c
 
 // Rule 20.1 advises not to use the '#' and '##' operators in macros.
-// `croak` in lib.h uses those operators to add the current file and
+// croak in lib.h uses those operators to add the current file and
 // line number to error messages.
 misra-c2012-20.10:tools/lib.h:37
 
@@ -187,10 +235,10 @@ misra-c2012-20.10:tools/lib.h:37
 // sucgi.c only uses #undef for testing and when TESTING is set.
 misra-c2012-20.5:sucgi.c
 
-// Rule 21.1 requires that `define` and `undef` not be used for standard 
-// macros. However, Cppcheck takes that to include `_ISOC99_SOURCE`,
-// `_POSIX_C_SOURCE`, `_BSD_SOURCE`, `_DARWIN_C_SOURCE`, `_DEFAULT_SOURCE`,
-// and `_FORTIFY_SOURCE`; that's just absurd.
+// Rule 21.1 requires that #define and #undef not be used for standard 
+// macros. However, Cppcheck takes that to include _ISOC99_SOURCE,
+// _POSIX_C_SOURCE, _BSD_SOURCE, _DARWIN_C_SOURCE, _DEFAULT_SOURCE,
+// and _FORTIFY_SOURCE; that's just absurd.
 misra-c2012-21.1:env.c:22
 misra-c2012-21.1:env.c:23
 misra-c2012-21.1:env.c:26
@@ -234,6 +282,8 @@ misra-c2012-21.1:defs.h:27
 // Rule 21.3 requires that memory not be allocated dynamically.
 // However, the test suite needs to do so to initialise the environment.
 misra-c2012-21.3:tests/env_restore.c:91
+// The same goes for badenv.
+misra-c2012-21.3:tools/badenv.c:106
 
 // Rule 21.6 requires that the standard I/O functions should not be used.
 // But path.h does not do that; it imports stdio.h to define FILENAME_MAX.
@@ -243,14 +293,23 @@ misra-c2012-21.6:tests/*.c
 misra-c2012-21.6:tools/*.c
 
 // Rule 21.8 requires, among other things, that exit(3) and getenv(3) should
-// not be used. However, exit(3) is only used by `error` in err.c and
-// `die` in  tools/lib.c to abort the programme in case of errors.
+// not be used. However, exit(3) is only used by error in err.c and die in
+// in tools/lib.c to abort the programme in case of errors.
 misra-c2012-21.8:err.c:66
-misra-c2012-21.8:tools/lib.c:48
+misra-c2012-21.8:tools/lib.c:71
 // getenv(3) cannot be avoided, it is part of the CGI specification.
 // However, it should only be invoked via suCGI's env_* functions.
 misra-c2012-21.8:env.c
 misra-c2012-21.8:tests/env*.c
+
+// Rule 22.8 requires that errno be set to 0 before an errno-setting function.
+// However, all programmes that are part of suCGI set errno to 0 at their start
+// and abort exectuion when a system error occurrs.
+misra-c2012-22.8:tools/badenv.c:61
+misra-c2012-22.8:tools/getlogname.c:71
+misra-c2012-22.8:tools/runas.c:76
+misra-c2012-22.8:tools/runas.c:84
+misra-c2012-22.8:tools/unallocid.c:85
 
 // Rule 22.10 requires that errno only be checked right after having called
 // a function that sets it. However, Cppcheck's misra.py appears to be based
@@ -259,10 +318,11 @@ misra-c2012-21.8:tests/env*.c
 misra-c2012-22.10:gids.c:77
 misra-c2012-22.10:sucgi.c:309
 misra-c2012-22.10:tests/priv_drop.c:30
-misra-c2012-22.10:tools/unallocids.c:29
-misra-c2012-22.10:tools/unallocids.c:42
-misra-c2012-22.10:tools/getlogname.c:28
-
+misra-c2012-22.10:tools/getlogname.c:81
+misra-c2012-22.10:tools/unallocid.c:100
+misra-c2012-22.10:tools/unallocid.c:110
+// die in tools/lib.c appends an error message is errno is set.
+misra-c2012-22.10:tools/lib.c:64
 
 //
 // Cppcheck

@@ -72,8 +72,7 @@ fi
 
 true="$(command -v true >/dev/null 2>&1 || :)" || :
 : "${true:=/usr/bin/true}"
-"$true" ||
-	abort "${bold}true$reset$red: exited with status $?."
+"$true" || abort "${bold}true$reset$red: exited with status $?."
 true_dir="$(dirname "$true")" && [ "$true_dir" ] ||
 	abort "$bold$true$reset$red: failed to get directory."
 
@@ -96,74 +95,74 @@ checkerr 'too many environment variables.' main
 unset $vars
 
 checkerr 'an environment variable is malformed.' \
-	evilenv "$pwd/main" foo=foo bar baz=baz
+	badenv -n3 foo bar=bar baz=baz "$pwd/main"
 
 checkerr 'an environment variable is malformed.' \
-	evilenv "$pwd/main" 0foo=foo bar=bar baz=baz
+	badenv foo=foo 0bar=bar baz=baz "$pwd/main"
 
 checkerr 'an environment variable is malformed.' \
-	evilenv "$pwd/main" foo=foo bar=bar '=baz'
+	badenv foo=foo bar=bar '=baz' "$pwd/main"
 
 checkerr 'an environment variable is malformed.' \
-	evilenv "$pwd/main" '' foo=foo =bar
+	badenv -n2 '' foo=foo "$pwd/main"
 
-eval "export $long_str=\"\$long_str\""
-checkerr 'an environment variable is too long.' main
-unset "$long_str"
+checkerr 'an environment variable is too long.' \
+	var="$long_str" main
 
-checkerr 'DOCUMENT_ROOT: unset or empty.' main
+checkerr 'DOCUMENT_ROOT: unset or empty.' \
+	main
 
-DOCUMENT_ROOT='' \
-	checkerr 'DOCUMENT_ROOT: unset or empty.' main
+checkerr 'DOCUMENT_ROOT: unset or empty.' \
+	DOCUMENT_ROOT= main
 
 [ "$long_path" ] &&
-	DOCUMENT_ROOT="$long_path" \
-		checkerr 'an environment variable is too long.' main
+	checkerr 'an environment variable is too long.' \
+		DOCUMENT_ROOT="$long_path" main
 
 [ "$long_name" ] &&
-	DOCUMENT_ROOT="$long_name" \
-		checkerr '$DOCUMENT_ROOT: File name too long.' main
+	checkerr '$DOCUMENT_ROOT: File name too long.' \
+		DOCUMENT_ROOT="$long_name" main
 
-DOCUMENT_ROOT='/::no-such-file!!' \
-	checkerr '$DOCUMENT_ROOT: No such file or directory.' main
+checkerr '$DOCUMENT_ROOT: No such file or directory.' \
+	DOCUMENT_ROOT='/::no-such-file!!' main
 
-DOCUMENT_ROOT="$file" \
-	checkerr '$DOCUMENT_ROOT: Not a directory.' main
+checkerr '$DOCUMENT_ROOT: Not a directory.' \
+	DOCUMENT_ROOT="$file" main
 
-DOCUMENT_ROOT="$TMPDIR" \
-	checkerr 'PATH_TRANSLATED: unset or empty.' main
+checkerr 'PATH_TRANSLATED: unset or empty.' \
+	DOCUMENT_ROOT="$TMPDIR" main
 
-DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED='' \
-	checkerr 'PATH_TRANSLATED: unset or empty.' main
+checkerr 'PATH_TRANSLATED: unset or empty.' \
+	DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED= main
 
 [ "$long_path" ] &&
-	DOCUMENT_ROOT="$pwd" PATH_TRANSLATED="$long_path" \
-		checkerr 'an environment variable is too long.' main
+	checkerr 'an environment variable is too long.' \
+		DOCUMENT_ROOT="$pwd" PATH_TRANSLATED="$long_path" main
 
 [ "$long_name" ] &&
-	DOCUMENT_ROOT="$pwd" PATH_TRANSLATED="$long_name" \
-		checkerr '$PATH_TRANSLATED: File name too long.' main
+	checkerr '$PATH_TRANSLATED: File name too long.' \
+		DOCUMENT_ROOT="$pwd" PATH_TRANSLATED="$long_name" main
 
-DOCUMENT_ROOT="$pwd" PATH_TRANSLATED="$pwd/::no-such-file!!" \
-	checkerr '$PATH_TRANSLATED: No such file or directory.' main
+checkerr '$PATH_TRANSLATED: No such file or directory.' \
+	DOCUMENT_ROOT="$pwd" PATH_TRANSLATED="$pwd/::no-such-file!!" main
 
-DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED="$dir" \
-	checkerr '$PATH_TRANSLATED: not a regular file.' main
+checkerr '$PATH_TRANSLATED: not a regular file.' \
+	DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED="$dir" main
 
-DOCUMENT_ROOT="$true_dir" PATH_TRANSLATED="$true" \
-	checkerr 'owned by privileged UID 0.' main
+checkerr 'owned by privileged UID 0.' \
+	DOCUMENT_ROOT="$true_dir" PATH_TRANSLATED="$true" main
 
-DOCUMENT_ROOT=/ PATH_TRANSLATED="$file" \
-	checkerr '$DOCUMENT_ROOT: not within /.' main
+checkerr '$DOCUMENT_ROOT: not within /.' \
+	DOCUMENT_ROOT=/ PATH_TRANSLATED="$file" main
 
-DOCUMENT_ROOT="$root_symlink" PATH_TRANSLATED="$file" \
-	checkerr '$DOCUMENT_ROOT: not within /.' main
+checkerr '$DOCUMENT_ROOT: not within /.' \
+	DOCUMENT_ROOT="$root_symlink" PATH_TRANSLATED="$file" main
 
-DOCUMENT_ROOT="$root_dotdot" PATH_TRANSLATED="$file" \
-	checkerr '$DOCUMENT_ROOT: not within /.' main
+checkerr '$DOCUMENT_ROOT: not within /.' \
+	DOCUMENT_ROOT="$root_dotdot" PATH_TRANSLATED="$file" main
 
-DOCUMENT_ROOT="$home" PATH_TRANSLATED="$file" \
-	checkerr "\$PATH_TRANSLATED: not within \$DOCUMENT_ROOT." main
+checkerr "\$PATH_TRANSLATED: not within \$DOCUMENT_ROOT." \
+	DOCUMENT_ROOT="$home" PATH_TRANSLATED="$file" main
 
 
 #
@@ -185,14 +184,10 @@ cleanup="rm -rf \"\${tmpdir:?}\"; ${cleanup-}"
 catch=x
 [ "${caught-}" ] && exit $((caught + 128))
 
-eval "$(unallocids)" && [ "$unalloc_uid" ] && [ "$unalloc_gid" ] ||
-        abort "failed to find an unallocated UID and GID."
-
-eval "$(unallocids)" && [ "$uid" ] && [ "$gid" ] ||
-        abort "failed to find an unallocated UID and GID."
-
-unalloc_uid="$1"
-unalloc_gid="$2"
+unalloc_uid="$(unallocid -u 1000 30000)" && [ "$unalloc_uid" ] ||
+	abort "failed to find an unallocated user ID."
+unalloc_gid="$(unallocid -g 1000 30000)" && [ "$unalloc_gid" ] ||
+	abort "failed to find an unallocated group ID."
 
 cp -a "$script_dir/../tools/." "$tmpdir/."
 
@@ -244,41 +239,41 @@ mkfifo "$fifo"
 # Root checks
 #
 
-DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED="$file" \
-	checkerr "document root $TMPDIR is not in $user's home directory." main
+checkerr "document root $TMPDIR is not in $user's home directory." \
+	DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED="$file" main
 
-DOCUMENT_ROOT="$outside" PATH_TRANSLATED="$file" \
-	checkerr "document root $TMPDIR is not in $user's home directory." main
+checkerr "document root $TMPDIR is not in $user's home directory." \
+	DOCUMENT_ROOT="$outside" PATH_TRANSLATED="$file" main
 
-DOCUMENT_ROOT="$home/../../../../../../$TMPDIR" PATH_TRANSLATED="$file" \
-	checkerr "not in $user's home directory." main
+checkerr "not in $user's home directory." \
+	DOCUMENT_ROOT="$home/../../../../$TMPDIR" PATH_TRANSLATED="$file" main
 
-DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$su" \
-	checkerr "$su: owned by the superuser." main
+checkerr "$su: owned by the superuser." \ 
+	DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$su" main
 
-DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$sg" \
-	checkerr "$sg: owned by the supergroup." main
+checkerr "$sg: owned by the supergroup." \
+	DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$sg" main
 
-DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$ltmin" \
-	checkerr "$ltmin: owned by non-regular UID 1." main
+checkerr "$ltmin: owned by non-regular UID 1." \
+	DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$ltmin" main
 
-DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$gtmax" \
-	checkerr "$gtmax: owned by non-regular UID 30001." main main
+checkerr "$gtmax: owned by non-regular UID 30001." \
+	DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$gtmax" main
 
-DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$nouser" \
-	checkerr "$nouser: getpwuid $unalloc_uid: no such user." main
+checkerr "$nouser: getpwuid $unalloc_uid: no such user." \
+	DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$nouser" main
 
-DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$grpw" \
-	checkerr "$grpw: can be altered by users other than $user." main
+checkerr "$grpw: can be altered by users other than $user." \
+	DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$grpw" main
 
-DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$script" \
-	checkok 'This is a test script for main.sh and run_script.sh.' main
+checkok 'This is a test script for main.sh and run_script.sh.' \
+	DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$script" main
 
-DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/script" \
-	checkok 'This is a test script for main.sh and run_script.sh.' main
+checkok 'This is a test script for main.sh and run_script.sh.' \
+	DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/script" main
 
-DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$reportuser" \
-	checkok "$ruid:$rgid" main
+checkok "$ruid:$rgid" \
+	DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$reportuser" main
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/env.sh" FOO=bar \
 	main >"$fifo" 2>&1 & pid="$!"

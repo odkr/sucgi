@@ -31,13 +31,14 @@ check_str_objs = lib.a(str.o) lib.a(tools/lib.o)
 # Tests
 #
 
-check_bins =	tools/evilenv tools/runas tools/unallocids tools/getlogname \
+check_bins =	tools/badenv tools/runas tools/unallocid tools/getlogname \
 		tests/error tests/env_clear tests/env_file_open \
 		tests/env_name_valid tests/env_restore tests/main \
-		tests/file_is_exec tests/file_is_wexcl tests/file_safe_open \
-		tests/file_safe_stat tests/gids_get_list tests/priv_drop \
-		tests/path_check_wexcl tests/path_contains \
-		tests/scpt_get_handler tests/str_cp tests/str_split tests/try
+		tests/file_is_exec tests/file_is_wexcl \
+		tests/file_safe_open tests/file_safe_stat \
+		tests/gids_get_list tests/priv_drop tests/path_check_wexcl \
+		tests/path_contains tests/scpt_get_handler tests/str_cp \
+		tests/str_split tests/try
 
 checks =	tests/error.sh tests/env_clear tests/env_file_open.sh \
 		tests/env_name_valid tests/env_restore tests/main.sh \
@@ -158,11 +159,11 @@ tests/try: tests/try.c $(check_err_objs)
 tests/main: sucgi.c config.h defs.h lib.a
 	$(CC) -DTESTING=1 $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a $(LDLIBS)
 
-tools/evilenv: tools/evilenv.c lib.a(tools/lib.o)
+tools/badenv: tools/badenv.c lib.a(tools/lib.o)
 
 tools/runas: tools/runas.c lib.a(tools/lib.o)
 
-tools/unallocids: tools/unallocids.c lib.a(tools/lib.o)
+tools/unallocid: tools/unallocid.c lib.a(tools/lib.o)
 
 tools/getlogname: tools/getlogname.c lib.a(tools/lib.o)
 

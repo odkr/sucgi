@@ -62,8 +62,10 @@ euid="$(id -u)" && [ "$euid" ] ||
 
 [ "$euid" -ne 0 ] && exit
 
-eval "$(unallocids)" && [ "$unalloc_uid" ] && [ "$unalloc_gid" ] ||
-	abort "failed to find an unallocated UID and GID."
+unalloc_uid="$(unallocid -u 1000 30000)" && [ "$unalloc_uid" ] ||
+	abort "failed to find an unallocated user ID."
+unalloc_gid="$(unallocid -g 1000 30000)" && [ "$unalloc_gid" ] ||
+	abort "failed to find an unallocated group ID."
 
 chown "$unalloc_uid:$unalloc_gid" "$fname"
 

@@ -23,11 +23,13 @@ catch() {
 checkerr() (
 	err="${1:?}"
 	shift
-	: "${1:?no programme given}"
+	: "${1:?no error given}"
+	: "${@:?no command given}"
 	: "${__tmpdir_tmpdir:?checkok needs a temporary directory}"
-	fifo="$TMPDIR/${1##*/}.fifo"
+	fifo="$TMPDIR/checkerr.fifo"
 	mkfifo "$fifo"
-	"${@:?}" >/dev/null 2>"$fifo" & pid="$!"
+	warn "checking $bold$*$reset ..."
+	env "$@" >/dev/null 2>"$fifo" & pid="$!"
 	match "$err" <"$fifo"
 	# shellcheck disable=2154
 	wait "$pid" && abort "$bold$*$reset exited with status 0" \
@@ -39,11 +41,13 @@ checkerr() (
 checkok() (
 	msg="${1:?}"
 	shift
-	: "${1:?no programme given}"
+	: "${1:?no message given}"
+	: "${@:?no command given}"
 	: "${__tmpdir_tmpdir:?checkok needs a temporary directory}"
 	fifo="$TMPDIR/${1##*/}.fifo"
 	mkfifo "$fifo"
-	"${@:?}" >"$fifo" 2>&1 & pid="$!"
+	warn "checking $bold$*$reset ..."
+	env "$@" >"$fifo" 2>&1 & pid="$!"
 	match "$msg" <"$fifo"
 	# shellcheck disable=2154
 	wait "$pid" || abort "$bold$*$reset exited with non-zero status $?."

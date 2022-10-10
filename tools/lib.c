@@ -31,20 +31,43 @@
 #include "lib.h"
 
 
+/*
+ * Globals
+ */
+
+/* Programme name. */
+char *prog_name = NULL;
+
+
+/*
+ * Functions
+ */
+
 void
 die (const char *const message, ...)
 {
 	va_list ap;
 
-	assert(message != NULL);
-	assert(message[0] != '\0');
+	assert(message);
+	assert(*message != '\0');
+
+	if (prog_name) {
+		/* RATS: ignore; format string is a literal. */
+		(void) fprintf(stderr, "%s: ", prog_name);
+	}
 
 	va_start(ap, message);
 	/* RATS: ignore; format strings are always literals. */
 	(void) vfprintf(stderr, message, ap);
 	va_end(ap);
-	(void) fputs("\n", stderr);
 
+	if (errno != 0) {
+		/* RATS: ignore; format string is a literal. */
+		(void) fprintf(stderr, ": %s.", strerror(errno));
+	}
+
+	(void) fputs("\n", stderr);
+	
 	exit(EXIT_FAILURE);
 }
 

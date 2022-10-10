@@ -21,9 +21,13 @@
 #if !defined(TOOLS_LIB_H)
 #define TOOLS_LIB_H
 
+#include <unistd.h>
+
 #include "../defs.h"
 #include "../env.h"
 #include "../err.h"
+
+
 
 
 /*
@@ -46,6 +50,20 @@
  * Abort the programme with the given MESSAGE unless COND is true.
  */
 #define req(cond, ...) do { if (!(cond)) croak(__VA_ARGS__); } while (0)
+
+
+/*
+ * Globals
+ */
+
+/* The option index. See getopt(3). */
+extern int optind;
+
+/* An option argument. See getopt(3). */
+extern char *optarg;
+
+/* The name of the current programme. */
+extern char *prog_name;
 
 
 /*
