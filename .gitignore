@@ -7,8 +7,10 @@
 *.gcdo
 *.gcov
 *.o
+*.swp
 *.tgz
 *.tgz.asc
+a.out
 cov
 local.env
 lcov.info
