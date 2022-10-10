@@ -19,6 +19,7 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <err.h>
 #include <errno.h>
 #include <pwd.h>
 #include <stdlib.h>
@@ -26,24 +27,19 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "lib.h"
-
 
 int
 main (int argc, char **argv)
 {
 	struct passwd *pwd;	/* The user's passwd record. */
 	long uid;		/* The user's ID. */
-	int optc;		/* An option character. */
+	int ch;			/* An option character. */
 
 	errno = 0;
 
 	/* RATS: ignore */
-	prog_name = "getlogname";
-
-	/* RATS: ignore */
-	while ((optc = getopt(argc, argv, "h")) != -1) {
-		switch (optc) {
+	while ((ch = getopt(argc, argv, "h")) != -1) {
+		switch (ch) {
 			case 'h':
 				(void) puts(
 "getlogname - print the login name associated with a user ID.\n\n"
@@ -70,18 +66,18 @@ main (int argc, char **argv)
 
 	uid = strtol(argv[optind], NULL, 10);
 	if (errno != 0) {
-		die("strtol %s", argv[optind]);
+		err(EXIT_FAILURE, "strtol %s", argv[optind]);
 	}
 	if (uid < 0) {
-		die("user IDs must be equal to or greater than 0.");
+		errx(EXIT_FAILURE, "user IDs must be non-negative");
 	}
 
 	pwd = getpwuid((uid_t) uid);
 	if (!pwd) {
 		if (errno == 0) {
-			die("getpwuid %ld: no such user.", uid);
+			errx(EXIT_FAILURE, "getpwuid %ld: no such user", uid);
 		} else {
-			die("getpwuid %ld", uid);
+			err(EXIT_FAILURE, "getpwuid %ld", uid);
 		}
 	}
 

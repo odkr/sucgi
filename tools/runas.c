@@ -19,14 +19,13 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <err.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-#include "lib.h"
 
 
 int
@@ -35,14 +34,13 @@ main (int argc, char **argv)
 	char **cmd;	/* The command. */
 	long uid;	/* The user ID. */
 	long gid;	/* The group ID. */
-	int optc;	/* An option. */
+	int ch;		/* An option character. */
 
 	errno = 0;
-        prog_name = "runas";
 
 	/* RATS: ignore */
-	while ((optc = getopt(argc, argv, "h")) != -1) {
-		switch (optc) {
+	while ((ch = getopt(argc, argv, "h")) != -1) {
+		switch (ch) {
 			case 'h':
 				(void) puts(
 "runas - run a command under the given user and group IDs\n\n"
@@ -75,28 +73,28 @@ main (int argc, char **argv)
 
 	uid = strtol(argv[0], NULL, 10);
 	if (errno != 0) {
-		die("strtol %s", argv[1]);
+		err(EXIT_FAILURE, "strtol %s", argv[1]);
 	}
 	if (uid < 0) {
-		die("user IDs must be equal to or greater than 0.");
+		errx(EXIT_FAILURE, "user IDs must be non-negative");
 	}
 
 	gid = strtol(argv[1], NULL, 10);
 	if (errno != 0) {
-		die("strtol %s", argv[2]);
+		err(EXIT_FAILURE, "strtol %s", argv[2]);
 	}
 	if (gid < 0) {
-		die("group IDs must be equal to or greater than 0.");
+		errx(EXIT_FAILURE, "group IDs must be non-negative");
 	}
 
 	if (setgroups(1, (gid_t[1]) {(gid_t) gid}) != 0) {
-		die("setgroups %ld", gid);
+		err(EXIT_FAILURE, "setgroups %ld", gid);
 	}
 	if (setgid((gid_t) gid) != 0) {
-		die("setgid %ld", gid);
+		err(EXIT_FAILURE, "setgid %ld", gid);
 	}
 	if (setuid((uid_t) uid) != 0) {
-		die("setuid %ld", uid);
+		err(EXIT_FAILURE, "setuid %ld", uid);
 	}
 
 	cmd = &argv[2];
@@ -104,5 +102,5 @@ main (int argc, char **argv)
 	(void) execvp(*cmd, cmd);
 
 	/* This point should not be reached. */
-	die("exec %s", *cmd);
+	err(EXIT_FAILURE, "exec %s", *cmd);
 }

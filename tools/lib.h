@@ -78,6 +78,10 @@ extern char *prog_name;
 __attribute__((format(printf, 1, 2), nonnull(1), noreturn))
 void die(const char *const message, ...);
 
+
+void vinfo(const char *const message, va_list ap);
+void info(const char *const message, ...);
+
 /*
  * Covert S to an ID and store its value in the variable pointed to by ID.
  *

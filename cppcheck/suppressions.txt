@@ -1,17 +1,4 @@
 //
-// SEI CERT C
-//
-
-// Rule STR05 recommends that pointers to literals be qualified with `const`.
-// However, the below are assignments to a global variable, and therefore
-// cannot be qualified thusly. Equivalent to MISRA C:2012 rule 7.4.
-cert-STR05-C:tools/badenv.c:49
-cert-STR05-C:tools/getlogname.c:42
-cert-STR05-C:tools/runas.c:41
-cert-STR05-C:tools/unallocid.c:42
-
-
-//
 // MISRA C:2012
 //
 
@@ -50,14 +37,6 @@ misra-c2012-3.1:*:1
 // arguments and expected return values.
 misra-c2012-5.7:tests/*.c
 
-// Rule 7.4 requires that pointers to literals be qualified with `const`.
-// However, the below are assignmebts to a global variable, and therefore
-// cannot be qualified thusly. Equivalent to SEI CERT C rule STR05.
-misra-c2012-7.4:tools/badenv.c:49
-misra-c2012-7.4:tools/getlogname.c:42
-misra-c2012-7.4:tools/runas.c:41
-misra-c2012-7.4:tools/unallocid.c:42
-
 // Rule 8.2 requires that functions are given in prototype form.
 // Cppcheck reports the following false positives:
 misra-c2012-8.2:gids.h:40
@@ -88,19 +67,13 @@ misra-c2012-8.11:env.h:52
 misra-c2012-9.3:tests/env_restore.c:45
 misra-c2012-9.3:tests/env_restore.c:110
 
-// Rule 10.3 requires that values shall not be assigned to variables of a
-// different or a narrower type. However, `argv += optind` is idiomatic.
-misra-c2012-10.3:tools/runas.c:69
-misra-c2012-10.3:tools/unallocid.c:77
-
 // Rule 10.8 requires that values not be cast to wider types. This is to
 // ensure that truncation errors occur consistently on all systems. However, 
 // some values have to be cast to size_t, and those values cannot be
 // truncated at any rate (they must be smaller than SIZE_MAX).
 misra-c2012-10.8:path.c:72
 misra-c2012-10.8:str.c:47
-misra-c2012-10.8:tools/badenv.c:106
-misra-c2012-10.8:tools/badenv.c:118
+misra-c2012-10.8:tools/badenv.c:105
 
 // Rule 12.1 advises that operator precedence be explicit.
 // However, the precedence of the expressions below should be clear enough.
@@ -124,10 +97,10 @@ misra-c2012-12.1:tests/str_split.c:82
 // But `while ((grp = getgrent()))` is idiomatic.
 misra-c2012-13.4:gids.c:58
 // So is `while ((optchar = getopt(argc, argv, "...")) != -1)`.
-misra-c2012-13.4:tools/badenv.c:55
-misra-c2012-13.4:tools/getlogname.c:45
-misra-c2012-13.4:tools/runas.c:44
-misra-c2012-13.4:tools/unallocid.c:46
+misra-c2012-13.4:tools/badenv.c:52
+misra-c2012-13.4:tools/getlogname.c:41
+misra-c2012-13.4:tools/runas.c:42
+misra-c2012-13.4:tools/unallocid.c:44
 
 // Rule 14.4 requires that conditionals are of boolean type. However,
 // this implies that NULL has to be tested for explicitly, which makes
@@ -139,7 +112,7 @@ misra-c2012-14.4:sucgi.c:471
 misra-c2012-14.4:sucgi.c:474
 misra-c2012-14.4:tests/env_restore.c:90
 misra-c2012-14.4:tools/lib.c:54
-misra-c2012-14.4:tools/badenv.c:119
+misra-c2012-14.4:tools/badenv.c:118
 
 // Rule 15.1 advises that goto not be used. But sometimes goto is the most
 // straightforward way to jump to the next iteration or out of a loop.
@@ -147,7 +120,7 @@ misra-c2012-15.1:gids.c:60
 
 // Rule 15.4 advises that no more than one break or goto statemente be
 // used to leave a loop. Sometimes this leads to less straightforward code.
-misra-c2012-15.4:tools/unallocid.c:94
+misra-c2012-15.4:tools/unallocid.c:95
 
 // Rule 15.5 advises that functions have a single point of exit to ensure that
 // cleanup routines are run. But none of suCGI's functions does any cleanup. 
@@ -198,10 +171,10 @@ misra-c2012-17.1:tools/*.c
 
 // Rule 17.8 advises that function arguments not be modified.
 // However, `argc += optind` and `argv += optind` are idiomatic.
-misra-c2012-17.8:tools/runas.c:68
-misra-c2012-17.8:tools/runas.c:69
-misra-c2012-17.8:tools/unallocid.c:76
-misra-c2012-17.8:tools/unallocid.c:77
+misra-c2012-17.8:tools/runas.c:66
+misra-c2012-17.8:tools/runas.c:67
+misra-c2012-17.8:tools/unallocid.c:74
+misra-c2012-17.8:tools/unallocid.c:75
 
 // Rule 18.4 advises to avoid pointer arithmetics. However, heeding this
 // advice would render `path_check_wexcl` in path.c and `str_cp` and 
@@ -218,8 +191,8 @@ misra-c2012-18.4:path.c:62
 misra-c2012-18.4:path.c:71
 misra-c2012-18.4:path.c:79
 // `argv += optind` is idiomatic and should never be out-of-bounds.
-misra-c2012-18.4:tools/runas.c:69
-misra-c2012-18.4:tools/unallocid.c:77
+misra-c2012-18.4:tools/runas.c:67
+misra-c2012-18.4:tools/unallocid.c:75
 
 // Rule 18.8 requires that variable-length arrays not be used. However,
 // this would not allow to declare an array with NGROUPS_MAX members.
@@ -283,7 +256,7 @@ misra-c2012-21.1:defs.h:27
 // However, the test suite needs to do so to initialise the environment.
 misra-c2012-21.3:tests/env_restore.c:91
 // The same goes for badenv.
-misra-c2012-21.3:tools/badenv.c:106
+misra-c2012-21.3:tools/badenv.c:105
 
 // Rule 21.6 requires that the standard I/O functions should not be used.
 // But path.h does not do that; it imports stdio.h to define FILENAME_MAX.
@@ -305,11 +278,11 @@ misra-c2012-21.8:tests/env*.c
 // Rule 22.8 requires that errno be set to 0 before an errno-setting function.
 // However, all programmes that are part of suCGI set errno to 0 at their start
 // and abort exectuion when a system error occurrs.
-misra-c2012-22.8:tools/badenv.c:61
-misra-c2012-22.8:tools/getlogname.c:71
-misra-c2012-22.8:tools/runas.c:76
-misra-c2012-22.8:tools/runas.c:84
-misra-c2012-22.8:tools/unallocid.c:85
+misra-c2012-22.8:tools/badenv.c:58
+misra-c2012-22.8:tools/getlogname.c:67
+misra-c2012-22.8:tools/runas.c:74
+misra-c2012-22.8:tools/runas.c:82
+misra-c2012-22.8:tools/unallocid.c:83
 
 // Rule 22.10 requires that errno only be checked right after having called
 // a function that sets it. However, Cppcheck's misra.py appears to be based
@@ -318,9 +291,9 @@ misra-c2012-22.8:tools/unallocid.c:85
 misra-c2012-22.10:gids.c:77
 misra-c2012-22.10:sucgi.c:309
 misra-c2012-22.10:tests/priv_drop.c:30
-misra-c2012-22.10:tools/getlogname.c:81
-misra-c2012-22.10:tools/unallocid.c:100
-misra-c2012-22.10:tools/unallocid.c:110
+misra-c2012-22.10:tools/getlogname.c:77
+misra-c2012-22.10:tools/unallocid.c:101
+misra-c2012-22.10:tools/unallocid.c:111
 // die in tools/lib.c appends an error message is errno is set.
 misra-c2012-22.10:tools/lib.c:64
 

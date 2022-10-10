@@ -19,14 +19,13 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <err.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
-
-#include "lib.h"
 
 
 /* The environment. See environ(7) */
@@ -41,29 +40,29 @@ main (int argc, char **argv)
 	char **cmd;		/* The command. */
 	long nenv;		/* Number of current variables. */
 	long nvars;		/* Number of new variables. */
-	int optc;		/* An option character. */
 	bool ienv;		/* Inherit current environment? */
-
+	int ch;			/* An option character. */
 
 	errno = 0;
-	prog_name = "badenv";
 	nvars = -1;
 	nenv = 0;
 	ienv = true;
 
 	/* RATS: ignore */
-	while ((optc = getopt(argc, argv, "in:h")) != -1) {
-		switch (optc) {
+	while ((ch = getopt(argc, argv, "in:h")) != -1) {
+		switch (ch) {
 			case 'i':
 				ienv = false;
 				break;
 			case 'n':
 				nvars = strtol(optarg, NULL, 10);
 				if (errno != 0) {
-					die("strtol %s", optarg);
+					err(EXIT_FAILURE,
+					    "strtol %s", optarg);
 				}
 				if (nvars < 0) {
-					die("-n: must be a positive number.");
+					errx(EXIT_FAILURE,
+					     "-n: must be non-negative");
 				}
 				break;
 			case 'h':
@@ -90,7 +89,7 @@ main (int argc, char **argv)
 	}
 
 	if ((int) nvars > (argc - optind)) {
-		die("-n: not that many arguments.");
+		errx(EXIT_FAILURE, "-n: not that many arguments");
 	}
 
 	vars = &argv[optind];
@@ -105,7 +104,7 @@ main (int argc, char **argv)
 
 	new = calloc((size_t) (nenv + nvars + 1), sizeof(char *));
 	if (!new) {
-		die("calloc");
+		err(EXIT_FAILURE, "calloc");
 	}
 
 	for (long i = 0; i < nenv; i++) {
@@ -119,7 +118,7 @@ main (int argc, char **argv)
 	if (*cmd) {
 		/* RATS: ignore */
 		(void) execve(*cmd, cmd, new);
-		die("exec %s", *cmd);
+		err(EXIT_FAILURE, "exec %s", *cmd);
 	}
 
 	for (; *new; new++) {

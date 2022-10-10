@@ -19,6 +19,7 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <err.h>
 #include <errno.h>
 #include <grp.h>
 #include <pwd.h>
@@ -27,24 +28,21 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "lib.h"
-
 
 int
 main (int argc, char **argv)
 {
 	char type;		/* The ID type. */
 	long id;		/* The ID. */
-	long rng[2];		/* An ID range. */
-	int optc;		/* An option character. */
+	long range[2];		/* An ID range. */
+	int ch;			/* An option character. */
 
 	errno = 0;
-	prog_name = "unallocid";
 	type = 'u';
 
 	/* RATS: ignore */
-	while ((optc = getopt(argc, argv, "guh")) != -1) {
-		switch (optc) {
+	while ((ch = getopt(argc, argv, "guh")) != -1) {
+		switch (ch) {
 			case 'u':
 				type = 'u';
 				break;
@@ -82,23 +80,26 @@ main (int argc, char **argv)
 	}
 
 	for (int i = 0; i < 2; i++) {
-		rng[i] = strtol(argv[i], NULL, 10);
+		range[i] = strtol(argv[i], NULL, 10);
 		if (errno != 0) {
-			die("strtol %s", argv[i]);
+			err(EXIT_FAILURE, "strtol %s", argv[i]);
 		}
-		if (rng[i] < 0) {
-			die("IDs must be equal to or greater than 0.");
+		if (range[i] < 0) {
+			errx(EXIT_FAILURE, "IDs must be non-negative");
 		}
 	}
+	if (range[0] > range[1]) {
+		errx(EXIT_FAILURE, "beginning of range past the end");
+	}
 
-	for (id = rng[0]; id <= rng[1]; id++) {
+	for (id = range[0]; id <= range[1]; id++) {
 		if (type == 'u') {
 			struct passwd *pwd;	/* A passwd entry. */
 
 			pwd = getpwuid((uid_t) id);
 			if (!pwd) {
 				if (errno != 0) {
-					die("getpwuid %ld", id);
+					err(EXIT_FAILURE, "getpwuid %ld", id);
 				}
 				break;
 			}
@@ -108,15 +109,16 @@ main (int argc, char **argv)
 			grp = getgrgid((gid_t) id);
 			if (!grp) {
 				if (errno != 0) {
-					die("getgrgid %ld", id);
+					err(EXIT_FAILURE, "getgrgid %ld", id);
 				}
 				break;
 			}
 		}
 	}
 
-	if (id > rng[1]) {
-		die("no unallocated ID in range %ld-%ld.", rng[0], rng[1]);
+	if (id > range[1]) {
+		errx(EXIT_FAILURE, "did not find an unallocated %s ID",
+		     (type == 'u') ? "user" : "group");
 	}
 
 	/* RATS: ignore; the format string is a literal. */

@@ -44,10 +44,23 @@ char *prog_name = NULL;
  */
 
 void
-die (const char *const message, ...)
+die(const char *const message, ...)
 {
 	va_list ap;
 
+	assert(message);
+	assert(*message != '\0');
+
+	va_start(ap, message);
+	vinfo(message, ap);
+	va_end(ap);
+
+	exit(EXIT_FAILURE);
+}
+
+void
+vinfo(const char *const message, va_list ap)
+{
 	assert(message);
 	assert(*message != '\0');
 
@@ -56,19 +69,28 @@ die (const char *const message, ...)
 		(void) fprintf(stderr, "%s: ", prog_name);
 	}
 
-	va_start(ap, message);
 	/* RATS: ignore; format strings are always literals. */
 	(void) vfprintf(stderr, message, ap);
-	va_end(ap);
 
-	if (errno != 0) {
+	if (errno == 0) {
+		(void) fputs(".", stderr);
+	} else {
 		/* RATS: ignore; format string is a literal. */
 		(void) fprintf(stderr, ": %s.", strerror(errno));
+		errno = 0;
 	}
 
 	(void) fputs("\n", stderr);
-	
-	exit(EXIT_FAILURE);
+}
+
+void 
+info(const char *const message, ...)
+{
+	va_list ap;
+
+	va_start(ap, message);
+	vinfo(message, ap);
+	va_end(ap);
 }
 
 enum error
