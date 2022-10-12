@@ -21,6 +21,7 @@
 
 #include <err.h>
 #include <errno.h>
+#include <limits.h>
 #include <pwd.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -70,6 +71,13 @@ main (int argc, char **argv)
 	}
 	if (uid < 0) {
 		errx(EXIT_FAILURE, "user IDs must be non-negative");
+	}
+#if defined(UID_MAX)
+	if ((unsigned long) uid > UID_MAX) {
+#else
+	if ((unsigned long) uid > UINT_MAX) {
+#endif
+		errx(EXIT_FAILURE, "user ID is too large");
 	}
 
 	pwd = getpwuid((uid_t) uid);

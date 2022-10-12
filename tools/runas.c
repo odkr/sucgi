@@ -21,6 +21,7 @@
 
 #include <err.h>
 #include <errno.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -78,6 +79,13 @@ main (int argc, char **argv)
 	if (uid < 0) {
 		errx(EXIT_FAILURE, "user IDs must be non-negative");
 	}
+#if defined(UID_MAX)
+	if ((unsigned long) uid > UID_MAX) {
+#else
+	if ((unsigned long) uid > UINT_MAX) {
+#endif
+		errx(EXIT_FAILURE, "user ID is too large");
+	}
 
 	gid = strtol(argv[1], NULL, 10);
 	if (errno != 0) {
@@ -85,6 +93,13 @@ main (int argc, char **argv)
 	}
 	if (gid < 0) {
 		errx(EXIT_FAILURE, "group IDs must be non-negative");
+	}
+#if defined(GID_MAX)
+	if ((unsigned long) gid > GID_MAX) {
+#else
+	if (gid > UINT_MAX) {
+#endif
+		errx(EXIT_FAILURE, "group ID is too large");
 	}
 
 	if (setgroups(1, (gid_t[1]) {(gid_t) gid}) != 0) {

@@ -36,7 +36,7 @@ done
 shift $((OPTIND - 1))
 unset opt
 
-[ $# -gt 0 ] && abort 'too many operands.'
+[ $# -gt 0 ] && err 'too many operands.'
 
 
 #
@@ -44,10 +44,10 @@ unset opt
 #
 
 ruid="$(regularuid)" && [ "$ruid" ] ||
-	abort 'failed to get non-root user ID.'
+	err 'failed to get non-root user ID.'
 user="$(getlogname "$ruid")" && [ "$user" ] ||
-	abort "failed to get logname associated with ID $ruid."
+	err "failed to get logname associated with ID $ruid."
 rgid="$(id -g "$user")" && [ "$rgid" ] ||
-	abort 'failed to get non-root group ID.'
+	err 'failed to get non-root group ID.'
 
 printf '%d:%d\n' "$ruid" "$rgid"

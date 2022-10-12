@@ -21,6 +21,7 @@
 
 #include <err.h>
 #include <errno.h>
+#include <limits.h>
 #include <grp.h>
 #include <pwd.h>
 #include <stdlib.h>
@@ -32,22 +33,22 @@
 int
 main (int argc, char **argv)
 {
-	char type;		/* The ID type. */
+	const char *type;	/* The ID type. */
 	long id;		/* The ID. */
 	long range[2];		/* An ID range. */
 	int ch;			/* An option character. */
 
 	errno = 0;
-	type = 'u';
+	type = "user";
 
 	/* RATS: ignore */
 	while ((ch = getopt(argc, argv, "guh")) != -1) {
 		switch (ch) {
 			case 'u':
-				type = 'u';
+				type = "user";
 				break;
 			case 'g':
-				type = 'g';
+				type = "group";
 				break;
 			case 'h':
 				(void) puts(
@@ -84,16 +85,38 @@ main (int argc, char **argv)
 		if (errno != 0) {
 			err(EXIT_FAILURE, "strtol %s", argv[i]);
 		}
+
 		if (range[i] < 0) {
-			errx(EXIT_FAILURE, "IDs must be non-negative");
+			errx(EXIT_FAILURE, "%s: %s IDs must be non-negative",
+			     argv[i], type);
 		}
+
+		if (strcmp(type, "user") == 0) {
+#if defined(UID_MAX)
+			if ((unsigned long) range[i] > UID_MAX) {
+#else
+			if ((unsigned long) range[i] > UINT_MAX) {
+#endif
+				errx(EXIT_FAILURE, "user ID is too large");
+			}
+		} else {
+#if defined(GID_MAX)
+			if ((unsigned long) range[i] > GID_MAX) {
+#else
+			if ((unsigned long) range[i] > UINT_MAX) {
+#endif
+				errx(EXIT_FAILURE, "group ID is too large");
+			}
+		}
+
 	}
+
 	if (range[0] > range[1]) {
 		errx(EXIT_FAILURE, "beginning of range past the end");
 	}
 
 	for (id = range[0]; id <= range[1]; id++) {
-		if (type == 'u') {
+		if (strcmp(type, "user") == 0) {
 			struct passwd *pwd;	/* A passwd entry. */
 
 			pwd = getpwuid((uid_t) id);
@@ -117,8 +140,7 @@ main (int argc, char **argv)
 	}
 
 	if (id > range[1]) {
-		errx(EXIT_FAILURE, "did not find an unallocated %s ID",
-		     (type == 'u') ? "user" : "group");
+		errx(EXIT_FAILURE, "did not find an unallocated %s ID", type);
 	}
 
 	/* RATS: ignore; the format string is a literal. */

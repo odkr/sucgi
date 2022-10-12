@@ -1,9 +1,27 @@
 #!/bin/sh
 # Utility functions for the test suite and the tools.
+#
+# Copyright 2022 Odin Kroeger
+#
+# This file is part of suCGI.
+#
+# suCGI is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# suCGI is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+# for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with suCGI. If not, see <https://www.gnu.org/licenses>.
+
 # shellcheck disable=2015
 
 # Print a message to STDERR and exit with a non-zero status.
-abort() {
+err() {
 	warn "${red-}$*${reset-}"
 	exit 8
 }
@@ -32,7 +50,7 @@ checkerr() (
 	env "$@" >/dev/null 2>"$fifo" & pid="$!"
 	match "$err" <"$fifo"
 	# shellcheck disable=2154
-	wait "$pid" && abort "$bold$*$reset exited with status 0" \
+	wait "$pid" && err "$bold$*$reset exited with status 0" \
 	                     "for error $bold$err$reset."
 	rm "$fifo"
 )
@@ -50,7 +68,7 @@ checkok() (
 	env "$@" >"$fifo" 2>&1 & pid="$!"
 	match "$msg" <"$fifo"
 	# shellcheck disable=2154
-	wait "$pid" || abort "$bold$*$reset exited with non-zero status $?."
+	wait "$pid" || err "$bold$*$reset exited with non-zero status $?."
 	rm "$fifo"
 )
 
@@ -59,6 +77,7 @@ cleanup() {
 	status=$?
 	set +e
 	trap : EXIT HUP INT TERM
+	# shellcheck disable=2046
 	kill -15 $(jobs -p) -$$ >/dev/null 2>&1
 	[ "${cleanup-}" ] && eval "$cleanup"
 	[ "${reset-}" ] && printf %s "$reset" >&2
@@ -152,9 +171,9 @@ tmpdir() {
 	__tmpdir_prefix="${1:?}" __tmpdir_dir="${2:-"${TMPDIR:-/tmp}"}"
 	__tmpdir_real="$(cd -P "$__tmpdir_dir" && pwd)" &&
 		[ "$__tmpdir_real" ] && [ -d "$__tmpdir_real" ] ||
-			abort "failed to get real path of $__tmpdir_dir."
+			err "failed to get real path of $__tmpdir_dir."
 	readonly __tmpdir_tmpdir="$__tmpdir_real/$__tmpdir_prefix-$$"
-	[ -e "$__tmpdir_tmpdir" ] && abort "$__tmpdir_tmpdir: exists."
+	[ -e "$__tmpdir_tmpdir" ] && err "$__tmpdir_tmpdir: exists."
 	catch=
 	mkdir -m 0700 "$__tmpdir_tmpdir" || exit
 	cleanup="rm -rf \"\$__tmpdir_tmpdir\"; ${cleanup-}"

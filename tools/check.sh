@@ -71,7 +71,7 @@ cleanup="[ \"\${pids-}\" ] && kill -9 \$pids; ${cleanup-}"
 errors=0 pids=
 while [ $# -gt 0 ]; do
 	name="$(basename "$1")" && [ "$name" ] ||
-		abort "failed to get basename of $1."
+		err "failed to get basename of $1."
 
 	"$1" >/dev/null 2>&1 &
 	pids="$pids $!"

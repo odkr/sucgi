@@ -94,12 +94,15 @@ main (int argc, char **argv)
 
 	vars = &argv[optind];
 	if (nvars < 0) {
-		for (nvars = 0; vars[nvars] && strstr(vars[nvars], "="); nvars++)
-			/* Body of loop empty on purpose. */;
+		nvars = 0;
+		while (vars[nvars] && strstr(vars[nvars], "=")) {
+			nvars++;
+		}
 	}
 	if (ienv) {
-		for (; environ[nenv]; nenv++)
-			/* Body of lopp empty on purpose. */;
+		while (environ[nenv]) {
+			nenv++;
+		}
 	}
 
 	new = calloc((size_t) (nenv + nvars + 1), sizeof(char *));
