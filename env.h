@@ -25,7 +25,7 @@
 #include <sys/stat.h>
 
 #include "defs.h"
-#include "err.h"
+#include "error.h"
 #include "str.h"
 
 
@@ -49,7 +49,7 @@ extern char **environ;
  * Environment variables to keep.
  * NULL-terminated array of shell wildcard patterns.
  */
-extern const char *const env_safe_vars[];
+extern const char *const env_vars_safe[];
 
 
 /*

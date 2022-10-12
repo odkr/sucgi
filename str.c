@@ -32,7 +32,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "err.h"
+#include "error.h"
 #include "str.h"
 
 enum error
@@ -47,7 +47,9 @@ str_cp(const size_t n, const char *const src,
 	len = (size_t) (end - dest);
 	dest[len] = '\0';
 
-	if (src[len] == '\0') return OK;
+	if (src[len] == '\0') {
+		return OK;
+	}
 	return ERR_STR_LEN;
 }
 
@@ -59,7 +61,9 @@ str_split(const char *const s, const char *const sep,
 	*tail = strpbrk(s, sep);
 	if (*tail) {
 		size_t len = (size_t) (*tail - s);
-		if (len >= STR_MAX) return ERR_STR_LEN;
+		if (len >= STR_MAX) {
+			return ERR_STR_LEN;
+		}
 		(void) (str_cp(len, s, *head));
 		(*tail)++;
 	} else {

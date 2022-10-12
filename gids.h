@@ -22,7 +22,7 @@
 #if !defined(GIDS_H)
 #define GIDS_H
 
-#include "err.h"
+#include "error.h"
 
 
 /*

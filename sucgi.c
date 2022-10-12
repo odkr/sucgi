@@ -40,7 +40,7 @@
 
 #include "config.h"
 #include "env.h"
-#include "err.h"
+#include "error.h"
 #include "file.h"
 #include "gids.h"
 #include "path.h"
@@ -178,7 +178,7 @@ main(void) {
 	 * Restore the environment variables needed by CGI scripts.
 	 */
 
-	rc = env_restore(vars, env_safe_vars);
+	rc = env_restore(vars, env_vars_safe);
 	switch (rc) {
 		case OK:
 			break;
@@ -216,7 +216,7 @@ main(void) {
 	assert(*jail_dir != '\0');
         assert(strnlen(jail_dir, STR_MAX) < STR_MAX);
         /* RATS: ignore; this use of realpath should be safe. */
-	assert(strcmp(realpath(jail_dir, NULL), jail_dir) == 0);
+	assert(strncmp(realpath(jail_dir, NULL), jail_dir, STR_MAX) == 0);
 
 	rc = env_file_open(jail_dir, "DOCUMENT_ROOT",
 	                   O_RDONLY | O_CLOEXEC | O_DIRECTORY,
@@ -344,7 +344,9 @@ main(void) {
 	 * Drop privileges for good.
 	 */
 
-	if (seteuid(0) != 0) error("seteuid 0: %s.", strerror(errno));
+	if (seteuid(0) != 0) {
+		error("seteuid 0: %s.", strerror(errno));
+	}
 
 	rc = priv_drop(owner->pw_uid, owner->pw_gid, ngids, gids);
 	switch (rc) {
@@ -444,7 +446,7 @@ main(void) {
 	if (doc_exp.we_wordc < 1) {
 		error("%s: failed to shell-expand.", DOC_ROOT);
 	}	
-	if (strcmp(doc_exp.we_wordv[0], doc_root) != 0) {
+	if (strncmp(doc_exp.we_wordv[0], doc_root, STR_MAX) != 0) {
 		error("$DOCUMENT_ROOT: not %s.", doc_exp.we_wordv[0]);
 	}
 
@@ -509,36 +511,39 @@ main(void) {
 	 * Run the programme.
 	 */
 
-	const char *path_handler;	/* Handler for $PATH_TRANSLATED. */
 
-	if (file_is_exec(&path_stat)) {
+	if (!file_is_exec(path_stat)) {
+		const char *handler;	/* Handler for $PATH_TRANSLATED. */
+
+		rc = scpt_get_handler((const struct scpt_ent []) HANDLERS,
+		                      path_trans, &handler);
+		switch (rc) {
+			case OK:
+				break;
+			case ERR_SCPT_NO_HDL:
+				error("%s: no handler registered.",
+				      path_trans);
+			case ERR_SCPT_NO_SFX:
+				error("%s: has no filename suffix.",
+				      path_trans);
+			default:
+				error("%s:%d: scpt_get_handler returned %u.",
+				      __FILE__, __LINE__ - 7, rc);
+		}
+
+		assert(handler);
+		assert(*handler != '\0');
+
 		/* RATS: ignore; suCGI's point is to do this safely. */
-		(void) execl(path_trans, path_trans, NULL);
+		(void) execlp(handler, handler, path_trans, NULL);
 
 		/* If this point is reached, execution has failed. */
-		error("exec %s: %s.", path_trans, strerror(errno));
+		error("exec %s %s: %s.", handler, path_trans, strerror(errno));
 	}
-
-	rc = scpt_get_handler((const struct scpt_ent []) HANDLERS,
-	                      path_trans, &path_handler);
-	switch (rc) {
-		case OK:
-			break;
-		case ERR_SCPT_NO_HDL:
-			error("%s: no handler registered.", path_trans);
-		case ERR_SCPT_NO_SFX:
-			error("%s: has no filename suffix.", path_trans);
-		default:
-			error("%s:%d: scpt_get_handler returned %u.",
-			      __FILE__, __LINE__ - 7, rc);
-	}
-
-	assert(path_handler);
-	assert(*path_handler != '\0');
 
 	/* RATS: ignore; suCGI's point is to do this safely. */
-	(void) execlp(path_handler, path_handler, path_trans, NULL);
+	(void) execl(path_trans, path_trans, NULL);
 
 	/* If this point is reached, execution has failed. */
-	error("exec %s %s: %s.", path_handler, path_trans, strerror(errno));
+	error("exec %s: %s.", path_trans, strerror(errno));
 }

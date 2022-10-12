@@ -30,9 +30,11 @@
 #include <grp.h>
 #include <limits.h>
 #include <string.h>
+#include <unistd.h>
 
+#include "str.h"
 #include "gids.h"
-#include "err.h"
+#include "error.h"
 
 
 /*
@@ -48,7 +50,7 @@ gids_get_list(const char *const logname, const gid_t gid,
               /* RATS: ignore; gids is bounds-checked. */
               gid_t (*const gids)[NGROUPS_MAX], int *const n)
 {
-	struct group *grp;
+	struct group *grp;	/* A group. */
 
 	errno = 0;
 	(*gids)[0] = gid;
@@ -57,7 +59,9 @@ gids_get_list(const char *const logname, const gid_t gid,
 	setgrent();
 	while ((grp = getgrent())) {
 		for (int i = 0; i < *n; i++) {
-			if (grp->gr_gid == (*gids)[i]) goto next;
+			if (grp->gr_gid == (*gids)[i]) {
+				goto next;
+			}
 		}
 
 		for (int i = 0; grp->gr_mem[i]; i++) {
@@ -74,8 +78,13 @@ gids_get_list(const char *const logname, const gid_t gid,
 	}
 	endgrent();
 
-	if (errno != 0) return ERR_SYS;
-	if (*n > NGROUPS_MAX) return ERR_GIDS_MAX;
+	if (errno != 0) {
+		return ERR_SYS;
+	}
+	if (*n > NGROUPS_MAX) {
+		return ERR_GIDS_MAX;
+	}
+
 	return OK;
 }
 

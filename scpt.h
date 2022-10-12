@@ -23,7 +23,7 @@
 #define SCPT_H
 
 #include "defs.h"
-#include "err.h"
+#include "error.h"
 
 
 /*

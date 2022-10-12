@@ -35,7 +35,7 @@
 #include <string.h>
 
 #include "env.h"
-#include "err.h"
+#include "error.h"
 #include "file.h"
 #include "path.h"
 #include "str.h"
@@ -76,7 +76,7 @@
  * The list must include DOCUMENT_ROOT and PATH_TRANSLATED. HOME, PATH, and
  * USER_NAME are set, regardless of whether they appear in this list.
  */
-const char *const env_safe_vars[] = {
+const char *const env_vars_safe[] = {
 	"AUTH_TYPE",
 	"CONTENT_LENGTH",
 	"CONTENT_TYPE",
@@ -210,10 +210,15 @@ env_clear(/* RATS: ignore; vars is bound-checked. */
 	env = environ;
 	environ = &var;
 
-	if (!vars) return OK;
+	if (!vars) {
+		return OK;
+	}
+
 	for (int n = 0; n < ENV_MAX; n++) {
 		(*vars)[n] = env[n];
-		if (!env[n]) return OK;
+		if (!env[n]) {
+			return OK;
+		}
 	}
 
 	return ERR_ENV_MAX;
@@ -229,20 +234,32 @@ env_file_open(const char *const jail, const char *const varname,
 	assert(*varname != '\0');
         assert(strnlen(jail, STR_MAX) < STR_MAX);
         /* RATS: ignore; this use of realpath should be safe. */
-	assert(strcmp(jail, realpath(jail, NULL)) == 0);
+	assert(strncmp(jail, realpath(jail, NULL), STR_MAX) == 0);
 	assert(flags != 0);
 	assert(fname);
 	assert(fd);
 
 	/* RATS: ignore; value is checked below. */
 	value = getenv(varname);
-	if (!value || *value == '\0') return ERR_ENV_NIL; 
-	if (strnlen(value, STR_MAX) >= STR_MAX) return ERR_ENV_LEN;
-        /* RATS: ignore; this use of realpath should be safe. */
+	if (!value || *value == '\0') {
+		return ERR_ENV_NIL;
+	}
+	if (strnlen(value, STR_MAX) >= STR_MAX) {
+		return ERR_ENV_LEN;
+	}
+        
+	/* RATS: ignore; this use of realpath should be safe. */
 	*fname = realpath(value, NULL);
-	if (!*fname) return ERR_SYS;
-	if (strnlen(*fname, STR_MAX) >= STR_MAX) return ERR_ENV_LEN;
-	if (!path_contains(jail, *fname)) return ERR_ENV_MAL;
+	if (!*fname) {
+		return ERR_SYS;
+	}
+	if (strnlen(*fname, STR_MAX) >= STR_MAX) {
+		return ERR_ENV_LEN;
+	}
+	if (!path_contains(jail, *fname)) {
+		return ERR_ENV_MAL;
+	}
+
 	try(file_safe_open(*fname, flags, fd));
 
 	return OK;
@@ -252,7 +269,10 @@ bool
 env_name_valid(const char *const name)
 {
 	/* Check if the name is the empty string or starts with a digit. */
-	if (*name == '\0' || isdigit(*name)) return false;
+	if (*name == '\0' || isdigit(*name)) {
+		return false;
+	}
+	
 	/* Check if the first non-valid character is the terminating NUL. */
 	return (name[strspn(name, ENV_VAR_CHARS)] == '\0');
 }
@@ -269,19 +289,28 @@ env_restore(const char *vars[], const char *const patterns[])
 		size_t len;		/* Variable length. */
 
 		len = strnlen(vars[i], STR_MAX);
-		if (len >= STR_MAX) return ERR_ENV_LEN;
-		if (len == 0U) return ERR_ENV_MAL;
+		if (len >= STR_MAX) {
+			return ERR_ENV_LEN;
+		}
+		if (len == 0U) {
+			return ERR_ENV_MAL;
+		}
 
 		try(str_split(vars[i], "=", &name, &value));
 		/* patv may contain wildcards, so name has to be checked. */
-		if (!env_name_valid(name)) return ERR_ENV_MAL;
-		if (!value) return ERR_ENV_MAL;
+		if (!env_name_valid(name)) {
+			return ERR_ENV_MAL;
+		}
+		if (!value) {
+			return ERR_ENV_MAL;
+		}
 
         	for (int j = 0; patterns[j]; j++) {
         		if (fnmatch(patterns[j], name, 0) == 0) {
                                 if (setenv(name, value, true) != 0) {
                                         return ERR_SYS;
                                 }
+
         		        break;
         		}
         	}

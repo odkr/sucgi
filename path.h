@@ -29,7 +29,7 @@
 #include <sys/types.h>
 
 #include "defs.h"
-#include "err.h"
+#include "error.h"
 #include "str.h"
 
 

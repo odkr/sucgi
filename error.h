@@ -19,10 +19,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(ERR_H)
-#define ERR_H
-
-#include <stdlib.h>
+#if !defined(ERROR_H)
+#define ERROR_H
 
 #include "defs.h"
 
@@ -48,6 +46,7 @@ enum error {
 	ERR_SYS,		/* System error. errno should be set. */
 	ERR_CNV,		/* Value could not be converted. */
 	ERR_FTYPE,		/* Filetype is wrong. */
+	ERR_GIDS_LOGNAME,	/* Login name is too long. */
 	ERR_GIDS_MAX,	        /* User belongs to too many groups. */
 	ERR_PATH_OUT,		/* A file is outside of a given path. */
 	ERR_PATH_WEXCL,	        /* Path not exclusively writable by user. */
@@ -73,4 +72,4 @@ __attribute__((format(printf, 1, 2), nonnull(1), noreturn))
 void error(const char *const message, ...);
 
 
-#endif /* !defined(ERR_H) */
+#endif /* !defined(ERROR_H) */

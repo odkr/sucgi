@@ -30,7 +30,7 @@
 #include <libgen.h>
 #include <string.h>
 
-#include "err.h"
+#include "error.h"
 #include "scpt.h"
 #include "str.h"
 
@@ -51,13 +51,17 @@ scpt_get_handler(const struct scpt_ent handlerdb[], const char *const scpt,
 	/* RATS: ignore; no matching on path is performed. */
 	fname = basename(path);
 	suffix = strrchr(fname, '.');
-	if (!suffix) return ERR_SCPT_NO_SFX;
-	if (suffix == fname) return ERR_SCPT_ONLY_SFX;
+	if (!suffix) {
+		return ERR_SCPT_NO_SFX;
+	}
+	if (suffix == fname) {
+		return ERR_SCPT_ONLY_SFX;
+	}
 
 	for (int i = 0; handlerdb[i].suffix; i++) {
 		const struct scpt_ent ent = handlerdb[i];
 
-		if (strcmp(suffix, ent.suffix) == 0) {
+		if (strncmp(suffix, ent.suffix, STR_MAX) == 0) {
 			if (!ent.handler || *(ent.handler) == '\0') {
 				return ERR_SCPT_NO_HDL;
 			}

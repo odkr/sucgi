@@ -34,7 +34,7 @@
 #include <sys/types.h>
 
 #include "file.h"
-#include "err.h"
+#include "error.h"
 #include "path.h"
 #include "str.h"
 
@@ -44,40 +44,47 @@ path_check_wexcl(const uid_t uid, const char *const par,
                  /* RATS: ignore; cur is bounds-checked. */
                  const char *const fname, char (*const cur)[STR_MAX])
 {
-	const char *ptr;	/* Current position in filename. */
+	const char *p;		/* Current position in filename. */
 
 	assert(*par != '\0');
 	assert(*fname != '\0');
 	assert(strnlen(par, STR_MAX) < STR_MAX);
 	assert(strnlen(fname, STR_MAX) < STR_MAX);
         /* RATS: ignore; this use of realpath should be safe. */
-        assert(strcmp(realpath(par, NULL), par) == 0);
+        assert(strncmp(realpath(par, NULL), par, STR_MAX) == 0);
         /* RATS: ignore; this use of realpath should be safe. */
-	assert(strcmp(realpath(fname, NULL), fname) == 0);
+	assert(strncmp(realpath(fname, NULL), fname, STR_MAX) == 0);
 
 	/* FIXME: Not unit-tested. */
-	if (!path_contains(par, fname)) return ERR_PATH_OUT;
+	if (!path_contains(par, fname)) {
+		return ERR_PATH_OUT;
+	}
 
-	/* RATS: ignore; path_check_wexcl should only receive sane paths. */
-	ptr = fname + ((strcmp(par, "/") == 0) ? 0U : strlen(par));
+	/* RATS: ignore; par should be NUL-terminated. */
+	p = fname + ((strncmp(par, "/", 2) == 0) ? 0U : strlen(par));
 	do {
 		struct stat buf;	/* Current file's status. */
 		size_t len;		/* Current flename's length. */
 
 		/* 
-		 * Move to next path separator, 
+		 * Move to next path separator,
 		 * but do not skip the root directory.
 		 */
-		ptr += (ptr == fname && *fname == '/') ? 1U : strcspn(ptr, "/");
-		len = (size_t) (ptr - fname);
-		if (len >= STR_MAX) return ERR_STR_LEN;
+		p += (p == fname && *fname == '/') ? 1U : strcspn(p, "/");
+		len = (size_t) (p - fname);
+		if (len >= STR_MAX) {
+			return ERR_STR_LEN;
+		}
+
 		(void) str_cp(len, fname, *cur);
 
 		try(file_safe_stat(*cur, &buf));
-		if (!file_is_wexcl(uid, &buf)) return ERR_PATH_WEXCL;
+		if (!file_is_wexcl(uid, buf)) {
+			return ERR_PATH_WEXCL;
+		}
 
-		ptr += strspn(ptr, "/");
-	} while (*ptr != '\0');
+		p += strspn(p, "/");
+	} while (*p != '\0');
 
 	return OK;
 }
@@ -93,16 +100,30 @@ path_contains(const char *const par, const char *const fname)
 	assert(strnlen(fname, STR_MAX) < STR_MAX);
 
 	/* The root directory cannot be contained by any path. */
-	if (strcmp(fname, "/") == 0) return false;
+	if (strncmp(fname, "/", 2) == 0) {
+		return false;
+	}
+
 	/* The root directory contains any absolute path, save for itself. */
-	if (strcmp(par, "/") == 0 && *fname == '/') return true;
+	if (strncmp(par, "/", 2) == 0 && *fname == '/') {
+		return true;
+	}
+
 	/* By fiat, the working directory cannot be contained by any path. */
-	if (strcmp(fname, ".") == 0) return false;
+	if (strncmp(fname, ".", 2) == 0) {
+		return false;
+	}
+
 	/* The working directory contains any relative path. */
-	if (strcmp(par, ".") == 0 && *fname != '/') return true;
+	if (strncmp(par, ".", 2) == 0 && *fname != '/') {
+		return true;
+	}
 
 	/* RATS: ignore; path_contains should only receive sane paths. */
 	len = strlen(par);
-	if (fname[len] != '/') return false;
+	if (fname[len] != '/') {
+		return false;
+	}
+	
 	return strncmp(par, fname, len) == 0;
 }

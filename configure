@@ -85,7 +85,7 @@ unset opt
 [ -e "$conf" ] || abort "$bold$conf$reset$red: no such file." 
 [ "$quiet" ] && exec >/dev/null
 
-# shellcheck disable=1091
+# shellcheck disable=1090
 . "$conf" || exit
 
 
@@ -110,7 +110,7 @@ then
 	done
 	unset cc
 
-	! [ "$CC" ] && command -v c99 >/dev/null && CC=c99
+	! [ "$CC" ] && command -v c99 >/dev/null && CC='c99'
 fi
 
 if [ "$CC" ]

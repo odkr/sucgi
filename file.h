@@ -26,20 +26,20 @@
 #include <sys/stat.h>
 
 #include "defs.h"
-#include "err.h"
+#include "error.h"
 
 
 /*
  * Check if FSTATUS indicates that the current user has execute permissions.
  */
-__attribute__((nonnull(1), pure, warn_unused_result))
-bool file_is_exec(const struct stat *const fstatus);
+__attribute__((pure, warn_unused_result))
+bool file_is_exec(const struct stat fstatus);
 
 /*
  * Check if FSTATUS indicates that only UID has write permissions.
  */
-__attribute__((nonnull(2), pure, warn_unused_result))
-bool file_is_wexcl(const uid_t uid, const struct stat *const fstatus);
+__attribute__((pure, warn_unused_result))
+bool file_is_wexcl(const uid_t uid, const struct stat fstatus);
 
 /*
  * Open FNAME with FLAGS and store its file descriptor in FD.

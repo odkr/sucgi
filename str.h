@@ -26,7 +26,7 @@
 #include <stdbool.h>
 
 #include "defs.h"
-#include "err.h"
+#include "error.h"
 
 
 /*

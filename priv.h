@@ -26,7 +26,7 @@
 #include <pwd.h>
 
 #include "defs.h"
-#include "err.h"
+#include "error.h"
 
 /*
  * Set the process' real and effective UID and GID to UID and GID

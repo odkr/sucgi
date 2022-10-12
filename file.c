@@ -49,20 +49,22 @@
 #include <unistd.h>
 
 #include "file.h"
-#include "err.h"
+#include "error.h"
 #include "str.h"
 
 
 bool
-file_is_exec(const struct stat *const fstatus)
+file_is_exec(const struct stat fstatus)
 {
-	uid_t euid = geteuid();			/* Effective UID. */
-	gid_t egid = getegid();			/* Effective GID. */
-	uid_t fuid = fstatus->st_uid;		/* Owner UID. */
-	gid_t fgid = fstatus->st_gid;		/* Owner GID. */
-	mode_t fmode = fstatus->st_mode;	/* Permissions. */
+	uid_t euid = geteuid();		/* Effective UID. */
+	gid_t egid = getegid();		/* Effective GID. */
+	uid_t fuid = fstatus.st_uid;	/* Owner UID. */
+	gid_t fgid = fstatus.st_gid;	/* Owner GID. */
+	mode_t fmode = fstatus.st_mode;	/* Permissions. */
 
-	if (fuid != euid && fgid != egid) return fmode & S_IXOTH;
+	if (fuid != euid && fgid != egid) {
+		return fmode & S_IXOTH;
+	}
 
 	return (fuid == euid && (fmode & S_IXUSR)) ||
 	       (fgid == egid && (fmode & S_IXGRP));
@@ -70,12 +72,12 @@ file_is_exec(const struct stat *const fstatus)
 
 
 bool
-file_is_wexcl(const uid_t uid, const struct stat *const fstatus)
+file_is_wexcl(const uid_t uid, const struct stat fstatus)
 {
-	mode_t fmode = fstatus->st_mode;        /* Permissions. */
+	mode_t fmode = fstatus.st_mode;	/* Permissions. */
 
-	return  (fstatus->st_uid == uid) &&
-	       !(fmode & S_IWGRP)        &&
+	return  (fstatus.st_uid == uid) &&
+	       !(fmode & S_IWGRP)       &&
 	       !(fmode & S_IWOTH);
 }
 
@@ -106,8 +108,12 @@ file_safe_open(const char *const fname, const int flags, int *const fd)
 	how.resolve = RESOLVE_NO_SYMLINKS | RESOLVE_NO_MAGICLINKS;
 
 	rc = syscall(__NR_openat2, AT_FDCWD, fname, &how, sizeof(how));
-	if (rc < 0) return ERR_SYS;
-	if (rc > INT_MAX) return ERR_CNV;
+	if (rc < 0) {
+		return ERR_SYS;
+	}
+	if (rc > INT_MAX) {
+		return ERR_CNV;
+	}
 
 	*fd = (int) rc;
 	return OK;
@@ -121,7 +127,10 @@ file_safe_open(const char *const fname, const int flags, int *const fd)
 
 	/* RATS: ignore; see above. */
 	*fd = open(fname, flags | O_NOFOLLOW_ANY);
-	if (*fd < 0) return ERR_SYS;
+	if (*fd < 0) {
+		return ERR_SYS;
+	}
+
 	return OK;
 }
 
@@ -141,7 +150,9 @@ file_safe_stat(const char *const fname, struct stat *const fstatus)
 
 	try(file_safe_open(fname, O_RDONLY | O_CLOEXEC, &fd));
 	rc = fstat(fd, fstatus);		
-	if ((close(fd) != 0) || (rc != 0)) return ERR_SYS;
+	if ((close(fd) != 0) || (rc != 0)) {
+		return ERR_SYS;
+	}
 
 	return OK;
 }
