@@ -25,7 +25,7 @@ A GNU/Linux system running a kernel ≥ v5.6 or macOS ≥ v11.
 
 More precisely:
 
-* Linux ≥ v5.6 or Apple XNU ≥ v7195.50.7.100.1.
+* Linux ≥ v5.6 or Apple XNU_ ≥ v7195.50.7.100.1.
 * A C99 compiler that complies with `POSIX.1-2008`_;
   e.g., GCC_ ≥ v5.1, Clang_ ≥ v3.5, or TinyCC_ ≥ v0.9.
 * A C standard library that complies with POSIX.1-2008 as well as 4.4BSD,
@@ -154,6 +154,9 @@ Further Information
 
 GitHub: https://github.com/odkr/sucgi
 
+.. _Apache: https://httpd.apache.org/
+
+.. _`docs/BUILDING.rst`: docs/BUILDING.rst
 
 .. _Clang: https://clang.llvm.org/
 
@@ -161,23 +164,19 @@ GitHub: https://github.com/odkr/sucgi
 
 .. _glibc: https://www.gnu.org/software/libc/
 
-.. _TinyCC: http://www.tinycc.org/ 
-
-.. _XNU: https://github.com/apple-oss-distributions/xnu/
-
-.. _`POSIX.1-2008`: https://pubs.opengroup.org/onlinepubs/9699919799.2008edition/
-
-.. _realpath: https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword=realpath
-
-.. _`docs/BUILDING.rst`: docs/BUILDING.rst
-
-.. _Apache: https://httpd.apache.org/
-
 .. _mod_action: https://httpd.apache.org/docs/2.4/mod/mod_actions.html
 
 .. _mod_userdir: https://httpd.apache.org/docs/2.4/mod/mod_userdir.html
 
 .. _PHP: https://www.php.net/
+
+.. _`POSIX.1-2008`: https://pubs.opengroup.org/onlinepubs/9699919799.2008edition/
+
+.. _realpath: https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword=realpath
+
+.. _TinyCC: http://www.tinycc.org/ 
+
+.. _XNU: https://github.com/apple-oss-distributions/xnu/
 
 .. |codacy| image:: https://app.codacy.com/project/badge/Grade/cb67a3bad615449589dfb242876600ac
             :target: https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_source=github.com&amp;utm_content=odkr/sucgi
