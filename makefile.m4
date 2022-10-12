@@ -15,16 +15,7 @@ CFLAGS = default([__CFLAGS__], [-O2 -s -ftrapv])
 # Objects
 #
 
-core_objs = lib.a(err.o) lib.a(str.o)
-
-check_err_objs = lib.a(err.o) lib.a(tools/lib.o)
-check_env_objs = lib.a(env.o) lib.a(tools/lib.o)
-check_file_objs = lib.a(file.o) lib.a(tools/lib.o)
-check_gids_objs = lib.a(gids.o) lib.a(tools/lib.o)
-check_path_objs = lib.a(path.o) lib.a(tools/lib.o)
-check_priv_objs = lib.a(priv.o) lib.a(tools/lib.o)
-check_scpt_objs = lib.a(scpt.o) lib.a(tools/lib.o)
-check_str_objs = lib.a(str.o) lib.a(tools/lib.o)
+core_objs = lib.a(error.o) lib.a(str.o)
 
 
 #
@@ -93,79 +84,81 @@ all: sucgi
 
 lib.a(env.o): env.c env.h defs.h $(core_objs) lib.a(file.o) lib.a(path.o)
 
-lib.a(err.o): err.c err.h defs.h
+lib.a(error.o): error.c error.h defs.h
 
 lib.a(file.o): file.c file.h defs.h $(core_objs) lib.a(path.o)
 
-lib.a(gids.o): gids.c gids.h defs.h lib.a(err.o)
+lib.a(gids.o): gids.c gids.h defs.h lib.a(error.o)
 
 lib.a(path.o): path.c path.h defs.h $(core_objs)
 
-lib.a(priv.o): priv.o priv.h defs.h lib.a(err.o)
+lib.a(priv.o): priv.o priv.h defs.h lib.a(error.o)
 
 lib.a(scpt.o): scpt.c scpt.h defs.h $(core_objs)
 
-lib.a(str.o): str.c str.h defs.h lib.a(err.o)
+lib.a(str.o): str.c str.h defs.h lib.a(error.o)
 
-lib.a(tools/lib.o): tools/lib.c tools/lib.h defs.h lib.a(err.o) lib.a(str.o)
-
-lib.a:	lib.a(env.o)  lib.a(err.o)  lib.a(file.o) lib.a(gids.o) \
+lib.a:	lib.a(env.o)  lib.a(error.o)  lib.a(file.o) lib.a(gids.o) \
 	lib.a(path.o) lib.a(priv.o) lib.a(scpt.o) lib.a(str.o)
+	
+tools/badenv: tools/badenv.c
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< $(LDLIBS)
 
-dnl TODO: Add -DNDEBUG once the software is mature enough.
+tools/runas: tools/runas.c
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< $(LDLIBS)
+
+tools/unallocid: tools/unallocid.c
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< $(LDLIBS)
+
+tools/getlogname: tools/getlogname.c
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< $(LDLIBS)
+
 .c:
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a $(LDLIBS)
 
-sucgi: sucgi.c config.h defs.h lib.a
+tests/error: tests/error.c lib.a(error.o) 
 
-tests/error: tests/error.c lib.a(err.o) 
+tests/env_clear: tests/env_clear.c lib.a(env.o)
 
-tests/env_clear: tests/env_clear.c $(check_env_objs)
+tests/env_file_open: tests/env_file_open.c lib.a(env.o)
 
-tests/env_file_open: tests/env_file_open.c $(check_env_objs)
+tests/env_get_fname: tests/env_get_fname.c lib.a(env.o)
 
-tests/env_get_fname: tests/env_get_fname.c $(check_env_objs)
+tests/env_name_valid: tests/env_name_valid.c lib.a(env.o)
 
-tests/env_name_valid: tests/env_name_valid.c $(check_env_objs)
+tests/env_restore: tests/env_restore.c lib.a(env.o)
 
-tests/env_restore: tests/env_restore.c $(check_env_objs)
+tests/file_is_exec: tests/file_is_exec.c lib.a(file.o)
 
-tests/file_is_exec: tests/file_is_exec.c $(check_file_objs)
+tests/file_is_wexcl: tests/file_is_wexcl.c lib.a(file.o)
 
-tests/file_is_wexcl: tests/file_is_wexcl.c $(check_file_objs)
+tests/file_safe_open: tests/file_safe_open.c lib.a(file.o)
 
-tests/file_safe_open: tests/file_safe_open.c $(check_file_objs)
+tests/file_safe_stat: tests/file_safe_stat.c lib.a(file.o)
 
-tests/file_safe_stat: tests/file_safe_stat.c $(check_file_objs)
+tests/gids_get_list: tests/gids_get_list.c lib.a(gids.o)
 
-tests/gids_get_list: tests/gids_get_list.c $(check_gids_objs)
+tests/path_contains: tests/path_contains.c lib.a(path.o) 
 
-tests/path_contains: tests/path_contains.c $(check_path_objs) 
+tests/path_check_wexcl:	tests/path_check_wexcl.c lib.a(path.o)
 
-tests/path_check_wexcl:	tests/path_check_wexcl.c $(check_path_objs)
+tests/priv_drop: tests/priv_drop.c lib.a(priv.o) 
 
-tests/priv_drop: tests/priv_drop.c $(check_priv_objs) 
+tests/scpt_get_handler: tests/scpt_get_handler.c lib.a(scpt.o)
 
-tests/scpt_get_handler: tests/scpt_get_handler.c $(check_scpt_objs)
+tests/str_cp: tests/str_cp.c lib.a(str.o) 
 
-tests/str_cp: tests/str_cp.c $(check_str_objs) 
+tests/str_eq: tests/str_eq.c lib.a(str.o) 
 
-tests/str_eq: tests/str_eq.c $(check_str_objs) 
+tests/str_split: tests/str_split.c lib.a(str.o)
 
-tests/str_split: tests/str_split.c $(check_str_objs)
-
-tests/try: tests/try.c $(check_err_objs)
+tests/try: tests/try.c lib.a(error.o)
 
 tests/main: sucgi.c config.h defs.h lib.a
 	$(CC) -DTESTING=1 $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a $(LDLIBS)
 
-tools/badenv: tools/badenv.c lib.a(tools/lib.o)
-
-tools/runas: tools/runas.c lib.a(tools/lib.o)
-
-tools/unallocid: tools/unallocid.c lib.a(tools/lib.o)
-
-tools/getlogname: tools/getlogname.c lib.a(tools/lib.o)
+dnl TODO: Add -DNDEBUG once the software is mature enough.
+sucgi: sucgi.c config.h defs.h lib.a
 
 clean:
 	find . '(' -name '*.o' \
@@ -182,7 +175,7 @@ analysis:
 	-exec rats --resultsonly -w3 '{}' +
 	cppcheck $(cppcheck_flags) --enable=all $(cppcheck_addons) .
 	cppcheck $(cppcheck_flags) --enable=unusedFunction *.h *.c
-	#find * -type f -name '*.sh' -exec shellcheck configure '{}' +
+	find * -type f -name '*.sh' -exec shellcheck configure '{}' +
 
 check: $(check_bins)
 	tools/check.sh $(checks)
