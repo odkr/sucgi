@@ -21,7 +21,7 @@ tmpdir chk
 #
 
 uid="$(id -u)" && [ "$uid" ] ||
-	abort "failed to get process' effective UID."
+	err "failed to get process' effective UID."
 
 file="$TMPDIR/file"
 touch "$file"
@@ -36,6 +36,6 @@ ln -s "$TMPDIR" "$symlink"
 checkok "uid=$uid" \
 	file_safe_stat "$file"
 
-checkerr "file_safe_stat: open $symlink: Too many levels of symbolic links." \
+checkerr "file_safe_stat: open $symlink: Too many levels of symbolic links" \
 	file_safe_stat "$symlink"
 

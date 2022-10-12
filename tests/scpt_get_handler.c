@@ -1,25 +1,44 @@
 /*
  * Test scpt_get_handler.
+ *
+ * Copyright 2022 Odin Kroeger
+ *
+ * This file is part of suCGI.
+ *
+ * suCGI is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
+ *
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <err.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-#include "../err.h"
+#include "../error.h"
 #include "../scpt.h"
-#include "../tools/lib.h"
+#include "../str.h"
 
 
 /* Test case. */
-struct signature {
+struct args {
 	const char *scpt;
 	const char *handler;
-	const enum error ret;
+	const enum error rc;
 };
 
 
 /* Tests. */
-const struct signature tests[] = {
+const struct args tests[] = {
 	/* Simple errors. */
 	{"file", NULL, ERR_SCPT_NO_SFX},
 	{".", NULL, ERR_SCPT_ONLY_SFX},
@@ -72,34 +91,42 @@ main (void)
 {
 	for (int i = 0; tests[i].scpt; i++) {
  		for (int j = 0; prefixes[j]; j++) {
-			/* RATS: ignore */
-			char scpt[STR_MAX] = {0};
-			const struct signature t = tests[i];
+			const struct args t = tests[i];
 			const char *prefix = prefixes[j];
-			const char *handler = NULL;
-			enum error ret;	
+			const char *handler;
+			char scpt[STR_MAX];	/* RATS: ignore */
+			enum error rc;	
 			int n;
-		
+
+			*scpt = '\0';
+			handler = NULL;
+
+			warnx("checking (hdb, %s%s, -> %s) -> %u ...",
+			      prefix, t.scpt, t.handler, t.rc);
+
 			/* RATS: ignore */
 			n = snprintf(scpt, STR_MAX, "%s%s", prefix, t.scpt);
 			if (n >= (long long) STR_MAX) {
-				croak("test %d: input too long.", i);
+				errx(EXIT_FAILURE, "input too long");
 			}
 
-			ret = scpt_get_handler(hdb, scpt, &handler);
+			rc = scpt_get_handler(hdb, scpt, &handler);
 
-			if (t.ret != ret) {
-				croak("scpt_get_handler %s returned %u.\n",
-				      scpt, ret);
+			if (t.rc != rc) {
+				errx(EXIT_FAILURE,
+				     "unexpected return code %u",
+				     rc);
 			}
 			if (!(t.handler == handler ||
 			      strcmp(t.handler, handler) == 0))
 			{
-				croak("scpt_get_handler %s: got %s.\n",
-				      scpt, handler);
+				errx(EXIT_FAILURE,
+				     "unexpected handler %s",
+				     handler);
 			}
 		}
 	}
 
+	warnx("success");
 	return EXIT_SUCCESS;
 }

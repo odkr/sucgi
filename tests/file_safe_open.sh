@@ -32,10 +32,10 @@ ln -s "$TMPDIR" "$symlink"
 
 # shellcheck disable=2154
 file_safe_open "$file" ||
-	abort "file_safe_open refuses to open $bold$file$reset."
+	err "file_safe_open refuses to open $bold$file$reset."
 
 # shellcheck disable=2154
 file_safe_open "$TMPDIR/symlink/file" &&
-	abort "file_safe_open does not refuse to open $bold$symlink$reset."
+	err "file_safe_open does not refuse to open $bold$symlink$reset."
 
 exit 0

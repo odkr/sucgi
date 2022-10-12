@@ -1,23 +1,41 @@
 /*
  * Test env_name_valid.
+ *
+ * Copyright 2022 Odin Kroeger
+ *
+ * This file is part of suCGI.
+ *
+ * suCGI is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
+ *
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <err.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "../env.h"
-#include "../tools/lib.h"
 
 
 /* Test case. */
-struct signature {
+struct args {
 	const char *name;
 	const bool ret;
 };
 
 
 /* Tests. */
-const struct signature tests[] = {
+const struct args tests[] = {
 	/* Invalid names. */
 	{"", false},
 	{" foo", false},
@@ -47,15 +65,19 @@ int
 main (void)
 {
 	for (int i = 0; tests[i].name; i++) {
-		const struct signature t = tests[i];
+		const struct args t = tests[i];
 		bool ret;
+
+		warnx("checking (%s) -> %s ...",
+		      t.name, (t.ret) ? "valid" : "invalid");
 
 		ret = env_name_valid(t.name);
 		if (ret != t.ret) {
-			die("env_name_valid '%s' returned %s.\n",
-			    t.name, ret ? "true" : "false");
+			errx(EXIT_FAILURE, "mistaken for %s\n",
+			     (ret) ? "valid" : "invalid");
 		}
 	}
 
+	warnx("success");
 	return EXIT_SUCCESS;
 }

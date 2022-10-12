@@ -1,16 +1,33 @@
 /*
  * Test env_restore.
+ *
+ * Copyright 2022 Odin Kroeger
+ *
+ * This file is part of suCGI.
+ *
+ * suCGI is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
+ *
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <err.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "../env.h"
-#include "../err.h"
+#include "../error.h"
 #include "../str.h"
-#include "../tools/lib.h"
 
 
 /*
@@ -18,7 +35,7 @@
  */
 
 /* Shorthand for an empty list. */
-#define NIL {NULL}
+#define EMPTY {NULL}
 
 
 /*
@@ -26,11 +43,11 @@
  */
 
 /* Test case. */
-struct signature {
-	char *env_vars[ENV_MAX];		/* RATS: ignore */
-	const char *safe_vars[ENV_MAX];		/* RATS: ignore */
-	const char *env_clean[ENV_MAX];		/* RATS: ignore */
-	const enum error ret;
+struct args {
+	char *env[ENV_MAX];			/* RATS: ignore */
+	const char *patterns[ENV_MAX];		/* RATS: ignore */
+	const char *clean[ENV_MAX];		/* RATS: ignore */
+	const enum error rc;
 };
 
 
@@ -42,24 +59,24 @@ struct signature {
 char huge[STR_MAX + 1U] = {0};	/* RATS: ignore */
 
 /* Tests. */
-struct signature tests[] = {
+struct args tests[] = {
 	/* Errors. */
-	{{huge, NULL}, NIL, NIL, ERR_ENV_LEN},
-	{{"", NULL}, NIL, NIL, ERR_ENV_MAL},
-	{{"foo", NULL}, NIL, NIL, ERR_ENV_MAL},
-	{{"=foo", NULL}, NIL, NIL, ERR_ENV_MAL},
+	{{huge, NULL}, EMPTY, EMPTY, ERR_ENV_LEN},
+	{{"", NULL}, EMPTY, EMPTY, ERR_ENV_MAL},
+	{{"foo", NULL}, EMPTY, EMPTY, ERR_ENV_MAL},
+	{{"=foo", NULL}, EMPTY, EMPTY, ERR_ENV_MAL},
 
 	/* Other illegal names. */
-	{{" foo=foo", NULL}, NIL, NIL, ERR_ENV_MAL},
-	{{"1foo=foo", NULL}, NIL, NIL, ERR_ENV_MAL},
-	{{"*=foo", NULL}, NIL, NIL, ERR_ENV_MAL},
-	{{"FOO =foo", NULL}, NIL, NIL, ERR_ENV_MAL},
-	{{"$(foo)=foo", NULL}, NIL, NIL, ERR_ENV_MAL},
-	{{"`foo`=foo", NULL}, NIL, NIL, ERR_ENV_MAL},
+	{{" foo=foo", NULL}, EMPTY, EMPTY, ERR_ENV_MAL},
+	{{"1foo=foo", NULL}, EMPTY, EMPTY, ERR_ENV_MAL},
+	{{"*=foo", NULL}, EMPTY, EMPTY, ERR_ENV_MAL},
+	{{"FOO =foo", NULL}, EMPTY, EMPTY, ERR_ENV_MAL},
+	{{"$(foo)=foo", NULL}, EMPTY, EMPTY, ERR_ENV_MAL},
+	{{"`foo`=foo", NULL}, EMPTY, EMPTY, ERR_ENV_MAL},
 
 	/* Simple tests. */
 	{{"foo=bar", NULL}, {"foo", NULL}, {"foo=bar", NULL}, OK},
-	{{"foo=bar", NULL}, NIL, NIL, OK},
+	{{"foo=bar", NULL}, EMPTY, EMPTY, OK},
 	{{"foo=foo", "bar=bar", "baz=baz", NULL}, {"*", NULL},
 	 {"foo=foo", "bar=bar", "baz=baz", NULL}, OK},
 	{{"foo=foo", "bar=bar", "baz=baz", NULL}, {"f*", "b*", NULL},
@@ -73,7 +90,7 @@ struct signature tests[] = {
 	 {"empty=", "assign==", "space= ", "tab=\t", "lf=\n", NULL}, OK},
 
 	/* Terminator. */
-	{NIL, NIL, NIL, OK}
+	{EMPTY, EMPTY, EMPTY, OK}
 };
 
 
@@ -87,10 +104,18 @@ env_init(/* RATS: ignore */
 {
 	size_t n = 0;
 
-	while (vars[n]) n++;
+	while (vars[n]) {
+		n++;
+	}
+
 	environ = calloc(n + 1U, sizeof(char *));
-	if (!environ) return ERR_SYS;
-	for (size_t i = 0; i < n; i++) environ[i] = vars[i];
+	if (!environ) {
+		return ERR_SYS;
+	}
+	
+	for (size_t i = 0; i < n; i++) {
+		environ[i] = vars[i];
+	}
 
 	return OK;
 }
@@ -103,49 +128,55 @@ env_init(/* RATS: ignore */
 int
 main (void) {
 	(void) memset((void *) huge, 'x', STR_MAX);
+	huge[STR_MAX] = '0';
 
-	for (int i = 0; tests[i].env_vars[0]; i++) {
-		/* RATS: ignore */
-		const char *vars[ENV_MAX];
-		const struct signature t = tests[i];
-		enum error ret;
+	for (int i = 0; tests[i].env[0]; i++) {
+		const struct args t = tests[i];
+		const char *vars[ENV_MAX];	/* RATS: ignore */
+		enum error rc;
 
-		req(env_init(t.env_vars) == OK,
-		    "failed to initialise the environment.");
-		req(env_clear(&vars) == OK,
-		    "failed to clear the environment.");
+		warnx("performing test # %d ...", i + 1);
 
-		ret = env_restore(vars, t.safe_vars);
+		if (env_init(t.env) != OK) {
+			errx(EXIT_FAILURE, "env_init did not return OK");
+		}
+		if (env_clear(&vars) != OK) {
+			errx(EXIT_FAILURE, "env_clear did not return OK");
+		}
 
-		req(ret == t.ret,
-		    "test %d: env_restore returned %u, not %u.",
-		    i + 1, ret, t.ret);
+		rc = env_restore(vars, t.patterns);
 
-		for (int j = 0; t.env_clean[j]; j++) {
-			const char *v = t.env_clean[j];
+		if (rc != t.rc) {
+			errx(EXIT_FAILURE, "env_restore returned %u, not %u",
+			     rc, t.rc);
+		}
+
+		for (int j = 0; t.clean[j]; j++) {
+			const char *var = t.clean[j];
 			const char *val;
-			/* RATS: ignore */
-			char name[STR_MAX];
+			char name[STR_MAX];	/* RATS: ignore */
 			char *exp;
 
-			req(str_split(v, "=", &name, &exp) == OK,
-			    "failed to split variable %s.", v);
+			if (str_split(var, "=", &name, &exp) != OK) {
+				errx(EXIT_FAILURE,
+				     "str_split %s: did not return OK", var);
+			}
 
                         /* RATS: ignore */
 			val = getenv(name);
 			
 			if (val && !exp) {
-			    croak("test %d: $%s is set.", i + 1, name);
+				errx(EXIT_FAILURE, "$%s is set", name);
 			}
 			if (!val && exp) {
-			    croak("test %d: $%s is unset.", i + 1, name);
+				errx(EXIT_FAILURE, "$%s is unset", name);
 			}
 			if (val && exp && strcmp(val, exp) != 0) {
-				croak("test %d: $%s is '%s'.",
-				      i + 1, name, val);
+				errx(EXIT_FAILURE, "$%s is '%s'", name, val);
 			}
 		}
 	}
 
+	warnx("success");
 	return EXIT_SUCCESS;
 }

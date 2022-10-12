@@ -25,9 +25,9 @@ fname="$TMPDIR/file"
 touch "$fname"
 
 uid="$(id -u)" && [ "$uid" ] ||
-	abort "failed to get process' effective UID."
+	err "failed to get process' effective UID."
 gid="$(id -g)" && [ "$gid" ] ||
-	abort "failed to get process' effective GID."
+	err "failed to get process' effective GID."
 
 no="g=w o=w ug=w uo=w go=w ugo=w"
 for mode in $no
@@ -36,7 +36,7 @@ do
 	chmod "$mode" "$fname"
 	# shellcheck disable=2154
 	file_is_wexcl "$uid" "$fname" &&
-		abort "file_is_wexcl reports $bold$mode$reset" \
+		err "file_is_wexcl reports $bold$mode$reset" \
 		      "as ${bold}exclusively writable$reset."
 	chmod ugo= "$fname"
 done
@@ -48,10 +48,10 @@ do
 	chmod "$mode" "$fname"
 	# shellcheck disable=2154
 	file_is_wexcl "$uid" "$fname" ||
-		abort "file_is_wexcl reports $bold$mode$reset" \
+		err "file_is_wexcl reports $bold$mode$reset" \
 		      "as ${bold}not$reset exclusively writable."
 	chmod ugo= "$fname"
 done
 
 file_is_wexcl 0 /bin/sh ||
-	abort "file_is_wexcl reports /bin/sh as not exclusively writable."
+	err "file_is_wexcl reports /bin/sh as not exclusively writable."

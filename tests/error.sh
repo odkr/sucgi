@@ -21,4 +21,7 @@ tmpdir chk
 # Main
 #
 
-checkerr foo error
+for message in foo bar baz
+do
+	checkerr "$message" error "$message"
+done

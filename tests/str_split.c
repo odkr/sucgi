@@ -1,34 +1,49 @@
 /*
  * Test str_split.
+ *
+ * Copyright 2022 Odin Kroeger
+ *
+ * This file is part of suCGI.
+ *
+ * suCGI is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
+ *
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <err.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "../err.h"
+#include "../error.h"
 #include "../str.h"
-#include "../tools/lib.h"
 
 
 /* Test case. */
-struct signature {
+struct args {
 	const char *s;
 	const char *sep;
 	const char *head;
 	const char *tail;
-	enum error ret;
+	enum error rc;
 };
 
 /* A string just within limits. */
-/* RATS: ignore */
-char large[STR_MAX] = {0};
+char large[STR_MAX] = {0};	/* RATS: ignore */
 
 /* A string that exceeds STR_MAX. */
-/* RATS: ignore */
-char huge[STR_MAX + 1U] = {0};
+char huge[STR_MAX + 1U] = {0};	/* RATS: ignore */
 
 /* Tests. */
-const struct signature tests[] = {
+const struct args tests[] = {
 	/* Overly long string. */
 	{huge, ",", large, NULL, ERR_STR_LEN},
 
@@ -63,27 +78,29 @@ main(void)
 	(void) memset(large, 'x', STR_MAX - 1U);
 
 	for (int i = 0; tests[i].s; i++) {
-		const struct signature t = tests[i];
-		/* RATS: ignore */
-		char head[STR_MAX] = {0};
+		const struct args t = tests[i];
+		char head[STR_MAX];	/* RATS: ignore */
 		char *tail;
-		enum error ret;
+		enum error rc;
 
-		ret = str_split(t.s, t.sep, &head, &tail);
+		*head = '\0';
 
-		if (ret != t.ret) {
-			die("str_split '%s' '%s' returned %u.",
-			    t.s, t.sep, ret);
+		warnx("checking (%s, %s, -> %s, -> %s) -> %u ...",
+		      t.s, t.sep, t.head, t.tail, t.rc);
+
+		rc = str_split(t.s, t.sep, &head, &tail);
+
+		if (rc != t.rc) {
+			errx(EXIT_FAILURE, "unexpected return code %u", rc);
 		}
 		if (!(t.head == head || strcmp(t.head, head) == 0)) {
-			die("str_split '%s' '%s': head is '%s'.",
-			    t.s, t.sep, head);
+			errx(EXIT_FAILURE, "unexpected head '%s'", head);
 		}
 		if (!(t.tail == tail || strcmp(t.tail, tail) == 0)) {
-			die("str_split '%s' '%s': tail is '%s'.",
-			    t.s, t.sep, head);
+			errx(EXIT_FAILURE, "unexpected tail '%s'", tail);
 		}
 	}
 
+	warnx("success");
 	return EXIT_SUCCESS;
 }

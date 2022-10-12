@@ -18,7 +18,7 @@ tmpdir chk
 : "${LOGNAME:?}"
 
 euid="$(id -u)" && [ "$euid" ] ||
-	abort "failed to get process' effective UID."
+	err "failed to get process' effective UID."
 
 
 #
@@ -28,18 +28,18 @@ euid="$(id -u)" && [ "$euid" ] ||
 if [ "$euid" -eq 0 ]
 then
 	uid="$(regularuid)" && [ "$uid" ] ||
-		abort "failed to get non-root user ID of caller."
+		err "failed to get non-root user ID of caller."
 	# shellcheck disable=2154
 	user="$(getlogname "$uid")" && [ "$user" ] ||
-		abort "failed to get name of user with ID $bold$uid$reset$red."
+		err "failed to get name of user with ID $bold$uid$reset$red."
 	gid="$(id -g "$user")" && [ "$gid" ] ||
-		abort "failed to get ID of $user's primary group."
+		err "failed to get ID of $user's primary group."
 
 	export PATH
-	checkerr 'Operation not permitted.' \
+	checkerr 'Operation not permitted' \
 		runas "$uid" "$gid" priv_drop "$user"
 
 	checkok "euid=$uid egid=$gid ruid=$uid rgid=$gid" priv_drop "$user"
 else
-	checkerr 'Operation not permitted.' priv_drop "$LOGNAME"
+	checkerr 'Operation not permitted' priv_drop "$LOGNAME"
 fi

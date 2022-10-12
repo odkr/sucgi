@@ -21,25 +21,25 @@ tmpdir chk
 #
 
 pwd="$(cd -P "$script_dir" && pwd)" && [ "$pwd" ] && [ -d "$pwd" ] ||
-	abort "failed to find working directory."
+	err "failed to find working directory."
 
 ruid="$(regularuid)" && [ "$ruid" ] ||
-	abort "failed to get non-root user ID of caller."
+	err "failed to get non-root user ID of caller."
 # shellcheck disable=2154
 user="$(getlogname "$ruid")" && [ "$user" ] ||
-	abort "failed to get name of user with ID $bold$uid$reset$red."
+	err "failed to get name of user with ID $bold$uid$reset$red."
 rgid="$(id -g "$user")" && [ "$rgid" ] ||
-	abort "failed to get ID of $bold$user$reset$red's primary group."
+	err "failed to get ID of $bold$user$reset$red's primary group."
 
 case $user in (*[!A-Za-z0-9_]*)
-	abort "$bold$user$reset$red: not a portable name."
+	err "$bold$user$reset$red: not a portable name."
 esac
 
 eval home="~$user" && [ "${home-}" ] && [ "$home" != "~$user" ] ||
-	abort "failed to get $bold$user$reset$red's home directory."
+	err "failed to get $bold$user$reset$red's home directory."
 
 [ -d "$home" ] ||
-	abort "$bold$home$reset$red: no such directory."
+	err "$bold$home$reset$red: no such directory."
 
 file="$TMPDIR/file"
 touch "$file"
@@ -53,28 +53,28 @@ chown -R "$ruid:$rgid" "$TMPDIR"
 
 str_max="$(getconf PATH_MAX .)" && [ "$str_max" ] && 
 	[ "$str_max" -ge 4096 ] || str_max=4096
-long_str="$(printf '%*s\n' "$((str_max + 1))" | tr ' ' x)" && 
-	[ "$long_str" ] || abort "failed to generate a long string."
+long_str="$(printf '%*s\n' "$((str_max + 1))" x | tr ' ' x)" && 
+	[ "$long_str" ] || err "failed to generate a long string."
 
 if path_max="$(getconf PATH_MAX .)" && [ "${path_max:-"-1"}" -gt -1 ]
 then
-	long_path="$pwd/$(printf '%*s\n' $((path_max + 1)) | tr ' ' x)" &&
+	long_path="$pwd/$(printf '%*s\n' "$((path_max + 1))" x | tr ' ' x)" &&
 		[ "$long_path" != "$pwd/" ] ||
-			abort "failed to generate a long path."
+			err "failed to generate a long path."
 fi
 
 if name_max="$(getconf NAME_MAX .)" && [ "${name_max:-"-1"}" -gt -1 ]
 then
-	long_name="$pwd/$(printf '%*s\n' $((name_max + 1)) | tr ' ' x)" &&
+	long_name="$pwd/$(printf '%*s\n' "$((name_max + 1))" x | tr ' ' x)" &&
 		[ "$long_name" != "$pwd/" ] ||
-			abort "failed to generate a long name."
+			err "failed to generate a long name."
 fi
 
 true="$(command -v true >/dev/null 2>&1 || :)" || :
 : "${true:=/usr/bin/true}"
-"$true" || abort "${bold}true$reset$red: exited with status $?."
+"$true" || err "${bold}true$reset$red: exited with status $?."
 true_dir="$(dirname "$true")" && [ "$true_dir" ] ||
-	abort "$bold$true$reset$red: failed to get directory."
+	err "$bold$true$reset$red: failed to get directory."
 
 
 #
@@ -170,7 +170,7 @@ checkerr "\$PATH_TRANSLATED: not within \$DOCUMENT_ROOT." \
 #
 
 euid="$(id -u)" && [ "$euid" ] ||
-	abort "failed to get process' effective UID."
+	err "failed to get process' effective UID."
 
 # The checks below only work if main.sh is invoked as root.
 [ "$euid" -ne 0 ] && exit
@@ -185,9 +185,9 @@ catch=x
 [ "${caught-}" ] && exit $((caught + 128))
 
 unalloc_uid="$(unallocid -u 1000 30000)" && [ "$unalloc_uid" ] ||
-	abort "failed to find an unallocated user ID."
+	err "failed to find an unallocated user ID."
 unalloc_gid="$(unallocid -g 1000 30000)" && [ "$unalloc_gid" ] ||
-	abort "failed to find an unallocated group ID."
+	err "failed to find an unallocated group ID."
 
 cp -a "$script_dir/../tools/." "$tmpdir/."
 
@@ -248,7 +248,7 @@ checkerr "document root $TMPDIR is not in $user's home directory." \
 checkerr "not in $user's home directory." \
 	DOCUMENT_ROOT="$home/../../../../$TMPDIR" PATH_TRANSLATED="$file" main
 
-checkerr "$su: owned by the superuser." \ 
+checkerr "$su: owned by the superuser." \
 	DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$su" main
 
 checkerr "$sg: owned by the supergroup." \
@@ -277,7 +277,7 @@ checkok "$ruid:$rgid" \
 
 DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/env.sh" FOO=bar \
 	main >"$fifo" 2>&1 & pid="$!"
-grep -Fq 'FOO=bar' <"$fifo" && abort 'environment was not cleared.'
-wait "$pid" || abort "./env.sh exited with non-status $?."
+grep -Fq 'FOO=bar' <"$fifo" && err 'environment was not cleared.'
+wait "$pid" || err "./env.sh exited with non-status $?."
 
 exit 0

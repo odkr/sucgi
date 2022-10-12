@@ -1,7 +1,25 @@
 /*
  * Test env_clear.
+ *
+ * Copyright 2022 Odin Kroeger
+ *
+ * This file is part of suCGI.
+ *
+ * suCGI is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
+ *
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <err.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -9,10 +27,8 @@
 #include <string.h>
 
 #include "../env.h"
-#include "../err.h"
+#include "../error.h"
 #include "../str.h"
-
-#include "../tools/lib.h"
 
 
 int
@@ -20,52 +36,94 @@ main (void) {
 	/* RATS: ignore */
 	const char *env[ENV_MAX];	/* Backup of environ(2). */
 	const char **var;		/* An environment variable. */
-	int nvars;			/* The number of variables. */
+	int varc;			/* The number of variables. */
+
+	errno = 0;
 
 	/* Start with a clean environmenet, hopefully. */
-	req(env_clear(NULL) == OK, "failed to clear the environment.");
+	warnx("clearing the environment ...");
 
-	/* Has the environment been cleared? */
-	nvars = 0;
-	req(setenv("foo", "bar", 1) == 0, "setenv: %s.", strerror(errno));
-	req(env_clear(&env) == OK, "failed to clear the environment.");
-        /* RATS: ignore */
-	req(!getenv("foo"), "getenv foo: did not return NULL.");
-	for (var = (const char**) environ; *var; var++) nvars++;
-	req(nvars == 0, "environment not empty.");
+	if (env_clear(NULL) != OK) {
+		errx(EXIT_FAILURE, "failed to clear the environment");
+	}
 
-	/* Was the environment backed-up? */
-	nvars = 0;
+	/* Is the environment cleared? */
+	warnx("checking cleanup ...");
+
+	varc = 0;
+	if (setenv("foo", "bar", true) != 0) {
+		err(EXIT_FAILURE, "setenv foo=bar");
+	}
+	if (env_clear(&env) != OK) {
+		errx(EXIT_FAILURE, "env_clear: did not return OK");
+	}
+        
+	/* RATS: ignore */
+	if (getenv("foo")) {
+		errx(EXIT_FAILURE, "$foo: present after clean-up");
+	}
+	
+	for (var = (const char**) environ; *var; var++) {
+		varc++;
+	}
+	
+	if (varc > 0) {
+		errx(EXIT_FAILURE, "environment not empty after clean-up");
+	}
+
+	/* Is the environment backed-up? */
+	warnx("checking backup ...");
+
+	varc = 0;
 	for (var = env; *var; var++) {
-		/* RATS: ignore */
-		char name[STR_MAX];
+		char name[STR_MAX];	/* RATS: ignore */
 		char *value;
 
-		req(str_split(*var, "=", &name, &value) == OK,
-		    "failed to split variable.");
-		if (strcmp(name, "foo") != 0) continue;
-		if (strcmp(value, "bar") != 0) continue;
-		nvars++;
+		if (str_split(*var, "=", &name, &value) != OK) {
+			errx(EXIT_FAILURE, "str_split: did not return OK");
+		}
+		
+		if (strcmp(name, "foo") != 0) {
+			continue;
+		}
+
+		if (strcmp(value, "bar") != 0) {
+			continue;
+		}
+		
+		varc++;
 	}
-	if (nvars < 1) croak("failed to store environment.");
-	if (nvars > 1) croak("stored too many variables.");
+
+	if (varc < 1) {
+		errx(EXIT_FAILURE, "failed to store all variables.");
+	}
+	if (varc > 1) {
+		errx(EXIT_FAILURE, "stored too many variables.");
+	}
 
 	/* Does env_clear error out if there are too many variables? */
-	req(env_clear(NULL) == OK, "failed to clear the environment.");
+	warnx("checking errors ...");
+
+	if (env_clear(NULL) != OK) {
+		errx(EXIT_FAILURE, "failed to clear the environment");
+	}
 
 	for (int i = 0; i <= ENV_MAX; i++) {
-		/* RATS: ignore */
-		char name[STR_MAX];
+		char name[STR_MAX];	/* RATS: ignore */
 
 		/* RATS: ignore */
-		req(snprintf(name, STR_MAX - 1U, "foo%d", i) > 0,
-		    "failed to generate variable name.");
-		req(setenv(name, "foo", true) == 0,
-		    "setenv %s: %s.", name, strerror(errno));
+		if (snprintf(name, STR_MAX - 1U, "foo%d", i) < 1) {
+			errx(EXIT_FAILURE, "snprintf: returned < 1 bytes");
+		}
+		if (setenv(name, "foo", true) != 0) {
+			err(EXIT_FAILURE, "setenv %s=%s", name, "foo");
+		}
 	}
-	req(env_clear(&env) == ERR_ENV_MAX,
-	    "handled more than ENV_MAX variables, which is verboten.");
 
-	/* All good. */
+	if (env_clear(&env) != ERR_ENV_MAX) {
+		errx(EXIT_FAILURE, "accepted > ENV_MAX variables.");
+	}
+
+	warnx("success");
 	return EXIT_SUCCESS;
 }

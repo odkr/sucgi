@@ -18,7 +18,7 @@ tmpdir chk
 : "${LOGNAME:?}"
 
 egid="$(id -g)" && [ "$egid" ] ||
-	abort "failed to get process' effective GID."
+	err "failed to get process' effective GID."
 
 
 #

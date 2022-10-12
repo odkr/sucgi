@@ -23,9 +23,9 @@ tmpdir chk
 umask 0777
 
 euid="$(id -u)" && [ "$euid" ] ||
-	abort "failed to get process' effective UID."
+	err "failed to get process' effective UID."
 egid="$(id -g)" && [ "$egid" ] ||
-	abort "failed to get process' effective GID."
+	err "failed to get process' effective GID."
 
 fname="$TMPDIR/file"
 touch "$fname"
@@ -36,7 +36,7 @@ for mode in $no
 do
 	chmod "$mode" "$fname"
 	file_is_exec "$fname" &&
-		abort "file_is_exec reports $mode as executable."
+		err "file_is_exec reports $mode as executable."
 	chmod ugo= "$fname"
 done
 
@@ -45,12 +45,12 @@ for mode in $yes
 do
 	chmod "$mode" "$fname"
 	file_is_exec "$fname" ||
-		abort "file_is_exec does not report $mode as executable."
+		err "file_is_exec does not report $mode as executable."
 	chmod ugo= "$fname"
 done
 
 file_is_exec /bin/sh ||
-	abort "file_is_exec does not report /bin/sh as executable."
+	err "file_is_exec does not report /bin/sh as executable."
 
 
 #
@@ -58,21 +58,21 @@ file_is_exec /bin/sh ||
 #
 
 euid="$(id -u)" && [ "$euid" ] ||
-	abort "failed to get process' effective user ID."
+	err "failed to get process' effective user ID."
 
 [ "$euid" -ne 0 ] && exit
 
 unalloc_uid="$(unallocid -u 1000 30000)" && [ "$unalloc_uid" ] ||
-	abort "failed to find an unallocated user ID."
+	err "failed to find an unallocated user ID."
 unalloc_gid="$(unallocid -g 1000 30000)" && [ "$unalloc_gid" ] ||
-	abort "failed to find an unallocated group ID."
+	err "failed to find an unallocated group ID."
 
 chown "$unalloc_uid:$unalloc_gid" "$fname"
 
 chmod o= "$fname"
 file_is_exec "$fname" &&
-	abort "file_is_exec reports $mode as executable."
+	err "file_is_exec reports $mode as executable."
 
 chmod o=x "$fname"
 file_is_exec "$fname" ||
-	abort "file_is_exec does not report $mode as executable."
+	err "file_is_exec does not report $mode as executable."

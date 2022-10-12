@@ -1,16 +1,32 @@
 /*
  * Test path_check_wexcl.
+ *
+ * Copyright 2022 Odin Kroeger
+ *
+ * This file is part of suCGI.
+ *
+ * suCGI is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
+ *
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <err.h>
 #include <errno.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <stdlib.h>
 
-#include "../err.h"
+#include "../error.h"
 #include "../path.h"
-
-#include "../tools/lib.h"
 
 
 int
@@ -20,30 +36,46 @@ main (int argc, char **argv)
 	char cur[STR_MAX];	/* Current directory. */
 	const char *parent;	/* Parent directory. */
 	const char *fname;	/* Filename. */
-	uid_t uid;		/* User ID. */
+	long uid;		/* User ID. */
 	enum error rc;		/* Return code. */
 
+	errno = 0;
+
 	if (argc != 4) {
-		die("usage: path_check_wexcl UID SUPER SUB");
+		(void) fputs("usage: path_check_wexcl UID SUPER SUB\n", stderr);
+		return EXIT_FAILURE;
 	}
-	if (str_to_id(argv[1], &uid) != OK) {
-		die("path_check_wexcl: could not parse UID.");
+
+	uid = strtol(argv[1], NULL, 10);
+	if (errno != 0) {
+		err(EXIT_FAILURE, "strtol %s", argv[1]);
 	}
-	
+	if (uid < 0) {
+		errx(EXIT_FAILURE, "user IDs must be non-negative");
+	}
+#if defined(UID_MAX)
+	if ((unsigned long) uid > UID_MAX) {
+#else
+	if ((unsigned long) uid > UINT_MAX) {
+#endif
+		errx(EXIT_FAILURE, "user ID is too large");
+	}
+
 	parent = argv[2];
 	fname = argv[3];
 
-	rc = path_check_wexcl(uid, parent, fname, &cur);
+	rc = path_check_wexcl((uid_t) uid, parent, fname, &cur);
 	switch (rc) {
 		case OK:
 			break;
 		case ERR_SYS:
-			croak("open %s: %s.", cur, strerror(errno));
+			err(EXIT_FAILURE, "open %s", cur);
 		case ERR_PATH_WEXCL:
-		        croak("%s: writable by UIDs other than %llu.",
-			      cur, (uint64_t) uid);
+		        errx(EXIT_FAILURE,
+			     "%s: writable by UIDs other than %ld",
+			     cur, uid);
 		default:
-			croak("unexpected return code %u.", rc);
+			errx(EXIT_FAILURE, "unexpected return code %u.", rc);
 	}
 
 	(void) puts(cur);

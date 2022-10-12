@@ -1,25 +1,42 @@
 /*
  * Test str_cp.
+ *
+ * Copyright 2022 Odin Kroeger
+ *
+ * This file is part of suCGI.
+ *
+ * suCGI is free software: you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option)
+ * any later version.
+ *
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <err.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "../err.h"
+#include "../error.h"
 #include "../str.h"
-#include "../tools/lib.h"
 
 
 /* Test case. */
-struct signature {
+struct args {
 	size_t n;
 	const char *src;
 	const char *dest;
-	const enum error ret;
+	const enum error rc;
 };
 
 /* Tests. */
-const struct signature tests[] = {
+const struct args tests[] = {
 	/* Simple test. */
 	{STR_MAX - 1U, "foo", "foo", OK},
 
@@ -45,22 +62,25 @@ const struct signature tests[] = {
 int
 main (void) {
 	for (int i = 0; tests[i].src; i++) {
-		struct signature t = tests[i];
-		char dest[STR_MAX] = {0};	/* RATS: ignore */
-		enum error ret; 
+		struct args t = tests[i];
+		char dest[STR_MAX];	/* RATS: ignore */
+		enum error rc; 
 		
-		ret = str_cp(t.n, t.src, dest);
+		*dest = '\0';
 
-		if (ret != t.ret) {
-			die("str_cp %zu '%s' returned %u.",
-			    t.n, t.src, ret);
+		warnx("checking (%zu, %s, -> %s) -> %u ...",
+		      t.n, t.src, t.dest, t.rc);
+
+		rc = str_cp(t.n, t.src, dest);
+
+		if (rc != t.rc) {
+			errx(EXIT_FAILURE, "unexepected return code %u", rc);
 		}
 		if (!(t.dest == dest || strcmp(t.dest, dest) == 0)) {
-			die("str_cp %zu '%s' copied '%s'.",
-			    t.n, t.src, dest);
+			errx(EXIT_FAILURE, "unexpected copy '%s'", dest);
 		}
 	}
 
-	/* All good. */
+	warnx("success");
 	return EXIT_SUCCESS;
 }

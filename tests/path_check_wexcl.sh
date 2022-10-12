@@ -30,9 +30,9 @@ touch "$dirf"
 chmod 600 "$dirf"
 
 euid="$(id -u)" && [ "$euid" ] ||
-	abort "failed to get process' effective UID."
+	err "failed to get process' effective UID."
 egid="$(id -g)" && [ "$egid" ] ||
-	abort "failed to get process' effective GID."
+	err "failed to get process' effective GID."
 
 
 #
@@ -44,13 +44,13 @@ for mode in $no
 do
 	chown "$euid:$egid" "$fname"
 	chmod "$mode" "$fname"
-	checkerr "$fname: writable by UIDs other than $euid." \
+	checkerr "$fname: writable by UIDs other than $euid" \
 		path_check_wexcl "$euid" "$TMPDIR" "$fname"
 
 	chown "$euid:$egid" "$dir"
 	chmod "$mode" "$dir"
 	chmod u+x "$dir"
-	checkerr "$dir: writable by UIDs other than $euid." \
+	checkerr "$dir: writable by UIDs other than $euid" \
 		path_check_wexcl "$euid" "$TMPDIR" "$dirf"
 done
 
@@ -63,7 +63,7 @@ do
 		path_check_wexcl "$euid" "$TMPDIR" "$fname"
 
 	[ "$euid" -ne 0 ] &&
-		checkerr "/: writable by UIDs other than $euid." \
+		checkerr "/: writable by UIDs other than $euid" \
 			path_check_wexcl "$euid" / "$dirf"
 
 	chown "$euid:$egid" "$fname"
@@ -73,11 +73,11 @@ do
 		path_check_wexcl "$euid" "$TMPDIR" "$dirf"
 
 	chmod g+w,o= "$dir"
-	checkerr "$dir: writable by UIDs other than $euid." \
+	checkerr "$dir: writable by UIDs other than $euid" \
 		path_check_wexcl "$euid" "$TMPDIR" "$dirf"
 
 	chmod g=,o+w "$dir"
-	checkerr "$dir: writable by UIDs other than $euid." \
+	checkerr "$dir: writable by UIDs other than $euid" \
 		path_check_wexcl "$euid" "$TMPDIR" "$dirf"
 done
 
