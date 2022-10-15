@@ -120,8 +120,7 @@ init() {
 
 # Check if a line on STDIN contains $string.
 match() (
-	string="${1:?}"
-	file=
+	string="${1:?}" file=
 	while read -r line
 	do
 		case $line in (*$string*)
@@ -136,8 +135,7 @@ match() (
 # Get the UID of the user who invoked the script,
 # even if the script has been invoked via su or sudo.
 regularuid() (
-        pivot="$$"
-        fifo="${TMPDIR:?}/ps.fifo"
+        pivot="$$" fifo="${TMPDIR:?}/ps.fifo"
         mkfifo "$fifo"
 
         while true
