@@ -32,7 +32,7 @@ main (int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 
-	(void) error(argv[1]);
+	(void) error("%s", argv[1]);
 
 	/* This point should not be reached. */
 	return EXIT_SUCCESS;
