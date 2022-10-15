@@ -48,9 +48,7 @@ if [ "$path_max" -gt -1 ] && [ "$path_max" -lt 2048 ]
 	else str_max=2048
 fi
 
-long_name="$(printf '%*s\n' "$name_max" .f | tr ' ' x)"
 path_seg="$(printf '%*s\n' "$name_max" .d | tr ' ' x)"
-
 while true
 do
 	if [ "${long_path-}" ]
@@ -60,6 +58,7 @@ do
 	len=${#long_path}
 	[ $((len + name_max + 2)) -gt "$str_max" ] && break
 done
+
 huge_path="$long_path/$(printf '%*s\n' $((str_max - len - 2)) .d | tr ' ' x)"
 long_path="$long_path/$(printf '%*s\n' $((str_max - len - 2)) .f | tr ' ' x)"
 
@@ -87,9 +86,11 @@ checkerr 'strncmp(jail, realpath(jail, NULL), STR_MAX) == 0' \
 	var="$jail/foo" env_file_open "$inside_to_root" var f
 
 # Environment variable is unset or empty.
+# shellcheck disable=2016
 checkerr '$var: unset or empty' \
 	env_file_open "$jail" var f
 
+# shellcheck disable=2016
 checkerr '$var: unset or empty' \
 	var= env_file_open "$jail" var f
 
@@ -101,6 +102,7 @@ checkerr '$var: unset or empty' \
 	touch file
 )
 
+# shellcheck disable=2016
 checkerr '$var: path too long' \
 	var="$huge_path" env_file_open "$jail" var f
 
@@ -115,7 +117,7 @@ shortened="$(
 	printf %s/ "$jail"
 	
 	IFS=/
-	for seg in ${huge_path##$jail/}
+	for seg in ${huge_path##"$jail"/}
 	do
 		if [ -d "$seg" ]
 		then
@@ -156,6 +158,7 @@ checkerr "\$var: not in $jail" \
 file="$jail/file"
 touch "$file"
 
+# shellcheck disable=2016
 checkerr '$var: Not a directory' \
 	var="$file" env_file_open "$jail" var d
 
