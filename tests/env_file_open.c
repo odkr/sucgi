@@ -36,22 +36,33 @@ main (int argc, char **argv)
 {
 	char *jail;		/* Jail directory. */
 	char *var;		/* Variable name. */
-	const char *fname;	/* Filename. */
-	struct stat fstatus;	/* Filesystem metadata. */
-	int fd;			/* File descriptor. */
-	enum error rc;		/* Return code. */
+	int flags;		/* Open flags. */
 
-	errno = 0;
-
-	if (argc != 3) {
-		(void) fputs("usage: env_file_open JAIL VAR\n", stderr);
+	
+	if (argc != 4) {
+		(void) fputs("usage: env_file_open JAIL VAR f|d\n", stderr);
 		return EXIT_FAILURE;
 	}
 
 	jail = argv[1];
 	var = argv[2];
+	flags = O_RDONLY | O_CLOEXEC;
 
-	rc = env_file_open(jail, var, O_RDONLY | O_CLOEXEC, &fname, &fd);
+	if (strncmp(argv[3], "d", 2) == 0) {
+		flags = flags | O_DIRECTORY;
+	} else if (strncmp(argv[3], "f", 2) == 0) {
+		/* Do nothing. */
+	} else {
+		errx(EXIT_FAILURE, "filetype must be 'f' or 'd'.");
+	}
+
+
+	const char *fname;	/* Filename. */
+	int fd;			/* File descriptor. */
+	enum error rc;		/* Return code. */
+
+	errno = 0;
+	rc = env_file_open(jail, var, flags, &fname, &fd);
 	switch (rc) {
 		case OK:
 			break;
@@ -67,16 +78,25 @@ main (int argc, char **argv)
 			errx(EXIT_FAILURE, "unexpected return code %u.", rc);
 	}
 
-	if (fstat(fd, &fstatus) != 0) {
-		err(EXIT_FAILURE, "stat %s", fname);
+
+	FILE *file;		/* Stream. */
+	int ch;			/* Character. */
+
+	errno = 0;
+	file = fdopen(fd, "r");
+	if (!file) {
+		err(EXIT_FAILURE, "open %s", fname);
 	}
 
-	/* RATS: ignore. */
-	(void) printf("uid=%llu gid=%llu mode=%o size=%llu\n",
-	              (unsigned long long) fstatus.st_uid,
-	              (unsigned long long) fstatus.st_gid,
-	                                   fstatus.st_mode,
-	              (unsigned long long) fstatus.st_size);
+	/* RATS: ignore */
+	while ((ch = fgetc(file)) != EOF) {
+		/* RATS: ignore */
+		(void) fputc(ch, stdout);
+	}
+
+	if (ferror(file)) {
+		errx(EXIT_FAILURE, "error while reading from %s", fname);
+	}
 
 	return EXIT_SUCCESS;
 }

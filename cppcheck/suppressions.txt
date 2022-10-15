@@ -111,10 +111,12 @@ misra-c2012-13.4:tools/badenv.c:52
 misra-c2012-13.4:tools/getlogname.c:42
 misra-c2012-13.4:tools/runas.c:43
 misra-c2012-13.4:tools/unallocid.c:45
+// And `while ((ch = fgetc(file)) != EOF)`.
+misra-c2012-13.4:tests/env_file_open.c:92
 
-// Rule 14.4 requires that conditionals are of boolean type. However,
-// this implies that NULL has to be tested for explicitly, which makes
-// code less idiomatic and readable. So tests for NULL are exempted.
+// Rule 14.4 requires that conditionals are of boolean type. 
+// However, this implies that NULL has to be tested for explicitly, which
+// makes code less idiomatic and readable. So tests for NULL are exempted.
 misra-c2012-14.4:gids.c:60
 misra-c2012-14.4:str.c:62
 misra-c2012-14.4:sucgi.c:461
@@ -123,6 +125,7 @@ misra-c2012-14.4:sucgi.c:476
 misra-c2012-14.4:tools/badenv.c:103
 misra-c2012-14.4:tools/badenv.c:121
 misra-c2012-14.4:tests/env_clear.c:62
+misra-c2012-14.4:tests/env_file_open.c:97
 misra-c2012-14.4:tests/env_restore.c:107
 
 // Rule 15.1 advises that goto not be used. But sometimes goto is the most
@@ -159,7 +162,7 @@ misra-c2012-16.6:sucgi.c:352
 misra-c2012-16.6:sucgi.c:428
 misra-c2012-16.6:sucgi.c:496
 misra-c2012-16.6:sucgi.c:520
-misra-c2012-16.6:tests/env_file_open.c:55
+misra-c2012-16.6:tests/env_file_open.c:66
 misra-c2012-16.6:tests/gids_get_list.c:67
 misra-c2012-16.6:tests/path_check_wexcl.c:68
 misra-c2012-16.6:tests/priv_drop.c:57
