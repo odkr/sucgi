@@ -57,7 +57,7 @@
  * Safe environment variables.
  *
  * Array of shell wildcard patterns. See fnmatch(3) for the syntax.
- * Variables are only kept if their name matches one of these patterns.
+ * Variables that match none of the given patterns are discarded.
  * Patterns should be shorter than PATH_MAX bytes.
  * The array must be NULL-terminated.
  *
@@ -73,8 +73,8 @@
  *      - the mod_ssl documentation
  *        <https://httpd.apache.org/docs/2.4/mod/mod_ssl.html>
  *
- * The list must include DOCUMENT_ROOT and PATH_TRANSLATED. HOME, PATH, and
- * USER_NAME are set, regardless of whether they appear in this list.
+ * The list must include DOCUMENT_ROOT and PATH_TRANSLATED.
+ * HOME, PATH, and USER_NAME are set regardless.
  */
 const char *const env_vars_safe[] = {
 	"AUTH_TYPE",
