@@ -1,5 +1,5 @@
 /*
- * Test env_name_valid.
+ * Test env_is_name.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -71,7 +71,7 @@ main (void)
 		warnx("checking (%s) -> %s ...",
 		      t.name, (t.ret) ? "valid" : "invalid");
 
-		ret = env_name_valid(t.name);
+		ret = env_is_name(t.name);
 		if (ret != t.ret) {
 			errx(EXIT_FAILURE, "mistaken for %s\n",
 			     (ret) ? "valid" : "invalid");

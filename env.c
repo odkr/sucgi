@@ -266,7 +266,7 @@ env_file_open(const char *const jail, const char *const varname,
 }
 
 bool
-env_name_valid(const char *const name)
+env_is_name(const char *const name)
 {
 	/* Check if the name is the empty string or starts with a digit. */
 	if (*name == '\0' || isdigit(*name)) {
@@ -298,7 +298,7 @@ env_restore(const char *vars[], const char *const patterns[])
 
 		try(str_split(vars[i], "=", &name, &value));
 		/* patv may contain wildcards, so name has to be checked. */
-		if (!env_name_valid(name)) {
+		if (!env_is_name(name)) {
 			return ERR_ENV_MAL;
 		}
 		if (!value) {

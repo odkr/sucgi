@@ -100,7 +100,7 @@ env_file_open(const char *const jail, const char *const varname,
  * Check if the string NAME is a valid environment variable name.
  */
 __attribute__((nonnull(1), pure, warn_unused_result))
-bool env_name_valid(const char *const name);
+bool env_is_name(const char *const name);
 
 /*
  * Restore every environment variable in the list of environment variables

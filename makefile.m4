@@ -24,7 +24,7 @@ core_objs = lib.a(error.o) lib.a(str.o)
 
 check_bins =	tools/badenv tools/runas tools/unallocid tools/getlogname \
 		tests/error tests/env_clear tests/env_file_open \
-		tests/env_name_valid tests/env_restore tests/main \
+		tests/env_is_name tests/env_restore tests/main \
 		tests/file_is_exec tests/file_is_wexcl \
 		tests/file_safe_open tests/file_safe_stat \
 		tests/gids_get_list tests/priv_drop tests/path_check_wexcl \
@@ -32,7 +32,7 @@ check_bins =	tools/badenv tools/runas tools/unallocid tools/getlogname \
 		tests/str_split tests/try
 
 checks =	tests/error.sh tests/env_clear tests/env_file_open.sh \
-		tests/env_name_valid tests/env_restore tests/main.sh \
+		tests/env_is_name tests/env_restore tests/main.sh \
 		tests/file_is_exec.sh tests/file_is_wexcl.sh \
 		tests/file_safe_open.sh tests/file_safe_stat.sh \
 		tests/gids_get_list.sh tests/priv_drop.sh \
@@ -124,7 +124,7 @@ tests/env_file_open: tests/env_file_open.c lib.a(env.o)
 
 tests/env_get_fname: tests/env_get_fname.c lib.a(env.o)
 
-tests/env_name_valid: tests/env_name_valid.c lib.a(env.o)
+tests/env_is_name: tests/env_is_name.c lib.a(env.o)
 
 tests/env_restore: tests/env_restore.c lib.a(env.o)
 
