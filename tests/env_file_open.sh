@@ -26,20 +26,30 @@ mkdir "$jail"
 
 
 #
-# Main
+# Errors 
 #
 
+
+#
 # Jail is the empty string.
+#
+
 checkerr "*jail != '\\\0'" \
 	var="$jail/file" env_file_open "" var f
 
 
+#
 # Variable is the empty string.
+#
+
 checkerr "*varname != '\\\0'" \
 	var="$jail/file" env_file_open "$jail" "" f
 
 
-# Path too jail is longer than STR_MAX.
+#
+# Path to jail is longer than STR_MAX.
+#
+
 path_max="$(getconf PATH_MAX "$jail")" && [ "$path_max" ] || path_max=-1
 name_max="$(getconf NAME_MAX "$jail")" && [ "$name_max" ] || name_max=-1
 
@@ -72,7 +82,10 @@ checkerr 'strnlen(jail, STR_MAX) < STR_MAX' \
 	var="$huge_path/foo" env_file_open "$huge_path" var f
 
 
-# Path to jail is not canonical
+#
+# Path to jail is not canonical.
+#
+
 outside_to_jail="$TMPDIR/symlink"
 ln -s "$jail" "$outside_to_jail"
 
@@ -94,7 +107,11 @@ checkerr '$var: unset or empty' \
 checkerr '$var: unset or empty' \
 	var= env_file_open "$jail" var f
 
-# Content of environment variable is too long.
+
+#
+# Value of environment variable is too long.
+#
+
 (
 	dir="${huge_path%/file}"
 	mkdir -p "$dir"
@@ -107,11 +124,10 @@ checkerr '$var: path too long' \
 	var="$huge_path" env_file_open "$jail" var f
 
 
-# Path is too long after having been resolved.
 #
-# This test raises different errors on different systems. 
-# If PATH_MAX is larger than STR_MAX, it shoud trigger ERR_ENV_LEN;
-# if PATH_MAX equals STR_MAX, it should trigger ERR_SYS, namely, ENAMETOOLONG.
+# Path to file is too long after having been resolved.
+#
+
 shortened="$(
 	cd -P "$jail"
 	printf %s/ "$jail"
@@ -131,11 +147,15 @@ shortened="$(
 	done
 )"
 
+# This test raises different errors on different systems. 
 checkerr 'too long' \
 	var="$shortened" env_file_open "$jail" var f
 
 
-# Path is outside of jail.
+#
+# Path points to outside of jail.
+#
+
 outside="$TMPDIR/outside"
 touch "$outside"
 
@@ -143,18 +163,28 @@ checkerr "\$var: not in $jail" \
 	var="$outside" env_file_open "$jail" var f
 
 
-# Resolved path is outside of jail (dots).
+#
+# Resolved path points to outside of jail (dots).
+#
+
 checkerr "\$var: not in $jail" \
 	var="$jail/../outside" env_file_open "$jail" var f
 
 
-# Resolved path is outside of jail (symlink).
+#
+# Resolved path points to outside of jail (symlink).
+#
+
 ln -s "$outside" "$jail/outside"
 
 checkerr "\$var: not in $jail" \
 	var="$jail/outside" env_file_open "$jail" var f
 
-# Wrong filetype.
+
+#
+# File is of the wrong type.
+#
+
 file="$jail/file"
 touch "$file"
 
@@ -163,25 +193,42 @@ checkerr '$var: Not a directory' \
 	var="$file" env_file_open "$jail" var d
 
 
-# Simple test.
-echo $$ >>"$file"
+#
+# Non-errors
+#
 
+
+#
+# Simple test.
+#
+
+echo $$ >>"$file"
 checkok $$ \
 	var="$file" env_file_open "$jail" var f
 
 
+#
 # Long filename.
+#
+
 echo $$ >>"$long_path"
 checkok $$ \
 	var="$long_path" env_file_open "$jail" var f
 
 
+#
 # Resolved path is inside jail.
+#
+
 ln -fs "$file" "$outside"
 checkok $$ \
 	var="$outside" env_file_open "$jail" var f
 
 
+
+#
 # All good.
+#
+
 # shellcheck disable=2154
 warn "${green}success.$reset"
