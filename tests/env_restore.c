@@ -84,7 +84,7 @@ struct args tests[] = {
 	{{"foo=foo", "bar=bar", "baz=baz", NULL}, {"f*", NULL},
 	 {"foo=foo", "bar", "baz", NULL}, OK},
 	
-	/* Odd, but legal, values. */
+	/* Odd but legal values. */
 	{{"empty=", "assign==", "space= ", "tab=\t", "lf=\n", NULL},
 	 {"*", NULL},
 	 {"empty=", "assign==", "space= ", "tab=\t", "lf=\n", NULL}, OK},
