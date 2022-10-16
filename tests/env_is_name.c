@@ -73,8 +73,20 @@ main (void)
 
 		ret = env_is_name(t.name);
 		if (ret != t.ret) {
-			errx(EXIT_FAILURE, "mistaken for %s\n",
+			errx(EXIT_FAILURE, "mistaken for %s",
 			     (ret) ? "valid" : "invalid");
+		}
+	}
+
+	for (int i = 0; env_vars_safe[i]; i++) {
+		const char *var = env_vars_safe[i];
+
+		if (var[strspn(var, ENV_VAR_CHARS)] == '\0') {
+			warnx("checking (%s) -> valid ...", var);
+
+			if (!env_is_name(var)) {
+				errx(EXIT_FAILURE, "mistaken for invalid");
+			}
 		}
 	}
 

@@ -36,6 +36,10 @@
 /* Maximum number of environment variables. */
 #define ENV_MAX 192
 
+/* Characters allowed in environment variable names. */
+#define ENV_VAR_CHARS "ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789" \
+                      "abcdefghijklmnopqrstuvwxyz"
+
 
 
 /*

@@ -42,14 +42,6 @@
 
 
 /*
- * Constants
- */
-
-/* Characters allowed in environment variable names. */
-#define ENV_VAR_CHARS "ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789" \
-                      "abcdefghijklmnopqrstuvwxyz"
-
-/*
  * Globals
  */
 
