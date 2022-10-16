@@ -30,4 +30,5 @@ do
 	checkerr "$message" error %s "$message"
 done
 
+# shellcheck disable=2154
 warn "${green}success.$reset"

@@ -55,4 +55,5 @@ warn "checking whether /bin/sh is exclusively writable by root ..."
 file_is_wexcl 0 /bin/sh ||
 	err "reported as not exclusively writable."
 
+# shellcheck disable=2154
 warn "${green}success.$reset"

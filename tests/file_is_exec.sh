@@ -60,6 +60,7 @@ euid="$(id -u)" && [ "$euid" ] ||
 
 if [ "$euid" -ne 0 ]
 then
+	# shellcheck disable=2154
 	warn "${green}success.$reset"
 	exit
 fi
@@ -115,4 +116,5 @@ rgid="$(id -g "$ruid")" && [ "$rgid" ] ||
 
 runas "$ruid" "$rgid" "$0"
 
+# shellcheck disable=2154
 warn "${green}success.$reset"
