@@ -24,34 +24,35 @@ umask 0777
 fname="$TMPDIR/file"
 touch "$fname"
 
-uid="$(id -u)" && [ "$uid" ] ||
+euid="$(id -u)" && [ "$euid" ] ||
 	err "failed to get process' effective UID."
-gid="$(id -g)" && [ "$gid" ] ||
+egid="$(id -g)" && [ "$egid" ] ||
 	err "failed to get process' effective GID."
 
-no="g=w o=w ug=w uo=w go=w ugo=w"
-for mode in $no
+for mode in g=w o=w ug=w uo=w go=w ugo=w
 do
-	chown "$uid:$gid" "$fname"
+	warn "checking $mode ..."
+	chown "$euid:$egid" "$fname"
 	chmod "$mode" "$fname"
 	# shellcheck disable=2154
-	file_is_wexcl "$uid" "$fname" &&
-		err "file_is_wexcl reports $bold$mode$reset" \
-		      "as ${bold}exclusively writable$reset."
+	file_is_wexcl "$euid" "$fname" &&
+		err "reported as exclusively writable."
 	chmod ugo= "$fname"
 done
 
-yes="u=w ugo="
-for mode in $yes
+for mode in u=w ugo=
 do
-	chown "$uid:$gid" "$fname"
+	warn "checking $mode ..."
+	chown "$euid:$egid" "$fname"
 	chmod "$mode" "$fname"
 	# shellcheck disable=2154
-	file_is_wexcl "$uid" "$fname" ||
-		err "file_is_wexcl reports $bold$mode$reset" \
-		      "as ${bold}not$reset exclusively writable."
+	file_is_wexcl "$euid" "$fname" ||
+		err "reported as not exclusively writable."
 	chmod ugo= "$fname"
 done
 
+warn "checking whether /bin/sh is exclusively writable by root ..."
 file_is_wexcl 0 /bin/sh ||
-	err "file_is_wexcl reports /bin/sh as not exclusively writable."
+	err "reported as not exclusively writable."
+
+warn "${green}success.$reset"
