@@ -27,12 +27,12 @@
 
 int
 main (int argc, char **argv) {
-	if (argc != 2) {
-		(void) fputs("usage: error MESSAGE\n", stderr);
+	if (argc < 2 || argc > 3) {
+		(void) fputs("usage: error FORMAT [ARG]\n", stderr);
 		return EXIT_FAILURE;
 	}
 
-	(void) error("%s", argv[1]);
+	(void) error(argv[1], argv[2]);
 
 	/* This point should not be reached. */
 	return EXIT_SUCCESS;

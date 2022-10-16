@@ -21,7 +21,13 @@ tmpdir chk
 # Main
 #
 
-for message in foo bar baz
+checkerr "*message != '\\\0'" error ''
+checkerr '' error %s ''
+
+for message in - foo bar baz
 do
 	checkerr "$message" error "$message"
+	checkerr "$message" error %s "$message"
 done
+
+warn "${green}success.$reset"

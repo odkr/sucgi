@@ -39,9 +39,8 @@ catch() {
 
 # Abort if a programme doesn't print $err to STDERR or exits with status zero.
 checkerr() (
-	err="${1:?}"
+	err="${1?}"
 	shift
-	: "${1:?no error given}"
 	: "${@:?no command given}"
 	: "${__tmpdir_tmpdir:?checkok needs a temporary directory}"
 	fifo="$TMPDIR/checkerr.fifo"
@@ -57,9 +56,8 @@ checkerr() (
 
 # Abort if a programme doesn't print $msg or exits with a non-zero status.
 checkok() (
-	msg="${1:?}"
+	msg="${1?}"
 	shift
-	: "${1:?no message given}"
 	: "${@:?no command given}"
 	: "${__tmpdir_tmpdir:?checkok needs a temporary directory}"
 	fifo="$TMPDIR/${1##*/}.fifo"
@@ -120,7 +118,7 @@ init() {
 
 # Check if a line on STDIN contains $string.
 match() (
-	string="${1:?}" file=
+	string="${1?}" file=
 	while read -r line
 	do
 		case $line in (*$string*)
