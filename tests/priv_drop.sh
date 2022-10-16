@@ -27,7 +27,7 @@ euid="$(id -u)" && [ "$euid" ] ||
 
 if [ "$euid" -eq 0 ]
 then
-	uid="$(regularuid)" && [ "$uid" ] ||
+	uid="$(regularuser)" && [ "$uid" ] ||
 		err "failed to get non-root user ID of caller."
 	# shellcheck disable=2154
 	user="$(getlogname "$uid")" && [ "$user" ] ||

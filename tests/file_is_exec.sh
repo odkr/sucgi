@@ -13,6 +13,7 @@ readonly script_dir
 # shellcheck disable=1091
 . "$script_dir/../tools/lib.sh" || exit
 init || exit
+oldtmp="${TMPDIR-}"
 tmpdir chk
 
 
@@ -51,7 +52,7 @@ do
 	chmod ugo= "$fname"
 done
 
-warn "checking /bin/sh ..."
+warn "checking /bin/sh as user $euid ..."
 file_is_exec /bin/sh ||
 	err "not reported as executable."
 
@@ -109,12 +110,16 @@ chown "$euid:$egid" "$fname"
 file_is_exec "$fname" &&
         err "reported as executable."
 
-ruid="$(regularuid)" && [ "$ruid" ] ||
-	err "failed to get non-root user ID of caller."
+ruser="$(ls -ld "$script_dir" | cut -d ' ' -f4)"
+if ! [ "$ruser" ] || [ "$ruser" = root ]
+then
+	ruser="$(regularuser)" && [ "$ruser" ] ||
+		err "failed to get non-root user."
+fi
+
+ruid="$(id -u "$ruser")" && [ "$ruid" ] ||
+	err "failed to get user ID of $ruser."
 rgid="$(id -g "$ruid")" && [ "$rgid" ] ||
-	err "failed to get primary group ID of UID $ruid"
+	err "failed to get primary group ID of $ruser."
 
-runas "$ruid" "$rgid" "$0"
-
-# shellcheck disable=2154
-warn "${green}success.$reset"
+TMPDIR="$oldtmp" runas "$ruid" "$rgid" "$0"

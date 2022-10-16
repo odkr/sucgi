@@ -43,7 +43,7 @@ unset opt
 # Main
 #
 
-ruid="$(regularuid)" && [ "$ruid" ] ||
+ruid="$(regularuser)" && [ "$ruid" ] ||
 	err 'failed to get non-root user ID.'
 user="$(getlogname "$ruid")" && [ "$user" ] ||
 	err "failed to get logname associated with ID $ruid."

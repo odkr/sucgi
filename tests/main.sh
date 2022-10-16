@@ -23,7 +23,7 @@ tmpdir chk
 pwd="$(cd -P "$script_dir" && pwd)" && [ "$pwd" ] && [ -d "$pwd" ] ||
 	err "failed to find working directory."
 
-ruid="$(regularuid)" && [ "$ruid" ] ||
+ruid="$(regularuser)" && [ "$ruid" ] ||
 	err "failed to get non-root user ID of caller."
 # shellcheck disable=2154
 user="$(getlogname "$ruid")" && [ "$user" ] ||

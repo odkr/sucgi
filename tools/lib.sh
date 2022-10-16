@@ -130,9 +130,9 @@ match() (
 	return 1
 )
 
-# Get the UID of the user who invoked the script,
+# Get the login name of the user who invoked the script,
 # even if the script has been invoked via su or sudo.
-regularuid() (
+regularuser() (
         pivot="$$" fifo="${TMPDIR:?}/ps.fifo"
         mkfifo "$fifo"
 
@@ -140,6 +140,7 @@ regularuid() (
         do
                 ps -Ao 'pid= ppid= user=' | 
 		sort -r >"$fifo" & sort=$!
+
                 while read -r pid ppid user
                 do
                         [ "$pid" -eq "$pivot" ] || continue
