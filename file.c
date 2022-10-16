@@ -56,18 +56,17 @@
 bool
 file_is_exec(const struct stat fstatus)
 {
-	uid_t euid = geteuid();		/* Effective UID. */
-	gid_t egid = getegid();		/* Effective GID. */
-	uid_t fuid = fstatus.st_uid;	/* Owner UID. */
-	gid_t fgid = fstatus.st_gid;	/* Owner GID. */
 	mode_t fmode = fstatus.st_mode;	/* Permissions. */
 
-	if (fuid != euid && fgid != egid) {
-		return fmode & S_IXOTH;
+	if (fstatus.st_uid == geteuid()) {
+		return fmode & S_IXUSR;
 	}
 
-	return (fuid == euid && (fmode & S_IXUSR)) ||
-	       (fgid == egid && (fmode & S_IXGRP));
+	if (fstatus.st_gid == getegid()) {
+		return fmode & S_IXGRP;
+	}
+
+	return fmode & S_IXOTH;
 }
 
 
