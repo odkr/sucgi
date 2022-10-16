@@ -27,7 +27,7 @@ misra-c2012-2.5:defs.h:27
 
 // Rule 3.1 requires that comments do not contain slashes ("/").
 // But some comments contain URLs.
-misra-c2012-3.1:env.c:56
+misra-c2012-3.1:env.c:48
 // The first comment in each file refers to the GPL by its URL.
 misra-c2012-3.1:*:1
 
@@ -50,7 +50,7 @@ misra-c2012-8.4:tests/*.c
 // Rule 8.5 requires that external variables are declared only once.
 // env.h and tools/badenv.c both declare environ(7), but they belong to
 // distinct translation units.
-misra-c2012-8.5:env.h:46
+misra-c2012-8.5:env.h:50
 misra-c2012-8.5:tools/badenv.c:32
 
 // Rule 8.6 requires that every symbol with external linkage has a unique
@@ -69,7 +69,7 @@ misra-c2012-8.7:tests/scpt_get_handler.c:77
 // explicitly. But the list of patterns that match safe environment
 // variables is initialised upon declaration, constant, and would be
 // unwieldy to change if its size were given explicitly.
-misra-c2012-8.11:env.h:52
+misra-c2012-8.11:env.h:56
 
 // Rule 9.3 requires that arrays not be partially initialised. However,
 // variables representing the environment are sometimes initialised to
@@ -87,17 +87,15 @@ misra-c2012-10.8:tools/badenv.c:108
 
 // Rule 12.1 advises that operator precedence be explicit.
 // However, the precedence of the expressions below should be clear enough.
-misra-c2012-12.1:env.c:244
-misra-c2012-12.1:env.c:272
-misra-c2012-12.1:file.c:65
-misra-c2012-12.1:file.c:69
-misra-c2012-12.1:file.c:70
+misra-c2012-12.1:env.c:236
+misra-c2012-12.1:env.c:264
 misra-c2012-12.1:path.c:73
 misra-c2012-12.1:path.c:108
 misra-c2012-12.1:path.c:118
 misra-c2012-12.1:scpt.c:65
 misra-c2012-12.1:sucgi.c:300
 misra-c2012-12.1:sucgi.c:336
+misra-c2012-12.1:tests/error.c:30
 misra-c2012-12.1:tests/scpt_get_handler.c:120
 misra-c2012-12.1:tests/str_cp.c:79
 misra-c2012-12.1:tests/str_split.c:96
