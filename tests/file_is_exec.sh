@@ -29,7 +29,7 @@ egid="$(id -g)" && [ "$egid" ] ||
 	err "failed to get process' effective GID."
 
 fname="$TMPDIR/file"
-touch "$fname"
+printf '#!/bin/sh\n:\n' >"$fname"
 chown "$euid:$egid" "$fname"
 
 no="ugo= uo=,g=x ug=,o=x"
@@ -37,6 +37,8 @@ for mode in $no
 do
 	warn "checking $mode with owner $euid and group $egid ..."
 	chmod "$mode" "$fname"
+	[ "$euid" -ne 0 ] && [ -x "$fname" ] &&
+		err "$fname is executable."
 	file_is_exec "$fname" &&
 		err "reported as executable."
 	chmod ugo= "$fname"
@@ -47,12 +49,16 @@ for mode in $yes
 do
 	warn "checking $mode with owner $euid and group $egid ..."
 	chmod "$mode" "$fname"
+	[ "$euid" -eq 0 ] || [ -x "$fname" ] || 
+		err "$fname is not executable."
 	file_is_exec "$fname" ||
-		err "not reported as executable."
+		err "reported as not executable."
 	chmod ugo= "$fname"
 done
 
 warn "checking /bin/sh as user $euid ..."
+[ "$euid" -eq 0 ] || [ -x /bin/sh ] || 
+	err "/bin/sh is not executable."
 file_is_exec /bin/sh ||
 	err "not reported as executable."
 
@@ -87,7 +93,7 @@ warn "checking u=x with owner $euid and group $unalloc_gid ..."
 chown "$euid" "$fname"
 chmod u=x,go= "$fname"
 file_is_exec "$fname" ||
-        err "not reported as executable."
+        err "reported as not executable."
 
 warn "checking u=x with owner $unalloc_uid and group $egid ..."
 chown "$unalloc_uid:$egid" "$fname"
@@ -103,13 +109,14 @@ file_is_exec "$fname" &&
 warn "checking g=x with owner $unalloc_uid and group $egid ..."
 chown "$unalloc_uid:$egid" "$fname"
 file_is_exec "$fname" ||
-        err "not reported as executable."
+        err "reported as not executable."
 
 warn "checking g=x with owner $euid and group $egid ..."
 chown "$euid:$egid" "$fname"
 file_is_exec "$fname" &&
         err "reported as executable."
 
+# shellcheck disable=2012
 ruser="$(ls -ld "$script_dir" | cut -d ' ' -f4)"
 if ! [ "$ruser" ] || [ "$ruser" = root ]
 then
