@@ -11,11 +11,10 @@ suCGI
 
 Run CGI scripts with the permissions of their owner.
 
-suCGI checks whether the CGI script pointed to by the environment variable
-*PATH_TRANSLATED* is owned by a regular user, sets the real and the effective
-UID, the real and the effective GID, and the supplementary groups of the
-process to the UID, the GID, and the groups of that user, cleans up the
-environment, and then runs the script.
+suCGI checks whether a CGI script is owned by a regular user, sets the real
+and the effective UID, the real and the effective GID, and the supplementary
+groups of the current process to the UID, the GID, and the groups of that
+user, cleans up the environment, and then runs the script.
 
 
 Requirements
@@ -28,10 +27,8 @@ More precisely:
 * Linux ≥ v5.6 or Apple XNU_ ≥ v7195.50.7.100.1.
 * A C99 compiler that complies with `POSIX.1-2008`_;
   e.g., GCC_ ≥ v5.1, Clang_ ≥ v3.5, or TinyCC_ ≥ v0.9.
-* A C standard library that complies with POSIX.1-2008 as well as 4.4BSD,
-  supports the *_BSD_SOURCE*, the *_DARWIN_C_SOURCE*, or the *_DEFAULT_SOURCE*
-  feature test macro, and implements realpath_ safely; 
-  e.g., glibc_ ≥ v2.28 or Apple's Libc.
+* A C standard library that complies with POSIX.1-2008 as well as 4.4BSD
+  and implements realpath_ safely; e.g., glibc_ ≥ v2.28 or Apple's Libc.
 * The standard utilities that POSIX.1-2008, including
   its X/Open system interface extension, mandates.
 

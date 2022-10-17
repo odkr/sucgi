@@ -20,10 +20,6 @@
  */
 
 #define _ISOC99_SOURCE
-#define _POSIX_C_SOURCE 200809L
-#define _BSD_SOURCE
-#define _DARWIN_C_SOURCE
-#define _DEFAULT_SOURCE
 
 #if !defined(_FORTIFY_SOURCE)
 #define _FORTIFY_SOURCE 3
