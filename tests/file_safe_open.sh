@@ -17,25 +17,19 @@ tmpdir chk
 
 
 #
-# Prelude
-#
-
-file="$TMPDIR/file"
-touch "$file"
-symlink="$TMPDIR/symlink"
-ln -s "$TMPDIR" "$symlink"
-
-
-#
 # Main
 #
 
-# shellcheck disable=2154
-file_safe_open "$file" ||
-	err "file_safe_open refuses to open $bold$file$reset."
+file="$TMPDIR/file"
+echo $$ > "$file"
+symlink="$TMPDIR/symlink"
+ln -s "$TMPDIR" "$symlink"
+
+checkok $$ file_safe_open "$file" f
+
+checkerr 'Not a directory' file_safe_open "$file" d
+
+checkerr 'Too many levels of symbolic links' file_safe_open "$symlink" d
 
 # shellcheck disable=2154
-file_safe_open "$TMPDIR/symlink/file" &&
-	err "file_safe_open does not refuse to open $bold$symlink$reset."
-
-exit 0
+warn "${green}success.$reset"

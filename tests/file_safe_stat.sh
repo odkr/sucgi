@@ -17,10 +17,10 @@ tmpdir chk
 
 
 #
-# Prelude
+# Main
 #
 
-uid="$(id -u)" && [ "$uid" ] ||
+euid="$(id -u)" && [ "$euid" ] ||
 	err "failed to get process' effective UID."
 
 file="$TMPDIR/file"
@@ -29,13 +29,11 @@ symlink="$TMPDIR/symlink"
 ln -s "$TMPDIR" "$symlink"
 
 
-#
-# Main
-#
-
-checkok "uid=$uid" \
+checkok "uid=$euid" \
 	file_safe_stat "$file"
 
 checkerr "file_safe_stat: open $symlink: Too many levels of symbolic links" \
 	file_safe_stat "$symlink"
 
+# shellcheck disable=2154
+warn "${green}success.$reset"

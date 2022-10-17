@@ -36,14 +36,13 @@ int
 main (int argc, char **argv)
 {
 	struct stat fstatus;
-
-	errno = 0;
-
+	
 	if (argc != 2) {
 		(void) fputs("usage: file_safe_stat FNAME\n", stderr);
 		return EXIT_FAILURE;
 	}
 
+	errno = 0;
 	if (file_safe_stat(argv[1], &fstatus) != OK) {
 		err(EXIT_FAILURE, "open %s", argv[1]);
 	}
