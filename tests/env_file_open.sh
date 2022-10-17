@@ -26,11 +26,6 @@ mkdir "$jail"
 
 
 #
-# Errors 
-#
-
-
-#
 # Jail is the empty string.
 #
 
@@ -194,11 +189,6 @@ checkerr '$var: Not a directory' \
 
 
 #
-# Non-errors
-#
-
-
-#
 # Simple test.
 #
 
@@ -223,7 +213,6 @@ checkok $$ \
 ln -fs "$file" "$outside"
 checkok $$ \
 	var="$outside" env_file_open "$jail" var f
-
 
 
 #
