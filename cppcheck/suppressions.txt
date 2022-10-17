@@ -148,7 +148,6 @@ misra-c2012-15.5
 misra-c2012-16.3:sucgi.c
 misra-c2012-16.3:tests/env_file_open.c
 misra-c2012-16.3:tests/file_safe_open.c
-misra-c2012-16.3:tests/gids_get_list.c
 misra-c2012-16.3:tests/path_check_wexcl.c
 misra-c2012-16.3:tests/priv_drop.c
 
@@ -165,7 +164,6 @@ misra-c2012-16.6:sucgi.c:498
 misra-c2012-16.6:sucgi.c:522
 misra-c2012-16.6:tests/env_file_open.c:66
 misra-c2012-16.6:tests/file_safe_open.c:63
-misra-c2012-16.6:tests/gids_get_list.c:67
 misra-c2012-16.6:tests/path_check_wexcl.c:68
 misra-c2012-16.6:tests/priv_drop.c:57
 
@@ -204,7 +202,7 @@ misra-c2012-18.4:tools/unallocid.c:76
 // Rule 18.8 requires that variable-length arrays not be used. However,
 // this would not allow to declare an array with NGROUPS_MAX members.
 misra-c2012-18.8:sucgi.c:295
-misra-c2012-18.8:tests/gids_get_list.c
+misra-c2012-18.8:tests/gids_get_list.c:45
 
 // Rule 20.5 advises that #undef should not be used.
 // sucgi.c only uses #undef for testing and when TESTING is set.
@@ -284,7 +282,6 @@ misra-c2012-22.8:tools/runas.c:75
 misra-c2012-22.8:tools/runas.c:90
 misra-c2012-22.8:tools/unallocid.c:84
 misra-c2012-22.8:tests/file_is_wexcl.c:47
-misra-c2012-22.8:tests/gids_get_list.c:51
 misra-c2012-22.8:tests/path_check_wexcl.c:49
 
 // Rule 22.10 requires that errno only be checked right after having called
@@ -293,10 +290,11 @@ misra-c2012-22.8:tests/path_check_wexcl.c:49
 // functions that set errno.
 misra-c2012-22.10:gids.c:81
 misra-c2012-22.10:sucgi.c:305
-misra-c2012-22.10:tests/priv_drop.c:52
 misra-c2012-22.10:tools/getlogname.c:85
 misra-c2012-22.10:tools/unallocid.c:124
 misra-c2012-22.10:tools/unallocid.c:134
+misra-c2012-22.10:tests/gids_get_list.c:57
+misra-c2012-22.10:tests/priv_drop.c:52
 
 //
 // Cppcheck
