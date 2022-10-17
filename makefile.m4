@@ -22,14 +22,15 @@ core_objs = lib.a(error.o) lib.a(str.o)
 # Tests
 #
 
-check_bins =	tools/badenv tools/runas tools/unallocid tools/getlogname \
-		tests/error tests/env_clear tests/env_file_open \
+tools =		tools/badenv tools/runas tools/unallocid tools/getlogname
+
+check_bins =	tests/error tests/env_clear tests/env_file_open \
 		tests/env_is_name tests/env_restore tests/main \
 		tests/file_is_exec tests/file_is_wexcl \
 		tests/file_safe_open tests/file_safe_stat \
 		tests/gids_get_list tests/priv_drop tests/path_check_wexcl \
 		tests/path_contains tests/scpt_get_handler tests/str_cp \
-		tests/str_split tests/try
+		tests/str_split tests/try $(tools)
 
 checks =	tests/error.sh tests/env_clear tests/env_file_open.sh \
 		tests/env_is_name tests/env_restore tests/main.sh \
@@ -101,17 +102,8 @@ lib.a(str.o): str.c str.h defs.h lib.a(error.o)
 lib.a:	lib.a(env.o)  lib.a(error.o)  lib.a(file.o) lib.a(gids.o) \
 	lib.a(path.o) lib.a(priv.o) lib.a(scpt.o) lib.a(str.o)
 	
-tools/badenv: tools/badenv.c
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< $(LDLIBS)
-
-tools/runas: tools/runas.c
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< $(LDLIBS)
-
-tools/unallocid: tools/unallocid.c
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< $(LDLIBS)
-
-tools/getlogname: tools/getlogname.c
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< $(LDLIBS)
+$(tools):
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $@.c $(LDLIBS)
 
 .c:
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a $(LDLIBS)
