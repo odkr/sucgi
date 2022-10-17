@@ -36,7 +36,7 @@ main (void) {
 	/* RATS: ignore */
 	const char *env[ENV_MAX];	/* Backup of environ(2). */
 	const char **var;		/* An environment variable. */
-	int varc;			/* The number of variables. */
+	int nvars;			/* The number of variables. */
 
 	errno = 0;
 
@@ -50,7 +50,7 @@ main (void) {
 	/* Is the environment cleared? */
 	warnx("checking cleanup ...");
 
-	varc = 0;
+	nvars = 0;
 	if (setenv("foo", "bar", true) != 0) {
 		err(EXIT_FAILURE, "setenv foo=bar");
 	}
@@ -64,17 +64,17 @@ main (void) {
 	}
 	
 	for (var = (const char**) environ; *var; var++) {
-		varc++;
+		nvars++;
 	}
 	
-	if (varc > 0) {
+	if (nvars > 0) {
 		errx(EXIT_FAILURE, "environment not empty after clean-up");
 	}
 
 	/* Is the environment backed-up? */
 	warnx("checking backup ...");
 
-	varc = 0;
+	nvars = 0;
 	for (var = env; *var; var++) {
 		char name[STR_MAX];	/* RATS: ignore */
 		char *value;
@@ -91,13 +91,13 @@ main (void) {
 			continue;
 		}
 		
-		varc++;
+		nvars++;
 	}
 
-	if (varc < 1) {
+	if (nvars < 1) {
 		errx(EXIT_FAILURE, "failed to store all variables.");
 	}
-	if (varc > 1) {
+	if (nvars > 1) {
 		errx(EXIT_FAILURE, "stored too many variables.");
 	}
 
@@ -124,6 +124,6 @@ main (void) {
 		errx(EXIT_FAILURE, "accepted > ENV_MAX variables.");
 	}
 
-	warnx("success");
+	warnx("all tests passed");
 	return EXIT_SUCCESS;
 }

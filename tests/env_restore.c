@@ -147,7 +147,7 @@ main (void) {
 		rc = env_restore(vars, t.patterns);
 
 		if (rc != t.rc) {
-			errx(EXIT_FAILURE, "env_restore returned %u, not %u",
+			errx(EXIT_FAILURE, "returned %u, not %u",
 			     rc, t.rc);
 		}
 
@@ -177,6 +177,6 @@ main (void) {
 		}
 	}
 
-	warnx("success");
+	warnx("all tests passed");
 	return EXIT_SUCCESS;
 }

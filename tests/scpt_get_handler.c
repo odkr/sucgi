@@ -127,6 +127,6 @@ main (void)
 		}
 	}
 
-	warnx("success");
+	warnx("all tests passed");
 	return EXIT_SUCCESS;
 }
