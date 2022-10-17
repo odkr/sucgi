@@ -52,10 +52,10 @@ gids_get_list(const char *const logname, const gid_t gid,
 {
 	struct group *grp;	/* A group. */
 
-	errno = 0;
 	(*gids)[0] = gid;
 	*n = 1;
 
+	errno = 0;
 	setgrent();
 	while ((grp = getgrent())) {
 		for (int i = 0; i < *n; i++) {
