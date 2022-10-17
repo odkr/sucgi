@@ -67,8 +67,7 @@ enum error {
  */
 
 /* Log MESSAGE as an error and exit with status EXIT_FAILURE. */
-/* RATS: ignore; not a call to printf(3). */
-__attribute__((format(printf, 1, 2), nonnull(1), noreturn))
+__attribute__((nonnull(1), noreturn))
 void error(const char *const message, ...);
 
 
