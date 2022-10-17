@@ -162,12 +162,10 @@ main(void) {
 	proc_rgid = getgid();
 
 	if (setegid(proc_rgid) != 0) {
-		error("setegid %llu: %s.",
-		      (unsigned long long) proc_rgid, strerror(errno));
+		error("setegid %llu: %m.", (unsigned long long) proc_rgid);
 	}
 	if (seteuid(proc_ruid) != 0) {
-		error("seteuid %llu: %s.",
-		      (unsigned long long) proc_ruid, strerror(errno));
+		error("seteuid %llu: %m.", (unsigned long long) proc_ruid);
 	}
 
 	assert(geteuid() == proc_ruid);
@@ -183,7 +181,7 @@ main(void) {
 		case OK:
 			break;
 		case ERR_SYS:
-			error("setenv: %s.", strerror(errno));
+			error("setenv: %m.");
 		case ERR_ENV_MAL:
 			error("an environment variable is malformed.");
 		case ERR_ENV_LEN:
@@ -209,7 +207,7 @@ main(void) {
         /* RATS: ignore; this use of realpath should be safe. */
 	jail_dir = realpath(JAIL_DIR, NULL);
 	if (!jail_dir) {
-		error("realpath %s: %s.", JAIL_DIR, strerror(errno));
+		error("realpath %s: %m.", JAIL_DIR);
 	}
 
 	assert(jail_dir);
@@ -225,7 +223,7 @@ main(void) {
 		case OK:
 			break;
 		case ERR_SYS:
-			error("$DOCUMENT_ROOT: %s.", strerror(errno));
+			error("open $DOCUMENT_ROOT: %m.");
 		case ERR_ENV_LEN:
 			error("$DOCUMENT_ROOT: path too long.");
 		case ERR_ENV_MAL:
@@ -245,7 +243,7 @@ main(void) {
 	assert(strncmp(realpath(doc_root, NULL), doc_root, STR_MAX) == 0);
 
 	if (close(doc_fd) != 0) {
-		error("close $DOCUMENT_ROOT: %s.", strerror(errno));
+		error("close $DOCUMENT_ROOT: %m.");
 	}
 
 
@@ -254,8 +252,8 @@ main(void) {
 	 */
 
 	const char *path_trans;		/* $PATH_TRANSLATED. */
-	struct stat path_stat;		/* -- " -- filesystem metadata. */
 	int path_fd;			/* -- " -- file descriptor. */
+	struct stat path_stat;		/* -- " -- filesystem metadata. */
 
 	rc = env_file_open(doc_root, "PATH_TRANSLATED", O_RDONLY | O_CLOEXEC,
 			   &path_trans, &path_fd);
@@ -263,7 +261,7 @@ main(void) {
 		case OK:
 			break;
 		case ERR_SYS:
-			error("$PATH_TRANSLATED: %s.", strerror(errno));
+			error("open $PATH_TRANSLATED: %m.");
 		case ERR_ENV_LEN:
 			error("$PATH_TRANSLATED: path too long.");
 		case ERR_ENV_MAL:
@@ -282,7 +280,7 @@ main(void) {
 	assert(strncmp(realpath(path_trans, NULL), path_trans, STR_MAX) == 0);
 	
 	if (fstat(path_fd, &path_stat) != 0) {
-		error("fstat $PATH_TRANSLATED: %s.", strerror(errno));
+		error("stat $PATH_TRANSLATED: %m.");
 	}
 	if (!(path_stat.st_mode & S_IFREG)) {
 		error("$PATH_TRANSLATED: not a regular file.");
@@ -304,9 +302,13 @@ main(void) {
 
 	owner = getpwuid(path_stat.st_uid);
 	if (!owner) {
-		error("getpwuid %llu: %s.",
-		      (unsigned long long) path_stat.st_uid,
-		      (errno == 0) ? "no such user" : strerror(errno));
+		if (errno == 0) {
+			error("getpwuid %llu: no such user.",
+			      (unsigned long long) path_stat.st_uid);
+		} else {
+			error("getpwuid %llu: %m.",
+			      (unsigned long long) path_stat.st_uid);
+		}
 	}
 
 	/* Paranoia is a virtue. */
@@ -320,7 +322,7 @@ main(void) {
 		case OK:
 			break;
 		case ERR_SYS:
-			error("getgrent: %s.", strerror(errno));
+			error("getgrent: %m.");
 		case ERR_GIDS_MAX:
 			error("%s: in too many groups.", owner->pw_name);
 		default:
@@ -345,7 +347,7 @@ main(void) {
 	 */
 
 	if (seteuid(0) != 0) {
-		error("seteuid 0: %s.", strerror(errno));
+		error("seteuid 0: %m.");
 	}
 
 	rc = priv_drop(owner->pw_uid, owner->pw_gid, ngids, gids);
@@ -353,7 +355,7 @@ main(void) {
 		case OK:
 			break;
 		case ERR_SYS:
-			error("drop privileges: %s.", strerror(errno));
+			error("set id: %m.");
 		case ERR_PRIV:
 			error("could resume privileges.");
 		default:
@@ -372,27 +374,27 @@ main(void) {
 	 */
 
 	if (setenv("DOCUMENT_ROOT", doc_root, true) != 0) {
-		error("setenv DOCUMENT_ROOT: %s.", strerror(errno));
+		error("setenv DOCUMENT_ROOT: %m.");
 	}
 
 	if (setenv("HOME", owner->pw_dir, true) != 0) {
-		error("setenv HOME: %s.", strerror(errno));
+		error("setenv HOME: %m.");
 	}
 
 	if (setenv("PATH", PATH, true) != 0) {
-		error("setenv PATH: %s.", strerror(errno));
+		error("setenv PATH: %m.");
 	}
 
 	if (setenv("PATH_TRANSLATED", path_trans, true) != 0) {
-		error("setenv PATH_TRANSLATED: %s.", strerror(errno));
+		error("setenv PATH_TRANSLATED: %m.");
 	}
 
 	if (setenv("USER_NAME", owner->pw_name, true) != 0) {
-		error("setenv USER_NAME: %s.", strerror(errno));
+		error("setenv USER_NAME: %m.");
 	}
 
 	if (chdir(doc_root) != 0) {
-		error("chdir %s: %s.", doc_root, strerror(errno));
+		error("chdir %s: %m.", doc_root);
 	}
 
 	/* RATS: ignore; the umask is the user's responsibility. */
@@ -411,7 +413,7 @@ main(void) {
 	 */
 
 	if (!path_contains(owner->pw_dir, doc_root)) {
-		error("$DOCUMENT_ROOT: not in %s.", owner->pw_dir);
+		error("$DOCUMENT_ROOT: not within %s.", owner->pw_dir);
 	}
 
 
@@ -497,7 +499,7 @@ main(void) {
 		case OK:
 			break;
 		case ERR_SYS:
-			error("open %s: %s.", path_cur, strerror(errno));
+			error("open %s: %m.", path_cur);
 		case ERR_PATH_WEXCL:
 		        error("%s: writable by users other than %s.",
 			      path_cur, owner->pw_name);
@@ -538,12 +540,12 @@ main(void) {
 		(void) execlp(handler, handler, path_trans, NULL);
 
 		/* If this point is reached, execution has failed. */
-		error("exec %s %s: %s.", handler, path_trans, strerror(errno));
+		error("exec %s %s: %m.", handler, path_trans);
 	}
 
 	/* RATS: ignore; suCGI's point is to do this safely. */
 	(void) execl(path_trans, path_trans, NULL);
 
 	/* If this point is reached, execution has failed. */
-	error("exec %s: %s.", path_trans, strerror(errno));
+	error("exec %s: %m.", path_trans);
 }
