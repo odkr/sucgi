@@ -27,8 +27,9 @@ More precisely:
 * Linux ≥ v5.6 or Apple XNU_ ≥ v7195.50.7.100.1.
 * A C99 compiler that complies with `POSIX.1-2008`_;
   e.g., GCC_ ≥ v5.1, Clang_ ≥ v3.5, or TinyCC_ ≥ v0.9.
-* A C standard library that complies with POSIX.1-2008 as well as 4.4BSD
-  and implements realpath_ safely; e.g., glibc_ ≥ v2.28 or Apple's Libc.
+* A C standard library that complies with POSIX.1-2008, is compatible with
+  4.4BSD_, and provides a secure implementation of realpath_;
+  e.g., glibc_ ≥ v2.28 or Apple's Libc.
 * The standard utilities that POSIX.1-2008, including
   its X/Open system interface extension, mandates.
 
@@ -150,6 +151,8 @@ Further Information
 ===================
 
 GitHub: https://github.com/odkr/sucgi
+
+.. _4.4BSD: https://docs-legacy.freebsd.org/44doc/
 
 .. _Apache: https://httpd.apache.org/
 
