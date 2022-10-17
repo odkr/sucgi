@@ -22,63 +22,66 @@
 #include <err.h>
 #include <errno.h>
 #include <limits.h>
+#include <grp.h>
+#include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
+#include <unistd.h>
 
-#include "../error.h"
 #include "../gids.h"
 
+#define NELEMS(x) (sizeof((x)) / sizeof(*(x)))
 
 int
-main (int argc, char **argv)
+main (void)
 {
-	const char *logname;		/* A login name. */
-	long gid;			/* A group ID. */
-	gid_t gids[NGROUPS_MAX];	/* The list of group IDs. */
-	int ngids;			/* The number of group IDs. */
-	enum error rc;			/* gids_get_list's return code. */
+	/* UIDs to test. */
+	const uid_t uids[] = {0, getuid(), UINT_MAX};
 
-	errno = 0;
+	/* Primary GIDs to test. */
+	const gid_t pgids[] = {0, getgid(), UINT_MAX};
 
-	if (argc != 3) {
-		(void) fputs("usage: gids_get_list LOGNAME GID\n", stderr);
-		return EXIT_FAILURE;
-	}
+	gid_t gids[NGROUPS_MAX];		/* GIDs found. */
+	int ngids;				/* Number of GIDs. */
+	enum error rc;				/* Return code. */
 
-	logname = argv[1];
-	gid = strtol(argv[2], NULL, 10);
-	if (errno != 0) {
-		err(EXIT_FAILURE, "strtol %s", argv[1]);
-	}
-	if (gid < 0) {
-		errx(EXIT_FAILURE, "group IDs must be non-negative");
-	}
-#if defined(GID_MAX)
-	if ((unsigned long) gid > GID_MAX) {
-#else
-	if ((unsigned long) gid > UINT_MAX) {
-#endif
-		errx(EXIT_FAILURE, "group ID is too large");
-	}
+	for (size_t i = 0; i < NELEMS(uids); i++) {
+		for (size_t j = 0; j < NELEMS(pgids); j++) {
+			const uid_t uid = uids[i];	/* UID. */
+			const gid_t pgid = pgids[j];	/* GID. */
+			struct passwd *pwd;		/* User. */
 
-	rc = gids_get_list(logname, (gid_t) gid, &gids, &ngids);
-	switch (rc) {
-		case OK:
-			break;
-		case ERR_SYS:
-			err(EXIT_FAILURE, "getgrent");
-		case ERR_GIDS_MAX:
-			errx(EXIT_FAILURE, "%s: in too many groups.", logname);
-		default:
-			errx(EXIT_FAILURE, "unexpected return code %u", rc);
-	}
+			pwd = getpwuid(uid);
+			if (!pwd) {
+				if (errno == 0) {
+					continue;
+				}
 
-	for (int i = 0; i < ngids; i++) {
-		/* RATS: ignore */
-		(void) printf("%llu\n", (unsigned long long) gids[i]);
-	}
+				err(EXIT_FAILURE, "getpwuid %llu",
+				    (unsigned long long) uid);
+			}
 
+			warnx("checking (%s, %llu, ...) -> OK ...",
+			      pwd->pw_name, (unsigned long long) pgid);
+
+			rc = gids_get_list(pwd->pw_name, pgid, &gids, &ngids);
+
+			if (rc != OK) {
+				errx(EXIT_FAILURE, "returned %u", rc); 
+			}
+
+			if (ngids < 1) {
+				errx(EXIT_FAILURE, "no GIDs saved");
+			}
+
+			if (gids[0] != pgid) {
+				errx(EXIT_FAILURE, "first GID is not %llu",
+				     (unsigned long long) pgid);
+			}
+		}
+	}
+	
+	warnx("all tests passed");
 	return EXIT_SUCCESS;
 }
