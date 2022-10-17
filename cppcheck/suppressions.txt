@@ -93,8 +93,8 @@ misra-c2012-12.1:path.c:73
 misra-c2012-12.1:path.c:108
 misra-c2012-12.1:path.c:118
 misra-c2012-12.1:scpt.c:65
-misra-c2012-12.1:sucgi.c:300
-misra-c2012-12.1:sucgi.c:336
+misra-c2012-12.1:sucgi.c:298
+misra-c2012-12.1:sucgi.c:338
 misra-c2012-12.1:tests/error.c:30
 misra-c2012-12.1:tests/scpt_get_handler.c:120
 misra-c2012-12.1:tests/str_cp.c:79
@@ -111,20 +111,22 @@ misra-c2012-13.4:tools/runas.c:43
 misra-c2012-13.4:tools/unallocid.c:45
 // And `while ((ch = fgetc(file)) != EOF)`.
 misra-c2012-13.4:tests/env_file_open.c:92
+misra-c2012-13.4:tests/file_safe_open.c:85
 
 // Rule 14.4 requires that conditionals are of boolean type. 
 // However, this implies that NULL has to be tested for explicitly, which
 // makes code less idiomatic and readable. So tests for NULL are exempted.
 misra-c2012-14.4:gids.c:60
 misra-c2012-14.4:str.c:62
-misra-c2012-14.4:sucgi.c:461
-misra-c2012-14.4:sucgi.c:473
-misra-c2012-14.4:sucgi.c:476
+misra-c2012-14.4:sucgi.c:463
+misra-c2012-14.4:sucgi.c:475
+misra-c2012-14.4:sucgi.c:478
 misra-c2012-14.4:tools/badenv.c:103
 misra-c2012-14.4:tools/badenv.c:121
 misra-c2012-14.4:tests/env_clear.c:62
 misra-c2012-14.4:tests/env_file_open.c:97
 misra-c2012-14.4:tests/env_restore.c:107
+misra-c2012-14.4:tests/file_safe_open.c:90
 
 // Rule 15.1 advises that goto not be used. But sometimes goto is the most
 // straightforward way to jump to the next iteration or out of a loop.
@@ -145,6 +147,7 @@ misra-c2012-15.5
 // The same goes for many tests, which call err(3) or errx(3).
 misra-c2012-16.3:sucgi.c
 misra-c2012-16.3:tests/env_file_open.c
+misra-c2012-16.3:tests/file_safe_open.c
 misra-c2012-16.3:tests/gids_get_list.c
 misra-c2012-16.3:tests/path_check_wexcl.c
 misra-c2012-16.3:tests/priv_drop.c
@@ -152,15 +155,16 @@ misra-c2012-16.3:tests/priv_drop.c
 // Rule 16.6 requires that every switch expression covers at least two
 // cases. However, Cppcheck reports the following false positives:
 misra-c2012-16.6:sucgi.c:141
-misra-c2012-16.6:sucgi.c:182
-misra-c2012-16.6:sucgi.c:224
-misra-c2012-16.6:sucgi.c:262
-misra-c2012-16.6:sucgi.c:319
-misra-c2012-16.6:sucgi.c:352
-misra-c2012-16.6:sucgi.c:428
-misra-c2012-16.6:sucgi.c:496
-misra-c2012-16.6:sucgi.c:520
+misra-c2012-16.6:sucgi.c:180
+misra-c2012-16.6:sucgi.c:222
+misra-c2012-16.6:sucgi.c:260
+misra-c2012-16.6:sucgi.c:321
+misra-c2012-16.6:sucgi.c:354
+misra-c2012-16.6:sucgi.c:430
+misra-c2012-16.6:sucgi.c:498
+misra-c2012-16.6:sucgi.c:522
 misra-c2012-16.6:tests/env_file_open.c:66
+misra-c2012-16.6:tests/file_safe_open.c:63
 misra-c2012-16.6:tests/gids_get_list.c:67
 misra-c2012-16.6:tests/path_check_wexcl.c:68
 misra-c2012-16.6:tests/priv_drop.c:57
@@ -199,7 +203,7 @@ misra-c2012-18.4:tools/unallocid.c:76
 
 // Rule 18.8 requires that variable-length arrays not be used. However,
 // this would not allow to declare an array with NGROUPS_MAX members.
-misra-c2012-18.8:sucgi.c:297
+misra-c2012-18.8:sucgi.c:295
 misra-c2012-18.8:tests/gids_get_list.c
 
 // Rule 20.5 advises that #undef should not be used.
@@ -288,7 +292,7 @@ misra-c2012-22.8:tests/path_check_wexcl.c:49
 // on a misreading of the rule and, consequently, fails to recognise all
 // functions that set errno.
 misra-c2012-22.10:gids.c:81
-misra-c2012-22.10:sucgi.c:309
+misra-c2012-22.10:sucgi.c:305
 misra-c2012-22.10:tests/priv_drop.c:52
 misra-c2012-22.10:tools/getlogname.c:85
 misra-c2012-22.10:tools/unallocid.c:124
