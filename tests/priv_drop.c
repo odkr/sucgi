@@ -34,24 +34,29 @@
 int
 main (int argc, char **argv)
 {
-	const char *logname;	/* The username. */
+	const char *login;	/* The username. */
 	struct passwd *user;	/* The passwd entry of the given user. */
 	enum error rc;		/* A return code. */
 
-	errno = 0;
 	
 	if (argc != 2) {
 		(void) fputs("usage: priv_drop LOGNAME\n", stderr);
 		return EXIT_FAILURE;
 	}
 	
-	logname = argv[1];
-	user = getpwnam(logname);
+	login = argv[1];
+
+	errno = 0;
+	user = getpwnam(login);
 	if (!user) {
-		errx(EXIT_FAILURE, "getpwnam %s: %s",
-		     logname, (errno == 0) ? "no such user" : strerror(errno));
+		if (errno == 0) {
+			errx(EXIT_FAILURE, "getpwnam %s: no such user", login);
+		} else {
+			err(EXIT_FAILURE, "getpwnam %s", login);
+		}
 	}
 
+	errno = 0;
 	rc = priv_drop(user->pw_uid, user->pw_gid, 1,
 	               (gid_t[1]) {user->pw_gid});
 	switch (rc) {
@@ -62,7 +67,7 @@ main (int argc, char **argv)
 		case ERR_PRIV:
 			errx(EXIT_FAILURE, "could resume privileges");
 		default:
-			errx(EXIT_FAILURE, "unexpected return code %u.", rc);
+			errx(EXIT_FAILURE, "returned %u", rc);
 	}
 
 	/* RATS: ignore */
