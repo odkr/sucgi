@@ -30,6 +30,7 @@
 
 #include "../error.h"
 #include "../file.h"
+#include "../str.h"
 
 
 int
@@ -71,24 +72,15 @@ main (int argc, char **argv)
 			errx(EXIT_FAILURE, "unexpected return code %u.", rc);
 	}
 
+	ssize_t n;		/* Bytes read. */
+	char buf[STR_MAX];	/* Buffer. */
 
-	FILE *file;		/* Stream. */
-	int ch;			/* Character. */
-
-	errno = 0;
-	file = fdopen(fd, "r");
-	if (!file) {
-		err(EXIT_FAILURE, "open %s", fname);
+	while ((n = read(fd, &buf, STR_MAX)) > 0) {
+		(void) write(1, buf, (size_t) n);
 	}
 
-	/* RATS: ignore */
-	while ((ch = fgetc(file)) != EOF) {
-		/* RATS: ignore */
-		(void) fputc(ch, stdout);
-	}
-
-	if (ferror(file)) {
-		errx(EXIT_FAILURE, "error while reading from %s", fname);
+	if (n < 0) {
+		err(EXIT_FAILURE, "read");
 	}
 
 	return EXIT_SUCCESS;
