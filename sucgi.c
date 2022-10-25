@@ -36,7 +36,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <wordexp.h>
 
 #include "config.h"
 #include "macros.h"
@@ -239,8 +238,6 @@ main(void) {
 	assert(jail_dir);
 	assert(*jail_dir != '\0');
         assert(strnlen(jail_dir, MAX_STR) < MAX_STR);
-        /* RATS: ignore; this use of realpath should be safe. */
-	assert(strncmp(realpath(jail_dir, NULL), jail_dir, MAX_STR) == 0);
 
 	rc = env_file_open(jail_dir, "DOCUMENT_ROOT",
 	                   O_RDONLY | O_CLOEXEC | O_DIRECTORY,
@@ -272,6 +269,7 @@ main(void) {
 	assert(*doc_root != '\0');
 	assert(doc_fd > -1);
 	assert(strnlen(doc_root, MAX_STR) < MAX_STR);
+	assert(access(doc_root, F_OK) == 0);
         /* RATS: ignore; this use of realpath should be safe. */
 	assert(strncmp(realpath(doc_root, NULL), doc_root, MAX_STR) == 0);
 
@@ -308,6 +306,7 @@ main(void) {
 	assert(script);
 	assert(*script != '\0');
 	assert(strnlen(script, MAX_STR) < MAX_STR);
+	assert(access(doc_root, F_OK) == 0);
         /* RATS: ignore; this use of realpath should be safe. */
 	assert(strncmp(realpath(script, NULL), script, MAX_STR) == 0);
 
