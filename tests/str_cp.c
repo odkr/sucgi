@@ -23,7 +23,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../error.h"
 #include "../str.h"
 
 
@@ -38,19 +37,19 @@ struct args {
 /* Tests. */
 const struct args tests[] = {
 	/* Simple test. */
-	{STR_MAX - 1U, "foo", "foo", OK},
+	{MAX_STR - 1U, "foo", "foo", OK},
 
 	/* Almost out of bounds. */
 	{1, "x", "x", OK},
 	
 	/* Truncation. */
-	{3, "abcd", "abc", ERR_STR_LEN},
+	{3, "abcd", "abc", ERR_LEN},
 
 	/* Truncate to 0. */
-	{0, "foo", "", ERR_STR_LEN},
+	{0, "foo", "", ERR_LEN},
 
 	/* Empty strings. */
-	{STR_MAX - 1U, "", "", OK},
+	{MAX_STR - 1U, "", "", OK},
 	{1, "", "", OK},
 	{0, "", "", OK},
 
@@ -63,7 +62,7 @@ int
 main (void) {
 	for (int i = 0; tests[i].src; i++) {
 		struct args t = tests[i];
-		char dest[STR_MAX];	/* RATS: ignore */
+		char dest[MAX_STR];	/* RATS: ignore */
 		enum error rc; 
 		
 		*dest = '\0';
@@ -74,10 +73,10 @@ main (void) {
 		rc = str_cp(t.n, t.src, dest);
 
 		if (rc != t.rc) {
-			errx(EXIT_FAILURE, "unexepected return code %u", rc);
+			errx(EXIT_FAILURE, "returned %u", rc);
 		}
 		if (!(t.dest == dest || strcmp(t.dest, dest) == 0)) {
-			errx(EXIT_FAILURE, "unexpected copy '%s'", dest);
+			errx(EXIT_FAILURE, "got copy '%s'", dest);
 		}
 	}
 

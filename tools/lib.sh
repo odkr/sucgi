@@ -22,7 +22,7 @@
 
 # Print a message to STDERR and exit with a non-zero status.
 err() {
-	warn "${red-}$*${reset-}"
+	warn -r "$@"
 	exit 8
 }
 
@@ -30,8 +30,8 @@ err() {
 # Otherwise set $caught to $signo. 
 catch() {
 	signo="${1:?}"
-	sig="$(kill -l "$signo")" && [ "$sig" ] || sig="signal $signo"
-	warn "caught $sig."
+	sig="$(kill -l "$signo")" || sig="signal no. $signo"
+	warn "caught ${bld-}$sig${rst-}."
 	[ "${catch-}" ] && exit "$((signo + 128))"
 	# shellcheck disable=2034
 	caught="$signo"
@@ -42,16 +42,19 @@ checkerr() (
 	err="${1?}"
 	shift
 	: "${@:?no command given}"
-	: "${__tmpdir_tmpdir:?checkok needs a temporary directory}"
-	fifo="$TMPDIR/checkerr.fifo"
-	mkfifo "$fifo"
-	warn "checking $bold$*$reset ..."
-	env "$@" >/dev/null 2>"$fifo" & pid="$!"
-	match "$err" <"$fifo"
-	# shellcheck disable=2154
-	wait "$pid" && err "$bold$*$reset exited with status 0" \
-	                     "for error $bold$err$reset."
-	rm "$fifo"
+	pipe="${TMPDIR-/tmp}/checkerr-$$.fifo" rc=0
+	warn "checking ${bld-}$*${rst-} ..."
+	mkfifo -m 0700 "$pipe"
+	env "$@" >/dev/null 2>"$pipe" & env_pid=$!
+	match "$err" <"$pipe" & match_pid=$!
+	wait $env_pid && {
+		# shellcheck disable=2154
+		warn -r "${bld-}$*${rst_r-} exited with status 0."
+		rc=1
+	}
+	wait $match_pid	|| rc=$?
+	rm -f "$pipe"	|| rc=$?
+	return $rc
 )
 
 # Abort if a programme doesn't print $msg or exits with a non-zero status.
@@ -59,27 +62,31 @@ checkok() (
 	msg="${1?}"
 	shift
 	: "${@:?no command given}"
-	: "${__tmpdir_tmpdir:?checkok needs a temporary directory}"
-	fifo="$TMPDIR/${1##*/}.fifo"
-	mkfifo "$fifo"
-	warn "checking $bold$*$reset ..."
-	env "$@" >"$fifo" 2>&1 & pid="$!"
-	match "$msg" <"$fifo"
-	# shellcheck disable=2154
-	wait "$pid" || err "$bold$*$reset exited with non-zero status $?."
-	rm "$fifo"
+	pipe="${TMPDIR-/tmp}/checkok-$$.fifo" rc=0
+	warn "checking ${bld-}$*${rst-} ..."
+	mkfifo -m 0700 "$pipe"
+	env "$@" >"$pipe" 2>&1 & env_pid=$!
+	match "$msg" <"$pipe" & match_pid=$!
+	wait $env_pid || {
+		# shellcheck disable=2154
+		warn -r "${bld-}$*${rst_r-} exited with status $?."
+		rc=1
+	}
+	wait $match_pid	|| rc=$?
+	rm -f "$pipe"	|| rc=$?
+	return $rc
 )
 
 # Send TERM to all children, eval $cleanup and exit with status $?.
 cleanup() {
-	status=$?
+	rc=$?
 	set +e
 	trap : EXIT HUP INT TERM
 	# shellcheck disable=2046
 	kill -15 $(jobs -p) -$$ >/dev/null 2>&1
 	[ "${cleanup-}" ] && eval "$cleanup"
-	[ "${reset-}" ] && printf %s "$reset" >&2
-	exit "$status"
+	[ "${rst-}" ] && printf %s "$rst" >&2
+	exit "$rc"
 }
 
 # Register signals, set variables, a umask, and enable colours.
@@ -92,22 +99,28 @@ init() {
 
 	umask 077
 
-	reset='' bold='' green='' red='' yellow=''
+	rst='' bld='' grn='' red='' ylw=''
 	if [ -t 2 ]
 	then
 		case ${TERM-} in (*color*)
 			# shellcheck disable=2034
-			if reset="$(tput sgr0 2>/dev/null)" && [ "$reset" ]
+			if rst="$(tput sgr0 2>/dev/null)"
 			then
-				bold="$(tput bold 2>/dev/null)" || : 
+				bld="$(tput bold    2>/dev/null)" || : 
 				red="$(tput setaf 1 2>/dev/null)" || :
-				green="$(tput setaf 2 2>/dev/null)" || :
-				yellow="$(tput setaf 3 2>/dev/null)" || :
+				grn="$(tput setaf 2 2>/dev/null)" || :
+				ylw="$(tput setaf 3 2>/dev/null)" || :
 			fi
 		esac
 	fi
+	
+	rst_g="$rst$grn" rst_r="$rst$red" rst_y="$rst$ylw"
+	
 	# shellcheck disable=2034
-	readonly reset bold green red yellow
+	readonly rst bld grn red ylw
+
+	prog_name="$(basename "$0")" || prog_name="$0"
+	readonly prog_name
 
 	readonly lf="
 "
@@ -116,61 +129,138 @@ init() {
 	PATH="$script_dir:$script_dir/../tools:$PATH"
 }
 
-# Check if a line on STDIN contains $string.
+# Print the owner of $file
+owner() (
+	file="${1:?}"
+	pipe="${TMPDIR:-/tmp}/ls-$$.fifo" rc=0
+
+	mkfifo "$pipe"
+	ls -l "$file" >"$pipe" & ls=$!
+	awk '{print $3}' <"$pipe" & awk=$!
+	wait "$ls"    || rc=$?
+	wait "$awk"   || rc=$?
+	rm -f "$pipe" || rc=$?
+	return $rc
+)
+
+# Check if a line on STDIN contains $str.
 match() (
-	string="${1?}" file=
+	: "${lf:?}"
+	str="${1?}" file=
+
 	while read -r line
 	do
-		case $line in (*$string*)
-			return 0 ;;
+		case $line in (*"$str"*)
+			return 0
 		esac
-		file="$file$line$lf"
+		if [ "$file" ]
+			then file="$file$lf$line"
+			else file="$line"
+		fi
 	done
-	warn "$red'$bold$string$reset$red' not in:$lf$bold${file%"$lf"}$reset"
+
+	warn -r "'${bld-}$str${rst_r-}' not in:$lf${bld-}$file${rst-}"
 	return 1
 )
+	
+# Create a path of $len length in $basepath.
+mklongpath() (
+	basepath="${1:?}" len="${2:?}" max=99999
+	name_max="$(getconf NAME_MAX "$basepath")" || name_max=14
+
+	path="$basepath"
+	while [ "$((${#path} + name_max + 2))" -le "$len" ]
+	do
+		i=0
+		while [ $i -lt "$max" ]
+		do
+			seg="$(pad "-$$-$i" "$name_max")"
+			if ! [ -e "$path/$seg" ]
+			then
+				path="$path/$seg"
+				continue 2
+			fi
+			i=$((i + 1))
+		done
+	done
+
+	i=0
+	while [ $i -lt "$max" ]
+	do
+		seg="$(pad "-$$-$i" "$((len - ${#path} - 1))")"
+		if ! [ -e "$path/$seg" ]
+		then
+			printf '%s\n' "$path/$seg"
+			return 0
+		fi
+		i=$((i + 1))
+	done
+	
+	err "failed to generate filename."
+)
+
+# Pad $str with $ch up to length $n.
+pad() (
+	str="${1:?}" n="${2:?}" ch="${3:-x}"
+	pipe="${TMPDIR:-/tmp}/pad-$$.fifo"
+	mkfifo -m 0700 "$pipe"
+	printf '%*s\n' "$n" "$str" >"$pipe" & printf=$!
+	tr ' ' "$ch" <"$pipe" & tr=$!
+	rm -f "$pipe"
+	wait $printf $tr
+)
+
 
 # Get the login name of the user who invoked the script,
 # even if the script has been invoked via su or sudo.
 regularuser() (
-        pivot="$$" fifo="${TMPDIR:?}/ps.fifo"
-        mkfifo "$fifo"
+	: "${TMPDIR:=/tmp}"
+	proc="$TMPDIR/ps-$$.fifo" sorted="$TMPDIR/sort-$$.fifo" rc=1
+	mkfifo -m 0700 "$proc" "$sorted"
 
-        while true
-        do
-                ps -Ao 'pid= ppid= user=' | 
-		sort -r >"$fifo" & sort=$!
+	pivot="$$"
+	while true
+	do
+		ps -Ao 'pid= ppid= user=' >"$proc" & ps=$! 
+		sort -r <"$proc" >"$sorted" & sort=$!
 
-                while read -r pid ppid user
-                do
-                        [ "$pid" -eq "$pivot" ] || continue
+		cur_user=
+		while read -r pid ppid user
+		do
+			[ "$pid" -eq "$pivot" ]	|| continue
 
-                        uid="$(id -u "$user")" && [ "$uid" ] || continue
-                        if [ "$uid" -ne 0 ]
-                        then
-                                echo "$uid"
-                                return 0
-                        elif [ "$ppid" -gt 1 ]
-                        then
-                                pivot="$ppid"
-                        else
-                                return 1
-                        fi
-                done <"$fifo"
-                wait "$sort"
-        done
+			if	[ "$user" != "$cur_user" ] &&
+				! uid="$(id -u "$user")"
+			then
+				warn -r "id -u $user: exited with status $?."
+				break
+			fi
+
+			if [ "$uid" -ne 0 ]
+			then
+				printf '%s\n' "$user"
+				rc=0
+				break
+			fi
+
+			pivot="$ppid" cur_user="$user"
+		done <"$sorted"
+		
+		wait "$ps" "$sort" || break
+ 	done
+
+	rm -f "$proc" "$sorted"
+	return $rc
 )
 
 # Create a directory with the filename $prefix-$$ in $dir,
 # register it for deletion via $cleanup, and set it as $TMPDIR.
 tmpdir() {
 	[ "${__tmpdir_tmpdir-}" ] && return
-	__tmpdir_prefix="${1:?}" __tmpdir_dir="${2:-"${TMPDIR:-/tmp}"}"
-	__tmpdir_real="$(cd -P "$__tmpdir_dir" && pwd)" &&
-		[ "$__tmpdir_real" ] && [ -d "$__tmpdir_real" ] ||
-			err "failed to get real path of $__tmpdir_dir."
+	__tmpdir_prefix="${1:-tmp}" __tmpdir_dir="${2:-"${TMPDIR:-/tmp}"}"
+	__tmpdir_real="$(cd -P "$__tmpdir_dir" && pwd)" ||
+		err "cd -P $__tmpdir_dir && pwd: exited with status $?."
 	readonly __tmpdir_tmpdir="$__tmpdir_real/$__tmpdir_prefix-$$"
-	[ -e "$__tmpdir_tmpdir" ] && err "$__tmpdir_tmpdir: exists."
 	catch=
 	mkdir -m 0700 "$__tmpdir_tmpdir" || exit
 	cleanup="rm -rf \"\$__tmpdir_tmpdir\"; ${cleanup-}"
@@ -179,9 +269,57 @@ tmpdir() {
 	export TMPDIR="$__tmpdir_tmpdir"
 }
 
+# Starting with, but excluding, $dirname run $dircmd for every path segment
+# of $fname. If $fcmd is given, run $dircmd for every path segment up to,
+# but excluding $fname, and run $fcmd for $fname.
+traverse() (
+	dirname="${1:?}" fname="${2:?}" dircmd="${3:?}" fcmd="${4:-"$3"}"
+
+	IFS=/
+	set -- ${fname#"${dirname%/}/"}
+	unset IFS
+	cd "$dirname" || exit
+
+	while [ "$#" -gt 0 ]
+	do
+		fname="$1"
+		shift
+
+		case $# in
+		 	(0)	eval "$fcmd"
+				return ;;
+			(*)	eval "$dircmd"
+		 		dirname="${dirname%/}/$fname"
+		 		cd "$fname" ;;
+		esac
+	done
+)
+
 # Print a message to STDERR.
-warn() {
-	: "${__warn_basename:="${0##*/}"}"
-	# shellcheck disable=2059
-	printf '%s: %s\n' "${__warn_basename:-"$0"}" "$*" >&2
-}
+# -r, -y, -g colour the message red, yellow, and green respectively.
+# -q tells warn to respect $quiet.
+warn() (
+	col=
+	OPTIND=1 OPTARG='' opt=''
+	while getopts 'gryq' opt
+	do
+		case $opt in
+			(g) col="${grn-}" ;;
+			(r) col="${red-}" ;;
+			(y) col="${ylw-}" ;;
+			(q) [ "${quiet-}" ] && return 0 ;;
+			(*) return 1
+		esac
+	done
+	shift $((OPTIND - 1))
+	
+	exec >&2
+
+	[ "${prog_name-}" ]         && printf '%s: ' "$prog_name"
+	[ "$col" ] && [ "${rst-}" ] && printf '%s' "$col"
+	                               printf '%s' "$*"
+	[ "$col" ] && [ "${rst-}" ] && printf '%s' "$rst"
+	                               printf '\a\n'
+
+	return 0
+)

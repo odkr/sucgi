@@ -33,6 +33,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "env.h"
 #include "error.h"
@@ -55,15 +56,15 @@
  *
  * The list below has been adopted from:
  *      - RFC 3876
- *        <https://datatracker.ietf.org/doc/html/rfc3875>
+ *	  <https://datatracker.ietf.org/doc/html/rfc3875>
  *      - Kira Matrejek, CGI Programming 101, chap. 3
- *        <http://www.cgi101.com/book/ch3/text.html>
+ *	  <http://www.cgi101.com/book/ch3/text.html>
  *      - Apache's suEXEC
- *        <https://github.com/apache/httpd/blob/trunk/support/suexec.c>
+ *	  <https://github.com/apache/httpd/blob/trunk/support/suexec.c>
  *      - the Apache v2.4 documentation
- *        <https://httpd.apache.org/docs/2.4/expr.html>
+ *	  <https://httpd.apache.org/docs/2.4/expr.html>
  *      - the mod_ssl documentation
- *        <https://httpd.apache.org/docs/2.4/mod/mod_ssl.html>
+ *	  <https://httpd.apache.org/docs/2.4/mod/mod_ssl.html>
  *
  * The list must include DOCUMENT_ROOT and PATH_TRANSLATED.
  * HOME, PATH, and USER_NAME are set regardless.
@@ -193,7 +194,7 @@ const char *const env_vars_safe[] = {
 
 enum error
 env_clear(/* RATS: ignore; vars is bound-checked. */
-	  const char *(*const vars)[ENV_MAX])
+	  const char *(*const vars)[MAX_ENV])
 {
 	static char *var;	/* First environment variable. */
 	char **env;		/* Copy of the environ pointer. */
@@ -206,50 +207,69 @@ env_clear(/* RATS: ignore; vars is bound-checked. */
 		return OK;
 	}
 
-	for (int n = 0; n < ENV_MAX; n++) {
+	for (int n = 0; n < MAX_ENV; n++) {
 		(*vars)[n] = env[n];
 		if (!env[n]) {
 			return OK;
 		}
 	}
 
-	return ERR_ENV_MAX;
+	return ERR_LEN;
 }
 
 enum error
 env_file_open(const char *const jail, const char *const varname,
-              const int flags, const char **const fname, int *const fd)
+	      const int flags, const char **const fname, int *const fd)
 {
 	const char *value;	/* Unchecked variable value. */
+	const char *resolved;	/* Resolved filename. */
+	char *unresolved;	/* Unresolved filename. */
 
 	assert(*jail != '\0');
 	assert(*varname != '\0');
-        assert(strnlen(jail, STR_MAX) < STR_MAX);
-        /* RATS: ignore; this use of realpath should be safe. */
-	assert(strncmp(jail, realpath(jail, NULL), STR_MAX) == 0);
+	assert(strnlen(jail, MAX_STR) < MAX_STR);
+	assert(access(jail, F_OK) == 0);
+	/* RATS: ignore; this use of realpath should be safe. */
+	assert(strncmp(jail, realpath(jail, NULL), MAX_STR) == 0);
 	assert(flags != 0);
 	assert(fname);
 	assert(fd);
 
+	errno = 0;
+	unresolved = calloc(MAX_STR, sizeof(unresolved));
+	if (!unresolved) {
+		return ERR_CALLOC;
+	}
+
 	/* RATS: ignore; value is checked below. */
+	errno = 0;
 	value = getenv(varname);
 	if (!value || *value == '\0') {
-		return ERR_ENV_NIL;
+		if (errno == 0) {
+			return ERR_NIL;
+		} else {
+			return ERR_GETENV;
+		}
 	}
-	if (strnlen(value, STR_MAX) >= STR_MAX) {
-		return ERR_ENV_LEN;
-	}
-        
+
+	try(str_cp(MAX_STR - 1U, value, unresolved));
+	*fname = unresolved;
+ 
+	errno = 0;
 	/* RATS: ignore; this use of realpath should be safe. */
-	*fname = realpath(value, NULL);
-	if (!*fname) {
-		return ERR_SYS;
+	resolved = realpath(*fname, NULL);
+	if (!resolved) {
+		return ERR_REALPATH;
 	}
-	if (strnlen(*fname, STR_MAX) >= STR_MAX) {
-		return ERR_ENV_LEN;
+
+	*fname = resolved;
+	free(unresolved);
+
+	if (strnlen(*fname, MAX_STR) >= MAX_STR) {
+		return ERR_LEN;
 	}
 	if (!path_contains(jail, *fname)) {
-		return ERR_ENV_MAL;
+		return ERR_ILL;
 	}
 
 	try(file_safe_open(*fname, flags, fd));
@@ -260,13 +280,18 @@ env_file_open(const char *const jail, const char *const varname,
 bool
 env_is_name(const char *const name)
 {
-	/* Check if the name is the empty string or starts with a digit. */
-	if (*name == '\0' || isdigit(*name)) {
+	/* Check if the name is the empty string. */
+	if (*name == '\0') {
+		return false;
+	}
+
+	/* Check if the name starts with a digit. */
+	if (isdigit(*name)) {
 		return false;
 	}
 	
 	/* Check if the first non-valid character is the terminating NUL. */
-	return (name[strspn(name, ENV_VAR_CHARS)] == '\0');
+	return (name[strspn(name, ENV_NAME_CHARS)] == '\0');
 }
 
 enum error
@@ -275,37 +300,42 @@ env_restore(const char *vars[], const char *const patterns[])
 	assert(*vars);
 
 	for (int i = 0; vars[i]; i++) {
-		/* RATS: ignore; str_split respects STR_MAX. */
-		char name[STR_MAX];	/* Variable name. */
+		/* RATS: ignore; str_split respects MAX_STR. */
+		char name[MAX_STR];	/* Variable name. */
 		char *value;		/* Variable value. */
 		size_t len;		/* Variable length. */
 
-		len = strnlen(vars[i], STR_MAX);
-		if (len >= STR_MAX) {
-			return ERR_ENV_LEN;
-		}
+		len = strnlen(vars[i], MAX_STR);
 		if (len == 0U) {
-			return ERR_ENV_MAL;
+			return ERR_ILL;
+		}
+		if (len >= MAX_STR) {
+			return ERR_LEN;
 		}
 
 		try(str_split(vars[i], "=", &name, &value));
-		/* patv may contain wildcards, so name has to be checked. */
+
+		/* 
+		 * patterns may contain wildcards,
+		 * so the name has to be checked.
+		 */
 		if (!env_is_name(name)) {
-			return ERR_ENV_MAL;
+			return ERR_ILL;
 		}
 		if (!value) {
-			return ERR_ENV_MAL;
+			return ERR_ILL;
 		}
 
-        	for (int j = 0; patterns[j]; j++) {
-        		if (fnmatch(patterns[j], name, 0) == 0) {
-                                if (setenv(name, value, true) != 0) {
-                                        return ERR_SYS;
-                                }
+		for (int j = 0; patterns[j]; j++) {
+			if (fnmatch(patterns[j], name, 0) == 0) {
+				errno = 0;
+				if (setenv(name, value, true) != 0) {
+					return ERR_SETENV;
+				}
 
-        		        break;
-        		}
-        	}
+				break;
+			}
+		}
 	}
 
 	return OK;

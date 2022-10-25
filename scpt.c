@@ -40,30 +40,27 @@ scpt_get_handler(const struct scpt_ent handlerdb[], const char *const scpt,
                  const char **const handler)
 {
 	/* RATS: ignore; path is bounds-checked. */
-	char path[STR_MAX];	/* Copy of scpt for basename(3). */
+	char path[MAX_STR];	/* Copy of scpt for basename(3). */
 	const char *fname;	/* Filename portion of scpt. */
 	const char *suffix;	/* Filename suffix. */
 
 	assert(*scpt != '\0');
 
 	/* basename may alter the path it is given. */
-	try(str_cp(STR_MAX, scpt, path));
+	try(str_cp(MAX_STR, scpt, path));
 	/* RATS: ignore; no matching on path is performed. */
 	fname = basename(path);
 	suffix = strrchr(fname, '.');
-	if (!suffix) {
-		return ERR_SCPT_NO_SFX;
-	}
-	if (suffix == fname) {
-		return ERR_SCPT_ONLY_SFX;
+	if (!suffix || suffix == fname) {
+		return ERR_ILL;
 	}
 
 	for (int i = 0; handlerdb[i].suffix; i++) {
 		const struct scpt_ent ent = handlerdb[i];
 
-		if (strncmp(suffix, ent.suffix, STR_MAX) == 0) {
+		if (strncmp(suffix, ent.suffix, MAX_STR) == 0) {
 			if (!ent.handler || *(ent.handler) == '\0') {
-				return ERR_SCPT_NO_HDL;
+				return FAIL;
 			}
 
 			*handler = ent.handler;
@@ -71,5 +68,5 @@ scpt_get_handler(const struct scpt_ent handlerdb[], const char *const scpt,
 		}
 	}
 
-	return ERR_SCPT_NO_HDL;
+	return FAIL;
 }

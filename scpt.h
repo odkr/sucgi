@@ -22,7 +22,7 @@
 #if !defined(SCPT_H)
 #define SCPT_H
 
-#include "defs.h"
+#include "macros.h"
 #include "error.h"
 
 
@@ -46,11 +46,10 @@ struct scpt_ent {
  * of filename suffix-script handler pairs HANDLERDB and store it in HANDLER.
  *
  * Return code:
- *      OK                 Success.
- *      ERR_SCPT_NO_HDL    No handler registered. 
- *      ERR_SCPT_ONLY_SFX  Filename starts with a dot (".").
- *      ERR_SCPT_NO_SFX    Filename has no filename suffix.
- *      ERR_STR_LEN        Filename is longer than STR_MAX - 1 bytes.
+ *      OK        Success.
+ *      ERR_LEN   FNAME is longer than MAX_STR - 1 bytes.
+ *      ERR_ILL   FNAME has no filename suffix.
+ *      FAIL      No handler has been registered for FNAME's suffix.
  */
 __attribute__((nonnull(1, 2, 3), pure, warn_unused_result))
 enum error scpt_get_handler(const struct scpt_ent handlerdb[],

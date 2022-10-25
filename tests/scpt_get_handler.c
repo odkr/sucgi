@@ -24,7 +24,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../error.h"
 #include "../scpt.h"
 #include "../str.h"
 
@@ -40,25 +39,25 @@ struct args {
 /* Tests. */
 const struct args tests[] = {
 	/* Simple errors. */
-	{"file", NULL, ERR_SCPT_NO_SFX},
-	{".", NULL, ERR_SCPT_ONLY_SFX},
-	{".sh", NULL, ERR_SCPT_ONLY_SFX},
-	{".py", NULL, ERR_SCPT_ONLY_SFX},
-	{"file.null", NULL, ERR_SCPT_NO_HDL},
-	{"file.empty", NULL, ERR_SCPT_NO_HDL},
-	{"file.py", NULL, ERR_SCPT_NO_HDL},
-	{"file.post", NULL, ERR_SCPT_NO_HDL},
+	{"file", NULL, ERR_ILL},
+	{".", NULL, ERR_ILL},
+	{".sh", NULL, ERR_ILL},
+	{".py", NULL, ERR_ILL},
+	{"file.null", NULL, FAIL},
+	{"file.empty", NULL, FAIL},
+	{"file.py", NULL, FAIL},
+	{"file.post", NULL, FAIL},
 
 	/* Empty string shenanigans. */
-	{" ", NULL, ERR_SCPT_NO_SFX},
-	{". ", NULL, ERR_SCPT_ONLY_SFX},
-	{".sh ", NULL, ERR_SCPT_ONLY_SFX},
-	{".py ",NULL, ERR_SCPT_ONLY_SFX},
-	{" .null", NULL, ERR_SCPT_NO_HDL},
-	{" .empty", NULL, ERR_SCPT_NO_HDL},
-	{" .py", NULL, ERR_SCPT_NO_HDL},
-	{" .post", NULL, ERR_SCPT_NO_HDL},
-	{" . ", NULL, ERR_SCPT_NO_HDL},
+	{" ", NULL, ERR_ILL},
+	{". ", NULL, ERR_ILL},
+	{".sh ", NULL, ERR_ILL},
+	{".py ",NULL, ERR_ILL},
+	{" .null", NULL, FAIL},
+	{" .empty", NULL, FAIL},
+	{" .py", NULL, FAIL},
+	{" .post", NULL, FAIL},
+	{" . ", NULL, FAIL},
 
 	/* Simple test. */
 	{"file.sh", "sh", OK},
@@ -94,7 +93,7 @@ main (void)
 			const struct args t = tests[i];
 			const char *prefix = prefixes[j];
 			const char *handler;
-			char scpt[STR_MAX];	/* RATS: ignore */
+			char scpt[MAX_STR];	/* RATS: ignore */
 			enum error rc;	
 			int n;
 
@@ -105,24 +104,20 @@ main (void)
 			      prefix, t.scpt, t.handler, t.rc);
 
 			/* RATS: ignore */
-			n = snprintf(scpt, STR_MAX, "%s%s", prefix, t.scpt);
-			if (n >= (long long) STR_MAX) {
+			n = snprintf(scpt, MAX_STR, "%s%s", prefix, t.scpt);
+			if (n >= (long long) MAX_STR) {
 				errx(EXIT_FAILURE, "input too long");
 			}
 
 			rc = scpt_get_handler(hdb, scpt, &handler);
 
 			if (t.rc != rc) {
-				errx(EXIT_FAILURE,
-				     "unexpected return code %u",
-				     rc);
+				errx(EXIT_FAILURE, "returned %u", rc);
 			}
 			if (!(t.handler == handler ||
 			      strcmp(t.handler, handler) == 0))
 			{
-				errx(EXIT_FAILURE,
-				     "unexpected handler %s",
-				     handler);
+				errx(EXIT_FAILURE, "got handler %s", handler);
 			}
 		}
 	}

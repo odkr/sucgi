@@ -36,38 +36,38 @@
 #include "str.h"
 
 enum error
-str_cp(const size_t n, const char *const src,
+str_cp(const size_t len, const char *const src,
        /* RATS: ignore; must be checked by developers. */
-       char dest[n + 1U])
+       char dest[len + 1U])
 {
 	char *end;	/* Position of last byte of src. */
-	size_t len;	/* Length of src. */
+	size_t n;	/* Bytes copied. */
 
-	end = stpncpy(dest, src, n);
-	len = (size_t) (end - dest);
-	dest[len] = '\0';
+	end = stpncpy(dest, src, len);
+	n = (size_t) (end - dest);
+	dest[n] = '\0';
 
-	if (src[len] == '\0') {
+	if (src[n] == '\0') {
 		return OK;
 	}
-	return ERR_STR_LEN;
+	return ERR_LEN;
 }
 
 enum error
 str_split(const char *const s, const char *const sep,
-          /* RATS: ignore; str_split respects STR_MAX. */
-          char (*const head)[STR_MAX], char **const tail)
+          /* RATS: ignore; str_split respects MAX_STR. */
+          char (*const head)[MAX_STR], char **const tail)
 {
 	*tail = strpbrk(s, sep);
 	if (*tail) {
 		size_t len = (size_t) (*tail - s);
-		if (len >= STR_MAX) {
-			return ERR_STR_LEN;
+		if (len >= MAX_STR) {
+			return ERR_LEN;
 		}
 		(void) (str_cp(len, s, *head));
 		(*tail)++;
 	} else {
-		try(str_cp(STR_MAX - 1U, s, *head));
+		try(str_cp(MAX_STR - 1U, s, *head));
 	}
 
 	return OK;

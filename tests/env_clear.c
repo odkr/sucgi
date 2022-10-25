@@ -27,18 +27,15 @@
 #include <string.h>
 
 #include "../env.h"
-#include "../error.h"
 #include "../str.h"
 
 
 int
 main (void) {
 	/* RATS: ignore */
-	const char *env[ENV_MAX];	/* Backup of environ(2). */
+	const char *env[MAX_ENV];	/* Backup of environ(2). */
 	const char **var;		/* An environment variable. */
 	int nvars;			/* The number of variables. */
-
-	errno = 0;
 
 	/* Start with a clean environmenet, hopefully. */
 	warnx("clearing the environment ...");
@@ -50,7 +47,7 @@ main (void) {
 	/* Is the environment cleared? */
 	warnx("checking cleanup ...");
 
-	nvars = 0;
+	errno = 0;
 	if (setenv("foo", "bar", true) != 0) {
 		err(EXIT_FAILURE, "setenv foo=bar");
 	}
@@ -63,6 +60,7 @@ main (void) {
 		errx(EXIT_FAILURE, "$foo: present after clean-up");
 	}
 	
+	nvars = 0;
 	for (var = (const char**) environ; *var; var++) {
 		nvars++;
 	}
@@ -76,7 +74,7 @@ main (void) {
 
 	nvars = 0;
 	for (var = env; *var; var++) {
-		char name[STR_MAX];	/* RATS: ignore */
+		char name[MAX_STR];	/* RATS: ignore */
 		char *value;
 
 		if (str_split(*var, "=", &name, &value) != OK) {
@@ -108,20 +106,22 @@ main (void) {
 		errx(EXIT_FAILURE, "failed to clear the environment");
 	}
 
-	for (int i = 0; i <= ENV_MAX; i++) {
-		char name[STR_MAX];	/* RATS: ignore */
+	for (int i = 0; i <= MAX_ENV; i++) {
+		char name[MAX_STR];	/* RATS: ignore */
 
 		/* RATS: ignore */
-		if (snprintf(name, STR_MAX - 1U, "foo%d", i) < 1) {
+		if (snprintf(name, MAX_STR - 1U, "foo%d", i) < 1) {
 			errx(EXIT_FAILURE, "snprintf: returned < 1 bytes");
 		}
+
+		errno = 0;
 		if (setenv(name, "foo", true) != 0) {
 			err(EXIT_FAILURE, "setenv %s=%s", name, "foo");
 		}
 	}
 
-	if (env_clear(&env) != ERR_ENV_MAX) {
-		errx(EXIT_FAILURE, "accepted > ENV_MAX variables.");
+	if (env_clear(&env) != ERR_LEN) {
+		errx(EXIT_FAILURE, "accepted > MAX_ENV variables.");
 	}
 
 	warnx("all tests passed");

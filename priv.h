@@ -25,7 +25,7 @@
 #include <limits.h>
 #include <pwd.h>
 
-#include "defs.h"
+#include "macros.h"
 #include "error.h"
 
 /*
@@ -34,9 +34,11 @@
  * is the number of group IDs in GIDS.
  *
  * Return code:
- *      OK        Success.
- *      ERR_PRIV  Privileges could be resumed.
- *      ERR_SYS   System error. errno(2) should be set.
+ *      OK             Success.
+ *      ERR_SETUID     setuid(2) failed.
+ *      ERR_SETGID     setgid(2) failed.
+ *      ERR_SETGROUPS  setgroups(2) failed.
+ *      FAIL           Superuser privileges could be resumed.
  */
 __attribute__((nonnull(4), warn_unused_result))
 enum error priv_drop(const uid_t uid, const gid_t gid,

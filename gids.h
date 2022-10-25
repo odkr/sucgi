@@ -22,24 +22,40 @@
 #if !defined(GIDS_H)
 #define GIDS_H
 
+#include "config.h"
 #include "error.h"
 
 
 /*
- * Fetch all groups that the user named LOGNAME is a member of and store
- * BASEGID as well the IDs of those groups in GIDS and the total number
- * of group IDs, including BASEGID, in N. GIDS must be large enough to
- * hold NGROUPS_MAX entries.
+ * Constants
+ */
+
+#if !defined(MAX_GROUPS)
+#define MAX_GROUPS 64
+#endif /* !defined(MAX_GROUPS) */
+
+
+/*
+ * Functions
+ */
+
+/*
+ * Fetch the groups that the user named LOGNAME is a member of and store
+ * the group ID GID as well the group IDs of those groups in GIDS and the
+ * total number of group IDs, including GID, in N.
+ *
+ * GIDS must be large enough to hold NGROUPS_MAX supplementary groups.
  *
  * Return code:
  *      OK            Success.
- *      ERR_GIDS_MAX  LOGNAME belongs to more than NGROUPS_MAX groups.
- *      ERR_SYS       getgrent failed. errno(2) should be set.
+ *      ERR_LEN       LOGNAME belongs to more than MAX_GROUPS groups.
+ *      ERR_GETGRENT  getgrent(3) failed.
+ *
+ *      Errors marked with an asterisk should be impossible.
  */
-__attribute__((nonnull(3, 4), warn_unused_result))
-enum error gids_get_list(const char *const logname, const gid_t gid,
+__attribute__((no_sanitize("alignment"), nonnull(3, 4), warn_unused_result))
+enum error gids_get_list(const char *const logname, const gid_t basegid,
                          /* RATS: ignore; gids is bounds-checked. */
-                         gid_t (*const gids)[NGROUPS_MAX], int *const n);
-
+                         gid_t (*const gids)[MAX_GROUPS], int *const ngids);
 
 #endif /* !defined(GIDS_H) */

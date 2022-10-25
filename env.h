@@ -24,7 +24,8 @@
 
 #include <sys/stat.h>
 
-#include "defs.h"
+#include "config.h"
+#include "macros.h"
 #include "error.h"
 #include "str.h"
 
@@ -34,13 +35,13 @@
  */
 
 /* Maximum number of environment variables. */
-#define ENV_MAX 192
+#if !defined(MAX_ENV)
+#define MAX_ENV 256
+#endif /* !defined(MAX_ENV) */
 
 /* Characters allowed in environment variable names. */
-#define ENV_VAR_CHARS "ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789" \
-                      "abcdefghijklmnopqrstuvwxyz"
-
-
+#define ENV_NAME_CHARS "ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789" \
+                       "abcdefghijklmnopqrstuvwxyz"
 
 /*
  * Globals
@@ -63,15 +64,15 @@ extern const char *const env_vars_safe[];
 /*
  * Clear the environment and store a copy of the old environment in VARS.
  * If VARS is NULL, the old environment is discarded. VARS must point to
- * a memory area that is large enough to hold ENV_MAX variables.
+ * a memory area that is large enough to hold MAX_ENV variables.
  *
  * Return code:
- *      OK           Success.
- *      ERR_ENV_MAX  There are more than ENV_MAX environment variables.
+ *      OK        Success.
+ *      ERR_LEN  There are more than MAX_ENV environment variables.
  */
 __attribute__((warn_unused_result))
 enum error env_clear(/* RATS: ignore; vars is bound-checked. */
-	             const char *(*const vars)[ENV_MAX]);
+	             const char *(*const vars)[MAX_ENV]);
 
 /*
  * Read a filename from the environment variable VARNAME, canonicalise it,
@@ -79,25 +80,32 @@ enum error env_clear(/* RATS: ignore; vars is bound-checked. */
  * file, and store a pointer to the canonicalised filename in FNAME and
  * its file descriptor in FD.
  *
- * JAIL must be to canonical path. If the filename contains symbolic links
- * at the time the file is opened, an EMLINK error is raised.
+ * JAIL must exist and be to canonical path; if JAIL does not exist and suCGI
+ * has not been compiled with NDEBUG defined, then suCGI segfaults with a
+ * cryptic error message. If the filename contains symbolic links at the time
+ * the file is opened, an EMLINK error is raised.
  *
- * FNAME is allocated anough memory to hold the canonicalised filename
- * and should be freed by the caller.
+ * FNAME is allocated enough memory to store the canonicalised filename and
+ * should be freed by the caller. It also contains the last filename passed
+ * to file-related system calls and can be used in error messages.
  *
  * Return code:
- *      OK           Success.
- *      ERR_CNV*     File descriptor is too large (Linux only).
- *      ERR_ENV_LEN  The filename is longer than STR_MAX - 1 bytes.
- *      ERR_ENV_MAL  The file resides outside of the given jail.
- *	ERR_ENV_NIL  The environment variable is undefined or empty.
- *      ERR_SYS      System failure. errno(2) should be set.
+ *      OK            Success.
+ *      ERR_CNV*      File descriptor is too large (Linux only).
+ *      ERR_ILL       The file is not within the jail.
+ *	ERR_NIL       VARNAME is undefined or empty.
+ *      ERR_LEN       The filename is too long.
+ *      ERR_CALLOC    calloc(2) failed.
+ *      ERR_GETENV    getenv(3) failed.
+ *      ERR_OPEN      open(2) or openat2(2) failed.
+ *      ERR_REALPATH  realpath(3) failed.
  *
  *      Errors marked with an asterisk should be impossible.
  */
-enum error
-env_file_open(const char *const jail, const char *const varname,
-              const int flags, const char **const fname, int *const fd);
+__attribute__((nonnull(1, 2, 4, 5), warn_unused_result))
+enum error env_file_open(const char *const jail, const char *const varname,
+                         const int flags, const char **const fname,
+			 int *const fd);
 
 
 /*
@@ -113,7 +121,7 @@ bool env_is_name(const char *const name);
  *
  * Note, an attacker may populate the environment with variables that are
  * not NUL-termianted. If the memory region after such a variable contains
- * a NUL within STR_MAX - 1 bytes from the start of the variable, setenv(3)
+ * a NUL within MAX_STR - 1 bytes from the start of the variable, setenv(3)
  * will overshoot and dump the contents of that memory region into the
  * environment. That said, suCGI should not be privy to any information not
  * in the environment already, so such an attack should be pointless.
@@ -130,13 +138,10 @@ bool env_is_name(const char *const name);
  * authoritative value. So this should not be an issue, usually.
  *
  * Return code:
- *      OK            Success.
- *      ERR_ENV_LEN   An environment variable is too long.
- *      ERR_ENV_MAL   An environment variable is malformed.
- *      ERR_STR_LEN*  Some string is too long.
- *      ERR_SYS       setenv(3) failed. errno(2) should be set.
- *
- *      Errors marked with an asterisk should be impossible.
+ *      OK           Success.
+ *      ERR_LEN      An environment variable is too long.
+ *      ERR_ILL      An environment variable is ill-formed.
+ *      ERR_SETENV   setenv(3) failed.
  */
 __attribute__((nonnull(1, 2), warn_unused_result))
 enum error env_restore (const char *vars[], const char *const patterns[]);

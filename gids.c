@@ -15,7 +15,7 @@
  * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
  * for more details.
  *
- * You should have received a copy of the GNU General Public License along
+ * You should have received a copy of the GNU General Public License aint
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
@@ -28,9 +28,7 @@
 
 #include <errno.h>
 #include <grp.h>
-#include <limits.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "str.h"
 #include "gids.h"
@@ -38,7 +36,7 @@
 
 
 /*
- * getgrouplist(3) is neither in POSIX.1-2008 nor 4.4BSD, and its
+ * getgrouplist(3) is neither in POSIX.1-2008 nor in 4.4BSD, and its
  * implementations differ. So re-inventing the wheel seemed the most
  * straightforward course of action.
  *
@@ -46,43 +44,45 @@
  * differ from those of getgrouplist(3), if subtly.
  */
 enum error
-gids_get_list(const char *const logname, const gid_t gid,
+gids_get_list(const char *const logname, const gid_t basegid,
               /* RATS: ignore; gids is bounds-checked. */
-              gid_t (*const gids)[NGROUPS_MAX], int *const n)
+              gid_t (*const gids)[MAX_GROUPS], int *const ngids)
 {
 	struct group *grp;	/* A group. */
 
-	(*gids)[0] = gid;
-	*n = 1;
+	(*gids)[0] = basegid;
+	*ngids = 1;
 
 	errno = 0;
 	setgrent();
 	while ((grp = getgrent())) {
-		for (int i = 0; i < *n; i++) {
-			if (grp->gr_gid == (*gids)[i]) {
-				goto next;
+		const gid_t gid = grp->gr_gid;
+
+		/*
+		 * This access to grp->gr_mem[i] is misaligned.
+		 * I don't know why. Apple's Libc and musl use similar code.
+		 * FIXME: Check if it's misaligned on Linux, too.
+		 */
+		for (int i = 0; i <= INT_MAX && grp->gr_mem[i]; i++) {
+			const char *mem = grp->gr_mem[i];
+
+			if (gid != basegid && strcmp(mem, logname) == 0) {
+				if (*ngids < MAX_GROUPS) {
+					(*gids)[*ngids] = gid;
+				}
+				(*ngids)++;
+				break;
 			}
 		}
 
-		for (int i = 0; grp->gr_mem[i]; i++) {
-			if (strcmp(grp->gr_mem[i], logname) == 0) {
-				if (*n < NGROUPS_MAX) {
-					(*gids)[*n] = grp->gr_gid;
-				}
-				(*n)++;
-				break;
-			}			
-		}
-
-		next:;
 	}
 	endgrent();
 
 	if (errno != 0) {
-		return ERR_SYS;
+		return ERR_GETGRENT;
 	}
-	if (*n > NGROUPS_MAX) {
-		return ERR_GIDS_MAX;
+	if (*ngids > MAX_GROUPS) {
+		return ERR_LEN;
 	}
 
 	return OK;

@@ -26,6 +26,7 @@
 #endif /* !defined(_FORTIFY_SOURCE) */
 
 #include <assert.h>
+#include <errno.h>
 #include <limits.h>
 #include <unistd.h>
 
@@ -37,24 +38,30 @@ enum error
 priv_drop(const uid_t uid, const gid_t gid,
           const int ngids, const gid_t gids[ngids])
 {
+	errno = 0;
+
 	if (setgroups(ngids, gids) != 0) {
-		return ERR_SYS;
+		return ERR_SETGROUPS;
 	}
+
 	if (setgid(gid) != 0) {
-		return ERR_SYS;
+		return ERR_SETGID;
 	}
+
 	if (setuid(uid) != 0) {
-		return ERR_SYS;
+		return ERR_SETUID;
 	}
 	
-	if (setgroups(1, (gid_t [1]) {gid}) != -1) {
-		return ERR_PRIV;
+	if (setgroups(1, (gid_t [1]) {0}) != -1) {
+		return FAIL;
 	}
+
 	if (setgid(0) != -1) {
-		return ERR_PRIV;
+		return FAIL;
 	}
+	
 	if (setuid(0) != -1) {
-		return ERR_PRIV;
+		return FAIL;
 	}
 
 	return OK;

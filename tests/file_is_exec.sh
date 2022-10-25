@@ -1,5 +1,24 @@
 #!/bin/sh
+#
 # Test if file_is_exec correctly identifies executables.
+#
+# Copyright 2022 Odin Kroeger
+#
+# This file is part of suCGI.
+#
+# suCGI is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# suCGI is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+# for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with suCGI. If not, see <https://www.gnu.org/licenses>.
+#
 # shellcheck disable=1091,2015
 
 #
@@ -7,30 +26,33 @@
 #
 
 set -Cefu
-script_dir="${0%/*}"
-[ "$script_dir" = "$0" ] && script_dir=.
-readonly script_dir
+readonly script_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+readonly src_dir="$(cd -P "$script_dir/.." && pwd)"
+readonly tools_dir="$src_dir/tools"
 # shellcheck disable=1091
-. "$script_dir/../tools/lib.sh" || exit
+. "$tools_dir/lib.sh" || exit
 init || exit
 oldtmp="${TMPDIR-}"
 tmpdir chk
 
 
 #
-# Main
+# Prelude
 #
 
 umask 0777
 
-euid="$(id -u)" && [ "$euid" ] ||
-	err "failed to get process' effective UID."
-egid="$(id -g)" && [ "$egid" ] ||
-	err "failed to get process' effective GID."
+euid="$(id -u)"
+egid="$(id -g)"
 
 fname="$TMPDIR/file"
 printf '#!/bin/sh\n:\n' >"$fname"
 chown "$euid:$egid" "$fname"
+
+
+#
+# Non-root tests.
+#
 
 no="ugo= uo=,g=x ug=,o=x"
 for mode in $no
@@ -67,66 +89,60 @@ euid="$(id -u)" && [ "$euid" ] ||
 
 if [ "$euid" -ne 0 ]
 then
-	# shellcheck disable=2154
-	warn "${green}success.$reset"
+	warn -g "all tests passed."
 	exit
 fi
 
-unalloc_uid="$(unallocid -u 1000 30000)" && [ "$unalloc_uid" ] ||
-	err "failed to find an unallocated user ID."
-unalloc_gid="$(unallocid -g 1000 30000)" && [ "$unalloc_gid" ] ||
-	err "failed to find an unallocated group ID."
+
+#
+# Root tests
+#
+
+unalloc_uid="$(unallocid -u 1000 30000)"
+unalloc_gid="$(unallocid -g 1000 30000)"
 
 chown "$unalloc_uid:$unalloc_gid" "$fname"
 
 warn "checking o= with owner $unalloc_uid and group $unalloc_gid ..."
 chmod o= "$fname"
-file_is_exec "$fname" &&
-	err "reported as executable."
+file_is_exec "$fname" && err "reported as executable."
 
 warn "checking o=x with owner $unalloc_uid and group $unalloc_gid ..."
 chmod o=x "$fname"
-file_is_exec "$fname" ||
-	err "not reported as executable."
+file_is_exec "$fname" || err "not reported as executable."
 
 warn "checking u=x with owner $euid and group $unalloc_gid ..."
 chown "$euid" "$fname"
 chmod u=x,go= "$fname"
-file_is_exec "$fname" ||
-        err "reported as not executable."
+file_is_exec "$fname" || err "reported as not executable."
 
 warn "checking u=x with owner $unalloc_uid and group $egid ..."
 chown "$unalloc_uid:$egid" "$fname"
-file_is_exec "$fname" &&
-        err "reported as executable."
+file_is_exec "$fname" && err "reported as executable."
 
 warn "checking g=x with owner $euid and group $unalloc_gid ..."
 chown "$euid:$unalloc_gid" "$fname"
 chmod uo=,g=x "$fname"
-file_is_exec "$fname" &&
-        err "reported as executable."
+file_is_exec "$fname" && err "reported as executable."
 
 warn "checking g=x with owner $unalloc_uid and group $egid ..."
 chown "$unalloc_uid:$egid" "$fname"
-file_is_exec "$fname" ||
-        err "reported as not executable."
+file_is_exec "$fname" || err "reported as not executable."
 
 warn "checking g=x with owner $euid and group $egid ..."
 chown "$euid:$egid" "$fname"
-file_is_exec "$fname" &&
-        err "reported as executable."
+file_is_exec "$fname" && err "reported as executable."
 
-# shellcheck disable=2012
-ruser="$(ls -ld "$script_dir" | cut -d ' ' -f4)"
-if ! [ "$ruser" ] || [ "$ruser" = root ]
-then
-	ruser="$(regularuser)" && [ "$ruser" ] ||
-		err "failed to get non-root user."
-fi
 
-ruid="$(id -u "$ruser")" && [ "$ruid" ] ||
-	err "failed to get user ID of $ruser."
-rgid="$(id -g "$ruid")" && [ "$rgid" ] ||
-	err "failed to get primary group ID of $ruser."
+#
+# Run tests as non-root user
+#
 
-TMPDIR="$oldtmp" runas "$ruid" "$rgid" "$0"
+regular="$(owner "$0")"
+! [ "$regular" ] || [ "$regular" = root ] && regular=$(regularuser)
+! [ "$regular" ] && warn -y "could not run all tests."
+
+uid="$(id -u "$regular")"
+gid="$(id -g "$regular")"
+
+TMPDIR="$oldtmp" runas "$uid" "$gid" "$script_dir/$prog_name"

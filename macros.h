@@ -27,4 +27,8 @@
 #define __attribute__(attr)
 #endif
 
+/* Raise a compiler error if COND is false. */
+#define BUILD_BUG_ON(cond) ((void)sizeof(char[1 - 2*!!(cond)]))
+
+
 #endif /* !defined(DEFS_H) */

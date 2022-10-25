@@ -5,7 +5,7 @@ Building suCGI
 Configuration
 =============
 
-Use *configure* to Generate *makefile* and *config.h*.
+Use *configure* to generate the *makefile*.
 
 If you want to adapt suCGI's build settings, edit *configure.env* and create
 a (new) makefile by calling ``configure``; supply ``-f`` to overwrite existing
@@ -18,6 +18,10 @@ CC
 
 CFLAGS
     Flags to give to the compiler.
+
+If *configure* fails, you can also create the *makefile* by::
+
+	m4 makefile.m4 >makefile
 
 
 Compilation
@@ -50,6 +54,9 @@ LDLIBS
     Flags or names to give to the compiler when it invokes the linker
     (default depends on *make*).
 
+cov_cc
+    The C compiler to create coverage reports with
+    (defaults to `$(CC)`).
 
 Macros
 ------
@@ -76,11 +83,11 @@ PREFIX
     Prefix for installation targets
     (defaults to */usr/local*).
 
-CGIBIN
+cgi_dir
     Path to your webserver's */cgi-bin* directory
     (defaults to */usr/lib/cgi-bin*).
 
-WWWGRP
+www_grp
     Group the webserver runs as
     (defaults to "www-data").
 

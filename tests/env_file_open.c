@@ -20,7 +20,6 @@
  */
 
 #include <err.h>
-#include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,27 +61,32 @@ main (int argc, char **argv)
 	int fd;			/* File descriptor. */
 	enum error rc;		/* Return code. */
 
-	errno = 0;
 	rc = env_file_open(jail, var, flags, &fname, &fd);
 	switch (rc) {
 		case OK:
 			break;
-		case ERR_SYS:
-			err(EXIT_FAILURE, "$%s", var);
-		case ERR_ENV_LEN:
-			errx(EXIT_FAILURE, "$%s: path too long", var);
-		case ERR_ENV_MAL:
-			errx(EXIT_FAILURE, "$%s: not in %s.", var, jail);
-		case ERR_ENV_NIL:
-			errx(EXIT_FAILURE, "$%s: unset or empty.", var);
+		case ERR_GETENV:
+			error("getenv %s: %m.", var);
+		case ERR_REALPATH:
+			error("realpath %s: %m.", fname);
+		case ERR_OPEN:
+			error("open %s: %m.", fname);
+		case ERR_LEN:
+			error("path to file is too long.");
+		case ERR_ILL:
+			error("file %s not within jail.", fname);
+		case ERR_NIL:
+			error("$%s is unset or empty.", var);
 		default:
-			errx(EXIT_FAILURE, "unexpected return code %u.", rc);
+			error("returned %u.", rc);
 	}
 
+	/* RATS: ignore */
+	char buf[MAX_STR];	/* Buffer. */
 	ssize_t n;		/* Bytes read. */
-	char buf[STR_MAX];	/* Buffer. */
 
-	while ((n = read(fd, &buf, STR_MAX)) > 0) {
+	/* RATS: ignore */
+	while ((n = read(fd, &buf, MAX_STR)) > 0) {
 		(void) write(1, buf, (size_t) n);
 	}
 

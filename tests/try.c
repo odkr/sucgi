@@ -31,14 +31,14 @@ try_ok (void)
 {
 	try(OK);
 	
-	return ERR_SYS;
+	return FAIL;
 }
 
 /* try wrapper that should always fail. */
 static enum error
 try_err (void)
 {
-	try(ERR_SYS);
+	try(FAIL);
 
 	/* This point should not be reached. */
 	return OK;
@@ -46,13 +46,13 @@ try_err (void)
 
 int
 main (void) {
-	warnx("checking (OK) ...");
-	if (try_ok() != ERR_SYS) {
+	warnx("checking OK ...");
+	if (try_ok() != FAIL) {
 		errx(EXIT_FAILURE, "failed");
 	}
 
-	warnx("checking (ERR_SYS) ...");
-	if (try_err() != ERR_SYS) {
+	warnx("checking ERR_SYS ...");
+	if (try_err() != FAIL) {
 		errx(EXIT_FAILURE, "failed");
 	}
 

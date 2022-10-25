@@ -7,9 +7,9 @@
 
 set -Ceu
 
-script_dir="$(dirname "$0")" && [ "$script_dir" ] || {
-	echo "failed to locate $0." >&2
-	exit 8
+script_dir="$(dirname "$0")" || {
+	printf '%s\n' "dirname $0: exited with status $?." >&2
+	exit 1
 }
 readonly script_dir
 cd "$script_dir" || exit
@@ -50,40 +50,45 @@ add_macros() {
 #
 
 OPTIND=1 OPTARG='' opt=''
-force='' quiet='' conf=configure.env
+force='' quiet='' conf=prod.env
 while getopts c:dfqh opt; do
 	case $opt in
 		(c) conf="$OPTARG" ;;
 		(d) conf=devel.env ;;
 		(f) force=x ;;
 		(q) quiet=x ;;
-		(h) exec cat <<-EOF ;;
-			configure - Generate build configuration.
+		(h) exec cat <<EOF ;;
+configure - generate build configuration.
 
-			Options:
-			    -c FILE  Read build configuration from FILE
-			             (default: $conf).
-			    -d       Short for -c devel.env.
-			    -f       Overwrite existing files.
-			    -h       Show this help screen.
-			    -q       Be quiet.
+Usage:       configure [-c FILE|-d] [-f] [-q]
+             configure -h
 
-			Environment:
-			    CC          The C compiler.
-			    CFLAGS      Flags to pass to the C compiler.
+Options:
+    -c FILE  Read build configuration from FILE (default: $conf).
+    -d       Short for -c devel.env.
+    -f       Overwrite existing files.
+    -h       Show this help screen.
+    -q       Be quiet.
 
-			See README.rst and docs/BUILDING.rst for details.
-			EOF
-		(*) exit 8
+Environment:
+    CC       The C compiler.
+    CFLAGS   Flags to pass to the C compiler.
+
+See README.rst and docs/BUILDING.rst for details.
+
+Copyright 2022 Odin Kroeger.
+Released under the GNU General Public License.
+This programme comes with ABSOLUTELY NO WARRANTY.
+EOF
+		(*) exit 1
 	esac
 done
 shift $((OPTIND - 1))
 unset opt
 
-[ "$#" -gt 0 ] && abort 'too many operands.'
-[ "$conf" ] || abort "$bold-c$reset$red: no filename given."
-[ -e "$conf" ] || abort "$bold$conf$reset$red: no such file." 
-[ "$quiet" ] && exec >/dev/null
+[ "$#" -gt 0 ] && err 'too many operands.'
+[ "$conf" ]    || err "$bld-c$rst$red: no filename given."
+[ -e "$conf" ] || err "$bld$conf$rst$red: no such file." 
 
 # shellcheck disable=1090
 . "$conf" || exit
@@ -108,16 +113,27 @@ then
 			break
 		fi
 	done
-	unset cc
 
-	! [ "$CC" ] && command -v c99 >/dev/null && CC='c99'
+	if ! [ "$CC" ]
+	then
+		for cc in c99 cc
+		do
+			if command -v "$cc" >/dev/null
+			then
+				CC="$cc"
+				break
+			fi
+		done
+	fi
+
+	unset cc
 fi
 
 if [ "$CC" ]
 then
-	echo "$CC"
+	printf '%s\n' "$CC"
 else
-	echo 'none found!'
+	printf 'none found!\a\n'
 fi
 
 
@@ -168,7 +184,7 @@ then
 
 	if [ "$n" -eq 0 ]
 	then
-		echo ' none supported.'
+		printf ' none supported.\a\n'
 	else
 		echo
 	fi
@@ -185,35 +201,37 @@ errc=0 filec=0 genc=0
 for input in *.m4
 do
 	[ "$input" = "*.m4" ] && break
-	name="$(basename "$input")" || abort "$input: failed to get basename."
+	name="$(basename "$input")" || 
+		err "basename $input: exited with status $?."
 	output="${name%.m4}"
 	filec=$((filec + 1))
 
 	# shellcheck disable=2154
-	if [ -e "$output" ] && ! [ "$force" ]
+	if [ -e "$output" ]
 	then
-		if ! [ "$quiet" ]
+		if [ "$force" ]
 		then
-			printf '\a' >&2
-			warn "${yellow}not overwriting $bold$output$reset," \
-			     "give $bold-f$reset to force."
+			warn -qy "overwriting ${bld-}$output${rst_y-}."
+		else
+			warn -y "${bld-}$output${rst_y-} exists;${rst-}" \
+			        "give ${bld-}-f${rst-} to overwrite."
+			continue
 		fi
-		continue
 	fi
 
 	swap="$TMPDIR/$output"
 	if m4	-D__CC__="${CC-}"		\
 		-D__CFLAGS__="${CFLAGS# }"	\
+		-D__cov_cc__="${cov_cc-}"	\
 		"$input" >"$swap"
 	then
 		mv "$swap" "$output"
 		genc=$((genc + 1))
-		[ "$quiet" ] || warn "generated $bold$output$reset."
+		warn -q "generated ${bld-}$output${rst-}."
 	else
 		rm -f "$swap" || :
 		errc=$((errc + 1))
-		printf '\a' >&2
-		warn "${red}failed to generate$bold$output$reset$red."
+		warn -r "failed to generate${bld-}$output${rst_r-}."
 	fi
 	unset swap
 done
@@ -223,17 +241,15 @@ if ! [ "$quiet" ]
 then
 	if [ $errc -gt 0 ]
 	then
-		printf '\a' >&2
-		warn "$red$bold$errc$reset$red of $bold$filec$reset" \
-		     "${red}file(s) could not be generated.$reset"
+		warn -r "${bld-}$errc${rst_r-} of ${bld-}$filec${rst_r-}" \
+		        "file(s) could not be generated."
 	elif [ $genc -lt $filec ]
 	then
-		printf '\a' >&2
-		warn "$yellow$bold$genc$reset$yellow of $bold$filec$reset" \
-		     "${yellow}file(s) generated.$reset"
+		warn -y "${bld-}$genc${rst_y-} of ${bld-}$filec${rst_y-}" \
+		        "file(s) generated."
 	else
-		warn "$green$bold$genc$reset$green of $bold$filec$reset" \
-		     "${green}file(s) generated.$reset"
+		warn -g "${bld-}$genc${rst_g-} of ${bld-}$filec${rst_g-}" \
+		        "file(s) generated."
 	fi
 fi
 

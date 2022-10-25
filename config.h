@@ -11,8 +11,9 @@
  * CGI scripts are only executed if they are inside this path.
  *
  * Should correspond to the UserDir directive of your Apache configuation
- * (or the equivalent directive of the webserver you use); for example:
+ * (or the equivalent directive of the webserver you use).
  *
+ * For example:
  *     - UserDir public_html -> "/home"
  *     - UserDir /srv/web -> "/srv/web"
  */
@@ -21,40 +22,45 @@
 /*
  * The document root of user websites.
  *
- * Must match the UserDir directive of your Apache configuration
+ * "%1$s" or "%s" is replaced with the home directory of the script's owner.
+ * "%2$s" is replaced with their login name.
+ *
+ * Should match the UserDir directive of your Apache configuration
  * (or the equivalent directive of the webserver you use).
  *
- * Supports tilde and variable expansion. See wordexp(3) for details.
- *
  * For example:
- *
- *     - UserDir public_html -> "~/public_html"
- *     - UserDir /srv/web -> "/srv/web/$USER_NAME"
- *
+ *     - UserDir public_html -> "%s/public_html"
+ *     - UserDir /srv/web -> "/srv/web/%2$s"
  */
-#define DOC_ROOT "~/public_html"
+#define USER_DIR "%s/public_html"
 
 /*
- * Smallest UID that may have been assigned to a regular user.
+ * Must the user directory reside in the user's home directory?
+ * Boolean value.
+ */
+#define ENFORCE_HOME_DIR true
+
+/*
+ * The smallest UID that may have been assigned to a regular user.
  * On most systems, this will be 500 (e.g., macOS) or 1,000 (e.g, Debian).
  */
 #define MIN_UID 1000
 
 /*
- * Largest UID that may have been assigned to a regular user.
+ * The largest UID that may have been assigned to a regular user.
  * On most systems, this will be 60,000 (though some use 32,767 for nobody).
  */
 #define MAX_UID 30000
 
 /*
- * Smallest GID that may have been assigned to a regular user.
+ * The smallest GID that may have been assigned to a regular user.
  * On most systems, this will be 500 or 1,000 (e.g, Debian).
  * However, some systems (e.g., macOS) make no such distinction.
  */
 #define MIN_GID 1000
 
 /*
- * Largest GID that may have been assigned to a regular user.
+ * The largest GID that may have been assigned to a regular user.
  * On most systems, this will be 30,000 or 60,000 (Debian).
  */
 #define MAX_GID 30000
@@ -65,7 +71,7 @@
  * 
  * The filename suffix must be given including the leading dot (e.g., ".php").
  * The handler is looked up in $PATH if its name is relative (e.g., "php");
- * but keep in mind that $PATH is overriden with PATH (see below).
+ * keep in mind that $PATH is set to PATH (see below).
  *
  * The array must be terminated with a pair of NULLs.
  */
@@ -74,14 +80,34 @@
 	{NULL, NULL}	/* Array terminator. DO NOT REMOVE. */	\
 }
 
-/* Secure $PATH. */
+/*
+ * A secure $PATH.
+ */
 #define PATH "/usr/bin:/bin"
 
 /* 
- * Secure file permission mask.
- * Does NOT replace the current umask, but is added to it.
+ * A secure file permission mask.
+ * This mask is added to the current umask, rather than replacing it.
  */
 #define UMASK 022
+
+/*
+ * Maximum number of environment variables.
+ * suCGI aborts if it encounters more environment variables.
+ */
+#define MAX_ENV 256
+
+/*
+ * Maximum lenght of strings, including the terminating NUL.
+ * suCGI aborts if it encounters a string that exceeds this limit.
+ */
+#define MAX_STR 1024
+
+/*
+ * Maximum number of groups a user can be a member of.
+ * suCGI aborts if a user is a member of more groups.
+ */
+#define MAX_GROUPS 64
 
 
 /*

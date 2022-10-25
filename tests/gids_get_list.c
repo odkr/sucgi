@@ -42,9 +42,9 @@ main (void)
 	/* Primary GIDs to test. */
 	const gid_t pgids[] = {0, getgid(), UINT_MAX};
 
-	gid_t gids[NGROUPS_MAX];		/* GIDs found. */
-	int ngids;				/* Number of GIDs. */
-	enum error rc;				/* Return code. */
+	gid_t gids[MAX_GROUPS];		/* GIDs found. */
+	int ngids;			/* Number of GIDs. */
+	enum error rc;			/* Return code. */
 
 	for (size_t i = 0; i < NELEMS(uids); i++) {
 		for (size_t j = 0; j < NELEMS(pgids); j++) {
@@ -52,6 +52,7 @@ main (void)
 			const gid_t pgid = pgids[j];	/* GID. */
 			struct passwd *pwd;		/* User. */
 
+			errno = 0;
 			pwd = getpwuid(uid);
 			if (!pwd) {
 				if (errno == 0) {
@@ -59,25 +60,23 @@ main (void)
 				}
 
 				err(EXIT_FAILURE, "getpwuid %llu",
-				    (unsigned long long) uid);
+				    (long long unsigned) uid);
 			}
 
 			warnx("checking (%s, %llu, ...) -> OK ...",
-			      pwd->pw_name, (unsigned long long) pgid);
+			      pwd->pw_name, (long long unsigned) pgid);
 
 			rc = gids_get_list(pwd->pw_name, pgid, &gids, &ngids);
 
 			if (rc != OK) {
 				errx(EXIT_FAILURE, "returned %u", rc); 
 			}
-
 			if (ngids < 1) {
 				errx(EXIT_FAILURE, "no GIDs saved");
 			}
-
 			if (gids[0] != pgid) {
 				errx(EXIT_FAILURE, "first GID is not %llu",
-				     (unsigned long long) pgid);
+				     (long long unsigned) pgid);
 			}
 		}
 	}

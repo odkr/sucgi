@@ -96,7 +96,7 @@ misra-c2012-12.1:scpt.c:65
 misra-c2012-12.1:sucgi.c:298
 misra-c2012-12.1:sucgi.c:338
 misra-c2012-12.1:tests/error.c:30
-misra-c2012-12.1:tests/scpt_get_handler.c:120
+misra-c2012-12.1:tests/scpt_get_handler.c:118
 misra-c2012-12.1:tests/str_cp.c:79
 misra-c2012-12.1:tests/str_split.c:96
 misra-c2012-12.1:tests/str_split.c:99
@@ -106,12 +106,11 @@ misra-c2012-12.1:tests/str_split.c:99
 misra-c2012-13.4:gids.c:60
 // So is `while ((optchar = getopt(argc, argv, "...")) != -1)`.
 misra-c2012-13.4:tools/badenv.c:52
-misra-c2012-13.4:tools/getlogname.c:42
 misra-c2012-13.4:tools/runas.c:43
 misra-c2012-13.4:tools/unallocid.c:45
 // And `while ((ch = fgetc(file)) != EOF)`.
-misra-c2012-13.4:tests/env_file_open.c:92
-misra-c2012-13.4:tests/file_safe_open.c:85
+misra-c2012-13.4:tests/env_file_open.c:88
+misra-c2012-13.4:tests/file_safe_open.c:81
 
 // Rule 14.4 requires that conditionals are of boolean type. 
 // However, this implies that NULL has to be tested for explicitly, which
@@ -124,9 +123,7 @@ misra-c2012-14.4:sucgi.c:478
 misra-c2012-14.4:tools/badenv.c:103
 misra-c2012-14.4:tools/badenv.c:121
 misra-c2012-14.4:tests/env_clear.c:62
-misra-c2012-14.4:tests/env_file_open.c:97
 misra-c2012-14.4:tests/env_restore.c:107
-misra-c2012-14.4:tests/file_safe_open.c:90
 
 // Rule 15.1 advises that goto not be used. But sometimes goto is the most
 // straightforward way to jump to the next iteration or out of a loop.
@@ -162,18 +159,18 @@ misra-c2012-16.6:sucgi.c:354
 misra-c2012-16.6:sucgi.c:430
 misra-c2012-16.6:sucgi.c:498
 misra-c2012-16.6:sucgi.c:522
-misra-c2012-16.6:tests/env_file_open.c:66
-misra-c2012-16.6:tests/file_safe_open.c:63
+misra-c2012-16.6:tests/env_file_open.c:67
+misra-c2012-16.6:tests/file_safe_open.c:64
 misra-c2012-16.6:tests/path_check_wexcl.c:68
-misra-c2012-16.6:tests/priv_drop.c:57
+misra-c2012-16.6:tests/priv_drop.c:62
 
 // Rule 17.1 requires that function do not take variadic arguments.
 // But error in error.c wraps vsyslog(3). And there is no other way to do.
 // this. Also, every compiler that supports the GNU C function attribute
 // printf, Clang and and GCC, for instance, will type-check those arguments.
-misra-c2012-17.1:error.c:57
-misra-c2012-17.1:error.c:62
-misra-c2012-17.1:error.c:64
+misra-c2012-17.1:error.c:53
+misra-c2012-17.1:error.c:58
+misra-c2012-17.1:error.c:60
 
 // Rule 17.8 advises that function arguments not be modified.
 // However, `argc += optind` and `argv += optind` are idiomatic.
@@ -267,7 +264,7 @@ misra-c2012-21.6:tools/*.c
 
 // Rule 21.8 requires, among other things, that exit(3) and getenv(3) not be
 // used. However, exit(3) is used by error in error.c to exit the programme.
-misra-c2012-21.8:error.c:67
+misra-c2012-21.8:error.c:63
 // getenv(3) cannot be avoided, it is part of the CGI specification.
 // However, it should only be invoked via suCGI's env_* functions.
 misra-c2012-21.8:env.c
@@ -277,12 +274,9 @@ misra-c2012-21.8:tests/env*.c
 // However, all programmes that are part of suCGI set errno to 0 at their start
 // and abort exectuion when a system error occurrs.
 misra-c2012-22.8:tools/badenv.c:58
-misra-c2012-22.8:tools/getlogname.c:68
 misra-c2012-22.8:tools/runas.c:75
 misra-c2012-22.8:tools/runas.c:90
 misra-c2012-22.8:tools/unallocid.c:84
-misra-c2012-22.8:tests/file_is_wexcl.c:47
-misra-c2012-22.8:tests/path_check_wexcl.c:49
 
 // Rule 22.10 requires that errno only be checked right after having called
 // a function that sets it. However, Cppcheck's misra.py appears to be based
@@ -290,7 +284,6 @@ misra-c2012-22.8:tests/path_check_wexcl.c:49
 // functions that set errno.
 misra-c2012-22.10:gids.c:81
 misra-c2012-22.10:sucgi.c:305
-misra-c2012-22.10:tools/getlogname.c:85
 misra-c2012-22.10:tools/unallocid.c:124
 misra-c2012-22.10:tools/unallocid.c:134
 misra-c2012-22.10:tests/gids_get_list.c:57
@@ -310,6 +303,3 @@ getpwuidCalled
 getgrentCalled
 getgrgidCalled
 
-// Cppcheck does not know that err(3) and errx(3) do not return.
-nullPointerRedundantCheck:tests/priv_drop.c:55
-nullPointerRedundantCheck:tests/priv_drop.c:56

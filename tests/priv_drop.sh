@@ -1,5 +1,24 @@
 #!/bin/sh
+#
 # Test priv_drop.
+#
+# Copyright 2022 Odin Kroeger
+#
+# This file is part of suCGI.
+#
+# suCGI is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# suCGI is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+# for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with suCGI. If not, see <https://www.gnu.org/licenses>.
+#
 # shellcheck disable=1091,2015
 
 #
@@ -7,13 +26,12 @@
 #
 
 set -Cefu
-script_dir="${0%/*}"
-[ "$script_dir" = "$0" ] && script_dir=.
-readonly script_dir
+readonly script_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+readonly src_dir="$(cd -P "$script_dir/.." && pwd)"
+readonly tools_dir="$src_dir/tools"
 # shellcheck disable=1091
-. "$script_dir/../tools/lib.sh" || exit
+. "$tools_dir/lib.sh" || exit
 init || exit
-oldtmp="${TMPDIR-}"
 tmpdir chk
 
 
@@ -22,11 +40,9 @@ tmpdir chk
 #
 
 export PATH
-
-: "${LOGNAME:?}"
-
-euid="$(id -u)" && [ "$euid" ] ||
-	err "failed to get process' effective UID."
+user="$(id -un)"
+euid="$(id -u)"
+cd -P "$script_dir" || exit
 
 
 #
@@ -35,30 +51,29 @@ euid="$(id -u)" && [ "$euid" ] ||
 
 if [ "$euid" -eq 0 ]
 then
-	ruser="$(ls -ld "$script_dir" | cut -d ' ' -f4)"
-	if ! [ "$ruser" ] || [ "$ruser" = root ]
-	then
-		ruser="$(regularuser)" && [ "$ruser" ] ||
-			err "failed to get non-root user."
-	fi
-	
-	ruid="$(id -u "$ruser")" && [ "$ruid" ] ||
-		err "failed to get user ID of $ruser."
-	rgid="$(id -g "$ruser")" && [ "$rgid" ] ||
-		err "failed to get primary group ID of $ruser."
+	owner="$(owner priv_drop)"
+	regular="$(regularuser)"
 
-	checkerr 'Operation not permitted' \
-		runas "$ruid" "$rgid" priv_drop "$ruser"
+	[ "$owner" ] && [ "$owner" != root ] && (
+		uid="$(id -u "$owner")"
+		gid="$(id -g "$owner")"
+		checkerr 'Operation not permitted' \
+			runas "$uid" "$gid" priv_drop "$regular"
+	)
 
-	checkerr 'could resume privileges' \
-		priv_drop "$LOGNAME"
+	[ "$regular" ] && [ "$regular" != root ] && (
+		uid="$(id -u "$regular")"
+		gid="$(id -g "$regular")"
+		
+		checkok "euid=$uid egid=$gid ruid=$uid rgid=$gid" \
+			priv_drop "$regular"
+	)
 
-	checkok "euid=$ruid egid=$rgid ruid=$ruid rgid=$rgid" \
-		priv_drop "$ruser"
-
-	TMPDIR="$oldtmp" runas "$ruid" "$rgid" "$0"
+	checkerr 'could resume superuser privileges' \
+		priv_drop "$user"
 else
-	checkerr 'Operation not permitted' priv_drop "$LOGNAME"
-
-	warn "${green}all tests passed.$reset"
+	checkerr 'Operation not permitted' priv_drop "$user"
 fi
+
+warn -g "all tests passed."
+

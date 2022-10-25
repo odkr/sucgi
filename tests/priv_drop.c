@@ -34,8 +34,8 @@
 int
 main (int argc, char **argv)
 {
-	const char *login;	/* The username. */
-	struct passwd *user;	/* The passwd entry of the given user. */
+	const char *logname;	/* The username. */
+	struct passwd *pwd;	/* The passwd entry of the given user. */
 	enum error rc;		/* A return code. */
 
 	
@@ -44,38 +44,43 @@ main (int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 	
-	login = argv[1];
+	logname = argv[1];
 
 	errno = 0;
-	user = getpwnam(login);
-	if (!user) {
+	pwd = getpwnam(logname);
+	if (!pwd) {
 		if (errno == 0) {
-			errx(EXIT_FAILURE, "getpwnam %s: no such user", login);
+			errx(EXIT_FAILURE, "user %s is unknown", logname);
 		} else {
-			err(EXIT_FAILURE, "getpwnam %s", login);
+			err(EXIT_FAILURE, "getpwnam %s", logname);
 		}
 	}
 
-	errno = 0;
-	rc = priv_drop(user->pw_uid, user->pw_gid, 1,
-	               (gid_t[1]) {user->pw_gid});
-	switch (rc) {
-		case OK:
-			break;
-		case ERR_SYS:
-			err(EXIT_FAILURE, "failed to set IDs or groups");
-		case ERR_PRIV:
-			errx(EXIT_FAILURE, "could resume privileges");
-		default:
-			errx(EXIT_FAILURE, "returned %u", rc);
-	}
+	rc = priv_drop(pwd->pw_uid, pwd->pw_gid, 1, (gid_t[1]) {pwd->pw_gid});
+       	switch (rc) {
+       		case OK:
+       			break;
+       		case ERR_SETGROUPS:
+       			error("setgroups %llu ...: %m.",
+       			      (long long unsigned) pwd->pw_gid);
+       		case ERR_SETGID:
+       			error("setgid %llu: %m.",
+       			      (long long unsigned) pwd->pw_gid);
+       		case ERR_SETUID:
+       			error("setuid %llu: %m.",
+       			      (long long unsigned) pwd->pw_uid);
+       		case FAIL:
+       			error("could resume superuser privileges.");
+       		default:
+       			error("returned %u.", rc);
+       	}
 
 	/* RATS: ignore */
 	(void) printf("euid=%llu egid=%llu ruid=%llu rgid=%llu\n",
-	              (unsigned long long) geteuid(),
-	              (unsigned long long) getegid(),
-	              (unsigned long long) getuid(),
-	              (unsigned long long) getgid());
+	              (long long unsigned) geteuid(),
+	              (long long unsigned) getegid(),
+	              (long long unsigned) getuid(),
+	              (long long unsigned) getgid());
 
 	return EXIT_SUCCESS;
 }

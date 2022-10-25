@@ -33,19 +33,18 @@ int
 main (int argc, char **argv)
 {
 	/* RATS: ignore */
-	char cur[STR_MAX];	/* Current directory. */
+	char cur[MAX_STR];	/* Current directory. */
 	const char *parent;	/* Parent directory. */
 	const char *fname;	/* Filename. */
 	long uid;		/* User ID. */
 	enum error rc;		/* Return code. */
 
-	errno = 0;
-
 	if (argc != 4) {
-		(void) fputs("usage: path_check_wexcl UID SUPER SUB\n", stderr);
+		(void) fputs("usage: path_check_wexcl UID DIR FILE\n", stderr);
 		return EXIT_FAILURE;
 	}
 
+	errno = 0;
 	uid = strtol(argv[1], NULL, 10);
 	if (errno != 0) {
 		err(EXIT_FAILURE, "strtol %s", argv[1]);
@@ -68,14 +67,17 @@ main (int argc, char **argv)
 	switch (rc) {
 		case OK:
 			break;
-		case ERR_SYS:
-			err(EXIT_FAILURE, "open %s", cur);
-		case ERR_PATH_WEXCL:
-		        errx(EXIT_FAILURE,
-			     "%s: writable by UIDs other than %ld",
-			     cur, uid);
+		case ERR_OPEN:
+			error("open %s: %m.", cur);
+		case ERR_CLOSE:
+			error("close %s: %m.", cur);
+		case ERR_STAT:
+			error("stat %s: %m.", cur);
+		case FAIL:
+		        error("%s is writable by user IDs other than %lu.",
+			      cur, uid);
 		default:
-			errx(EXIT_FAILURE, "unexpected return code %u.", rc);
+			error("returned %u.", rc);
 	}
 
 	(void) puts(cur);

@@ -59,23 +59,26 @@ main (int argc, char **argv)
 	int fd;			/* File descriptor. */
 	enum error rc;		/* Return code. */
 
-	errno = 0;
 	rc = file_safe_open(fname, flags, &fd);
 	switch (rc) {
 		case OK:
 			break;
-		case ERR_SYS:
+		case ERR_OPEN:
 			err(EXIT_FAILURE, "open %s", fname);
 		case ERR_CNV:
 			errx(EXIT_FAILURE, "conversion error");
 		default:
-			errx(EXIT_FAILURE, "unexpected return code %u.", rc);
+			errx(EXIT_FAILURE, "returned %u.", rc);
 	}
 
-	ssize_t n;		/* Bytes read. */
-	char buf[STR_MAX];	/* Buffer. */
 
-	while ((n = read(fd, &buf, STR_MAX)) > 0) {
+	/* RATS: ignore */
+	char buf[MAX_STR];	/* Buffer. */
+	ssize_t n;		/* Bytes read. */
+
+	/* RATS: ignore */
+	errno = 0;
+	while ((n = read(fd, &buf, MAX_STR)) > 0) {
 		(void) write(1, buf, (size_t) n);
 	}
 

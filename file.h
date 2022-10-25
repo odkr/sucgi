@@ -25,7 +25,7 @@
 #include <stdbool.h>
 #include <sys/stat.h>
 
-#include "defs.h"
+#include "macros.h"
 #include "error.h"
 
 
@@ -48,24 +48,12 @@ bool file_is_wexcl(const uid_t uid, const struct stat fstatus);
  * Return code:
  *      OK        Success.
  *      ERR_CNV*  File descriptor is too large (Linux only).
- *      ERR_SYS   System failure. errno(2) should be set.
+ *      ERR_OPEN  open(2)/openat2(2) failed.
  *
  *      Errors marked with an asterisk should be impossible.
  */
 __attribute__((nonnull(1, 3), warn_unused_result))
 enum error file_safe_open(const char *const fname,
                           const int flags, int *const fd);
-
-/*
- * Store FNAME's filesystem status in FSTATUS.
- * FNAME must not contain symbolic links.
- *
- * Return code:
- *      See file_safe_open.
- */
- __attribute__((nonnull(1, 2), warn_unused_result))
-enum error file_safe_stat(const char *const fname,
-                          struct stat *const fstatus);
-
 
 #endif /* !defined(FILE_H) */

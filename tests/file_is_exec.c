@@ -32,14 +32,13 @@ int
 main (int argc, char **argv)
 {
 	struct stat fstatus;
-
-	errno = 0;
-
+	
 	if (argc != 2) {
 		(void) fputs("usage: file_is_exec FNAME\n", stderr);
 		return EXIT_FAILURE;
 	}
 
+	errno = 0;
 	/* RATS: ignore */
 	if (stat(argv[1], &fstatus) != 0) {
 		err(EXIT_FAILURE, "stat %s", argv[1]);

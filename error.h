@@ -1,5 +1,5 @@
 /*
- * Header for err.c.
+ * Header for error.c.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -22,7 +22,7 @@
 #if !defined(ERROR_H)
 #define ERROR_H
 
-#include "defs.h"
+#include "macros.h"
 
 
 /*
@@ -42,23 +42,23 @@
  */
 
 enum error {
-	OK = 0,		        /* Success. */
-	ERR_SYS,		/* System error. errno should be set. */
-	ERR_CNV,		/* Value could not be converted. */
-	ERR_FTYPE,		/* Filetype is wrong. */
-	ERR_GIDS_LOGNAME,	/* Login name is too long. */
-	ERR_GIDS_MAX,	        /* User belongs to too many groups. */
-	ERR_PATH_OUT,		/* A file is outside of a given path. */
-	ERR_PATH_WEXCL,	        /* Path not exclusively writable by user. */
-	ERR_PRIV,		/* Privileges could be resumed. */
-	ERR_SCPT_NO_HDL,	/* No script handler registered. */
-	ERR_SCPT_NO_SFX,	/* Filename has no suffix. */
-	ERR_SCPT_ONLY_SFX,	/* Filename starts with a dot. */
-	ERR_STR_LEN,		/* String is too long. */
-	ERR_ENV_LEN,		/* Too long environment variable. */
-	ERR_ENV_MAL,		/* Malformed environment variable. */
-	ERR_ENV_MAX,		/* Too many environment variables. */
-	ERR_ENV_NIL		/* Unset or empty environment variable. */
+	OK = 0,		/* Success. */
+	FAIL,		/* Generic failure. */
+	ERR_CNV,	/* Conversion error. */
+	ERR_NIL,	/* No input. */
+	ERR_LEN,	/* Input is out-of-bounds. */
+	ERR_ILL,	/* Input is ill-formed. */
+	ERR_CALLOC,	/* calloc(3) failed. */
+	ERR_OPEN,	/* open(2)/openat2(2) failed. */
+	ERR_CLOSE,	/* close(2) failed. */
+	ERR_REALPATH,	/* realpath(3) failed. */
+	ERR_STAT,	/* stat(2) failed. */
+	ERR_GETENV,	/* getenv(3) failed. */
+	ERR_SETENV,	/* setenv(3) failed. */
+	ERR_GETGRENT,	/* getgrent(3) failed. */
+	ERR_SETUID,	/* setuid(2) failed. */
+	ERR_SETGID,	/* setgid(2) failed. */
+	ERR_SETGROUPS	/* setgroups(2) failed. */
 };
 
 

@@ -23,7 +23,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../error.h"
 #include "../str.h"
 
 
@@ -37,18 +36,27 @@ struct args {
 };
 
 /* A string just within limits. */
-char large[STR_MAX] = {0};	/* RATS: ignore */
+char long_str[MAX_STR] = {0};	/* RATS: ignore */
 
-/* A string that exceeds STR_MAX. */
-char huge[STR_MAX + 1U] = {0};	/* RATS: ignore */
+/* A string w/o a delimiter that exceeds MAX_STR. */
+char huge_str[MAX_STR + 1U] = {0};	/* RATS: ignore */
+
+/* A pair w/ a head that exceeds MAX_STR. */
+char huge_head[MAX_STR + 32U] = {0};	/* RATS: ignore */
+
+/* A pair w/ a tail that exceeds MAX_STR. */
+char huge_tail[MAX_STR + 32U] = {0};	/* RATS: ignore */
 
 /* Tests. */
 const struct args tests[] = {
 	/* Overly long string. */
-	{huge, ",", large, NULL, ERR_STR_LEN},
+	{huge_str, ",", long_str, NULL, ERR_LEN},
+	
+	/* Overly long head. */
+	{huge_head, ",", NULL, ",foo", ERR_LEN},
 
 	/* Barely fitting string. */
-	{large, ",", large, NULL, OK},
+	{long_str, ",", long_str, NULL, OK},
 
 	/* Simple test. */
 	{"a,b", ",", "a", "b", OK},
@@ -74,12 +82,14 @@ const struct args tests[] = {
 int
 main(void)
 {
-	(void) memset(huge, 'x', STR_MAX);
-	(void) memset(large, 'x', STR_MAX - 1U);
+	(void) memset(long_str, 'x', sizeof(long_str) - 1);
+	(void) memset(huge_str, 'x', sizeof(huge_str) - 1);
+	(void) memset(huge_head, 'x', sizeof(huge_head) - 1);
+	(void) strncpy(&huge_head[MAX_STR], ",foo", 5);
 
 	for (int i = 0; tests[i].s; i++) {
 		const struct args t = tests[i];
-		char head[STR_MAX];	/* RATS: ignore */
+		char head[MAX_STR];	/* RATS: ignore */
 		char *tail;
 		enum error rc;
 
@@ -91,13 +101,13 @@ main(void)
 		rc = str_split(t.s, t.sep, &head, &tail);
 
 		if (rc != t.rc) {
-			errx(EXIT_FAILURE, "unexpected return code %u", rc);
+			errx(EXIT_FAILURE, "returned %u", rc);
 		}
-		if (!(t.head == head || strcmp(t.head, head) == 0)) {
-			errx(EXIT_FAILURE, "unexpected head '%s'", head);
+		if (!(t.head == NULL || strcmp(t.head, head) == 0)) {
+			errx(EXIT_FAILURE, "got head '%s'", head);
 		}
 		if (!(t.tail == tail || strcmp(t.tail, tail) == 0)) {
-			errx(EXIT_FAILURE, "unexpected tail '%s'", tail);
+			errx(EXIT_FAILURE, "got tail '%s'", tail);
 		}
 	}
 

@@ -39,6 +39,7 @@
 #include <wordexp.h>
 
 #include "config.h"
+#include "macros.h"
 #include "env.h"
 #include "error.h"
 #include "file.h"
@@ -58,8 +59,8 @@
 #undef JAIL_DIR
 #define JAIL_DIR "/"
 
-#undef DOC_ROOT
-#define DOC_ROOT "$DOCUMENT_ROOT"
+#undef USER_DIR 
+#define USER_DIR "%2$s"
 
 #undef MIN_UID
 #define MIN_UID 500U
@@ -84,12 +85,24 @@
  */
 
 #if !defined(JAIL_DIR)
-#error JAIL_DIR has not been set.
+#error JAIL_DIR is undefined.
 #endif /* !defined(JAIL_DIR) */
 
-#if !defined(DOC_ROOT)
-#error DOC_ROOT has not been set.
-#endif /* !defined(DOC_ROOT) */
+#if !defined(USER_DIR)
+#error USER_DIR is undefined.
+#endif /* !defined(USER_DIR) */
+
+#if !defined(ENFORCE_HOME_DIR)
+#error ENFORCE_HOME_DIR is undefined.
+#endif /* !defined(ENFORCE_HOME_DIR) */
+
+#if !defined(MIN_UID)
+#error MIN_UID is undefined.
+#endif /* !defined(MIN_UID) */
+
+#if !defined(MAX_UID)
+#error MIN_UID is undefined.
+#endif /* !defined(MIN_UID) */
 
 #if MIN_UID <= 0 
 #error MIN_UID must be greater than 0.
@@ -98,6 +111,14 @@
 #if MAX_UID < MIN_UID
 #error MAX_UID is smaller than MIN_UID.
 #endif /* MAX_UID <= MIN_UID */
+
+#if !defined(MIN_GID)
+#error MIN_GID is undefined.
+#endif /* !defined(MIN_GID) */
+
+#if !defined(MAX_GID)
+#error MIN_GID is undefined.
+#endif /* !defined(MIN_GID) */
 
 #if MIN_GID <= 0
 #error MIN_GID must be greater than 0.
@@ -108,12 +129,12 @@
 #endif /* MAX_GID <= MIN_GID */
 
 #if !defined(PATH)
-#error PATH has not been set.
-#endif
+#error PATH is undefined.
+#endif /* !defined(PATH) */
 
 #if !defined(HANDLERS)
-#error HANDLERS has not been set.
-#endif
+#error HANDLERS is undefined.
+#endif /* !defined(HANDLERS) */
 
 
 /*
@@ -122,9 +143,16 @@
 
 int
 main(void) {
-	errno = 0;
+	/*
+	 * Check whether configuration strings are within bounds.
+	 */
+	
+	BUILD_BUG_ON(sizeof(JAIL_DIR) == 0);
+	BUILD_BUG_ON(sizeof(JAIL_DIR) >= MAX_STR);
+	BUILD_BUG_ON(sizeof(USER_DIR) == 0);
+	BUILD_BUG_ON(sizeof(USER_DIR) >= MAX_STR);
 
-
+	
 	/*
 	 * Words of wisdom from the authors of suEXEC:
 	 *
@@ -133,19 +161,18 @@ main(void) {
 	 * > info. Bad news if MALLOC_DEBUG_FILE is set to /etc/passwd.)
 	 */
 
-	/* RATS: ignore; env_clear respects ENV_MAX. */
-	const char *vars[ENV_MAX];	/* Backup of environ(2). */
+	/* RATS: ignore; env_clear respects MAX_ENV. */
+	const char *vars[MAX_ENV];	/* Backup of environ(2). */
 	enum error rc;			/* Return code. */
 
 	rc = env_clear(&vars);
 	switch (rc) {
 		case OK:
 			break;
-		case ERR_ENV_MAX:
+		case ERR_LEN:
 			error("too many environment variables.");
 		default:
-			error("%s:%d: env_clear returned %u.",
-			      __FILE__, __LINE__ - 7, rc);
+			error("env_clear returned %u.", rc);
 	}
 	
 	assert(!*environ);
@@ -155,21 +182,24 @@ main(void) {
 	 * Drop privileges temporarily.
 	 */
 
-	uid_t proc_ruid;		/* Process' real user ID. */
-	gid_t proc_rgid;		/* Process' real group ID. */
+	uid_t proc_uid;		/* Process' real user ID. */
+	gid_t proc_gid;		/* Process' real group ID. */
 
-	proc_ruid = getuid();
-	proc_rgid = getgid();
+	proc_uid = getuid();
+	proc_gid = getgid();
 
-	if (setegid(proc_rgid) != 0) {
-		error("setegid %llu: %m.", (unsigned long long) proc_rgid);
+	errno = 0;
+
+	if (setegid(proc_gid) != 0) {
+		error("setegid %llu: %m.", (long long unsigned) proc_gid);
 	}
-	if (seteuid(proc_ruid) != 0) {
-		error("seteuid %llu: %m.", (unsigned long long) proc_ruid);
+
+	if (seteuid(proc_uid) != 0) {
+		error("seteuid %llu: %m.", (long long unsigned) proc_uid);
 	}
 
-	assert(geteuid() == proc_ruid);
-	assert(getegid() == proc_rgid);
+	assert(geteuid() == proc_uid);
+	assert(getegid() == proc_gid);
 
 
 	/*
@@ -180,30 +210,26 @@ main(void) {
 	switch (rc) {
 		case OK:
 			break;
-		case ERR_SYS:
+		case ERR_SETENV:
 			error("setenv: %m.");
-		case ERR_ENV_MAL:
+		case ERR_ILL:
 			error("an environment variable is malformed.");
-		case ERR_ENV_LEN:
+		case ERR_LEN:
 			error("an environment variable is too long.");
 		default:
-			error("%s:%d: env_restore returned %u.",
-			      __FILE__, __LINE__ - 12, rc);
+			error("env_restore returned %u.", rc);
 	}
 
 
 	/*
-	 * Check whether $DOCUMENT_ROOT makes sense.
+	 * Get the document root.
 	 */
 
 	const char *jail_dir;		/* Jail directory. */
-	const char *doc_root;		/* $DOCUMENT_ROOT. */
+	const char *doc_root;		/* Document root. */
 	int doc_fd;			/* -- " -- file descriptor. */
 
-        if (strnlen(JAIL_DIR, STR_MAX) >= STR_MAX) {
-                error("path to jail directory is too long.");
-        }
-
+	errno = 0;
         /* RATS: ignore; this use of realpath should be safe. */
 	jail_dir = realpath(JAIL_DIR, NULL);
 	if (!jail_dir) {
@@ -212,9 +238,9 @@ main(void) {
 
 	assert(jail_dir);
 	assert(*jail_dir != '\0');
-        assert(strnlen(jail_dir, STR_MAX) < STR_MAX);
+        assert(strnlen(jail_dir, MAX_STR) < MAX_STR);
         /* RATS: ignore; this use of realpath should be safe. */
-	assert(strncmp(realpath(jail_dir, NULL), jail_dir, STR_MAX) == 0);
+	assert(strncmp(realpath(jail_dir, NULL), jail_dir, MAX_STR) == 0);
 
 	rc = env_file_open(jail_dir, "DOCUMENT_ROOT",
 	                   O_RDONLY | O_CLOEXEC | O_DIRECTORY,
@@ -222,145 +248,160 @@ main(void) {
 	switch (rc) {
 		case OK:
 			break;
-		case ERR_SYS:
-			error("open $DOCUMENT_ROOT: %m.");
-		case ERR_ENV_LEN:
-			error("$DOCUMENT_ROOT: path too long.");
-		case ERR_ENV_MAL:
-			error("$DOCUMENT_ROOT: not within %s.", JAIL_DIR);
-		case ERR_ENV_NIL:
-			error("$DOCUMENT_ROOT: unset or empty.");
+		case ERR_GETENV:
+			error("getenv DOCUMENT_ROOT: %m.");
+		case ERR_REALPATH:
+			error("realpath %s: %m.", doc_root);
+		case ERR_OPEN:
+			error("open %s: %m.", doc_root);
+		case ERR_LEN:
+			error("path to document root is too long.");
+		case ERR_ILL:
+			error("document root %s not within jail.", doc_root);
+		case ERR_NIL:
+			error("$DOCUMENT_ROOT is unset or empty.");
 		default:
-			error("%s:%d: env_file_open returned %u.",
-			      __FILE__, __LINE__ - 17, rc);
+			error("env_file_open returned %u.", rc);
+	}
+
+	if (close(doc_fd) != 0) {
+		error("close %s: %m.", doc_root);
 	}
 
 	assert(doc_root);
 	assert(*doc_root != '\0');
 	assert(doc_fd > -1);
-	assert(strnlen(doc_root, STR_MAX) < STR_MAX);
+	assert(strnlen(doc_root, MAX_STR) < MAX_STR);
         /* RATS: ignore; this use of realpath should be safe. */
-	assert(strncmp(realpath(doc_root, NULL), doc_root, STR_MAX) == 0);
-
-	if (close(doc_fd) != 0) {
-		error("close $DOCUMENT_ROOT: %m.");
-	}
+	assert(strncmp(realpath(doc_root, NULL), doc_root, MAX_STR) == 0);
 
 
 	/*
-	 * Check if $PATH_TRANSLATED makes sense.
+	 * Get the script.
 	 */
 
-	const char *path_trans;		/* $PATH_TRANSLATED. */
-	int path_fd;			/* -- " -- file descriptor. */
-	struct stat path_stat;		/* -- " -- filesystem metadata. */
+	const char *script;		/* Path to script. */
+	int script_fd;			/* -- " -- file descriptor. */
+	struct stat script_stat;	/* -- " -- filesystem metadata. */
 
 	rc = env_file_open(doc_root, "PATH_TRANSLATED", O_RDONLY | O_CLOEXEC,
-			   &path_trans, &path_fd);
-	switch (rc) {
-		case OK:
-			break;
-		case ERR_SYS:
-			error("open $PATH_TRANSLATED: %m.");
-		case ERR_ENV_LEN:
-			error("$PATH_TRANSLATED: path too long.");
-		case ERR_ENV_MAL:
-			error("$PATH_TRANSLATED: not within $DOCUMENT_ROOT.");
-		case ERR_ENV_NIL:
-			error("$PATH_TRANSLATED: unset or empty.");
-		default:
-			error("%s:%d: env_file_open returned %u.",
-			      __FILE__, __LINE__ - 17, rc);
-	}
+			   &script, &script_fd);
+   	switch (rc) {
+   		case OK:
+   			break;
+   		case ERR_GETENV:
+   			error("getenv PATH_TRANSLATED: %m.");
+   		case ERR_REALPATH:
+   			error("realpath %s: %m.", script);
+   		case ERR_OPEN:
+   			error("open %s: %m.", script);
+   		case ERR_LEN:
+   			error("path to script is too long.");
+   		case ERR_ILL:
+   			error("script %s not within document root.", script);
+   		case ERR_NIL:
+   			error("$PATH_TRANSLATED is unset or empty.");
+   		default:
+   			error("env_file_open returned %u.", rc);
+   	}
 
-	assert(path_trans);
-	assert(*path_trans != '\0');
-	assert(strnlen(path_trans, STR_MAX) < STR_MAX);
+	assert(script);
+	assert(*script != '\0');
+	assert(strnlen(script, MAX_STR) < MAX_STR);
         /* RATS: ignore; this use of realpath should be safe. */
-	assert(strncmp(realpath(path_trans, NULL), path_trans, STR_MAX) == 0);
-	
-	if (fstat(path_fd, &path_stat) != 0) {
-		error("stat $PATH_TRANSLATED: %m.");
+	assert(strncmp(realpath(script, NULL), script, MAX_STR) == 0);
+
+	errno = 0;
+	if (fstat(script_fd, &script_stat) != 0) {
+		error("stat %s: %m.", script);
 	}
-	if (!(path_stat.st_mode & S_IFREG)) {
-		error("$PATH_TRANSLATED: not a regular file.");
+	if (!(script_stat.st_mode & S_IFREG)) {
+		error("script %s is not a regular file.", script);
 	}
 
 
 	/*
-	 * Check if $PATH_TRANSLATED is owned by a regular user.
+	 * Check if the script is owned by a regular user.
 	 */
 
-	struct passwd *owner;		/* $PATH_TRANSLATED's owner. */
-	gid_t gids[NGROUPS_MAX];	/* Groups they are a member of. */
-	int ngids;			/* Number of those groups. */
+	struct passwd *owner;		/* The script's owner. */
+	gid_t owner_gids[MAX_GROUPS];	/* Groups they are a member of. */
+	int owner_ngids;		/* Number of those groups. */
 
-	if (path_stat.st_uid < MIN_UID || path_stat.st_uid > MAX_UID) {
-		error("%s: owned by privileged UID %llu.",
-		      path_trans, (unsigned long long) path_stat.st_uid);
-	}
-
-	owner = getpwuid(path_stat.st_uid);
+	errno = 0;
+	owner = getpwuid(script_stat.st_uid);
 	if (!owner) {
 		if (errno == 0) {
-			error("getpwuid %llu: no such user.",
-			      (unsigned long long) path_stat.st_uid);
+			error("user ID %llu has not been allocated.",
+			      (long long unsigned) script_stat.st_uid);
 		} else {
 			error("getpwuid %llu: %m.",
-			      (unsigned long long) path_stat.st_uid);
+			      (long long unsigned) script_stat.st_uid);
 		}
 	}
 
-	/* Paranoia is a virtue. */
-	if (path_stat.st_uid != owner->pw_uid) {
-		error("getpwuid %llu: returned wrong user %s.",
-		      (unsigned long long) path_stat.st_uid, owner->pw_name);
+	assert(owner->pw_uid == script_stat.st_uid);
+
+	if (owner->pw_uid < MIN_UID || owner->pw_uid > MAX_UID) {
+		error("script %s is owned by privileged user %s.",
+		      script, owner->pw_name);
 	}
 
-	rc = gids_get_list(owner->pw_name, owner->pw_gid, &gids, &ngids);
+	rc = gids_get_list(owner->pw_name, owner->pw_gid,
+	                   &owner_gids, &owner_ngids);
 	switch (rc) {
 		case OK:
 			break;
-		case ERR_SYS:
+		case ERR_GETGRENT:
 			error("getgrent: %m.");
-		case ERR_GIDS_MAX:
-			error("%s: in too many groups.", owner->pw_name);
+		case ERR_LEN:
+			error("user %s belongs to too many groups.",
+			      owner->pw_name);
 		default:
-			error("%s:%d: gids_get_list returned %u.",
-			      __FILE__, __LINE__ - 11, rc);
+			error("gids_get_list returned %u.", rc);
 	}
 
-	assert(ngids > 0);
+	assert(owner_ngids > 0);
 
-	for (int i = 0; i < ngids; i++) {
-		const gid_t gid = gids[i];
+	for (int i = 0; i < owner_ngids; i++) {
+		const gid_t gid = owner_gids[i];
 
 		if (gid < MIN_GID || gid > MAX_GID) {
-			error("%s: member of privileged group %llu.",
-			      owner->pw_name, (unsigned long long) gid);
+			error("user %s belongs to privileged group %llu.",
+			      owner->pw_name, (long long unsigned) gid);
 		}
 	}
+
+	assert(owner->pw_gid > MIN_GID);
+	assert(owner->pw_gid < MAX_GID);	
 
 
 	/*
 	 * Drop privileges for good.
 	 */
 
+	errno = 0;
 	if (seteuid(0) != 0) {
 		error("seteuid 0: %m.");
 	}
 
-	rc = priv_drop(owner->pw_uid, owner->pw_gid, ngids, gids);
+	rc = priv_drop(owner->pw_uid, owner->pw_gid, owner_ngids, owner_gids);
 	switch (rc) {
 		case OK:
 			break;
-		case ERR_SYS:
-			error("set id: %m.");
-		case ERR_PRIV:
-			error("could resume privileges.");
+		case ERR_SETGROUPS:
+			error("setgroups %llu ...: %m.",
+			      (long long unsigned) owner->pw_gid);
+		case ERR_SETGID:
+			error("setgid %llu: %m.",
+			      (long long unsigned) owner->pw_gid);
+		case ERR_SETUID:
+			error("setuid %llu: %m.",
+			      (long long unsigned) owner->pw_uid);
+		case FAIL:
+			error("could resume superuser privileges.");
 		default:
-			error("%s:%d: priv_drop returned %u.",
-			      __FILE__, __LINE__ - 11, rc);
+			error("priv_drop returned %u.", rc);
 	}
 
 	assert(geteuid() == owner->pw_uid);
@@ -372,6 +413,8 @@ main(void) {
 	/*
 	 * Set up a safer environment.
 	 */
+
+	errno = 0;
 
 	if (setenv("DOCUMENT_ROOT", doc_root, true) != 0) {
 		error("setenv DOCUMENT_ROOT: %m.");
@@ -385,7 +428,7 @@ main(void) {
 		error("setenv PATH: %m.");
 	}
 
-	if (setenv("PATH_TRANSLATED", path_trans, true) != 0) {
+	if (setenv("PATH_TRANSLATED", script, true) != 0) {
 		error("setenv PATH_TRANSLATED: %m.");
 	}
 
@@ -402,66 +445,56 @@ main(void) {
 
 
 	/*
-	 * Guard against system operators making a mistake like:
+	 * Verify the document root.
+	 *
+	 * This guards against system operators making a mistake like:
 	 *
 	 *	cd /home/ismith/public_html/wp-plugins
 	 *	cp -a /home/doe/public_html/wp-plugins/acme ./acme
 	 *	chown -R jsmith:jsmith acme
 	 *
-	 * Also a second line of defence against a user
-	 * breaking out of their home directory.
+	 * It also makes sure that users cannot break out of their directory.
 	 */
 
+	char user_dir[MAX_STR];		/* The user directory. */
+
+#if ENFORCE_HOME_DIR
 	if (!path_contains(owner->pw_dir, doc_root)) {
-		error("$DOCUMENT_ROOT: not within %s.", owner->pw_dir);
+		error("document root %s is not within %s's home directory.",
+		      doc_root, owner->pw_name);
 	}
+#endif /* ENFORCE_HOME_DIR */
 
-
-	/*
-	 * Verify $DOCUMENT_ROOT.
-	 * FIXME: Not unit-tested.
-	 */
-
-	wordexp_t doc_exp;		/* Expected $DOCUMENT_ROOT. */
-	int wordexp_rc;			/* wordexp return code. */
-
-	wordexp_rc = wordexp((const char *) {DOC_ROOT},
-	                     &doc_exp, WRDE_NOCMD | WRDE_UNDEF);
-	switch (wordexp_rc) {
-		case 0:
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat"
+#pragma GCC diagnostic ignored "-Wformat-extra-args"
+	rc = path_check_format(doc_root, &user_dir, USER_DIR,
+	                       owner->pw_dir, owner->pw_name);
+#pragma GCC diagnostic pop
+	switch (rc) {
+		case OK:
 			break;
-		case WRDE_BADCHAR:
-			error("%s: unquoted meta-character.", DOC_ROOT);
-		case WRDE_BADVAL:
-			error("%s: refers to undefined variable.", DOC_ROOT);
-		case WRDE_CMDSUB:
-      			error("%s: command substitution.", DOC_ROOT);
-		case WRDE_NOSPACE:
-			error("%s: not enough memory to expand.", DOC_ROOT);
-		case WRDE_SYNTAX:
-			error("%s: syntax error.", DOC_ROOT);
+		case ERR_REALPATH:
+			error("realpath %s: %m.", user_dir);
+		case ERR_LEN:
+			error("expanded user directory is too long.");
+		case FAIL:
+			error("document root %s is not %s's user directory.",
+			      doc_root, owner->pw_name);
 		default:
-			error("%s:%d: wordexp returned %d.",
-			      __FILE__, __LINE__ - 8, wordexp_rc);
-	}
-
-	if (doc_exp.we_wordc < 1) {
-		error("%s: failed to shell-expand.", DOC_ROOT);
-	}	
-	if (strncmp(doc_exp.we_wordv[0], doc_root, STR_MAX) != 0) {
-		error("$DOCUMENT_ROOT: not %s.", doc_exp.we_wordv[0]);
+			error("path_check_format returned %u.", rc);
 	}
 
 
 	/*
 	 * There should be no need to run hidden files or a files that reside
-	 * in hidden directories. So if $PATH_TRANSLATED does contain a hidden
-	 * file or directory, this probably indicates a configuration error.
+	 * in hidden directories. So if the path to the script does refer to
+	 * a hidden file, this probably indicates a configuration error.
 	 */
 
-	/* path_trans is guaranteed to be canonical. */
-	if (strstr(path_trans, "/.")) {
-		error("%s: path contains hidden files.", path_trans);
+	/* script is guaranteed to be canonical. */
+	if (strstr(script, "/.")) {
+		error("path %s refers to hidden files.", script);
 	}
 
 
@@ -472,11 +505,11 @@ main(void) {
 	 * set, this probably indicates a configuration error.
 	 */
 
-	if (path_stat.st_mode & S_ISUID) {
-		error("%s: set-user-ID on execute bit set.", path_trans);
+	if (script_stat.st_mode & S_ISUID) {
+		error("script %s's set-user-ID bit is set.", script);
 	}
-	if (path_stat.st_mode & S_ISGID) {
-		error("%s: set-group-ID on execute bit set.", path_trans);
+	if (script_stat.st_mode & S_ISGID) {
+		error("script %s's set-group-ID bit is set.", script);
 	}
 
 
@@ -490,62 +523,67 @@ main(void) {
 	 * owned by the same UID, namely, owner->pw_uid.
 	 */
 
-	/* RATS: ignore; path_check_wexcl respects STR_MAX. */
-	char path_cur[STR_MAX];		/* Sub-path of $PATH_TRANSLATED. */
+	/* RATS: ignore; path_check_wexcl respects MAX_STR. */
+	char path_cur[MAX_STR];		/* Current sub-path of script path. */
 
-	rc = path_check_wexcl(owner->pw_uid, owner->pw_dir,
-	                      path_trans, &path_cur);
+#if ENFORCE_HOME_DIR
+	rc = path_check_wexcl(owner->pw_uid, owner->pw_dir, script, &path_cur);
+#else /* ENFORCE_HOME_DIR */
+	rc = path_check_wexcl(owner->pw_uid, doc_root, script, &path_cur);
+#endif /*ENFORCE_HOME_DIR */
+
 	switch (rc) {
 		case OK:
 			break;
-		case ERR_SYS:
+		case ERR_OPEN:
 			error("open %s: %m.", path_cur);
-		case ERR_PATH_WEXCL:
-		        error("%s: writable by users other than %s.",
+		case ERR_CLOSE:
+			error("close %s: %m.", path_cur);
+		case ERR_STAT:
+			error("stat %s: %m.", path_cur);
+		case FAIL:
+		        error("%s is writable by users other than %s.",
 			      path_cur, owner->pw_name);
 		default:
-			error("%s:%d: path_check_wexcl returned %u.",
-			      __FILE__, __LINE__ - 11, rc);
+			error("path_check_wexcl returned %u.", rc);
 	}
 
 
 	/*
-	 * Run the programme.
+	 * Run the script.
 	 */
 
+	const char *handler;	/* Script interpreter. */
 
-	if (!file_is_exec(path_stat)) {
-		const char *handler;	/* Handler for $PATH_TRANSLATED. */
-
-		rc = scpt_get_handler((const struct scpt_ent []) HANDLERS,
-		                      path_trans, &handler);
-		switch (rc) {
-			case OK:
-				break;
-			case ERR_SCPT_NO_HDL:
-				error("%s: no handler registered.",
-				      path_trans);
-			case ERR_SCPT_NO_SFX:
-				error("%s: has no filename suffix.",
-				      path_trans);
-			default:
-				error("%s:%d: scpt_get_handler returned %u.",
-				      __FILE__, __LINE__ - 7, rc);
-		}
-
-		assert(handler);
-		assert(*handler != '\0');
-
+	if (file_is_exec(script_stat)) {
+		errno = 0;
 		/* RATS: ignore; suCGI's point is to do this safely. */
-		(void) execlp(handler, handler, path_trans, NULL);
+		(void) execl(script, script, NULL);
 
 		/* If this point is reached, execution has failed. */
-		error("exec %s %s: %m.", handler, path_trans);
+		error("exec %s: %m.", script);
 	}
 
+	rc = scpt_get_handler((const struct scpt_ent []) HANDLERS,
+	                      script, &handler);
+	switch (rc) {
+		case OK:
+			break;
+		case ERR_ILL:
+			error("%s has no filename suffix.", script);
+		case FAIL:
+			error("found no handler for %s.", script);
+		default:
+			error("scpt_get_handler returned %u.", rc);
+	}
+
+	assert(handler);
+	assert(*handler != '\0');
+
+	errno = 0;
 	/* RATS: ignore; suCGI's point is to do this safely. */
-	(void) execl(path_trans, path_trans, NULL);
+	(void) execlp(handler, handler, script, NULL);
 
 	/* If this point is reached, execution has failed. */
-	error("exec %s: %m.", path_trans);
+	error("exec %s %s: %m.", handler, script);
 }

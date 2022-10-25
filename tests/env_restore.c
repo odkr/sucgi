@@ -26,7 +26,6 @@
 #include <string.h>
 
 #include "../env.h"
-#include "../error.h"
 #include "../str.h"
 
 
@@ -44,9 +43,9 @@
 
 /* Test case. */
 struct args {
-	char *env[ENV_MAX];			/* RATS: ignore */
-	const char *patterns[ENV_MAX];		/* RATS: ignore */
-	const char *clean[ENV_MAX];		/* RATS: ignore */
+	char *env[MAX_ENV];			/* RATS: ignore */
+	const char *patterns[MAX_ENV];		/* RATS: ignore */
+	const char *clean[MAX_ENV];		/* RATS: ignore */
 	const enum error rc;
 };
 
@@ -55,24 +54,27 @@ struct args {
  * Globals
  */
 
-/* String that is longer than STR_MAX. */
-char huge[STR_MAX + 1U] = {0};	/* RATS: ignore */
+/* String that is as long as MAX_STR. */
+char long_var[MAX_STR] = {0}; 		/*RATS: ignore */
+
+/* String that is longer than MAX_STR. */
+char huge_var[MAX_STR + 1U] = {0};	/* RATS: ignore */
 
 /* Tests. */
 struct args tests[] = {
 	/* Errors. */
-	{{huge, NULL}, EMPTY, EMPTY, ERR_ENV_LEN},
-	{{"", NULL}, EMPTY, EMPTY, ERR_ENV_MAL},
-	{{"foo", NULL}, EMPTY, EMPTY, ERR_ENV_MAL},
-	{{"=foo", NULL}, EMPTY, EMPTY, ERR_ENV_MAL},
+	{{huge_var, NULL}, EMPTY, EMPTY, ERR_LEN},
+	{{"", NULL}, EMPTY, EMPTY, ERR_ILL},
+	{{"foo", NULL}, EMPTY, EMPTY, ERR_ILL},
+	{{"=foo", NULL}, EMPTY, EMPTY, ERR_ILL},
 
 	/* Other illegal names. */
-	{{" foo=foo", NULL}, EMPTY, EMPTY, ERR_ENV_MAL},
-	{{"1foo=foo", NULL}, EMPTY, EMPTY, ERR_ENV_MAL},
-	{{"*=foo", NULL}, EMPTY, EMPTY, ERR_ENV_MAL},
-	{{"FOO =foo", NULL}, EMPTY, EMPTY, ERR_ENV_MAL},
-	{{"$(foo)=foo", NULL}, EMPTY, EMPTY, ERR_ENV_MAL},
-	{{"`foo`=foo", NULL}, EMPTY, EMPTY, ERR_ENV_MAL},
+	{{" foo=foo", NULL}, EMPTY, EMPTY, ERR_ILL},
+	{{"1foo=foo", NULL}, EMPTY, EMPTY, ERR_ILL},
+	{{"*=foo", NULL}, EMPTY, EMPTY, ERR_ILL},
+	{{"FOO =foo", NULL}, EMPTY, EMPTY, ERR_ILL},
+	{{"$(foo)=foo", NULL}, EMPTY, EMPTY, ERR_ILL},
+	{{"`foo`=foo", NULL}, EMPTY, EMPTY, ERR_ILL},
 
 	/* Simple tests. */
 	{{"foo=bar", NULL}, {"foo", NULL}, {"foo=bar", NULL}, OK},
@@ -83,7 +85,8 @@ struct args tests[] = {
 	 {"foo=foo", "bar=bar", "baz=baz", NULL}, OK},
 	{{"foo=foo", "bar=bar", "baz=baz", NULL}, {"f*", NULL},
 	 {"foo=foo", "bar", "baz", NULL}, OK},
-	
+	{{long_var, NULL}, {"foo", NULL}, {long_var, NULL}, OK},
+
 	/* Odd but legal values. */
 	{{"empty=", "assign==", "space= ", "tab=\t", "lf=\n", NULL},
 	 {"*", NULL},
@@ -100,7 +103,7 @@ struct args tests[] = {
 
 static enum error
 env_init(/* RATS: ignore */
-	 char *const vars[ENV_MAX])
+	 char *const vars[MAX_ENV])
 {
 	size_t n = 0;
 
@@ -110,7 +113,7 @@ env_init(/* RATS: ignore */
 
 	environ = calloc(n + 1U, sizeof(char *));
 	if (!environ) {
-		return ERR_SYS;
+		return ERR_CALLOC;
 	}
 	
 	for (size_t i = 0; i < n; i++) {
@@ -127,12 +130,13 @@ env_init(/* RATS: ignore */
 
 int
 main (void) {
-	(void) memset((void *) huge, 'x', STR_MAX);
-	huge[STR_MAX] = '0';
+	(void) memset((void *) long_var, 'x', MAX_STR - 1U);
+	(void) str_cp(4, "foo=", long_var);
+	(void) memset((void *) huge_var, 'x', MAX_STR);
 
 	for (int i = 0; tests[i].env[0]; i++) {
 		const struct args t = tests[i];
-		const char *vars[ENV_MAX];	/* RATS: ignore */
+		const char *vars[MAX_ENV];	/* RATS: ignore */
 		enum error rc;
 
 		warnx("performing test # %d ...", i + 1);
@@ -154,7 +158,7 @@ main (void) {
 		for (int j = 0; t.clean[j]; j++) {
 			const char *var = t.clean[j];
 			const char *val;
-			char name[STR_MAX];	/* RATS: ignore */
+			char name[MAX_STR];	/* RATS: ignore */
 			char *exp;
 
 			if (str_split(var, "=", &name, &exp) != OK) {

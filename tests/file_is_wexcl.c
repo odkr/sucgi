@@ -27,7 +27,6 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 
-#include "../error.h"
 #include "../file.h"
 
 int
@@ -37,13 +36,12 @@ main (int argc, char **argv)
 	const char *fname;
 	long uid;
 
-	errno = 0;
-
 	if (argc != 3) {
 		(void) fputs("usage: file_is_wexcl UID FNAME\n", stderr);
 		return EXIT_FAILURE;
 	}
 
+	errno = 0;
 	uid = strtol(argv[1], NULL, 10);
 	if (errno != 0) {
 		err(EXIT_FAILURE, "strtol %s", argv[1]);
@@ -60,6 +58,7 @@ main (int argc, char **argv)
 	}
 
 	fname = argv[2];
+	errno = 0;
 	/* RATS: ignore */
 	if (stat(fname, &fstatus) != 0) {
 		errx(EXIT_FAILURE, "stat %s", fname);
@@ -68,5 +67,6 @@ main (int argc, char **argv)
 	if (file_is_wexcl((uid_t) uid, fstatus)) {
 		return EXIT_SUCCESS;
 	}
+
 	return EXIT_FAILURE;
 }

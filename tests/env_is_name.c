@@ -68,7 +68,7 @@ main (void)
 		const struct args t = tests[i];
 		bool ret;
 
-		warnx("checking (%s) -> %s ...",
+		warnx("checking '%s' -> %s ...",
 		      t.name, (t.ret) ? "valid" : "invalid");
 
 		ret = env_is_name(t.name);
@@ -81,7 +81,7 @@ main (void)
 	for (int i = 0; env_vars_safe[i]; i++) {
 		const char *var = env_vars_safe[i];
 
-		if (var[strspn(var, ENV_VAR_CHARS)] == '\0') {
+		if (var[strspn(var, ENV_NAME_CHARS)] == '\0') {
 			warnx("checking (%s) -> valid ...", var);
 
 			if (!env_is_name(var)) {

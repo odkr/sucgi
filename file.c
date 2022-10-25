@@ -36,6 +36,7 @@
 #endif /* defined(__linux__) */
 
 #include <assert.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <libgen.h>
 #include <limits.h>
@@ -102,9 +103,10 @@ file_safe_open(const char *const fname, const int flags, int *const fd)
 	how.flags = (uint64_t) flags;
 	how.resolve = RESOLVE_NO_SYMLINKS | RESOLVE_NO_MAGICLINKS;
 
+	errno = 0;
 	rc = syscall(__NR_openat2, AT_FDCWD, fname, &how, sizeof(how));
 	if (rc < 0) {
-		return ERR_SYS;
+		return ERR_OPEN;
 	}
 	if (rc > INT_MAX) {
 		return ERR_CNV;
@@ -120,10 +122,11 @@ file_safe_open(const char *const fname, const int flags, int *const fd)
 {
 	assert(*fname != '\0');
 
+	errno = 0;
 	/* RATS: ignore; see above. */
 	*fd = open(fname, flags | O_NOFOLLOW_ANY);
 	if (*fd < 0) {
-		return ERR_SYS;
+		return ERR_OPEN;
 	}
 
 	return OK;
@@ -133,21 +136,3 @@ file_safe_open(const char *const fname, const int flags, int *const fd)
 #error "suCGI requires openat2 or O_NOFOLLOW_ANY."
 #endif /* defined(__NR_openat2) ...
           defined(O_NOFOLLOW_ANY) */
-
-
-enum error
-file_safe_stat(const char *const fname, struct stat *const fstatus)
-{
-	int fd;		/* File descriptor. */
-	int rc;		/* Return code. */
-
-	assert(*fname != '\0');
-
-	try(file_safe_open(fname, O_RDONLY | O_CLOEXEC, &fd));
-	rc = fstat(fd, fstatus);		
-	if ((close(fd) != 0) || (rc != 0)) {
-		return ERR_SYS;
-	}
-
-	return OK;
-}

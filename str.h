@@ -25,7 +25,8 @@
 #include <limits.h>
 #include <stdbool.h>
 
-#include "defs.h"
+#include "config.h"
+#include "macros.h"
 #include "error.h"
 
 
@@ -34,15 +35,13 @@
  */
 
 /*  Maximum length of strings in bytes, including the terminating NUL. */
-#if defined(PATH_MAX) && PATH_MAX > -1
-#if PATH_MAX <= 2048
-#define STR_MAX PATH_MAX
-#else /* PATH_MAX <= 2048 */
-#define STR_MAX 2048U
-#endif /* PATH_MAX <= 2048 */
-#else /* defined(PATH_MAX) && PATH_MAX > -1 */
-#define STR_MAX 1024U
-#endif /* defined(PATH_MAX) && PATH_MAX > -1 */
+#if !defined(MAX_STR)
+#define MAX_STR 1024
+#endif /* !defined(MAX_STR) */
+
+#if PATH_MAX > -1 && MAX_STR > PATH_MAX
+#error MAX_STR is greater than PATH_MAX.
+#endif
 
 
 /*
@@ -50,31 +49,33 @@
  */
 
 /*
- * Copy N bytes from string SRC to DEST, which will always be NUL-terminated.
- * DEST must be large enough to hold N + 1 bytes.
+ * Copy LEN bytes from string SRC to DEST, which will be NUL-terminated.
+ * DEST must be large enough to hold LEN + 1 bytes.
  *
  * Return code:
- *      OK           Success.
- *      ERR_STR_LEN  SRC was truncated.
+ *      OK       Success.
+ *      ERR_LEN  SRC was truncated.
  */
 __attribute((nonnull(2, 3)))
-enum error str_cp(const size_t n, const char *const src,
+enum error str_cp(const size_t len, const char *const src,
                   /* RATS: ignore; must be checked by developers. */
-                  char dest[n + 1U]);
+                  char dest[len + 1U]);
 
 /*
  * Split S at the first occurence of any character in SEP and store a copy of
  * the substring up to, but not including, that character in HEAD and a
  * pointer to the substring starting after that character in TAIL.
  *
+ * HEAD and TAIL are meaningless if an error occurs.
+ *
  * Return code:
- *      OK           Success.
- *      ERR_STR_LEN  S is too long.
+ *      OK       Success.
+ *      ERR_LEN  S is too long.
  */
 __attribute__((nonnull(1, 2, 3, 4), warn_unused_result))
 enum error str_split(const char *const s, const char *const sep,
-                     /* RATS: ignore; str_split respects STR_MAX. */
-                     char (*const head)[STR_MAX], char **const tail);
+                     /* RATS: ignore; str_split respects MAX_STR. */
+                     char (*const head)[MAX_STR], char **const tail);
 
 
 #endif /* !defined(STR_H) */
