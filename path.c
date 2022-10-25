@@ -120,11 +120,17 @@ path_check_wexcl(const uid_t uid, const char *const par,
 		int fd;			/* Current file. */
 		int rc;			/* Return code. */
 
-		/* 
-		 * Move to the next path separator,
-		 * but do not skip the root directory.
+		/*
+		 * Move the pointer to the end of the current filename,
+		 * which is either right after the leading "/" or the
+		 * position of the next "/", depending on whether the
+		 * current filename is "/".
+		 *
+		 * (*p == '/') tests whether the current path is "/".
+		 * *p can only point to a "/" if p still equals fname
+		 * (note the p += strspn(p, "/") at the end of the loop).
 		 */
-		p += (p == fname && *fname == '/') ? 1U : strcspn(p, "/");
+		p += (*p == '/') ? 1U : strcspn(p, "/");
 		len = (size_t) (p - fname);
 		if (len >= MAX_STR) {
 			return ERR_LEN;
@@ -168,7 +174,7 @@ path_contains(const char *const par, const char *const fname)
 		return false;
 	}
 
-	/* The root directory contains any absolute path, save for itself. */
+	/* The root directory contains any other absolute path. */
 	if (strncmp(par, "/", 2) == 0 && *fname == '/') {
 		return true;
 	}
@@ -188,5 +194,4 @@ path_contains(const char *const par, const char *const fname)
 
 	/* Check if fname resides in par. */
 	return fname[len] == '/' && strncmp(par, fname, len) == 0;
-
 }
