@@ -81,21 +81,23 @@ checkok() (
 cleanup() {
 	rc=$?
 	set +e
-	trap : EXIT HUP INT TERM
+	trap : EXIT HUP INT QUIT TERM
 	# shellcheck disable=2046
 	kill -15 $(jobs -p) -$$ >/dev/null 2>&1
-	[ "${cleanup-}" ] && eval "$cleanup"
+	[ "${cleanup-}" ] && [ "$rc" -ne 131 ] && eval "$cleanup"
 	[ "${rst-}" ] && printf %s "$rst" >&2
 	exit "$rc"
 }
 
 # Register signals, set variables, a umask, and enable colours.
 init() {
-	trap cleanup EXIT;
-	trap 'catch 1' HUP;
-	trap 'catch 2' INT;
-	trap 'catch 15' TERM;
-	catch=x
+	catch=x caught=
+	trap 'catch 1' HUP
+	trap 'catch 2' INT
+	trap 'catch 3' QUIT
+	trap 'catch 15' TERM
+	trap cleanup EXIT
+	[ "$caught" ] && exit "$((caught + 128))"
 
 	umask 077
 
