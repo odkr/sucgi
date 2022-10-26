@@ -254,7 +254,13 @@ regularuser() (
 		cur_user=
 		while read -r pid ppid user
 		do
-			[ "$pid" -eq "$pivot" ]	|| continue
+			if [ "$pid" -le 1 ]
+			then
+				break 2
+			elif [ "$pid" -eq "$pivot" ]
+			then
+				continue
+			fi
 
 			if	[ "$user" != "$cur_user" ] &&
 				! uid="$(id -u "$user")"
