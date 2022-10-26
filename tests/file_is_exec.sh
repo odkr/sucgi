@@ -105,41 +105,41 @@ unalloc_gid="$(unallocid -g 1000 30000)"
 
 chown "$unalloc_uid:$unalloc_gid" "$fname"
 
-warn "checking ${bld-}o=${$rst-} with" \
+warn "checking ${bld-}o=${rst-} with" \
      "owner ${bld-}$unalloc_uid${rst-} and" \
      "group ${bld-}$unalloc_gid${rst-} ..."
 chmod o= "$fname"
 file_is_exec "$fname" && err "reported as executable."
 
-warn "checking ${bld-}o=x${$rst-} with" \
+warn "checking ${bld-}o=x${rst-} with" \
      "owner ${bld-}$unalloc_uid${rst-} and" \
      "group ${bld-}$unalloc_gid${rst-} ..."
 chmod o=x "$fname"
 file_is_exec "$fname" || err "not reported as executable."
 
-warn "checking ${bld-}o=x${$rst-} with" \
+warn "checking ${bld-}o=x${rst-} with" \
      "owner ${bld-}$euid${rst-} and group ${bld-}$unalloc_gid${rst-} ..."
 chown "$euid" "$fname"
 chmod u=x,go= "$fname"
 file_is_exec "$fname" || err "reported as not executable."
 
-warn "checking ${bld-}u=x${$rst-} with" \
+warn "checking ${bld-}u=x${rst-} with" \
      "owner ${bld-}$unalloc_uid${rst-} and group ${bld-}$egid${rst-} ..."
 chown "$unalloc_uid:$egid" "$fname"
 file_is_exec "$fname" && err "reported as executable."
 
-warn "checking ${bld-}g=x${$rst-} with" \
+warn "checking ${bld-}g=x${rst-} with" \
      "owner ${bld-}$euid${rst-} and group ${bld-}$unalloc_gid${rst-} ..."
 chown "$euid:$unalloc_gid" "$fname"
 chmod uo=,g=x "$fname"
 file_is_exec "$fname" && err "reported as executable."
 
-warn "checking ${bld-}g=x${$rst-} with" \
+warn "checking ${bld-}g=x${rst-} with" \
      "owner ${bld-}$unalloc_uid${rst-} and group ${bld-}$egid${rst-} ..."
 chown "$unalloc_uid:$egid" "$fname"
 file_is_exec "$fname" || err "reported as not executable."
 
-warn "checking ${bld-}g=x${$rst-} with" \
+warn "checking ${bld-}g=x${rst-} with" \
      "owner ${bld-}$euid${rst-} and group ${bld-}$egid${rst-} ..."
 chown "$euid:$egid" "$fname"
 file_is_exec "$fname" && err "reported as executable."
