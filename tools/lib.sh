@@ -44,7 +44,7 @@ _err() {
 catch() {
 	signo="${1:?}"
 	sig="$(kill -l "$signo")" || sig="signal no. $signo"
-	warn "caught ${bld-}$sig${rst-}."
+	_warn "caught ${bld-}$sig${rst-}."
 	[ "${catch-}" ] && exit "$((signo + 128))"
 	# shellcheck disable=2034
 	caught="$signo"
@@ -56,13 +56,13 @@ checkerr() (
 	shift
 	: "${@:?no command given}"
 	pipe="${TMPDIR-/tmp}/checkerr-$$.fifo" rc=0
-	warn "checking ${bld-}$*${rst-} ..."
+	_warn "checking ${bld-}$*${rst-} ..."
 	mkfifo -m 0700 "$pipe"
 	env "$@" >/dev/null 2>"$pipe" & env_pid=$!
 	match "$err" <"$pipe" & match_pid=$!
 	wait $env_pid && {
 		# shellcheck disable=2154
-		warn -r "${bld-}$*${rst_r-} exited with status 0."
+		_warn -r "${bld-}$*${rst_r-} exited with status 0."
 		rc=1
 	}
 	wait $match_pid	|| rc=$?
@@ -76,13 +76,13 @@ checkok() (
 	shift
 	: "${@:?no command given}"
 	pipe="${TMPDIR-/tmp}/checkok-$$.fifo" rc=0
-	warn "checking ${bld-}$*${rst-} ..."
+	_warn "checking ${bld-}$*${rst-} ..."
 	mkfifo -m 0700 "$pipe"
 	env "$@" >"$pipe" 2>&1 & env_pid=$!
 	match "$msg" <"$pipe" & match_pid=$!
 	wait $env_pid || {
 		# shellcheck disable=2154
-		warn -r "${bld-}$*${rst_r-} exited with status $?."
+		_warn -r "${bld-}$*${rst_r-} exited with status $?."
 		rc=1
 	}
 	wait $match_pid	|| rc=$?
@@ -180,7 +180,7 @@ match() (
 		fi
 	done
 
-	warn -r "'${bld-}$str${rst_r-}' not in:$lf${bld-}$file${rst-}"
+	_warn -r "'${bld-}$str${rst_r-}' not in:$lf${bld-}$file${rst-}"
 	return 1
 )
 	
@@ -253,7 +253,6 @@ regularuser() (
 			if	[ "$user" != "$cur_user" ] &&
 				! uid="$(id -u "$user")"
 			then
-				warn -r "id -u $user: exited with status $?."
 				break
 			fi
 
