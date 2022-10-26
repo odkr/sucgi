@@ -111,9 +111,15 @@
 #error MAX_UID is smaller than MIN_UID.
 #endif /* MAX_UID <= MIN_UID */
 
+#if defined(UID_MAX)
+#if MAX_UID > UID_MAX
+#error MAX_UID is greater than UID_MAX.
+#endif /* MAX_UID > UID_MAX */
+#else /* defined(MAX_UID) */
 #if MAX_UID > UINT_MAX
 #error MAX_UID is greater than UINT_MAX.
-#endif
+#endif /* MAX_UID > UINT_MAX */
+#endif /* defined(MAX_UID) */
 
 #if !defined(MIN_GID)
 #error MIN_GID is undefined.
@@ -131,9 +137,15 @@
 #error MAX_GID is smaller than MIN_GID.
 #endif /* MAX_GID <= MIN_GID */
 
+#if defined(GID_MAX)
+#if MAX_GID > GID_MAX
+#error MAX_GID is greater than GID_MAX.
+#endif /* MAX_GID > GID_MAX */
+#else /* defined(MAX_GID) */
 #if MAX_GID > UINT_MAX
 #error MAX_GID is greater than UINT_MAX.
-#endif
+#endif /* MAX_GID > UINT_MAX */
+#endif /* defined(MAX_GID) */
 
 #if !defined(PATH)
 #error PATH is undefined.
