@@ -7,9 +7,9 @@ Configuration
 
 Use *configure* to generate the *makefile*.
 
-If you want to adapt suCGI's build settings, edit *configure.env* and create
-a (new) makefile by calling ``configure``; supply ``-f`` to overwrite existing
-files (e.g., ``CC=/opt/obscure/bin/occ ./configure -f``).
+If you want to adapt suCGI's build settings, edit *prod.env* and create
+a build configuration by calling ``configure``; supply ``-f`` to overwrite
+existing files (e.g., ``CC=/opt/obscure/bin/occ ./configure -f``).
 
 *configure* also respects the following environment variables:
 
@@ -23,6 +23,28 @@ If *configure* fails, you can also create the *makefile* by::
 
 	m4 makefile.m4 >makefile
 
+
+Development
+===========
+
+suCGI's default build configuration resides in *devel.env*;
+load it by passing ``-d`` to *configure*.
+
+*devel.env* loads *local.env* if it exists. Here is an example:
+
+```sh
+# Use GCC v12 by default.
+: "${CC:="gcc-12"}"
+
+# Disable GCC-related warnings when building with Clang.
+[ "${CC-}" = clang ] && add_cflags -Wno-unused-command-line-argument
+
+# Overwrite existing files.
+force=x
+
+# Use Clang for coverage reports
+cov_cc=clang
+```
 
 Compilation
 ===========
@@ -61,11 +83,24 @@ cov_cc
 Macros
 ------
 
-The following macros govern compilation:
+MAX_ENV
+    How many environment variables suCGI may accept. Unsigned integer.
+    suCGI aborts if the environment contains more variables. Defaults to 256.
+
+MAX_GROUPS
+    How many groups a user can be a member of. Unsigned interger.
+    suCGI refuses users who belong to more groups. Defaults to 64.
+
+MAX_STR
+    Maximum string size, including the terminating NUL.
+    suCGI aborts if encounters a string that is longer.
+    Defaults to 1024 or PATH_MAX, whichever is lower.
 
 TESTING
     Whether to build for testing. Boolean value.
-    Test builds are insecure!
+    *Test builds are insecure!*
+
+MAX_ENV, MAX_GROUPS, and MAX_STR cannot be modefied via *config.h*.
 
 
 Installation

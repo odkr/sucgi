@@ -29,16 +29,21 @@
 #include "error.h"
 
 
-
 /*
  * Constants
  */
 
+#if !defined(MAX_STR)
 #if defined(PATH_MAX) && PATH_MAX > -1 && PATH_MAX < 1024
 #define MAX_STR PATH_MAX
 #else /* defined(PATH_MAX) && PATH_MAX > -1 && PATH_MAX < 1024 */
 #define MAX_STR 1024
 #endif /* defined(PATH_MAX) && PATH_MAX > -1 && PATH_MAX < 1024 */
+#else /* !defined(MAX_STR) */
+#if defined(PATH_MAX) && PATH_MAX > -1 && PATH_MAX < MAX_STR
+#error MAX_STR is greater than PATH_MAX.
+#endif /* defined(PATH_MAX) && PATH_MAX > -1 && PATH_MAX < MAX_STR */
+#endif /* !defined(MAX_STR) */
 
 
 /*

@@ -80,6 +80,71 @@
 
 
 /*
+ * Verify configuration
+ */
+
+#if !defined(JAIL_DIR)
+#error JAIL_DIR is undefined.
+#endif /* !defined(JAIL_DIR) */
+
+#if !defined(USER_DIR)
+#error USER_DIR is undefined.
+#endif /* !defined(USER_DIR) */
+
+#if !defined(ENFORCE_HOME_DIR)
+#error ENFORCE_HOME_DIR is undefined.
+#endif /* !defined(ENFORCE_HOME_DIR) */
+
+#if !defined(MIN_UID)
+#error MIN_UID is undefined.
+#endif /* !defined(MIN_UID) */
+
+#if !defined(MAX_UID)
+#error MIN_UID is undefined.
+#endif /* !defined(MIN_UID) */
+
+#if MIN_UID <= 0 
+#error MIN_UID must be greater than 0.
+#endif /* MIN_UID <= 0 */
+
+#if MAX_UID < MIN_UID
+#error MAX_UID is smaller than MIN_UID.
+#endif /* MAX_UID <= MIN_UID */
+
+#if MAX_UID > UINT_MAX
+#error MAX_UID is greater than UINT_MAX.
+#endif
+
+#if !defined(MIN_GID)
+#error MIN_GID is undefined.
+#endif /* !defined(MIN_GID) */
+
+#if !defined(MAX_GID)
+#error MIN_GID is undefined.
+#endif /* !defined(MIN_GID) */
+
+#if MIN_GID <= 0
+#error MIN_GID must be greater than 0.
+#endif /* MIN_GID <= 0 */
+
+#if MAX_GID < MIN_GID
+#error MAX_GID is smaller than MIN_GID.
+#endif /* MAX_GID <= MIN_GID */
+
+#if MAX_GID > UINT_MAX
+#error MAX_GID is greater than UINT_MAX.
+#endif
+
+#if !defined(PATH)
+#error PATH is undefined.
+#endif /* !defined(PATH) */
+
+#if !defined(HANDLERS)
+#error HANDLERS is undefined.
+#endif /* !defined(HANDLERS) */
+
+
+/*
  * Main
  */
 

@@ -88,7 +88,7 @@ lib.a(error.o):	error.c error.h macros.h
 
 lib.a(file.o):	file.c file.h macros.h $(core_objs) lib.a(path.o)
 
-lib.a(gids.o):	gids.c gids.h config.h macros.h lib.a(error.o)
+lib.a(gids.o):	gids.c gids.h macros.h lib.a(error.o)
 
 lib.a(path.o):	path.c path.h macros.h $(core_objs)
 

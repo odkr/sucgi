@@ -37,12 +37,15 @@
 /*
  * Maximum number of environment variables.
  */
-#define MAX_ENV 256
 
+#if !defined(MAX_ENV)
+#define MAX_ENV 256
+#endif /* !defined(MAX_ENV) */
 
 /* Characters allowed in environment variable names. */
 #define ENV_NAME_CHARS "ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789" \
                        "abcdefghijklmnopqrstuvwxyz"
+
 
 /*
  * Globals
