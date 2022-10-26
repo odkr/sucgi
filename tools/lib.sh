@@ -25,6 +25,8 @@
 # Aliases
 #
 
+alias checkerr='_line="$LINENO" _checkerr'
+alias checkok='_line="$LINENO" _checkok'
 alias err='_line="$LINENO" _err'
 alias warn='_line="$LINENO" _warn'
 
@@ -51,42 +53,48 @@ catch() {
 }
 
 # Abort if a programme doesn't print $err to STDERR or exits with status zero.
-checkerr() (
+_checkerr() (
 	err="${1?}"
 	shift
 	: "${@:?no command given}"
-	pipe="${TMPDIR-/tmp}/checkerr-$$.fifo" rc=0
+	tmpfile="${TMPDIR-/tmp}/checkerr-$$.tmp" rc=0
 	_warn "checking ${bld-}$*${rst-} ..."
-	mkfifo -m 0700 "$pipe"
-	env "$@" >/dev/null 2>"$pipe" & env_pid=$!
-	match "$err" <"$pipe" & match_pid=$!
-	wait $env_pid && {
-		# shellcheck disable=2154
-		_warn -r "${bld-}$*${rst_r-} exited with status 0."
-		rc=1
-	}
-	wait $match_pid	|| rc=$?
-	rm -f "$pipe"	|| rc=$?
+	if env "$@" >/dev/null 2>"$tmpfile"
+	then
+		rc=2
+		_warn -lr "${bld-}$*${rst_r-} exited with status 0."
+	elif ! grep -Fq "$err" "$tmpfile"
+	then
+		prefix="${red-}${bld-}>${rst_r-} " rc=2
+		_warn -lr "${bld-}expected${rst_r} error:"
+		echo "$prefix$err${rst-}" >&2
+		_warn -lr "${bld-}actual${rst_r} error:"
+		sed "s/^/$prefix /; s/\$/${rst-}/" <"$tmpfile" >&2
+	fi
+	rm "$tmpfile" || rc=$?
 	return $rc
 )
 
 # Abort if a programme doesn't print $msg or exits with a non-zero status.
-checkok() (
+_checkok() (
 	msg="${1?}"
 	shift
 	: "${@:?no command given}"
-	pipe="${TMPDIR-/tmp}/checkok-$$.fifo" rc=0
+	tmpfile="${TMPDIR-/tmp}/checkok-$$.tmp" rc=0
 	_warn "checking ${bld-}$*${rst-} ..."
-	mkfifo -m 0700 "$pipe"
-	env "$@" >"$pipe" 2>&1 & env_pid=$!
-	match "$msg" <"$pipe" & match_pid=$!
-	wait $env_pid || {
-		# shellcheck disable=2154
-		_warn -r "${bld-}$*${rst_r-} exited with status $?."
-		rc=1
-	}
-	wait $match_pid	|| rc=$?
-	rm -f "$pipe"	|| rc=$?
+	if ! env "$@" >/dev/null 2>"$tmpfile"
+	then
+		rc=2
+		_warn -lr "${bld-}$*${rst_r-} exited with status $?."
+	elif ! grep -Fq "$msg" "$tmpfile"
+	then
+		prefix="${red-}${bld-}>${rst_r-} " rc=2
+		_warn -lr "${bld-}expected${rst_r} output:"
+		echo "$prefix$msg${rst-}" >&2
+		_warn -lr "${bld-}actual${rst_r} output:"
+		sed "s/^/$prefix /; s/\$/${rst-}/" <"$tmpfile" >&2
+	fi
+	rm "$tmpfile" || rc=$?
 	return $rc
 )
 
@@ -180,7 +188,6 @@ match() (
 		fi
 	done
 
-	_warn -r "'${bld-}$str${rst_r-}' not in:$lf${bld-}$file${rst-}"
 	return 1
 )
 	
@@ -333,9 +340,8 @@ _warn() (
 		esac
 	done
 	shift $((OPTIND - 1))
-	
-	exec >&2
 
+	exec >&2
 	                               printf '%s: ' "${prog_name:-$0}"
 	[ "$line" ] && [ "$_line" ] && printf 'line %d: ' "$_line"
 	[ "$col" ] && [ "${rst-}" ] && printf '%s' "$col"
