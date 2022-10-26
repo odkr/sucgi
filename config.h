@@ -92,18 +92,6 @@
 #define UMASK 077
 
 /*
- * Maximum number of environment variables.
- * suCGI aborts if it encounters more environment variables.
- */
-#define MAX_ENV 256
-
-/*
- * Maximum lenght of strings, including the terminating NUL.
- * suCGI aborts if it encounters a string that exceeds this limit.
- */
-#define MAX_STR 1024
-
-/*
  * Maximum number of groups a user can be a member of.
  * suCGI aborts if a user is a member of more groups.
  */
@@ -177,14 +165,6 @@
 #if !defined(HANDLERS)
 #error HANDLERS is undefined.
 #endif /* !defined(HANDLERS) */
-
-#if MAX_ENV < 192
-#error MAX_ENV is smallter than 192.
-#endif
-
-#if (PATH_MAX > -1) && (MAX_STR > PATH_MAX)
-#error MAX_STR is greater than PATH_MAX.
-#endif
 
 #endif /* !defined(CONFIG_H). */
 

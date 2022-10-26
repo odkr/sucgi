@@ -25,10 +25,25 @@
 #include <limits.h>
 #include <stdbool.h>
 
-#include "config.h"
 #include "macros.h"
 #include "error.h"
 
+
+
+/*
+ * Constants
+ */
+
+#if defined(PATH_MAX) && PATH_MAX > -1 && PATH_MAX < 1024
+#define MAX_STR PATH_MAX
+#else /* defined(PATH_MAX) && PATH_MAX > -1 && PATH_MAX < 1024 */
+#define MAX_STR 1024
+#endif /* defined(PATH_MAX) && PATH_MAX > -1 && PATH_MAX < 1024 */
+
+
+/*
+ * Functions
+ */
 
 /*
  * Copy LEN bytes from string SRC to DEST, which will be NUL-terminated.
