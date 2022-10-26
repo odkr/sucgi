@@ -82,7 +82,7 @@ _checkok() (
 	: "${@:?no command given}"
 	tmpfile="${TMPDIR-/tmp}/checkok-$$.tmp" rc=0
 	_warn "checking ${bld-}$*${rst-} ..."
-	if ! env "$@" >/dev/null 2>"$tmpfile"
+	if ! env "$@" >"$tmpfile" 2>&1
 	then
 		rc=2
 		_warn -lr "${bld-}$*${rst_r-} exited with status $?."
