@@ -29,23 +29,27 @@
 #include <string.h>
 #include <unistd.h>
 
-#if !defined(UID_MAX)
-#define UID_MAX_ UINT_MAX
-#else /* !defined(UID_MAX) */
+/* Largest user ID. */
+#if defined(UID_MAX)
 #define UID_MAX_ UID_MAX
-#endif /* !defined(UID_MAX) */
+#else /* defined(UID_MAX) */
+#define UID_MAX_ UINT_MAX
+#endif /* defined(UID_MAX) */
 
-#if !defined(GID_MAX)
-#define GID_MAX_ UINT_MAX
-#else /* !defined(GID_MAX) */
+/* Largest group ID. */
+#if defined(GID_MAX)
 #define GID_MAX_ GID_MAX
-#endif /* !defined(GID_MAX) */
+#else /* defined(GID_MAX) */
+#define GID_MAX_ UINT_MAX
+#endif /* defined(GID_MAX) */
 
+/* What type of ID to search for. */
 typedef enum {
 	USER,
 	GROUP
 } id_type;
 
+/* Search for allocated or unallocated IDs? */
 typedef enum {
 	ALLOC,
 	UNALLOC

@@ -34,14 +34,28 @@
 /* Calculate the number of elements in an array. */
 #define NELEMS(x) (sizeof((x)) / sizeof(*(x)))
 
+/* Largest user ID. */
+#if defined(UID_MAX)
+#define UID_MAX_ UID_MAX
+#else /* defined(UID_MAX) */
+#define UID_MAX_ UINT_MAX
+#endif /* defined(UID_MAX) */
+
+/* Largest group ID. */
+#if defined(GID_MAX)
+#define GID_MAX_ GID_MAX
+#else /* defined(GID_MAX) */
+#define GID_MAX_ UINT_MAX
+#endif /* defined(GID_MAX) */
+
 int
 main (void)
 {
 	/* UIDs to test. */
-	const uid_t uids[] = {0, getuid(), UINT_MAX};
+	const uid_t uids[] = {0, getuid(), UID_MAX_};
 
 	/* Primary GIDs to test. */
-	const gid_t pgids[] = {0, getgid(), UINT_MAX};
+	const gid_t pgids[] = {0, getgid(), GID_MAX_};
 
 	gid_t gids[MAX_GROUPS];		/* GIDs found. */
 	int ngids;			/* Number of GIDs. */
