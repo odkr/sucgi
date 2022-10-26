@@ -1,5 +1,5 @@
 /*
- * Find an unallocated user or group ID in a given range.
+ * Find an (un-)allocated user or group ID in a given range.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -29,38 +29,66 @@
 #include <string.h>
 #include <unistd.h>
 
+#if !defined(UID_MAX)
+#define UID_MAX_ UINT_MAX
+#else /* !defined(UID_MAX) */
+#define UID_MAX_ UID_MAX
+#endif /* !defined(UID_MAX) */
+
+#if !defined(GID_MAX)
+#define GID_MAX_ UINT_MAX
+#else /* !defined(GID_MAX) */
+#define GID_MAX_ GID_MAX
+#endif /* !defined(GID_MAX) */
+
+typedef enum {
+	USER,
+	GROUP
+} id_type;
+
+typedef enum {
+	ALLOC,
+	UNALLOC
+} search_mode;
 
 int
 main (int argc, char **argv)
 {
-	const char *type;	/* The ID type. */
+	id_type type;		/* The ID type. */
+	search_mode mode;	/* The search mode. */
 	long id;		/* The ID. */
 	long range[2];		/* An ID range. */
+	long max;		/* The upper limit for IDs. */
 	int ch;			/* An option character. */
 
 	errno = 0;
-	type = "user";
+	type = USER;
+	mode = ALLOC;
 
 	/* RATS: ignore */
-	while ((ch = getopt(argc, argv, "guh")) != -1) {
+	while ((ch = getopt(argc, argv, "ugnh")) != -1) {
 		switch (ch) {
 			case 'u':
-				type = "user";
+				type = USER;
 				break;
 			case 'g':
-				type = "group";
+				type = GROUP;
+				break;
+			case 'n':
+				mode = UNALLOC;
 				break;
 			case 'h':
 				(void) puts(
-"unallocid - find an unallocated user or group ID in a given range.\n\n"
-"Usage:     unallocid [-u] [-g] BEGIN END\n"
-"           unallocid -h\n\n"
+"findid - find an (un-)allocated user or group ID in a given range.\n\n"
+"Usage:     findid [-u|-g] [-n] START END\n"
+"           findid -h\n\n"
 "Operands:\n"
-"    BEGIN  the beginning of the range.\n"
-"    END    the end of the range.\n\n"
+"    START  Start of range.\n"
+"    END    End of range.\n\n"
 "Options:\n"
-"    -u     Search for an unallocated user ID (default).\n"
-"    -g     Search for an unallocated group ID.\n"
+"    -u     Search for a user ID (default).\n"
+"    -g     Search for a group ID.\n"
+"    -n     Search for a non-existent ID.\n"
 "    -h     Print this help screen.\n\n"
 "Copyright 2022 Odin Kroeger.\n"
 "Released under the GNU General Public License.\n"
@@ -76,39 +104,26 @@ main (int argc, char **argv)
 	argv += optind;
 
 	if (argc != 2) {
-		(void) fputs("usage: unallocid [-u] [-g] BEGIN END\n", stderr);
+		(void) fputs("usage: findid [-u|-g] [-n] START END\n", stderr);
 		return EXIT_FAILURE;
 	}
 
+	max = (long) (type == USER) ? UID_MAX_ : GID_MAX_;
+
 	for (int i = 0; i < 2; i++) {
 		range[i] = strtol(argv[i], NULL, 10);
+
 		if (errno != 0) {
 			err(EXIT_FAILURE, "strtol %s", argv[i]);
 		}
 
 		if (range[i] < 0) {
-			errx(EXIT_FAILURE, "%s: %s IDs must be non-negative",
-			     argv[i], type);
+			errx(EXIT_FAILURE, "%s: is negative", argv[i]);
 		}
 
-		if (strcmp(type, "user") == 0) {
-#if defined(UID_MAX)
-			if ((unsigned long) range[i] > UID_MAX) {
-#else
-			if ((unsigned long) range[i] > UINT_MAX) {
-#endif
-				errx(EXIT_FAILURE, "user ID is too large");
-			}
-		} else {
-#if defined(GID_MAX)
-			if ((unsigned long) range[i] > GID_MAX) {
-#else
-			if ((unsigned long) range[i] > UINT_MAX) {
-#endif
-				errx(EXIT_FAILURE, "group ID is too large");
-			}
+		if ((long) range[i] > max) {
+			errx(EXIT_FAILURE, "%s: too large", argv[i]);
 		}
-
 	}
 
 	if (range[0] > range[1]) {
@@ -116,31 +131,42 @@ main (int argc, char **argv)
 	}
 
 	for (id = range[0]; id <= range[1]; id++) {
-		if (strcmp(type, "user") == 0) {
-			struct passwd *pwd;	/* A passwd entry. */
+		struct passwd *pwd;	/* A passwd entry. */
+		struct group *grp;	/* A group entry. */
 
+		pwd = NULL;
+		grp = NULL;
+
+		if (type == USER) {
 			pwd = getpwuid((uid_t) id);
 			if (!pwd) {
 				if (errno != 0) {
 					err(EXIT_FAILURE, "getpwuid %ld", id);
 				}
-				break;
 			}
 		} else {
-			struct group *grp;	/* A group entry. */
-
 			grp = getgrgid((gid_t) id);
 			if (!grp) {
 				if (errno != 0) {
 					err(EXIT_FAILURE, "getgrgid %ld", id);
 				}
+			}
+		}
+		
+
+		if (pwd || grp) {
+			if (mode == ALLOC) {
+				break;
+			}
+		} else {
+			if (mode == UNALLOC) {
 				break;
 			}
 		}
 	}
 
 	if (id > range[1]) {
-		errx(EXIT_FAILURE, "did not find an unallocated %s ID", type);
+		errx(EXIT_FAILURE, "no matching ID found in range");
 	}
 
 	/* RATS: ignore; the format string is a literal. */

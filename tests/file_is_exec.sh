@@ -100,8 +100,8 @@ fi
 # Root tests
 #
 
-unalloc_uid="$(unallocid -u 1000 30000)"
-unalloc_gid="$(unallocid -g 1000 30000)"
+unalloc_uid="$(findid -nu 1000 30000)"
+unalloc_gid="$(findid -ng 1000 30000)"
 
 chown "$unalloc_uid:$unalloc_gid" "$fname"
 

@@ -23,7 +23,7 @@ core_objs = lib.a(error.o) lib.a(str.o)
 # Tests
 #
 
-tools =		tools/badenv tools/runas tools/unallocid
+tools =		tools/badenv tools/runas tools/findid
 
 check_bins =	tests/error tests/env_clear tests/env_file_open \
 		tests/env_is_name tests/env_restore tests/main \
