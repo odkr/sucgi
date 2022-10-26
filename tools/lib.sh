@@ -21,9 +21,10 @@
 # shellcheck disable=2015
 
 # Print a message to STDERR and exit with a non-zero status.
-err() {
-	warn -r "$@"
-	exit 8
+alias err='err_ -L "$LINENO"'
+err_() {
+	_warn -r "$@"
+	exit 2
 }
 
 # Exit with status $signo + 128 if $catch is set.
@@ -306,12 +307,15 @@ traverse() (
 # Print a message to STDERR.
 # -r, -y, -g colour the message red, yellow, and green respectively.
 # -q tells warn to respect $quiet.
-warn() (
-	col=
+alias warn='_warn -L "$LINENO"'
+_warn() (
+	col='' lineno=''
 	OPTIND=1 OPTARG='' opt=''
-	while getopts 'gryq' opt
+	while getopts 'L:lgryq' opt
 	do
 		case $opt in
+			(L) _lineno="$OPTARG" ;;
+			(l) lineno="$_lineno" ;;
 			(g) col="${grn-}" ;;
 			(r) col="${red-}" ;;
 			(y) col="${ylw-}" ;;
@@ -324,6 +328,7 @@ warn() (
 	exec >&2
 
 	                               printf '%s: ' "${prog_name:-$0}"
+	[ "$lineno" ] &&               printf 'line %d: ' "$lineno"
 	[ "$col" ] && [ "${rst-}" ] && printf '%s' "$col"
 	                               printf '%s' "$*"
 	[ "$col" ] && [ "${rst-}" ] && printf '%s' "$rst"
@@ -331,3 +336,4 @@ warn() (
 
 	return 0
 )
+
