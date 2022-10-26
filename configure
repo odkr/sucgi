@@ -7,12 +7,12 @@
 
 set -Ceu
 
-script_dir="$(dirname "$0")" || {
+src_dir="$(dirname "$0")" || {
 	printf '%s\n' "dirname $0: exited with status $?." >&2
 	exit 1
 }
-readonly script_dir
-cd "$script_dir" || exit
+readonly src_dir
+cd "$src_dir" || exit
 . ./tools/lib.sh || exit
 init
 tmpdir tmp .
@@ -57,7 +57,7 @@ while getopts c:dfqh opt; do
 		(d) conf=devel.env ;;
 		(f) force=x ;;
 		(q) quiet=x ;;
-		(h) exec cat <<EOF ;;
+		(h) exec cat <<EOF >&2 ;;
 configure - generate build configuration.
 
 Usage:       configure [-c FILE|-d] [-f] [-q]
