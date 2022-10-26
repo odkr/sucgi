@@ -32,19 +32,18 @@ load it by passing ``-d`` to *configure*.
 
 *devel.env* loads *local.env* if it exists. Here is an example:
 
-```sh
-# Use GCC v12 by default.
-: "${CC:="gcc-12"}"
+	# Use GCC v12 by default.
+	: "${CC:="gcc-12"}"
 
-# Disable GCC-related warnings when building with Clang.
-[ "${CC-}" = clang ] && add_cflags -Wno-unused-command-line-argument
+	# Disable GCC-related warnings when building with Clang.
+	[ "${CC-}" = clang ] && add_cflags -Wno-unused-command-line-argument
 
-# Overwrite existing files.
-force=x
+	# Overwrite existing files.
+	force=x
 
-# Use Clang for coverage reports
-cov_cc=clang
-```
+	# Use Clang for coverage reports
+	cov_cc=clang
+
 
 Compilation
 ===========
@@ -78,7 +77,7 @@ LDLIBS
 
 cov_cc
     The C compiler to create coverage reports with
-    (defaults to `$(CC)`).
+    (defaults to ``$(CC)``).
 
 Macros
 ------
