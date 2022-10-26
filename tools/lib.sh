@@ -25,8 +25,8 @@
 # Aliases
 #
 
-alias err='err_ -L "$LINENO"'
-alias warn='_warn -L "$LINENO"'
+alias err='_line="$LINENO" _err'
+alias warn='_line="$LINENO" _warn'
 
 
 #
@@ -34,7 +34,7 @@ alias warn='_warn -L "$LINENO"'
 #
 
 # Print a message to STDERR and exit with a non-zero status.
-err_() {
+_err() {
 	_warn -r "$@"
 	exit 2
 }
@@ -62,7 +62,7 @@ checkerr() (
 	match "$err" <"$pipe" & match_pid=$!
 	wait $env_pid && {
 		# shellcheck disable=2154
-		warn -lr "${bld-}$*${rst_r-} exited with status 0."
+		warn -r "${bld-}$*${rst_r-} exited with status 0."
 		rc=1
 	}
 	wait $match_pid	|| rc=$?
@@ -82,7 +82,7 @@ checkok() (
 	match "$msg" <"$pipe" & match_pid=$!
 	wait $env_pid || {
 		# shellcheck disable=2154
-		warn -lr "${bld-}$*${rst_r-} exited with status $?."
+		warn -r "${bld-}$*${rst_r-} exited with status $?."
 		rc=1
 	}
 	wait $match_pid	|| rc=$?
@@ -320,13 +320,12 @@ traverse() (
 # -r, -y, -g colour the message red, yellow, and green respectively.
 # -q tells warn to respect $quiet.
 _warn() (
-	col='' lineno=''
+	col='' line=
 	OPTIND=1 OPTARG='' opt=''
 	while getopts 'L:lgryq' opt
 	do
 		case $opt in
-			(L) _lineno="$OPTARG" ;;
-			(l) lineno="$_lineno" ;;
+			(l) line=x ;;
 			(g) col="${grn-}" ;;
 			(r) col="${red-}" ;;
 			(y) col="${ylw-}" ;;
@@ -339,7 +338,7 @@ _warn() (
 	exec >&2
 
 	                               printf '%s: ' "${prog_name:-$0}"
-	[ "$lineno" ] &&               printf 'line %d: ' "$lineno"
+	[ "$line" ] && [ "$_line" ] && printf 'line %d: ' "$_line"
 	[ "$col" ] && [ "${rst-}" ] && printf '%s' "$col"
 	                               printf '%s' "$*"
 	[ "$col" ] && [ "${rst-}" ] && printf '%s' "$rst"
@@ -347,4 +346,3 @@ _warn() (
 
 	return 0
 )
-
