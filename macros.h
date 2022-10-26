@@ -19,8 +19,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(DEFS_H)
-#define DEFS_H
+#if !defined(MACROS_H)
+#define MACROS_H
 
 /* Excise function attributes unless the compiler understands GNU C. */
 #if !defined(__GNUC__)
@@ -30,5 +30,4 @@
 /* Raise a compiler error if COND is false. */
 #define BUILD_BUG_ON(cond) ((void)sizeof(char[1 - 2*!!(cond)]))
 
-
-#endif /* !defined(DEFS_H) */
+#endif /* !defined(MACROS_H) */

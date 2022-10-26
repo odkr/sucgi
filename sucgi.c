@@ -80,63 +80,6 @@
 
 
 /*
- * Configuration
- */
-
-#if !defined(JAIL_DIR)
-#error JAIL_DIR is undefined.
-#endif /* !defined(JAIL_DIR) */
-
-#if !defined(USER_DIR)
-#error USER_DIR is undefined.
-#endif /* !defined(USER_DIR) */
-
-#if !defined(ENFORCE_HOME_DIR)
-#error ENFORCE_HOME_DIR is undefined.
-#endif /* !defined(ENFORCE_HOME_DIR) */
-
-#if !defined(MIN_UID)
-#error MIN_UID is undefined.
-#endif /* !defined(MIN_UID) */
-
-#if !defined(MAX_UID)
-#error MIN_UID is undefined.
-#endif /* !defined(MIN_UID) */
-
-#if MIN_UID <= 0 
-#error MIN_UID must be greater than 0.
-#endif /* MIN_UID <= 0 */
-
-#if MAX_UID < MIN_UID
-#error MAX_UID is smaller than MIN_UID.
-#endif /* MAX_UID <= MIN_UID */
-
-#if !defined(MIN_GID)
-#error MIN_GID is undefined.
-#endif /* !defined(MIN_GID) */
-
-#if !defined(MAX_GID)
-#error MIN_GID is undefined.
-#endif /* !defined(MIN_GID) */
-
-#if MIN_GID <= 0
-#error MIN_GID must be greater than 0.
-#endif /* MIN_GID <= 0 */
-
-#if MAX_GID < MIN_GID
-#error MAX_GID is smaller than MIN_GID.
-#endif /* MAX_GID <= MIN_GID */
-
-#if !defined(PATH)
-#error PATH is undefined.
-#endif /* !defined(PATH) */
-
-#if !defined(HANDLERS)
-#error HANDLERS is undefined.
-#endif /* !defined(HANDLERS) */
-
-
-/*
  * Main
  */
 
@@ -145,11 +88,13 @@ main(void) {
 	/*
 	 * Check whether configuration strings are within bounds.
 	 */
-	
-	BUILD_BUG_ON(sizeof(JAIL_DIR) == 0);
+
+	BUILD_BUG_ON(sizeof(JAIL_DIR) <= 1);
 	BUILD_BUG_ON(sizeof(JAIL_DIR) >= MAX_STR);
-	BUILD_BUG_ON(sizeof(USER_DIR) == 0);
+	BUILD_BUG_ON(sizeof(USER_DIR) <= 1);
 	BUILD_BUG_ON(sizeof(USER_DIR) >= MAX_STR);
+	BUILD_BUG_ON(sizeof(PATH) <= 1);
+	BUILD_BUG_ON(sizeof(PATH) >= MAX_STR);
 
 	
 	/*
@@ -526,11 +471,12 @@ main(void) {
 	char path_cur[MAX_STR];		/* Current sub-path of script path. */
 
 #if ENFORCE_HOME_DIR
-	rc = path_check_wexcl(owner->pw_uid, owner->pw_dir, script, &path_cur);
-#else /* ENFORCE_HOME_DIR */
-	rc = path_check_wexcl(owner->pw_uid, doc_root, script, &path_cur);
-#endif /*ENFORCE_HOME_DIR */
+#define BASE_DIR owner->pw_dir
+#else
+#define BASE_DIR doc_root
+#endif
 
+	rc = path_check_wexcl(owner->pw_uid, BASE_DIR, script, &path_cur);
 	switch (rc) {
 		case OK:
 			break;

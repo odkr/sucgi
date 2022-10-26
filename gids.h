@@ -27,15 +27,6 @@
 
 
 /*
- * Constants
- */
-
-#if !defined(MAX_GROUPS)
-#define MAX_GROUPS 64
-#endif /* !defined(MAX_GROUPS) */
-
-
-/*
  * Functions
  */
 

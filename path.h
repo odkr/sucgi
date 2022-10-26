@@ -32,6 +32,7 @@
 #include "error.h"
 #include "str.h"
 
+
 /*
  * Expand FORMAT with the given variadic arguments, store the resulting
  * filename in EXP, canonicalise it, and then compare it to FNAME.

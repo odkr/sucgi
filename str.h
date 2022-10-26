@@ -31,24 +31,6 @@
 
 
 /*
- * Constants
- */
-
-/*  Maximum length of strings in bytes, including the terminating NUL. */
-#if !defined(MAX_STR)
-#define MAX_STR 1024
-#endif /* !defined(MAX_STR) */
-
-#if PATH_MAX > -1 && MAX_STR > PATH_MAX
-#error MAX_STR is greater than PATH_MAX.
-#endif
-
-
-/*
- * Functions
- */
-
-/*
  * Copy LEN bytes from string SRC to DEST, which will be NUL-terminated.
  * DEST must be large enough to hold LEN + 1 bytes.
  *

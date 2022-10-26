@@ -28,6 +28,7 @@
 #include "macros.h"
 #include "error.h"
 
+
 /*
  * Set the process' real and effective UID and GID to UID and GID
  * and the supplementary groups to GIDS respectively, where NGIDS
