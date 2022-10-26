@@ -164,7 +164,7 @@ owner() (
 	pipe="${TMPDIR:-/tmp}/ls-$$.fifo" rc=0
 
 	mkfifo "$pipe"
-	ls -l "$file" >"$pipe" & ls=$!
+	ls -ld "$file" >"$pipe" & ls=$!
 	awk '{print $3}' <"$pipe" & awk=$!
 	wait "$ls"    || rc=$?
 	wait "$awk"   || rc=$?
