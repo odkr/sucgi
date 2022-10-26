@@ -39,14 +39,12 @@ init || exit
 #
 
 # Paths
-tests_dir=$(cd -P "$script_dir" && pwd) ||
-	err "cd -P "$script_dir" && pwd: exited with status $?."
+tests_dir=$(cd -P "$script_dir" && pwd)
 
 # Create a temporary directory in $HOME.
-logname="$(logname)" ||
-	err "logname exited with non-zero status $?."
+logname="$(logname)"
 case $logname in (*[!A-Za-z0-9_]*)
-	err "$logname is not a portable login name."
+	err "$logname is not a portable name."
 esac
 eval home="~$logname"
 TMPDIR="$home"
@@ -64,50 +62,36 @@ unset i
 readonly doc_root="$TMPDIR/docroot"
 mkdir "$doc_root"
 
-# Create a path that is as long as suCGI permits.
-readonly path_max=1024
+# Get the system's maximum path length in $TMPDIR.
+path_max="$(getconf PATH_MAX "$TMPDIR")"
+[ "$path_max" -lt 0 ] && path_max=255
 
-name_max="$(getconf NAME_MAX "$doc_root")"
-[ "$name_max" -gt -1 ] || name_max=14
-readonly name_max
-
-base_path="$doc_root" seg="$(pad .d "$name_max")"
-while [ $((${#base_path} + ${#seg} + 2)) -le "$path_max" ]
-do
-	base_path="$base_path/$seg"
-done
-mkdir -p "$base_path"
-
-readonly long_path="$base_path/$(pad .f $((path_max - ${#base_path} - 2)))"
+# Create a path that is as long as the system and suCGI permit.
+if [ "$path_max" -gt 1024 ]
+	then max=1024
+	else max="$path_max"
+fi
+long_path="$(mklongpath "$doc_root" "$((max - 1))")"
+mkdir -p "$(dirname "$long_path")"
 echo $$ >"$long_path"
-unset base_path seg
+
+# Create a path that is longer than the system permits.
+huge_path="$(mklongpath "$doc_root" "$path_max")"
+traverse "$doc_root" "$huge_path" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
 # Create a path that is longer than suCGI permits.
-base_path="${long_path%.f}.d"
-mkdir -p "$base_path"
-readonly huge_path="$base_path/file"
-( cd -P "$base_path" && touch file; )
-unset base_path
+huge_str="$(mklongpath "$doc_root" 1024)"
+traverse "$doc_root" "$huge_str" 'mkdir "$fname"' 'echo $$ >"$fname"'
+
+# Create a shortcut to the path that is longer than the system permits.
+readonly huge_path_link="$doc_root/$(traverse "$doc_root" "$huge_path" \
+	'ln -s "$fname" d && printf d/' \
+	'ln -s "$fname" f && printf f\\n')"
 
 # Create a shortcut to the path that is longer than suCGI permits.
-readonly huge_link="$(
-	cd -P "$doc_root"
-	printf %s/ "$doc_root"
-	
-	IFS=/
-	for seg in ${huge_path##"$doc_root"/}
-	do
-		if [ -d "$seg" ]
-		then
-			cd "$seg"
-			ln -s "$seg" ../d
-			printf d/
-		else
-			ln -s "$seg" f
-			printf 'f\n'	
-		fi
-	done
-)"
+readonly huge_str_link="$doc_root/$(traverse "$doc_root" "$huge_str" \
+	'ln -s "$fname" d && printf d/' \
+	'ln -s "$fname" f && printf f\\n')"
 
 # Create a link to /.
 readonly root_link="$doc_root/root"
@@ -134,10 +118,8 @@ readonly in_link="$TMPDIR/to-inside"
 ln -s "$inside" "$in_link"
 
 # Locate env
-env_bin="$(command -v env)"
-readonly env_bin
-env_dir="$(dirname "$env_bin")"
-readonly env_dir
+readonly env_bin="$(command -v env)"
+readonly env_dir="$(dirname "$env_bin")"
 
 
 #
@@ -205,6 +187,10 @@ checkerr 'an environment variable is malformed.' \
 # Verification of $DOCUMENT_ROOT.
 #
 
+# TODO:
+# Wrong JAILs require separate binaries.
+# (jail_dir too long, empty, non-existent)
+
 # No DOCUMENT_ROOT given.
 checkerr '$DOCUMENT_ROOT is unset or empty.' \
 	main
@@ -213,13 +199,21 @@ checkerr '$DOCUMENT_ROOT is unset or empty.' \
 checkerr '$DOCUMENT_ROOT is unset or empty.' \
 	DOCUMENT_ROOT= main
 
-# $DOCUMENT_ROOT is too long.
+# $DOCUMENT_ROOT is too long (suCGI).
 checkerr 'an environment variable is too long.' \
+	DOCUMENT_ROOT="$huge_str" main
+
+# $DOCUMENT_ROOT is too long (system).
+checkerr 'too long.' \
 	DOCUMENT_ROOT="$huge_path" main
 
-# Path to document root is too long after having been resolved.
+# Path to document root is too long after having been resolved (system).
 checkerr 'too long' \
-	DOCUMENT_ROOT="$huge_link" main
+	DOCUMENT_ROOT="$huge_path_link" main
+
+# Path to document root is too long after having been resolved (suCGI).
+checkerr 'too long' \
+	DOCUMENT_ROOT="$huge_str_link" main
 
 # Path to document root points to outside of jail.
 checkerr "document root / not within jail" \
@@ -233,20 +227,20 @@ checkerr "document root / not within jail" \
 checkerr "document root / not within jail" \
 	DOCUMENT_ROOT="$root_link" main
 
-# File is of the wrong type.
+# Document root is of the wrong type.
 checkerr "open $outside: Not a directory." \
 	DOCUMENT_ROOT="$outside" main
 
-# File does not exist.
-checkerr "realpath /lib/<no such file!>: No such file or directory." \
-	DOCUMENT_ROOT="/lib/<no such file!>" main
+# Document root does not exist.
+checkerr "realpath /lib/<no file!>: No such file or directory." \
+	DOCUMENT_ROOT="/lib/<no file!>" main
 
 # Simple test. Should fail but regard DOCUMENT_ROOT as valid.
 checkerr '$PATH_TRANSLATED is unset or empty.' \
 	DOCUMENT_ROOT="$doc_root" main
 
 # Long filename. Should fail but regard DOCUMENT_ROOT as valid.
-long_doc_root="${long_path%xxxxxxxxxxxx.f}"
+long_doc_root="${long_path%??????????????}"
 checkerr "realpath $long_doc_root: No such file or directory" \
 	DOCUMENT_ROOT="$long_doc_root" main
 
@@ -263,13 +257,25 @@ checkerr '$PATH_TRANSLATED is unset or empty.' \
 checkerr '$PATH_TRANSLATED is unset or empty.' \
 	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED= main
 
-# $PATH_TRANSLATED is too long.
+# $PATH_TRANSLATED is too long (system).
 checkerr 'too long' \
 	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$huge_path" main
 
-# Path to script is too long after having been resolved.
+# $PATH_TRANSLATED is too long (suCGI).
 checkerr 'too long' \
-	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$huge_link" main
+	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$huge_str" main
+
+# Path to script is too long after having been resolved (system).
+checkerr 'too long' \
+	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$huge_path_link" main
+
+# Path to script is too long after having been resolved (suCGI).
+checkerr 'too long' \
+	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$huge_str_link" main
+
+# Document root does not exist.
+checkerr "realpath /lib/<no file!>: No such file or directory." \
+	DOCUMENT_ROOT="/lib/<no file!>" PATH_TRANSLATED=x main
 
 # Path to script points to outside of document root.
 checkerr "script "$outside" not within document root" \
@@ -288,15 +294,15 @@ checkerr "script "$dir" is not a regular file" \
 	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$dir" main
 
 # Script does not exist.
-checkerr "realpath $doc_root/<nofile!>: No such file or directory." \
-	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$doc_root/<nofile!>" main
+checkerr "realpath $doc_root/<no file!>: No such file or directory." \
+	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$doc_root/<no file!>" main
 
 # Simple test. Should fail but regard PATH_TRANSLANTED as valid.
 checkerr 'seteuid 0: Operation not permitted.' \
 	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$inside" main
 
 # Long filename. Should fail but regard PATH_TRANSLANTED as valid.
-long_path_trans="${long_path%xxxxxxxxxxxxxx.f}"
+long_path_trans="${long_path%????????????????}"
 checkerr "realpath $long_path_trans: No such file or directory" \
 	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$long_path_trans" main
 
@@ -313,7 +319,7 @@ checkerr "script $env_bin is owned by privileged user root" \
 	DOCUMENT_ROOT="$env_dir" PATH_TRANSLATED="$env_bin" main
 
 
-
+exit
 
 
 
@@ -330,11 +336,7 @@ euid="$(id -u)" && [ "$euid" ] ||
 tmpdir="${home:?}/tmp-$$"
 readonly tmpdir
 
-catch=
-mkdir -m 0700 "$tmpdir" || exit
-cleanup="rm -rf \"\${tmpdir:?}\"; ${cleanup-}"
-catch=x
-[ "${caught-}" ] && exit $((caught + 128))
+
 
 unalloc_uid="$(unallocid -u 1000 30000)" && [ "$unalloc_uid" ] ||
 	err "failed to find an unallocated user ID."
