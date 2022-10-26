@@ -43,7 +43,7 @@ tmpdir chk
 readonly jail="$TMPDIR/jail"
 mkdir "$jail"
 
-# Get the system's maximum path length on $jail.
+# Get the system's maximum path length in $jail.
 path_max="$(getconf PATH_MAX "$jail")"
 [ "$path_max" -lt 0 ] && path_max=255
 
@@ -64,7 +64,7 @@ traverse "$jail" "$huge_path" 'mkdir "$fname"' 'echo $$ >"$fname"'
 huge_str="$(mklongpath "$jail" 1024)"
 traverse "$jail" "$huge_str" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
-# Create a shortcut to the path that is longer than suCGI permits.
+# Create a shortcut to the path that is longer than the system permits.
 readonly huge_path_link="$jail/$(traverse "$jail" "$huge_path" \
 	'ln -s "$fname" d && printf d/' \
 	'ln -s "$fname" f && printf f\\n')"
@@ -107,7 +107,6 @@ checkerr "*varname != '\\0'" \
 checkerr 'strnlen(jail, MAX_STR) < MAX_STR' \
 	var="$jail" env_file_open "$huge_str" var f
 
-# FIXME: Also add to main.sh
 # Jail directory does not exist.
 checkerr 'access(jail, F_OK) == 0' \
 	var="/lib/<no file!>/foo" env_file_open '/lib/<no file!>' var f
@@ -128,7 +127,6 @@ checkerr '$var is unset or empty' \
 checkerr 'too long' \
 	var="$huge_str" env_file_open "$jail" var f
 
-# FIXME: add to main.sh
 # Value of environment variable is too long (suCGI).
 checkerr 'path to file is too long' \
 	var="$huge_str" env_file_open "$jail" var f
