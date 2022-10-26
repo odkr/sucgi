@@ -323,7 +323,7 @@ warn() (
 	
 	exec >&2
 
-	[ "${prog_name-}" ]         && printf '%s: ' "$prog_name"
+	                               printf '%s: ' "${prog_name:-$0}"
 	[ "$col" ] && [ "${rst-}" ] && printf '%s' "$col"
 	                               printf '%s' "$*"
 	[ "$col" ] && [ "${rst-}" ] && printf '%s' "$rst"
