@@ -20,8 +20,20 @@
 
 # shellcheck disable=2015
 
-# Print a message to STDERR and exit with a non-zero status.
+
+#
+# Aliases
+#
+
 alias err='err_ -L "$LINENO"'
+alias warn='_warn -L "$LINENO"'
+
+
+#
+# Functions
+#
+
+# Print a message to STDERR and exit with a non-zero status.
 err_() {
 	_warn -r "$@"
 	exit 2
@@ -50,7 +62,7 @@ checkerr() (
 	match "$err" <"$pipe" & match_pid=$!
 	wait $env_pid && {
 		# shellcheck disable=2154
-		warn -r "${bld-}$*${rst_r-} exited with status 0."
+		warn -lr "${bld-}$*${rst_r-} exited with status 0."
 		rc=1
 	}
 	wait $match_pid	|| rc=$?
@@ -70,7 +82,7 @@ checkok() (
 	match "$msg" <"$pipe" & match_pid=$!
 	wait $env_pid || {
 		# shellcheck disable=2154
-		warn -r "${bld-}$*${rst_r-} exited with status $?."
+		warn -lr "${bld-}$*${rst_r-} exited with status $?."
 		rc=1
 	}
 	wait $match_pid	|| rc=$?
@@ -307,7 +319,6 @@ traverse() (
 # Print a message to STDERR.
 # -r, -y, -g colour the message red, yellow, and green respectively.
 # -q tells warn to respect $quiet.
-alias warn='_warn -L "$LINENO"'
 _warn() (
 	col='' lineno=''
 	OPTIND=1 OPTARG='' opt=''
