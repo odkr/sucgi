@@ -51,7 +51,7 @@ main (void) {
 		errx(EXIT_FAILURE, "failed");
 	}
 
-	warnx("checking ERR_SYS ...");
+	warnx("checking FAIL ...");
 	if (try_err() != FAIL) {
 		errx(EXIT_FAILURE, "failed");
 	}
