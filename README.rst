@@ -57,9 +57,10 @@ macOS::
 Installation 
 ============
 
-**Do NOT use suCGI at this point!** This repository exists to facilitate
-continuous integration with static code checkers and in-house testing,
-*not* to distribute code to the public.
+**Do NOT use suCGI at this point!** This project is work in progess and
+the repository exists only to facilitate continuous integration with static
+code checkers as well as in-house testing, *not* to distribute code to
+the public.
 
 ----
 
