@@ -6,12 +6,11 @@
 # Initialiation
 #
 
-set -u
-script_dir="${0%/*}"
-[ "$script_dir" = "$0" ] && script_dir=.
-readonly script_dir
+set -Cefu
+readonly tools_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+readonly src_dir="$(cd -P "$tools_dir/.." && pwd)"
 # shellcheck disable=1091
-. "$script_dir/lib.sh" || exit
+. "$tools_dir/lib.sh" || exit
 init || exit
 
 
