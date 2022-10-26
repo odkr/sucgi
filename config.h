@@ -87,9 +87,9 @@
 
 /* 
  * A secure file permission mask.
- * This mask is added to the current umask, rather than replacing it.
+ * Added to the current umask.
  */
-#define UMASK 022
+#define UMASK 077
 
 /*
  * Maximum number of environment variables.
