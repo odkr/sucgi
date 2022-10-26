@@ -23,4 +23,5 @@ tools/*
 !tools/*.c
 !tools/*.h
 !tools/*.sh
+sucgi
 sucgi-*
