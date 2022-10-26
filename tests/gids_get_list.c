@@ -31,6 +31,7 @@
 
 #include "../gids.h"
 
+/* Calculate the number of elements in an array. */
 #define NELEMS(x) (sizeof((x)) / sizeof(*(x)))
 
 int
