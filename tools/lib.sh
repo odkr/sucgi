@@ -91,6 +91,13 @@ cleanup() {
 
 # Register signals, set variables, a umask, and enable colours.
 init() {
+	# Environment variables.
+	: "${src_dir:?}"
+	# shellcheck disable=2154
+	PATH="$src_dir/tests:$src_dir/tools:$PATH"
+	unset IFS
+
+	# Signal handling.
 	catch=x caught=
 	trap 'catch 1' HUP
 	trap 'catch 2' INT
@@ -99,8 +106,10 @@ init() {
 	trap cleanup EXIT
 	[ "$caught" ] && exit "$((caught + 128))"
 
+	# Permission mask.
 	umask 077
 
+	# Colours and formatting.
 	rst='' bld='' grn='' red='' ylw=''
 	if [ -t 2 ]
 	then
@@ -115,20 +124,18 @@ init() {
 			fi
 		esac
 	fi
-	
 	rst_g="$rst$grn" rst_r="$rst$red" rst_y="$rst$ylw"
-	
-	# shellcheck disable=2034
-	readonly rst bld grn red ylw
 
+	# shellcheck disable=2034
+	readonly rst bld grn red ylw rst_g rst_r rst_y
+
+	# Programme name.
 	prog_name="$(basename "$0")" || prog_name="$0"
 	readonly prog_name
 
+	# Linefeed.
 	readonly lf="
 "
-
-	# shellcheck disable=2154
-	PATH="$script_dir:$script_dir/../tools:$PATH"
 }
 
 # Print the owner of $file
