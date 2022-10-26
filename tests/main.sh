@@ -38,6 +38,16 @@ init || exit
 # Prelude
 #
 
+# Effective UID.
+euid="$(id -u)"
+
+# A regular user.
+if [ "$euid" -eq 0 ]
+then
+	reguser="$(owner "$src_dir")"
+	[ "$reguser" = root ] && reguser="$(regularuser)"
+fi
+
 # Paths
 tests_dir=$(cd -P "$script_dir" && pwd)
 
@@ -121,6 +131,9 @@ ln -s "$inside" "$in_link"
 readonly env_bin="$(command -v env)"
 readonly env_dir="$(dirname "$env_bin")"
 
+# Make sure the document root is owned by a regular user.
+[ "$euid" -eq 0 ] && chown -R "$reguser:$(id -g "$reguser")" "$doc_root"
+
 
 #
 # Too many environment variables.
@@ -189,7 +202,7 @@ checkerr 'an environment variable is malformed.' \
 
 # TODO:
 # Wrong JAILs require separate binaries.
-# (jail_dir too long, empty, non-existent)
+# (non-existent jail)
 
 # No DOCUMENT_ROOT given.
 checkerr '$DOCUMENT_ROOT is unset or empty.' \
@@ -298,17 +311,19 @@ checkerr "realpath $doc_root/<no file!>: No such file or directory." \
 	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$doc_root/<no file!>" main
 
 # Simple test. Should fail but regard PATH_TRANSLANTED as valid.
-checkerr 'seteuid 0: Operation not permitted.' \
+err='seteuid 0: Operation not permitted.'
+[ "$euid" -eq 0 ] && err="chdir $doc_root: Permission denied."
+checkerr "$err" \
 	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$inside" main
+
+# Symlink into jail. Should fail but regard PATH_TRANSLATED as valid.
+checkerr "$err" \
+	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$in_link" main
 
 # Long filename. Should fail but regard PATH_TRANSLANTED as valid.
 long_path_trans="${long_path%????????????????}"
-checkerr "realpath $long_path_trans: No such file or directory" \
+checkerr "realpath $long_path_trans: No such file or directory." \
 	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$long_path_trans" main
-
-# Symlink into jail. Should fail but regard PATH_TRANSLATED as valid.
-checkerr 'seteuid 0: Operation not permitted.' \
-	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$in_link" main
 
 
 #
@@ -317,7 +332,6 @@ checkerr 'seteuid 0: Operation not permitted.' \
 
 checkerr "script $env_bin is owned by privileged user root" \
 	DOCUMENT_ROOT="$env_dir" PATH_TRANSLATED="$env_bin" main
-
 
 exit
 
