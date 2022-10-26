@@ -28,6 +28,17 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#if !defined(UID_MAX)
+#define UID_MAX_ UINT_MAX
+#else /* !defined(UID_MAX) */
+#define UID_MAX_ UID_MAX
+#endif /* !defined(UID_MAX) */
+
+#if !defined(GID_MAX)
+#define GID_MAX_ UINT_MAX
+#else /* !defined(GID_MAX) */
+#define GID_MAX_ GID_MAX
+#endif /* !defined(GID_MAX) */
 
 int
 main (int argc, char **argv)
@@ -79,11 +90,8 @@ main (int argc, char **argv)
 	if (uid < 0) {
 		errx(EXIT_FAILURE, "user IDs must be non-negative");
 	}
-#if defined(UID_MAX)
-	if ((unsigned long) uid > UID_MAX) {
-#else
-	if ((unsigned long) uid > UINT_MAX) {
-#endif
+
+	if ((unsigned long) uid > UID_MAX_) {
 		errx(EXIT_FAILURE, "user ID is too large");
 	}
 
@@ -94,11 +102,8 @@ main (int argc, char **argv)
 	if (gid < 0) {
 		errx(EXIT_FAILURE, "group IDs must be non-negative");
 	}
-#if defined(GID_MAX)
-	if ((unsigned long) gid > GID_MAX) {
-#else
-	if (gid > UINT_MAX) {
-#endif
+
+	if ((unsigned long) gid > GID_MAX_) {
 		errx(EXIT_FAILURE, "group ID is too large");
 	}
 
