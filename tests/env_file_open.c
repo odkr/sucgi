@@ -72,11 +72,11 @@ main (int argc, char **argv)
 		case ERR_OPEN:
 			error("open %s: %m.", fname);
 		case ERR_LEN:
-			error("path to file is too long.");
+			error("path too long.");
 		case ERR_ILL:
 			error("file %s not within jail.", fname);
 		case ERR_NIL:
-			error("$%s is unset or empty.", var);
+			error("$%s unset or empty.", var);
 		default:
 			error("returned %u.", rc);
 	}

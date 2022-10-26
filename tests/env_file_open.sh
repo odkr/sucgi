@@ -116,11 +116,11 @@ checkerr 'strncmp(jail, realpath(jail, NULL), MAX_STR) == 0' \
 	var="$jail/foo" env_file_open "$in_link" var f
 
 # shellcheck disable=2016
-checkerr '$var is unset or empty' \
+checkerr '$var unset or empty' \
 	env_file_open "$jail" var f
 
 # shellcheck disable=2016
-checkerr '$var is unset or empty' \
+checkerr '$var unset or empty' \
 	var= env_file_open "$jail" var f
 
 # Path to file is too long (system).
@@ -128,7 +128,7 @@ checkerr 'too long' \
 	var="$huge_str" env_file_open "$jail" var f
 
 # Value of environment variable is too long (suCGI).
-checkerr 'path to file is too long' \
+checkerr 'path too long' \
 	var="$huge_str" env_file_open "$jail" var f
 
 # Path to file is too long after having been resolved (system).

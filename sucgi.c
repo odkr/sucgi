@@ -234,9 +234,9 @@ main(void) {
 		case ERR_SETENV:
 			error("setenv: %m.");
 		case ERR_ILL:
-			error("an environment variable is malformed.");
+			error("found malformed environment variable.");
 		case ERR_LEN:
-			error("an environment variable is too long.");
+			error("found too long environment variable.");
 		default:
 			error("env_restore returned %u.", rc);
 	}
@@ -274,11 +274,11 @@ main(void) {
 		case ERR_OPEN:
 			error("open %s: %m.", doc_root);
 		case ERR_LEN:
-			error("path to document root is too long.");
+			error("document root path too long.");
 		case ERR_ILL:
 			error("document root %s not within jail.", doc_root);
 		case ERR_NIL:
-			error("$DOCUMENT_ROOT is unset or empty.");
+			error("$DOCUMENT_ROOT unset or empty.");
 		default:
 			error("env_file_open returned %u.", rc);
 	}
@@ -316,11 +316,11 @@ main(void) {
    		case ERR_OPEN:
    			error("open %s: %m.", script);
    		case ERR_LEN:
-   			error("path to script is too long.");
+   			error("script path too long.");
    		case ERR_ILL:
    			error("script %s not within document root.", script);
    		case ERR_NIL:
-   			error("$PATH_TRANSLATED is unset or empty.");
+   			error("$PATH_TRANSLATED unset or empty.");
    		default:
    			error("env_file_open returned %u.", rc);
    	}
@@ -481,7 +481,7 @@ main(void) {
 
 #if ENFORCE_HOME_DIR
 	if (!path_contains(owner->pw_dir, doc_root)) {
-		error("document root %s is not within %s's home directory.",
+		error("document root %s not within %s's home directory.",
 		      doc_root, owner->pw_name);
 	}
 #endif /* ENFORCE_HOME_DIR */
@@ -594,7 +594,7 @@ main(void) {
 		case ERR_ILL:
 			error("%s has no filename suffix.", script);
 		case FAIL:
-			error("found no handler for %s.", script);
+			error("no handler for %s.", script);
 		default:
 			error("scpt_get_handler returned %u.", rc);
 	}

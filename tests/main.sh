@@ -150,49 +150,50 @@ checkerr 'too many environment variables.' \
 tests_dir=$(cd -P "$script_dir" && pwd) ||
 	err 'failed to get working directory.'
 
-checkerr 'an environment variable is malformed.' \
+
+checkerr 'found malformed environment variable.' \
 	badenv -n3 foo bar=bar baz=baz "$tests_dir/main"
 
-checkerr 'an environment variable is malformed.' \
+checkerr 'found malformed environment variable.' \
 	badenv -n3 bar=bar foo baz=baz "$tests_dir/main"
 
-checkerr 'an environment variable is malformed.' \
+checkerr 'found malformed environment variable.' \
 	badenv -n3 bar=bar baz=baz foo "$tests_dir/main"
 
-checkerr 'an environment variable is malformed.' \
+checkerr 'found malformed environment variable.' \
 	badenv 0bar=bar foo=foo baz=baz "$tests_dir/main"
 
-checkerr 'an environment variable is malformed.' \
+checkerr 'found malformed environment variable.' \
 	badenv foo=foo 0bar=bar baz=baz "$tests_dir/main"
 
-checkerr 'an environment variable is malformed.' \
+checkerr 'found malformed environment variable.' \
 	badenv foo=foo baz=baz 0bar=bar "$tests_dir/main"
 
-checkerr 'an environment variable is malformed.' \
+checkerr 'found malformed environment variable.' \
 	badenv '=baz' foo=foo bar=bar "$tests_dir/main"
 
-checkerr 'an environment variable is malformed.' \
+checkerr 'found malformed environment variable.' \
 	badenv foo=foo '=baz' bar=bar "$tests_dir/main"
 
-checkerr 'an environment variable is malformed.' \
+checkerr 'found malformed environment variable.' \
 	badenv foo=foo bar=bar '=baz' "$tests_dir/main"
 
-checkerr 'an environment variable is malformed.' \
+checkerr 'found malformed environment variable.' \
 	badenv -n3 '' foo=foo bar=bar "$tests_dir/main"
 
-checkerr 'an environment variable is malformed.' \
+checkerr 'found malformed environment variable.' \
 	badenv -n3 foo=foo '' bar=bar "$tests_dir/main"
 
-checkerr 'an environment variable is malformed.' \
+checkerr 'found malformed environment variable.' \
 	badenv -n3 foo=foo bar=bar '' "$tests_dir/main"
 
-checkerr 'an environment variable is malformed.' \
+checkerr 'found malformed environment variable.' \
 	badenv 'foo foo=foo' bar=bar baz=baz "$tests_dir/main"
 
-checkerr 'an environment variable is malformed.' \
+checkerr 'found malformed environment variable.' \
 	badenv bar=bar 'foo foo=foo' baz=baz "$tests_dir/main"
 
-checkerr 'an environment variable is malformed.' \
+checkerr 'found malformed environment variable.' \
 	badenv bar=bar baz=baz 'foo foo=foo' "$tests_dir/main"
 
 
@@ -205,19 +206,19 @@ checkerr 'an environment variable is malformed.' \
 # (non-existent jail)
 
 # No DOCUMENT_ROOT given.
-checkerr '$DOCUMENT_ROOT is unset or empty.' \
+checkerr '$DOCUMENT_ROOT unset or empty.' \
 	main
 
 # $DOCUMENT_ROOT is empty.
-checkerr '$DOCUMENT_ROOT is unset or empty.' \
+checkerr '$DOCUMENT_ROOT unset or empty.' \
 	DOCUMENT_ROOT= main
 
 # $DOCUMENT_ROOT is too long (suCGI).
-checkerr 'an environment variable is too long.' \
+checkerr 'found too long environment variable.' \
 	DOCUMENT_ROOT="$huge_str" main
 
 # $DOCUMENT_ROOT is too long (system).
-checkerr 'too long.' \
+checkerr 'too long' \
 	DOCUMENT_ROOT="$huge_path" main
 
 # Path to document root is too long after having been resolved (system).
@@ -249,7 +250,7 @@ checkerr "realpath /lib/<no file!>: No such file or directory." \
 	DOCUMENT_ROOT="/lib/<no file!>" main
 
 # Simple test. Should fail but regard DOCUMENT_ROOT as valid.
-checkerr '$PATH_TRANSLATED is unset or empty.' \
+checkerr '$PATH_TRANSLATED unset or empty.' \
 	DOCUMENT_ROOT="$doc_root" main
 
 # Long filename. Should fail but regard DOCUMENT_ROOT as valid.
@@ -263,11 +264,11 @@ checkerr "realpath $long_doc_root: No such file or directory" \
 #
 
 # PATH_TRANSLATED is undefined.
-checkerr '$PATH_TRANSLATED is unset or empty.' \
+checkerr '$PATH_TRANSLATED unset or empty.' \
 	DOCUMENT_ROOT="$doc_root" main
 
 # $PATH_TRANSLATED is empty.
-checkerr '$PATH_TRANSLATED is unset or empty.' \
+checkerr '$PATH_TRANSLATED unset or empty.' \
 	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED= main
 
 # $PATH_TRANSLATED is too long (system).
@@ -333,29 +334,27 @@ checkerr "realpath $long_path_trans: No such file or directory." \
 checkerr "script $env_bin is owned by privileged user root" \
 	DOCUMENT_ROOT="$env_dir" PATH_TRANSLATED="$env_bin" main
 
-exit
 
+#
+# Abort unless run by the superuser.
+#
 
+if [ "$euid" -ne 0 ]
+then
+	warn -g 'all tests passed.'
+	exit
+fi
 
 #
 # Interlude
 #
 
-euid="$(id -u)" && [ "$euid" ] ||
-	err "failed to get process' effective UID."
-
-# The checks below only work if main.sh is invoked as root.
-[ "$euid" -ne 0 ] && exit
-
-tmpdir="${home:?}/tmp-$$"
-readonly tmpdir
 
 
 
-unalloc_uid="$(unallocid -u 1000 30000)" && [ "$unalloc_uid" ] ||
-	err "failed to find an unallocated user ID."
-unalloc_gid="$(unallocid -g 1000 30000)" && [ "$unalloc_gid" ] ||
-	err "failed to find an unallocated group ID."
+
+unalloc_uid="$(unallocid -u 1000 30000)"
+unalloc_gid="$(unallocid -g 1000 30000)"
 
 cp -a "$script_dir/../tools/." "$tmpdir/."
 
