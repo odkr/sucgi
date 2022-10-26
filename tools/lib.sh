@@ -162,7 +162,6 @@ init() {
 owner() (
 	file="${1:?}"
 	pipe="${TMPDIR:-/tmp}/ls-$$.fifo" rc=0
-
 	mkfifo "$pipe"
 	ls -ld "$file" >"$pipe" & ls=$!
 	awk '{print $3}' <"$pipe" & awk=$!
