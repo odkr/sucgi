@@ -110,19 +110,18 @@ init() {
 	umask 077
 
 	# Colours and formatting.
+	ncols="$(tput colors 2>/dev/null)" || ncols=0
 	rst='' bld='' grn='' red='' ylw=''
-	if [ -t 2 ]
+	if [ "$ncols" -gt 0 ] && [ -t 2 ]
 	then
-		case ${TERM-} in (*color*)
-			# shellcheck disable=2034
-			if rst="$(tput sgr0 2>/dev/null)"
-			then
-				bld="$(tput bold    2>/dev/null)" || : 
-				red="$(tput setaf 1 2>/dev/null)" || :
-				grn="$(tput setaf 2 2>/dev/null)" || :
-				ylw="$(tput setaf 3 2>/dev/null)" || :
-			fi
-		esac
+		# shellcheck disable=2034
+		if rst="$(tput sgr0 2>/dev/null)"
+		then
+			bld="$(tput bold    2>/dev/null)" || : 
+			red="$(tput setaf 1 2>/dev/null)" || :
+			grn="$(tput setaf 2 2>/dev/null)" || :
+			ylw="$(tput setaf 3 2>/dev/null)" || :
+		fi
 	fi
 	rst_g="$rst$grn" rst_r="$rst$red" rst_y="$rst$ylw"
 
