@@ -52,7 +52,7 @@ touch "$fname"
 
 for mode in g=w o=w ug=w uo=w go=w ugo=w
 do
-	warn "checking $mode ..."
+	warn "checking ${bld-}$mode${rst-} ..."
 	chown "$euid:$egid" "$fname"
 	chmod "$mode" "$fname"
 	# shellcheck disable=2154
@@ -63,7 +63,7 @@ done
 
 for mode in u=w ugo=
 do
-	warn "checking $mode ..."
+	warn "checking ${bld-}$mode${rst-} ..."
 	chown "$euid:$egid" "$fname"
 	chmod "$mode" "$fname"
 	# shellcheck disable=2154
@@ -72,7 +72,8 @@ do
 	chmod ugo= "$fname"
 done
 
-warn "checking whether /bin/sh is exclusively writable by root ..."
+warn "checking whether ${bld-}/bin/sh${rst-} is" \
+     "exclusively writable by ${bld-}root${rst-} ..."
 file_is_wexcl 0 /bin/sh ||
 	err "reported as not exclusively writable."
 
