@@ -30,7 +30,7 @@ Development
 suCGI's default build configuration resides in *devel.env*;
 load it by passing ``-d`` to *configure*.
 
-*devel.env* loads *local.env* if it exists. Here is an example:
+*devel.env* loads *local.env* if it exists. Here is an example::
 
 	# Use GCC v12 by default.
 	: "${CC:="gcc-12"}"
