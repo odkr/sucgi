@@ -59,7 +59,10 @@
 #define JAIL_DIR "/"
 
 #undef USER_DIR 
-#define USER_DIR "%2$s"
+#define USER_DIR "%s"
+
+#undef ENFORCE_HOME_DIR
+#define ENFORCE_HOME_DIR false
 
 #undef MIN_UID
 #define MIN_UID 500U
@@ -353,8 +356,8 @@ main(void) {
 	owner = getpwuid(script_stat.st_uid);
 	if (!owner) {
 		if (errno == 0) {
-			error("user ID %llu has not been allocated.",
-			      (long long unsigned) script_stat.st_uid);
+			error("script %s is owned by unallocated UID %llu.",
+			      script, (long long unsigned) script_stat.st_uid);
 		} else {
 			error("getpwuid %llu: %m.",
 			      (long long unsigned) script_stat.st_uid);
@@ -515,7 +518,7 @@ main(void) {
 
 	/* script is guaranteed to be canonical. */
 	if (strstr(script, "/.")) {
-		error("path %s refers to hidden files.", script);
+		error("path %s contains hidden files.", script);
 	}
 
 
