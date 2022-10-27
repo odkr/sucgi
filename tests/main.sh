@@ -446,10 +446,17 @@ printf 'euid=%s egid=%s ruid=%s rgid=%s\n' \
 EOF
 chown "$user:$group" "$script_sh"
 
-# Create an executable copy without a file extension.
+# Create a non-executable copy without a filename suffix.
+suffix_none="$doc_root/suffix_none"
+cp -p "$script_sh" "$suffix_none"
+
+# Create a non-executable copy with an unknown suffix.
+suffix_unknown="$doc_root/suffix.nil"
+cp -p "$script_sh" "$suffix_unknown"
+
+# Create an executable copy without a filename suffix.
 script="${script_sh%.sh}"
-cp "$script_sh" "$script"
-chown "$user:$group" "$script"
+cp -p "$script_sh" "$script"
 chmod +x "$script"
 
 # Create a script that prints the environment.
@@ -460,10 +467,9 @@ env
 EOF
 chown "$user:$group" "$env_sh"
 
-# Create an executable copy without a file extension.
+# Create an executable copy without a filename suffix.
 env="${env_sh%.sh}"
-cp "$env_sh" "$env"
-chown "$user:$group" "$env"
+cp -p "$env_sh" "$env"
 chmod +x "$env"
 
 
@@ -541,8 +547,15 @@ do
 done
 
 
-# FIXME: test for has no suffix, has unknown suffix errors.
+#
+# Check suffix errors.
+#
 
+checkerr "$suffix_none has no filename suffix." \
+	PATH_TRANSLATED="$suffix_none" main
+
+checkerr "no handler for $suffix_unknown." \
+	PATH_TRANSLATED="$suffix_unknown" main
 
 
 #
@@ -567,5 +580,10 @@ do
 	PATH_TRANSLATED="$path" foo=foo main |
 	grep -Fq foo= && err -l "environment was not cleared."
 done
+
+
+#
+# All done.
+#
 
 warn -g 'all tests passed.'
