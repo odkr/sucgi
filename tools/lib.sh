@@ -327,9 +327,10 @@ traverse() (
 	done
 )
 
-# Print a message to STDERR.
+# Print $* to stderr.
 # -r, -y, -g colour the message red, yellow, and green respectively.
-# -q tells warn to respect $quiet.
+# -l prefixes it with the number of the line warn was called from.
+# -q suppresses output if $quiet is set.
 _warn() (
 	col='' line=
 	OPTIND=1 OPTARG='' opt=''
