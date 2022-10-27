@@ -41,22 +41,30 @@ init || exit
 # Effective UID.
 euid="$(id -u)"
 
-# A regular user.
+# Get a regular user and a their primary group.
 if [ "$euid" -eq 0 ]
 then
-	reguser="$(owner "$src_dir")"
-	[ "$reguser" = root ] && reguser="$(regularuser)"
+	user="$(owner "$src_dir")"
+	[ "$user" = root ] && user="$(regularuser)"
+else
+	user="$(logname)"
 fi
+group="$(id -g "$user")"
 
 # Paths
 tests_dir=$(cd -P "$script_dir" && pwd)
 
 # Create a temporary directory in $HOME.
-logname="$(logname)"
-case $logname in (*[!A-Za-z0-9_]*)
-	err "$logname is not a portable name."
+case $user in (*[!A-Za-z0-9_]*)
+	err "$user is not a portable name."
 esac
-eval home="~$logname"
+
+eval home="~$user"
+readonly home
+
+tmp="$(cd -P "${TMPDIR:-/tmp}" && pwd)"
+readonly tmp
+
 TMPDIR="$home"
 tmpdir
 
@@ -131,8 +139,8 @@ ln -s "$inside" "$in_link"
 readonly env_bin="$(command -v env)"
 readonly env_dir="$(dirname "$env_bin")"
 
-# Make sure the document root is owned by a regular user.
-[ "$euid" -eq 0 ] && chown -R "$reguser:$(id -g "$reguser")" "$doc_root"
+# Make sure the files are owned by a regular user.
+[ "$euid" -eq 0 ] && chown -R "$user:$group" "$TMPDIR"
 
 
 #
@@ -198,7 +206,7 @@ checkerr 'found malformed environment variable.' \
 
 
 #
-# Verification of $DOCUMENT_ROOT.
+# Verification of $DOCUMENT_ROOT (pre-privilege drop).
 #
 
 # TODO:
@@ -258,6 +266,9 @@ long_doc_root="${long_path%??????????????}"
 checkerr "realpath $long_doc_root: No such file or directory" \
 	DOCUMENT_ROOT="$long_doc_root" main
 
+# DOCUMENT_ROOT remains mostly the same for the remainder of this script.
+export DOCUMENT_ROOT="$doc_root"
+
 
 #
 # Verification of $PATH_TRANSLATED.
@@ -265,66 +276,64 @@ checkerr "realpath $long_doc_root: No such file or directory" \
 
 # PATH_TRANSLATED is undefined.
 checkerr '$PATH_TRANSLATED unset or empty.' \
-	DOCUMENT_ROOT="$doc_root" main
+	main
 
 # $PATH_TRANSLATED is empty.
 checkerr '$PATH_TRANSLATED unset or empty.' \
-	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED= main
+	PATH_TRANSLATED= main
 
 # $PATH_TRANSLATED is too long (system).
 checkerr 'too long' \
-	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$huge_path" main
+	PATH_TRANSLATED="$huge_path" main
 
 # $PATH_TRANSLATED is too long (suCGI).
 checkerr 'too long' \
-	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$huge_str" main
+	PATH_TRANSLATED="$huge_str" main
 
 # Path to script is too long after having been resolved (system).
 checkerr 'too long' \
-	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$huge_path_link" main
+	PATH_TRANSLATED="$huge_path_link" main
 
 # Path to script is too long after having been resolved (suCGI).
 checkerr 'too long' \
-	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$huge_str_link" main
-
-# Document root does not exist.
-checkerr "realpath /lib/<no file!>: No such file or directory." \
-	DOCUMENT_ROOT="/lib/<no file!>" PATH_TRANSLATED=x main
+	PATH_TRANSLATED="$huge_str_link" main
 
 # Path to script points to outside of document root.
 checkerr "script "$outside" not within document root" \
-	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$outside" main
+	PATH_TRANSLATED="$outside" main
 
 # Resolved path to script points to outside of document root (dots).
 checkerr "script "$outside" not within document root" \
-	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$doc_root/../outside" main
+	PATH_TRANSLATED="$doc_root/../outside" main
 
 # Resolved path to script points to outside of document root (symlink).
 checkerr "script "$outside" not within document root" \
-	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$out_link" main
+	PATH_TRANSLATED="$out_link" main
 
 # Script is of the wrong type.
 checkerr "script "$dir" is not a regular file" \
-	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$dir" main
+	PATH_TRANSLATED="$dir" main
 
 # Script does not exist.
 checkerr "realpath $doc_root/<no file!>: No such file or directory." \
-	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$doc_root/<no file!>" main
+	PATH_TRANSLATED="$doc_root/<no file!>" main
 
 # Simple test. Should fail but regard PATH_TRANSLANTED as valid.
-err='seteuid 0: Operation not permitted.'
-[ "$euid" -eq 0 ] && err="chdir $doc_root: Permission denied."
+if [ "$euid" -eq 0 ]
+	then err="document root $doc_root is not $user's user directory."
+	else err='seteuid 0: Operation not permitted.'
+fi
 checkerr "$err" \
-	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$inside" main
+	PATH_TRANSLATED="$inside" main
 
 # Symlink into jail. Should fail but regard PATH_TRANSLATED as valid.
 checkerr "$err" \
-	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$in_link" main
+	PATH_TRANSLATED="$in_link" main
 
 # Long filename. Should fail but regard PATH_TRANSLANTED as valid.
 long_path_trans="${long_path%????????????????}"
 checkerr "realpath $long_path_trans: No such file or directory." \
-	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$long_path_trans" main
+	PATH_TRANSLATED="$long_path_trans" main
 
 
 #
@@ -345,99 +354,218 @@ then
 	exit
 fi
 
+
 #
 # Interlude
 #
 
+# Get the user's ID and group.
+uid="$(id -u "$user")"
+gid="$(id -g "$user")"
 
+# Create a file without an owner.
+unalloc_uid="$(findid -nu 1000 30000)"
+noowner="$doc_root/noowner"
+touch "$noowner"
+chown "$unalloc_uid" "$noowner"
 
+# Create a file owned by root.
+root_owned="$doc_root/priv-root"
+touch "$root_owned"
 
+# Create a file owned by a non-root privileged user with a low UID.
+low_uid="$(findid -u 1 500)"
+low_uid_owned="$doc_root/priv-low-uid"
+touch "$low_uid_owned"
+chown "$low_uid" "$low_uid_owned"
 
-unalloc_uid="$(unallocid -u 1000 30000)"
-unalloc_gid="$(unallocid -g 1000 30000)"
+# Create a file owned by a non-root privileged user with a high UID.
+warn "searching for a user with an ID > 60,000 ..."
+if high_uid="$(findid -u 60000 65536 2>/dev/null)"
+then
+	high_uid_owned="$doc_root/priv-high-uid"
+	touch "$high_uid_owned"
+	chown "$high_uid" "$high_uid_owned"
+fi
 
-cp -a "$script_dir/../tools/." "$tmpdir/."
+# Create a hidden file.
+hidden_file="$doc_root/.hidden.f"
+touch "$hidden_file"
+chown "$user:$group" "$hidden_file"
 
-outside="$tmpdir/outside"
-ln -s "$TMPDIR" "$outside"
+# Create a file in a hidden directory.
+hidden_dir="$doc_root/.hidden.d/file"
+mkdir "$doc_root/.hidden.d"
+touch "$hidden_dir"
+chown -R "$user:$group" "$doc_root/.hidden.d"
 
-script="$tmpdir/script.sh"
-cp "$script" "$tmpdir/script"
-chmod ugo-x "$script"
-chmod +x "$tmpdir/script"
+# Create a set-UID script.
+setuid="$doc_root/setuid"
+touch "$setuid"
+chown "$user:$group" "$setuid"
+chmod u+s "$setuid"
 
-su="$tmpdir/su.sh"
-cp "$tmpdir/script.sh" "$su"
+# Create a set-GID script.
+setgid="$doc_root/setgid"
+touch "$setgid"
+chown "$user:$group" "$setgid"
+chmod g+s "$setgid"
 
-sg="$tmpdir/sg.sh"
-cp "$tmpdir/script.sh" "$sg"
+# Create a file that is group-writable.
+groupw_file="$doc_root/groupw.f"
+touch "$groupw_file"
+chown "$user:$group" "$groupw_file"
+chmod g+w "$groupw_file"
 
-ltmin="$tmpdir/ltmin.sh"
-cp "$script" "$ltmin"
+# Create a file that is world-writable.
+otherw_file="$doc_root/otherw.f"
+touch "$otherw_file"
+chown "$user:$group" "$otherw_file"
+chmod o+w "$otherw_file"
 
-ltmin="$tmpdir/ltmin.sh"
-cp "$script" "$ltmin"
+# Create a file in a directory that is group-writable.
+groupw_dir="$doc_root/groupw.d/file"
+mkdir "$doc_root/groupw.d"
+touch "$groupw_dir"
+chown -R "$user:$group" "$doc_root/groupw.d"
+chmod g+w "$doc_root/groupw.d"
 
-gtmax="$tmpdir/gtmax.sh"
-cp "$script" "$gtmax"
+# Create a file in a directory that is other-writable.
+otherw_dir="$doc_root/otherw.d/file"
+mkdir "$doc_root/otherw.d"
+touch "$otherw_dir"
+chown -R "$user:$group" "$doc_root/otherw.d"
+chmod o+w "$doc_root/otherw.d"
 
-nouser="$tmpdir/nouser.sh"
-cp "$script" "$nouser"
+# Create a script that prints the current user and group.
+script_sh="$doc_root/script.sh"
+cat <<'EOF' >"$script_sh"
+#!/bin/sh
+printf 'euid=%s egid=%s ruid=%s rgid=%s\n' \
+       "$(id -u)" "$(id -g)" "$(id -ur)" "$(id -gr)"
+EOF
+chown "$user:$group" "$script_sh"
 
-grpw="$tmpdir/grpw.sh"
-cp "$script" "$grpw"
-chmod ug=w "$grpw"
+# Create an executable copy without a file extension.
+script="${script_sh%.sh}"
+cp "$script_sh" "$script"
+chown "$user:$group" "$script"
+chmod +x "$script"
 
-reportuser="$tmpdir/user.sh"
-chmod u=rwx,go= "$reportuser"
+# Create a script that prints the environment.
+env_sh="$doc_root/env.sh"
+cat <<'EOF' >"$env_sh"
+#!/bin/sh
+env
+EOF
+chown "$user:$group" "$env_sh"
 
-chown -R "$ruid:$rgid" "$tmpdir"
-chown 0 "$su"
-chgrp 0 "$sg"
-chown 1:1 "$ltmin"
-chown 30001:30001 "$gtmax"
-chown "$unalloc_uid" "$nouser"
-
-fifo="$tmpdir/fifo"
-mkfifo "$fifo"
+# Create an executable copy without a file extension.
+env="${env_sh%.sh}"
+cp "$env_sh" "$env"
+chown "$user:$group" "$env"
+chmod +x "$env"
 
 
 #
-# Root checks
+# Verification of owner 
 #
 
+# Owned by non-existing user.
+checkerr "script $noowner is owned by unallocated UID $unalloc_uid." \
+	PATH_TRANSLATED="$noowner" main
+
+# Owned by root.
+checkerr "script $root_owned is owned by privileged user" \
+	PATH_TRANSLATED="$root_owned" main
+
+# Owned by a non-root privileged user with a low UID.
+checkerr "script $low_uid_owned is owned by privileged user" \
+	PATH_TRANSLATED="$low_uid_owned" main
+
+# Owned by a non-root privileged user with a high UID.
+if [ "$high_uid" ]
+then
+	checkerr "script $high_uid_owned is owned by privileged user" \
+		PATH_TRANSLATED="$high_uid_owned" main
+fi
 
 
-checkerr "$su: owned by privileged UID 0." \
-	DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$su" main
+#
+# Verification of DOCUMENT_ROOT (post-privilege drop)
+#
 
-#checkerr "$sg: owned by privileged GID 0." \
-	DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$sg" main
-exit 999
-checkerr "$ltmin: owned by non-regular UID 1." \
-	DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$ltmin" main
+# DOCUMENT_ROOT is not USER_DIR.
+checkerr "document root $doc_root is not $user's user directory." \
+	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$script" main
 
-checkerr "$gtmax: owned by non-regular UID 30001." \
-	DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$gtmax" main
+# Set a legal DOCUMENT_ROOT.
+export DOCUMENT_ROOT="$home"
 
-checkerr "$nouser: getpwuid $unalloc_uid: no such user." \
-	DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$nouser" main
 
-checkerr "$grpw: can be altered by users other than $user." \
-	DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$grpw" main
+#
+# Not a hidden file.
+#
 
-checkok 'This is a test script for main.sh and run_script.sh.' \
-	DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$script" main
+for hidden in "$hidden_file" "$hidden_dir"
+do
+	checkerr "path "$hidden" contains hidden files." \
+		PATH_TRANSLATED="$hidden" main
+done
 
-checkok 'This is a test script for main.sh and run_script.sh.' \
-	DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/script" main
+#
+# Neither set-UID nor set-GID bit set.
+#
 
-checkok "$ruid:$rgid" \
-	DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$reportuser" main
+checkerr "script $setuid's set-user-ID bit is set." \
+	PATH_TRANSLATED="$setuid" main
 
-DOCUMENT_ROOT="$tmpdir" PATH_TRANSLATED="$tmpdir/env.sh" FOO=bar \
-	main >"$fifo" 2>&1 & pid="$!"
-grep -Fq 'FOO=bar' <"$fifo" && err 'environment was not cleared.'
-wait "$pid" || err "./env.sh exited with non-status $?."
+checkerr "script $setgid's set-group-ID bit is set." \
+	PATH_TRANSLATED="$setgid" main
 
-exit 0
+
+#
+# Verification of exclusive write-access.
+#
+
+for file in "$groupw_file" "$otherw_file"
+do
+	checkerr "$file is writable by users other than $user." \
+		PATH_TRANSLATED="$file" main
+done
+
+for file in "$groupw_dir" "$otherw_dir"
+do
+	checkerr "$(dirname "$file") is writable by users other than $user." \
+		PATH_TRANSLATED="$file" main
+done
+
+
+# FIXME: test for has no suffix, has unknown suffix errors.
+
+
+
+#
+# Check whether privileges have been dropped.
+#
+
+for path in "$script" "$script_sh"
+do
+	checkok "euid=$uid egid=$gid ruid=$uid rgid=$gid" \
+		PATH_TRANSLATED="$path" main
+done
+
+
+#
+# Check whether the environment has been cleared.
+#
+
+for path in "$env" "$env_sh"
+do
+	warn "checking ${bld}PATH_TRANSLATED=$env_sh foo=foo main${rst-} ..."
+
+	PATH_TRANSLATED="$path" foo=foo main |
+	grep -Fq foo= && err -l "environment was not cleared."
+done
+
+warn -g 'all tests passed.'
