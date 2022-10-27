@@ -165,7 +165,7 @@ check: $(check_bins)
 	tools/check.sh $(checks)
 
 cov: clean
-	make CC=$(cov_cc) CFLAGS=--coverage $(check_bins)
+	make CC=$(cov_cc) CFLAGS="-O2 --coverage" $(check_bins)
 	-tools/check.sh -s $(checks)
 
 lcov.info: cov
