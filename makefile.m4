@@ -172,7 +172,8 @@ cov: clean
 	-tools/check.sh -s $(checks)
 
 lcov.info: cov
-	lcov -c -d . -o $@ --exclude '*/tests/*' --exclude '*/tools/*'
+	lcov -c -d . -o $@ --exclude '*/tests/*' --exclude '*/tools/*' \
+		--exclude '/Library/*'
 	chown "$$(tools/owner.sh .)" $@
 
 cov/index.html: lcov.info
