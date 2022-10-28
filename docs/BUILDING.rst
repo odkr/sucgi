@@ -90,19 +90,21 @@ Macros
 MAX_ENV
     How many environment variables suCGI may accept. Unsigned integer.
     suCGI aborts if the environment contains more variables. Defaults to 256.
+    Note, values lower than 192 may break CGI scripts.
 
 MAX_GROUPS
-    How many groups a user can be a member of. Unsigned interger.
+    How many groups a user may be a member of. Unsigned interger.
     suCGI refuses users who belong to more groups. Defaults to 32.
 
 MAX_STR
-    Maximum string size, including the terminating NUL.
-    suCGI aborts if encounters a string that is longer.
+    Maximum string size, including the terminating NUL. Unsigned integer.
+    suCGI aborts if encounters an environment variable that is longer.
+    Note, the length of a variables includes its name and the "=".
     Defaults to 1024 or PATH_MAX, whichever is lower.
 
 TESTING
     Whether to build for testing. Boolean value.
-    *Test builds are insecure!*
+    Overrides *config.h*. *Test builds are insecure!*
 
 MAX_ENV, MAX_GROUPS, and MAX_STR cannot be set in *config.h*;
 TESTING should not be set in *config.h*.
