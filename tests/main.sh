@@ -583,7 +583,10 @@ done
 
 
 #
-# All done.
+# Run tests as ordinary user.
 #
 
-warn -g 'all tests passed.'
+warn "running tests as unprivileged user ..."
+
+unset DOCUMENT_ROOT
+runas "$uid" "$gid" "$tests_dir/$prog_name"
