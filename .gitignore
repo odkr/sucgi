@@ -4,7 +4,7 @@
 *.ctu-info
 *.dump
 *.gcda
-*.gcdo
+*.gcno
 *.gcov
 *.o
 *.swp
