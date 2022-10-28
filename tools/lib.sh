@@ -290,7 +290,7 @@ regularuser() (
 # register it for deletion via $cleanup, and set it as $TMPDIR.
 tmpdir() {
 	[ "${__tmpdir_tmpdir-}" ] && return
-	# shellcheck disable=293
+	# shellcheck disable=2031
 	__tmpdir_prefix="${1:-tmp}" __tmpdir_dir="${2:-"${TMPDIR:-/tmp}"}"
 	__tmpdir_real="$(cd -P "$__tmpdir_dir" && pwd)" ||
 		err "cd -P $__tmpdir_dir && pwd: exited with status $?."
