@@ -294,6 +294,7 @@ main(void) {
 	assert(*doc_root != '\0');
 	assert(doc_fd > -1);
 	assert(strnlen(doc_root, MAX_STR) < MAX_STR);
+	/* RATS: ignore; only tests whether doc_root exists. */
 	assert(access(doc_root, F_OK) == 0);
         /* RATS: ignore; this use of realpath should be safe. */
 	assert(strncmp(realpath(doc_root, NULL), doc_root, MAX_STR) == 0);
@@ -331,6 +332,7 @@ main(void) {
 	assert(script);
 	assert(*script != '\0');
 	assert(strnlen(script, MAX_STR) < MAX_STR);
+	/* RATS: ignore; only tests whether doc_root exists. */
 	assert(access(doc_root, F_OK) == 0);
         /* RATS: ignore; this use of realpath should be safe. */
 	assert(strncmp(realpath(script, NULL), script, MAX_STR) == 0);
@@ -480,6 +482,7 @@ main(void) {
 	 * It also makes sure that users cannot break out of their directory.
 	 */
 
+	/* RATS: ignore; path_check_format respects MAX_STR. */
 	char user_dir[MAX_STR];		/* The user directory. */
 
 #if FORCE_HOME
@@ -578,6 +581,7 @@ main(void) {
 	 * Run the script.
 	 */
 
+	/* RATS: ignore; scpt_get_handler respects MAX_STR. */
 	char handler[MAX_STR];		/* Script interpreter. */
 
 	if (file_is_exec(script_stat)) {

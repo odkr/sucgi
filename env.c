@@ -228,6 +228,8 @@ env_file_open(const char *const jail, const char *const varname,
 	assert(*jail != '\0');
 	assert(*varname != '\0');
 	assert(strnlen(jail, MAX_STR) < MAX_STR);
+
+	/* RATS: ignore; only tests whether jail exists. */
 	assert(access(jail, F_OK) == 0);
 	/* RATS: ignore; this use of realpath should be safe. */
 	assert(strncmp(jail, realpath(jail, NULL), MAX_STR) == 0);
@@ -241,8 +243,8 @@ env_file_open(const char *const jail, const char *const varname,
 		return ERR_CALLOC;
 	}
 
-	/* RATS: ignore; value is checked below. */
 	errno = 0;
+	/* RATS: ignore; value is verified below. */
 	value = getenv(varname);
 	if (!value || *value == '\0') {
 		if (errno == 0) {

@@ -57,11 +57,16 @@ path_check_format(const char *fname,
 	assert(*format != '\0');
 	assert(strnlen(fname, MAX_STR) < MAX_STR);
 	assert(strnlen(format, MAX_STR) < MAX_STR);
+	/* RATS: ignore; only tests whether fname exists. */
 	assert(access(fname, F_OK) == 0);
 	/* RATS: ignore; this use of realpath should be safe. */
 	assert(strncmp(realpath(fname, NULL), fname, MAX_STR) == 0);
 
+	/* Some implementions of sprintf fail to NUL-terminate strings. */
+	(void) memset(*exp, 0, MAX_STR);
+
 	va_start(ap, format);
+	/* RATS: ignore; format set in config.h, NUL-termination checked. */
 	n = vsnprintf(*exp, MAX_STR, format, ap);
 	va_end(ap);
 
@@ -92,7 +97,9 @@ path_check_wexcl(const uid_t uid, const char *const par,
 	assert(*fname != '\0');
 	assert(strnlen(par, MAX_STR) < MAX_STR);
 	assert(strnlen(fname, MAX_STR) < MAX_STR);
+	/* RATS: ignore; only tests whether jar exists. */
 	assert(access(par, F_OK) == 0);
+	/* RATS: ignore; only tests whether fname exists. */
 	assert(access(fname, F_OK) == 0);
 	/* RATS: ignore; this use of realpath should be safe. */
 	assert(strncmp(realpath(par, NULL), par, MAX_STR) == 0);

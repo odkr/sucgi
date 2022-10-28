@@ -47,7 +47,9 @@
  *
  * FIXME: Not unit-tested.
  */
-__attribute__((nonnull(1, 2, 3), format(printf, 3, 4), warn_unused_result))
+__attribute__((nonnull(1, 2, 3), 
+               /* RATS: ignore; this is not a call to printf. */
+	       format(printf, 3, 4), warn_unused_result))
 enum error path_check_format(const char *fname,
                              /* RATS: ignore; exp is bounds-checked. */
 			     char (*const exp)[MAX_STR],

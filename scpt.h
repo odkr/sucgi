@@ -55,6 +55,7 @@ struct scpt_ent {
 __attribute__((nonnull(1, 2, 3), pure, warn_unused_result))
 enum error scpt_get_handler(const struct scpt_ent handlerdb[],
                             const char *const scpt,
+			    /* RATS: ignore; handler is bounds-checked. */
                             char (*const handler)[MAX_STR]);
 
 

@@ -179,6 +179,7 @@ main (int argc, char **argv)
 
 		if (mode == ALLOC) {
 			if (rng[0] < id && id < rng[1]) {
+				/* RATS: ignore */
 				printf("%ld\n", id);
 				return EXIT_SUCCESS;
 			}
@@ -201,7 +202,8 @@ main (int argc, char **argv)
 					goto next;
 				}
 			}
-			
+
+			/* RATS: ignore */
 			printf("%ld\n", i);
 			return EXIT_SUCCESS;
 			

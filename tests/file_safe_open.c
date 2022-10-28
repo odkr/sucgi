@@ -76,8 +76,8 @@ main (int argc, char **argv)
 	char buf[MAX_STR];	/* Buffer. */
 	ssize_t n;		/* Bytes read. */
 
-	/* RATS: ignore */
 	errno = 0;
+	/* RATS: ignore */
 	while ((n = read(fd, &buf, MAX_STR)) > 0) {
 		(void) write(1, buf, (size_t) n);
 	}

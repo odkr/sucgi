@@ -37,6 +37,7 @@
 
 enum error
 scpt_get_handler(const struct scpt_ent handlerdb[], const char *const scpt,
+                 /* RATS: ignore; handler is bounds-checked. */
                  char (*const handler)[MAX_STR])
 {
 	/* RATS: ignore; path is bounds-checked. */

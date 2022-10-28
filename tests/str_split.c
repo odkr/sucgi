@@ -85,6 +85,7 @@ main(void)
 	(void) memset(long_str, 'x', sizeof(long_str) - 1);
 	(void) memset(huge_str, 'x', sizeof(huge_str) - 1);
 	(void) memset(huge_head, 'x', sizeof(huge_head) - 1);
+	/* RATS: ignore. */
 	(void) strncpy(&huge_head[MAX_STR], ",foo", 5);
 
 	for (int i = 0; tests[i].s; i++) {
