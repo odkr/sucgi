@@ -104,6 +104,12 @@ lib.a:	lib.a(env.o)  lib.a(error.o)  lib.a(file.o) lib.a(gids.o) \
 $(tools):
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $@.c $(LDLIBS)
 
+tools/badenv: tools/badenv.c
+
+tools/findid: tools/findid.c
+
+tools/runas: tools/runas.c
+
 .c:
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a $(LDLIBS)
 
