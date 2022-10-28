@@ -61,8 +61,8 @@
 #undef USER_DIR 
 #define USER_DIR "%s"
 
-#undef ENFORCE_HOME_DIR
-#define ENFORCE_HOME_DIR false
+#undef FORCE_HOME
+#define FORCE_HOME false
 
 #undef MIN_UID
 #define MIN_UID 500U
@@ -94,9 +94,9 @@
 #error USER_DIR is undefined.
 #endif /* !defined(USER_DIR) */
 
-#if !defined(ENFORCE_HOME_DIR)
-#error ENFORCE_HOME_DIR is undefined.
-#endif /* !defined(ENFORCE_HOME_DIR) */
+#if !defined(FORCE_HOME)
+#error FORCE_HOME is undefined.
+#endif /* !defined(FORCE_HOME) */
 
 #if !defined(MIN_UID)
 #error MIN_UID is undefined.
@@ -482,12 +482,12 @@ main(void) {
 
 	char user_dir[MAX_STR];		/* The user directory. */
 
-#if ENFORCE_HOME_DIR
+#if FORCE_HOME
 	if (!path_contains(owner->pw_dir, doc_root)) {
 		error("document root %s not within %s's home directory.",
 		      doc_root, owner->pw_name);
 	}
-#endif /* ENFORCE_HOME_DIR */
+#endif /* FORCE_HOME */
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat"
@@ -550,7 +550,7 @@ main(void) {
 	/* RATS: ignore; path_check_wexcl respects MAX_STR. */
 	char path_cur[MAX_STR];		/* Current sub-path of script path. */
 
-#if ENFORCE_HOME_DIR
+#if FORCE_HOME
 #define BASE_DIR owner->pw_dir
 #else
 #define BASE_DIR doc_root

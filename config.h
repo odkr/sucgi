@@ -38,7 +38,7 @@
  * Must the user directory reside in the user's home directory?
  * Boolean value.
  */
-#define ENFORCE_HOME_DIR true
+#define FORCE_HOME true
 
 /*
  * The smallest UID that may have been assigned to a regular user.
