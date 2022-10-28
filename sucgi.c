@@ -578,7 +578,8 @@ main(void) {
 	 * Run the script.
 	 */
 
-	const char *handler;	/* Script interpreter. */
+	//const char *handler;	/* Script interpreter. */
+	char handler[MAX_STR];
 
 	if (file_is_exec(script_stat)) {
 		errno = 0;

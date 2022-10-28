@@ -24,6 +24,7 @@
 
 #include "macros.h"
 #include "error.h"
+#include "str.h"
 
 
 /*
@@ -54,7 +55,7 @@ struct scpt_ent {
 __attribute__((nonnull(1, 2, 3), pure, warn_unused_result))
 enum error scpt_get_handler(const struct scpt_ent handlerdb[],
                             const char *const scpt,
-                            const char **const handler);
+                            char (*const handler)[MAX_STR]);
 
 
 #endif /* !defined(SCPT_H) */

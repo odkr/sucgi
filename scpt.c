@@ -37,7 +37,7 @@
 
 enum error
 scpt_get_handler(const struct scpt_ent handlerdb[], const char *const scpt,
-                 const char **const handler)
+                 char (*const handler)[MAX_STR])
 {
 	/* RATS: ignore; path is bounds-checked. */
 	char path[MAX_STR];	/* Copy of scpt for basename(3). */
@@ -63,7 +63,7 @@ scpt_get_handler(const struct scpt_ent handlerdb[], const char *const scpt,
 				return FAIL;
 			}
 
-			*handler = ent.handler;
+			try(str_cp(MAX_STR, ent.handler, *handler));
 			return OK;
 		}
 	}

@@ -92,13 +92,13 @@ main (void)
  		for (int j = 0; prefixes[j]; j++) {
 			const struct args t = tests[i];
 			const char *prefix = prefixes[j];
-			const char *handler;
+			char handler[MAX_STR];	/* RATS: ignore */
 			char scpt[MAX_STR];	/* RATS: ignore */
 			enum error rc;	
 			int n;
 
 			*scpt = '\0';
-			handler = NULL;
+			(void) memset(handler, 0, MAX_STR);
 
 			warnx("checking (hdb, %s%s, -> %s) -> %u ...",
 			      prefix, t.scpt, t.handler, t.rc);
@@ -114,11 +114,12 @@ main (void)
 			if (t.rc != rc) {
 				errx(EXIT_FAILURE, "returned %u", rc);
 			}
-			if (!(t.handler == handler ||
+			if (!(t.handler == NULL ||
 			      strcmp(t.handler, handler) == 0))
 			{
 				errx(EXIT_FAILURE, "got handler %s", handler);
 			}
+
 		}
 	}
 
