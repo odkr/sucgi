@@ -19,6 +19,10 @@ CC
 CFLAGS
     Flags to give to the compiler.
 
+cov_cc
+    The C compiler to create coverage reports with
+    (defaults to ``$(CC)``).
+
 If *configure* fails, you can also create the *makefile* by::
 
 	m4 makefile.m4 >makefile
@@ -30,7 +34,8 @@ Development
 suCGI's default build configuration resides in *devel.env*;
 load it by passing ``-d`` to *configure*.
 
-*devel.env* loads *local.env* if it exists. Here is an example::
+*devel.env* loads *local.env* if it exists.
+Here is an example for *local.env*::
 
 	# Use GCC v12 by default.
 	: "${CC:="gcc-12"}"
@@ -43,6 +48,9 @@ load it by passing ``-d`` to *configure*.
 
 	# Use Clang for coverage reports
 	cov_cc=clang
+
+*configure*'s configuration files are simply shell scripts.
+Have a look at *configure*, *prod.env*, and *devel.env* for more details.
 
 
 Compilation
@@ -82,13 +90,15 @@ cov_cc
 Macros
 ------
 
+You can set the following macros to configure to change suCGI's behaviour.
+
 MAX_ENV
     How many environment variables suCGI may accept. Unsigned integer.
     suCGI aborts if the environment contains more variables. Defaults to 256.
 
 MAX_GROUPS
     How many groups a user can be a member of. Unsigned interger.
-    suCGI refuses users who belong to more groups. Defaults to 64.
+    suCGI refuses users who belong to more groups. Defaults to 32.
 
 MAX_STR
     Maximum string size, including the terminating NUL.
@@ -99,7 +109,8 @@ TESTING
     Whether to build for testing. Boolean value.
     *Test builds are insecure!*
 
-MAX_ENV, MAX_GROUPS, and MAX_STR cannot be modefied via *config.h*.
+MAX_ENV, MAX_GROUPS, and MAX_STR cannot be set in *config.h*;
+TESTING should not be set in *config.h*.
 
 
 Installation
@@ -139,16 +150,15 @@ analysis
     ShellCheck_, if they are installed.
 
 check
-    Perform tests. Must be run as the superuser to perform all tests.
+    Perform tests. Must be run as superuser to perform all tests.
 
 cov
     Generate coverage data.
-    Must be run *twice* as superuser in order to be accurate.
-    Requires and only works with Clang_.
-    Currently somewhat defunct.
+    Must be run as superuser to generate a complete report.
+    Only tested with Clang_.
 
 covhtml
-    Alias for "cov/index.html". Requires LCOV_.
+    Generate a coverage report. Alias for "cov/index.html". Requires LCOV_.
 
 clean
     Delete binaries, coverage data, temporary files, and distribution files.
