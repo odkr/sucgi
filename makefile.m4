@@ -165,16 +165,19 @@ check: $(check_bins)
 	tools/check.sh $(checks)
 
 cov: clean
-	make CC=$(cov_cc) CFLAGS="-O2 --coverage" $(check_bins)
+	make CC=$(cov_cc) CFLAGS="$(CFLAGS) -O2 --coverage" $(check_bins)
+	tools/check.sh -qs $(check_bins) || :
+	find . '(' -name '*.gcda' -o -name '*.gcno' ')' \
+	-exec chown "$$(tools/owner.sh .)" '{}' +
 	-tools/check.sh -s $(checks)
 
 lcov.info: cov
 	lcov -c -d . -o $@ --exclude '*/tests/*' --exclude '*/tools/*'
-	owner="$$(tools/owner.sh .)" chown "$$owner:$$(id -g $$owner)" $@
+	chown "$$(tools/owner.sh .)" $@
 
 cov/index.html: lcov.info
 	genhtml -o cov lcov.info
-	owner="$$(tools/owner.sh .)" chown -R "$$owner:$$(id -g $$owner)" cov
+	chown -R "$$(tools/owner.sh .)" cov
 
 covhtml: cov/index.html
 

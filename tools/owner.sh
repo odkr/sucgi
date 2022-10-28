@@ -51,4 +51,8 @@ unset opt
 # Main
 #
 
-owner "$1"
+user="$(owner "$1")"
+group="$(id -gn "$user")"
+
+printf '%s:%s\n' "$user" "$group"
+

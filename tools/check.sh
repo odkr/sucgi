@@ -26,14 +26,16 @@ nchildren=4
 # Options
 #
 
+quiet=
 OPTIND=1 OPTARG='' opt=''
-while getopts sh opt; do
+while getopts qsh opt; do
 	case $opt in
 	        (s) nchildren=1 ;;
+		(q) quiet=x ;;
 		(h) exec cat <<EOF ;;
-check - Run the test suite.
+check - run the test suite
 
-Usage:    check TEST [...]
+Usage:    check [-s] [-q] TEST [...]
           check -h
 
 Operands:
@@ -41,6 +43,7 @@ Operands:
 
 Options:
     -s    Do not run tests in parallel.
+    -q    Suppress all output.
     -h    Show this help screen.
 
 See README.md for details.
@@ -53,7 +56,7 @@ unset opt
 
 if [ $# -eq 0 ]
 then
-	echo 'usage: check TEST [...]' >&2
+	echo 'usage: check [-s] [-q] TEST [...]' >&2
 	exit 1
 fi
 
@@ -79,7 +82,7 @@ while [ $# -gt 0 ]; do
 			eval name="\"\${test_$pid}\""
 			if ! wait "$pid"; then
 				# shellcheck disable=2154
-				warn -r "${bld-}$name${rst_r-} failed!"
+				warn -rq "${bld-}$name${rst_r-} failed!"
 				errc=$((errc + 1))
 			fi
 		done
@@ -88,6 +91,6 @@ while [ $# -gt 0 ]; do
 done
 
 # shellcheck disable=2154
-[ $errc -eq 0 ] && warn -g "all tests passed."
+[ $errc -eq 0 ] && warn -gq "all tests passed."
 
 exit $errc
