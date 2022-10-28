@@ -81,20 +81,26 @@ Alternatively, configure the build yourself (see `docs/BUILDING.rst`_).
 
 ----
 
-suCGI is configured at compile-time. Adapt *config.h*, most importantly
-*JAIL_DIR*, *DOC_ROOT*, *MIN_UID*, *MAX_UID*, *MIN_GID*, and *MAX_GID*. 
+suCGI is configured at compile-time. Adapt *config.h* to your needs.
+See docs/BUILDING.rst for more options.
 
 ----
 
-Compile and install suCGI by::
+Comipile suCGI by::
 
-    make install
+    make
 
-``make install`` will do nothing if suCGI is already installed and the
-file modification time of the installed binary is more recent than that
-of the binary that has just been built.
+----
 
-You can uninstall suCGI by ``make uninstall``.
+Install suCGI by::
+
+    sudo make install
+
+``sudo make install`` will do nothing if suCGI is already installed and
+the file modification time of the installed binary is more recent than
+that of the binary that has just been built.
+
+You can uninstall suCGI by ``sudo make uninstall``.
 
 
 Apache Configuration for PHP
