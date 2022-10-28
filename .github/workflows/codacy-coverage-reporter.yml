@@ -19,10 +19,12 @@ jobs:
         run: CFLAGS= ./configure -f
       - name: make check
         run: make check
-      - name: sudo make cov
-        run: for _ in $(seq 1 8); do sudo make cov || :; done
-      - name: make lcov.info
-        run: make lcov.info
+      - name: sh tests/main.sh
+        run: sh tests/main.sh
+      - name: sudo make check
+        run: sudo make check
+      - name: sudo make lcov.info
+        run: sudo make lcov.info
       - name: Run codacy-coverage-reporter
         uses: codacy/codacy-coverage-reporter-action@v1
         with:
