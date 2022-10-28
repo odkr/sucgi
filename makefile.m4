@@ -9,7 +9,7 @@ define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
 ifdef([__CC__], [ifelse(__CC__, [], [], [CC = __CC__
 ])], [])dnl
 CFLAGS = default([__CFLAGS__], [-O2 -s -ftrapv])
-cov_cc = default([__cov_cc__], [$(CC)])
+COV_CC = default([__COV_CC__], [$(CC)])
 
 
 #
@@ -165,7 +165,7 @@ check: $(check_bins)
 	tools/check.sh $(checks)
 
 cov: clean
-	make CC=$(cov_cc) CFLAGS="$(CFLAGS) -O2 --coverage" $(check_bins)
+	make CC=$(COV_CC) CFLAGS="$(CFLAGS) -O2 --coverage" $(check_bins)
 	tools/check.sh -qs $(check_bins) || :
 	find . '(' -name '*.gcda' -o -name '*.gcno' ')' \
 	-exec chown "$$(tools/owner.sh .)" '{}' +

@@ -19,7 +19,7 @@ CC
 CFLAGS
     Flags to give to the compiler.
 
-cov_cc
+COV_CC
     The C compiler to create coverage reports with
     (defaults to ``$(CC)``).
 
@@ -46,7 +46,7 @@ load it by passing ``-d`` to *configure*.
 	force=x
 
 	# Use Clang for coverage reports
-	cov_cc=clang
+	COV_CC=clang
 
 *configure*'s configuration files are simply shell scripts.
 Have a look at *configure*, *prod.env*, and *devel.env* for details.
@@ -80,7 +80,7 @@ LDLIBS
     Flags or names to give to the compiler when it invokes the linker
     (default depends on *make*).
 
-cov_cc
+COV_CC
     The C compiler to create coverage reports with
     (defaults to ``$(CC)``).
 

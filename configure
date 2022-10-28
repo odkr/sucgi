@@ -73,6 +73,7 @@ Options:
 Environment:
     CC       The C compiler.
     CFLAGS   Flags to pass to the C compiler.
+    COV_CC   C compiler to use for coverage reports.
 
 See README.rst and docs/BUILDING.rst for details.
 
@@ -222,7 +223,7 @@ do
 	swap="$TMPDIR/$output"
 	if m4	-D__CC__="${CC-}"		\
 		-D__CFLAGS__="${CFLAGS# }"	\
-		-D__cov_cc__="${cov_cc-}"	\
+		-D__COV_CC__="${COV_CC-}"	\
 		"$input" >"$swap"
 	then
 		mv "$swap" "$output"
