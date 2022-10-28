@@ -380,7 +380,6 @@ touch "$low_uid_owned"
 chown "$low_uid" "$low_uid_owned"
 
 # Create a file owned by a non-root privileged user with a high UID.
-warn "searching for a user with an ID > 60,000 ..."
 if high_uid="$(findid -u 60000 65536 2>/dev/null)"
 then
 	high_uid_owned="$doc_root/priv-high-uid"

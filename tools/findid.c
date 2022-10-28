@@ -1,5 +1,5 @@
 /*
- * Find an (un-)allocated user or group ID in a given range.
+ * Find an (un-)allocated user or group ID in a given rng.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -24,19 +24,20 @@
 #include <limits.h>
 #include <grp.h>
 #include <pwd.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
-/* Largest user ID. */
+/* Largest permissible user ID. */
 #if defined(UID_MAX)
 #define UID_MAX_ UID_MAX
 #else /* defined(UID_MAX) */
 #define UID_MAX_ UINT_MAX
 #endif /* defined(UID_MAX) */
 
-/* Largest group ID. */
+/* Largest permissible group ID. */
 #if defined(GID_MAX)
 #define GID_MAX_ GID_MAX
 #else /* defined(GID_MAX) */
@@ -45,45 +46,49 @@
 
 /* What type of ID to search for. */
 typedef enum {
-	USER,
-	GROUP
-} id_type;
+	USR,
+	GRP
+} ent_type;
 
 /* Search for allocated or unallocated IDs? */
 typedef enum {
 	ALLOC,
-	UNALLOC
+	UALLC
 } search_mode;
 
 int
 main (int argc, char **argv)
 {
-	id_type type;		/* The ID type. */
+	struct passwd *pwd;	/* A passwd entry. */
+	ent_type type;		/* The ID type. */
 	search_mode mode;	/* The search mode. */
-	long id;		/* The ID. */
-	long range[2];		/* An ID range. */
+	long rng[2];		/* The ID rng. */
 	long max;		/* The upper limit for IDs. */
+	long *ids;		/* A list of IDs (only for -n). */
+	size_t n;		/* The number of IDs (only for -n). */
 	int ch;			/* An option character. */
 
 	errno = 0;
-	type = USER;
+	type = USR;
 	mode = ALLOC;
+	ids = NULL;
+	n = 0;
 
 	/* RATS: ignore */
 	while ((ch = getopt(argc, argv, "ugnh")) != -1) {
 		switch (ch) {
 			case 'u':
-				type = USER;
+				type = USR;
 				break;
 			case 'g':
-				type = GROUP;
+				type = GRP;
 				break;
 			case 'n':
-				mode = UNALLOC;
+				mode = UALLC;
 				break;
 			case 'h':
 				(void) puts(
-"findid - find an (un-)allocated user or group ID in a given range.\n\n"
+"findid - find an (un-)allocated user or group ID in a given rng.\n\n"
 "Usage:     findid [-u|-g] [-n] START END\n"
 "           findid -h\n\n"
 "Operands:\n"
@@ -112,69 +117,97 @@ main (int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	max = (long) (type == USER) ? UID_MAX_ : GID_MAX_;
+	max = (long) (type == USR) ? UID_MAX_ : GID_MAX_;
 
 	for (int i = 0; i < 2; i++) {
-		range[i] = strtol(argv[i], NULL, 10);
+		rng[i] = strtol(argv[i], NULL, 10);
 
 		if (errno != 0) {
 			err(EXIT_FAILURE, "strtol %s", argv[i]);
 		}
 
-		if (range[i] < 0) {
+		if (rng[i] < 0) {
 			errx(EXIT_FAILURE, "%s: is negative", argv[i]);
 		}
 
-		if ((long) range[i] > max) {
-			errx(EXIT_FAILURE, "%s: too large", argv[i]);
+		if (rng[i] > max) {
+			errx(EXIT_FAILURE, "%s: is too large", argv[i]);
 		}
 	}
 
-	if (range[0] > range[1]) {
-		errx(EXIT_FAILURE, "beginning of range past the end");
+	if (rng[0] > rng[1]) {
+		errx(EXIT_FAILURE, "start greater than end");
 	}
 
-	for (id = range[0]; id <= range[1]; id++) {
-		struct passwd *pwd;	/* A passwd entry. */
-		struct group *grp;	/* A group entry. */
-
-		pwd = NULL;
-		grp = NULL;
-
-		if (type == USER) {
-			pwd = getpwuid((uid_t) id);
-			if (!pwd) {
-				if (errno != 0) {
-					err(EXIT_FAILURE, "getpwuid %ld", id);
-				}
-			}
-		} else {
-			grp = getgrgid((gid_t) id);
-			if (!grp) {
-				if (errno != 0) {
-					err(EXIT_FAILURE, "getgrgid %ld", id);
-				}
-			}
+	if (mode == UALLC) {
+		ids = calloc((size_t) rng[1] - rng[0], sizeof(ids));
+		if (!ids) {
+			err(EXIT_FAILURE, "calloc");
 		}
+	}
+
+	errno = 0;
+	
+	if (type == USR) {
+		setpwent();
+	} else {
+		setgrent();
+	}
+
+	do {
+		long id;
 		
-
-		if (pwd || grp) {
-			if (mode == ALLOC) {
+		if (type == USR) {
+			struct passwd *pwd;
+			
+			pwd = getpwent();
+			if (!pwd) {
 				break;
+			}
+
+			id = (long) pwd->pw_uid;
+		} else {
+			struct group *grp;
+			
+			grp = getgrent();
+			if (!grp) {
+				break;
+			}
+
+			id = (long) grp->gr_gid;
+		}
+
+		if (mode == ALLOC) {
+			if (rng[0] < id && id < rng[1]) {
+				printf("%ld\n", id);
+				return EXIT_SUCCESS;
 			}
 		} else {
-			if (mode == UNALLOC) {
-				break;
+			ids[n] = id;
+			n++;
+		}
+	} while (true);
+
+	if (type == USR) {
+		endpwent();
+	} else {
+		endgrent();
+	}
+
+	if (mode == UALLC) {
+		for (long i = rng[0]; i < rng[1]; i++) {
+			for (size_t j = 0; j < n; j++) {
+				if (ids[j] == i) {
+					goto next;
+				}
 			}
+			
+			printf("%ld\n", i);
+			return EXIT_SUCCESS;
+			
+			next:;
 		}
 	}
 
-	if (id > range[1]) {
-		errx(EXIT_FAILURE, "no matching ID found in range");
-	}
-
-	/* RATS: ignore; the format string is a literal. */
-	(void) printf("%ld\n", id);
-
-	return EXIT_SUCCESS;
+	errx(EXIT_FAILURE, "no ID in given range matches");
 }
