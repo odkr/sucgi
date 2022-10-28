@@ -553,7 +553,7 @@ done
 checkerr "$suffix_none has no filename suffix." \
 	PATH_TRANSLATED="$suffix_none" main
 
-checkerr "no handler for $suffix_unknown." \
+checkerr "no handler registered for $suffix_unknown." \
 	PATH_TRANSLATED="$suffix_unknown" main
 
 
