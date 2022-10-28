@@ -26,9 +26,10 @@
 #
 
 set -Cefu
-readonly script_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
-readonly src_dir="$(cd -P "$script_dir/.." && pwd)"
-readonly tools_dir="$src_dir/tools"
+script_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+src_dir="$(cd -P "$script_dir/.." && pwd)"
+tools_dir="$src_dir/tools"
+readonly script_dir src_dir tools_dir
 # shellcheck disable=1091
 . "$tools_dir/lib.sh" || exit
 init || exit
@@ -58,36 +59,40 @@ echo $$ >"$long_path"
 
 # Create a path that is longer than the system permits.
 huge_path="$(mklongpath "$jail" "$path_max")"
+# shellcheck disable=2016
 traverse "$jail" "$huge_path" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
 # Create a path that is longer than suCGI permits.
 huge_str="$(mklongpath "$jail" 1024)"
+# shellcheck disable=2016
 traverse "$jail" "$huge_str" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
 # Create a shortcut to the path that is longer than the system permits.
-readonly huge_path_link="$jail/$(traverse "$jail" "$huge_path" \
+# shellcheck disable=2016
+huge_path_link="$jail/$(traverse "$jail" "$huge_path" \
 	'ln -s "$fname" d && printf d/' \
 	'ln -s "$fname" f && printf f\\n')"
 
 # Create a shortcut to the path that is longer than suCGI permits.
-readonly huge_str_link="$jail/$(traverse "$jail" "$huge_str" \
+# shellcheck disable=2016
+huge_str_link="$jail/$(traverse "$jail" "$huge_str" \
 	'ln -s "$fname" d && printf d/' \
 	'ln -s "$fname" f && printf f\\n')"
 
 # Create a file inside the jail.
-readonly inside="$jail/inside"
+inside="$jail/inside"
 echo $$ >"$inside"
 
 # Create a file outside the jail.
-readonly outside="$TMPDIR/outside"
+outside="$TMPDIR/outside"
 touch "$outside"
 
 # Create a link to the outside.
-readonly out_link="$jail/outside"
+out_link="$jail/outside"
 ln -s "$outside" "$out_link"
 
 # Create a link to the inside
-readonly in_link="$TMPDIR/to-inside"
+in_link="$TMPDIR/to-inside"
 ln -fs "$inside" "$in_link"
 
 

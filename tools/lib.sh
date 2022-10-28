@@ -241,6 +241,7 @@ pad() (
 # Get the login name of the user who invoked the script,
 # even if the script has been invoked via su or sudo.
 regularuser() (
+	# shellcheck disable=2030
 	: "${TMPDIR:=/tmp}"
 	proc="$TMPDIR/ps-$$.fifo" sorted="$TMPDIR/sort-$$.fifo" rc=1
 	mkfifo -m 0700 "$proc" "$sorted"
@@ -289,6 +290,7 @@ regularuser() (
 # register it for deletion via $cleanup, and set it as $TMPDIR.
 tmpdir() {
 	[ "${__tmpdir_tmpdir-}" ] && return
+	# shellcheck disable=293
 	__tmpdir_prefix="${1:-tmp}" __tmpdir_dir="${2:-"${TMPDIR:-/tmp}"}"
 	__tmpdir_real="$(cd -P "$__tmpdir_dir" && pwd)" ||
 		err "cd -P $__tmpdir_dir && pwd: exited with status $?."
@@ -298,6 +300,7 @@ tmpdir() {
 	cleanup="rm -rf \"\$__tmpdir_tmpdir\"; ${cleanup-}"
 	catch=x
 	[ "${caught-}" ] && exit $((caught + 128))
+	# shellcheck disable=2031
 	export TMPDIR="$__tmpdir_tmpdir"
 }
 
@@ -308,6 +311,7 @@ traverse() (
 	dirname="${1:?}" fname="${2:?}" dircmd="${3:?}" fcmd="${4:-"$3"}"
 
 	IFS=/
+	# shellcheck disable=2086
 	set -- ${fname#"${dirname%/}/"}
 	unset IFS
 	cd "$dirname" || exit
@@ -322,7 +326,7 @@ traverse() (
 				return ;;
 			(*)	eval "$dircmd"
 		 		dirname="${dirname%/}/$fname"
-		 		cd "$fname" ;;
+		 		cd "$fname" || return ;;
 		esac
 	done
 )

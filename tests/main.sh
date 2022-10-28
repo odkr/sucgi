@@ -26,9 +26,10 @@
 #
 
 set -Cefu
-readonly script_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
-readonly src_dir="$(cd -P "$script_dir/.." && pwd)"
-readonly tools_dir="$src_dir/tools"
+script_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+src_dir="$(cd -P "$script_dir/.." && pwd)"
+tools_dir="$src_dir/tools"
+readonly script_dir src_dir tools_dir
 # shellcheck disable=1091
 . "$tools_dir/lib.sh" || exit
 init || exit
@@ -102,42 +103,42 @@ huge_str="$(mklongpath "$doc_root" 1024)"
 traverse "$doc_root" "$huge_str" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
 # Create a shortcut to the path that is longer than the system permits.
-readonly huge_path_link="$doc_root/$(traverse "$doc_root" "$huge_path" \
+huge_path_link="$doc_root/$(traverse "$doc_root" "$huge_path" \
 	'ln -s "$fname" d && printf d/' \
 	'ln -s "$fname" f && printf f\\n')"
 
 # Create a shortcut to the path that is longer than suCGI permits.
-readonly huge_str_link="$doc_root/$(traverse "$doc_root" "$huge_str" \
+huge_str_link="$doc_root/$(traverse "$doc_root" "$huge_str" \
 	'ln -s "$fname" d && printf d/' \
 	'ln -s "$fname" f && printf f\\n')"
 
 # Create a link to /.
-readonly root_link="$doc_root/root"
+root_link="$doc_root/root"
 ln -s / "$root_link"
 
 # Create a directory inside the document root.
-readonly dir="$doc_root/dir"
+dir="$doc_root/dir"
 mkdir "$dir"
 
 # Create a file inside the document root.
-readonly inside="$doc_root/inside"
+inside="$doc_root/inside"
 echo $$ >"$inside"
 
 # Create a file outside the document root.
-readonly outside="$TMPDIR/outside"
+outside="$TMPDIR/outside"
 touch "$outside"
 
 # Create a link to the outside.
-readonly out_link="$doc_root/outside"
+out_link="$doc_root/outside"
 ln -s "$outside" "$out_link"
 
 # Create a link to the inside
-readonly in_link="$TMPDIR/to-inside"
+in_link="$TMPDIR/to-inside"
 ln -s "$inside" "$in_link"
 
 # Locate env
-readonly env_bin="$(command -v env)"
-readonly env_dir="$(dirname "$env_bin")"
+env_bin="$(command -v env)"
+env_dir="$(dirname "$env_bin")"
 
 # Make sure the files are owned by a regular user.
 [ "$euid" -eq 0 ] && chown -R "$user:$group" "$TMPDIR"
@@ -147,6 +148,7 @@ readonly env_dir="$(dirname "$env_bin")"
 # Too many environment variables.
 #
 
+# shellcheck disable=2086
 checkerr 'too many environment variables.' \
 	$vars main
 
@@ -299,19 +301,19 @@ checkerr 'too long' \
 	PATH_TRANSLATED="$huge_str_link" main
 
 # Path to script points to outside of document root.
-checkerr "script "$outside" not within document root" \
+checkerr "script $outside not within document root" \
 	PATH_TRANSLATED="$outside" main
 
 # Resolved path to script points to outside of document root (dots).
-checkerr "script "$outside" not within document root" \
+checkerr "script $outside not within document root" \
 	PATH_TRANSLATED="$doc_root/../outside" main
 
 # Resolved path to script points to outside of document root (symlink).
-checkerr "script "$outside" not within document root" \
+checkerr "script $outside not within document root" \
 	PATH_TRANSLATED="$out_link" main
 
 # Script is of the wrong type.
-checkerr "script "$dir" is not a regular file" \
+checkerr "script $dir is not a regular file" \
 	PATH_TRANSLATED="$dir" main
 
 # Script does not exist.
@@ -514,7 +516,7 @@ export DOCUMENT_ROOT="$home"
 
 for hidden in "$hidden_file" "$hidden_dir"
 do
-	checkerr "path "$hidden" contains hidden files." \
+	checkerr "path $hidden contains hidden files." \
 		PATH_TRANSLATED="$hidden" main
 done
 
@@ -574,7 +576,7 @@ done
 
 for path in "$env" "$env_sh"
 do
-	warn "checking ${bld}PATH_TRANSLATED=$env_sh foo=foo main${rst-} ..."
+	warn "checking ${bld-}PATH_TRANSLATED=$env_sh foo=foo main${rst-} ..."
 
 	PATH_TRANSLATED="$path" foo=foo main |
 	grep -Fq foo= && err -l "environment was not cleared."
@@ -588,4 +590,6 @@ done
 warn "running tests as unprivileged user ..."
 
 unset DOCUMENT_ROOT
+
+# shellcheck disable=2154
 runas "$uid" "$gid" "$tests_dir/$prog_name"

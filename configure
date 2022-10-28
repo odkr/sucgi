@@ -87,8 +87,8 @@ shift $((OPTIND - 1))
 unset opt
 
 [ "$#" -gt 0 ] && err 'too many operands.'
-[ "$conf" ]    || err "$bld-c$rst$red: no filename given."
-[ -e "$conf" ] || err "$bld$conf$rst$red: no such file." 
+[ "$conf" ]    || err "${bld-}-c${rst_r-}: no filename given."
+[ -e "$conf" ] || err "${bld-}$conf${rst_r-}: no such file." 
 
 # shellcheck disable=1090
 . "$conf" || exit

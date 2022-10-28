@@ -26,13 +26,14 @@
 #
 
 set -Cefu
-readonly script_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
-readonly src_dir="$(cd -P "$script_dir/.." && pwd)"
-readonly tools_dir="$src_dir/tools"
+script_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+src_dir="$(cd -P "$script_dir/.." && pwd)"
+tools_dir="$src_dir/tools"
+readonly script_dir src_dir tools_dir
 # shellcheck disable=1091
 . "$tools_dir/lib.sh" || exit
 init || exit
-oldtmp="${TMPDIR-}"
+oldtmp="${TMPDIR:-/tmp}"
 tmpdir chk
 
 
@@ -156,4 +157,5 @@ regular="$(owner "$0")"
 uid="$(id -u "$regular")"
 gid="$(id -g "$regular")"
 
+# shellcheck disable=2154
 TMPDIR="$oldtmp" runas "$uid" "$gid" "$script_dir/$prog_name"

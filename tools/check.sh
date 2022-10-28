@@ -7,8 +7,9 @@
 #
 
 set -Cefu
-readonly tools_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
-readonly src_dir="$(cd -P "$tools_dir/.." && pwd)"
+tools_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+src_dir="$(dirname "$tools_dir")"
+readonly tools_dir src_dir
 # shellcheck disable=1091
 . "$tools_dir/lib.sh" || exit
 init || exit

@@ -6,9 +6,10 @@
 # Initialisation
 #
 
-readonly script_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
-readonly src_dir="$(cd -P "$script_dir/.." && pwd)"
-readonly tools_dir="$src_dir/tools"
+set -Cefu
+tools_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+src_dir="$(dirname "$tools_dir")"
+readonly tools_dir src_dir
 # shellcheck disable=1091
 . "$tools_dir/lib.sh" || exit
 init || exit
@@ -20,6 +21,7 @@ init || exit
 
 OPTIND=1 OPTARG='' opt=''
 while getopts h opt; do
+	# shellcheck disable=2154
 	case $opt in
 		(h) exec cat <<EOF ;;
 $prog_name - print the owner of file
