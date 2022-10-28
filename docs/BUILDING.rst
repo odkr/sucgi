@@ -34,8 +34,7 @@ Development
 suCGI's default build configuration resides in *devel.env*;
 load it by passing ``-d`` to *configure*.
 
-*devel.env* loads *local.env* if it exists.
-Here is an example for *local.env*::
+*devel.env* loads *local.env* if it exists; for example::
 
 	# Use GCC v12 by default.
 	: "${CC:="gcc-12"}"
@@ -50,7 +49,7 @@ Here is an example for *local.env*::
 	cov_cc=clang
 
 *configure*'s configuration files are simply shell scripts.
-Have a look at *configure*, *prod.env*, and *devel.env* for more details.
+Have a look at *configure*, *prod.env*, and *devel.env* for details.
 
 
 Compilation
@@ -60,8 +59,6 @@ Compile suCGI by calling ``make``.
 
 Makefile variables
 ------------------
-
-You can pass the following variables to ``make`` to configure compilation:
 
 CC
     The C compiler
@@ -90,8 +87,6 @@ cov_cc
 Macros
 ------
 
-You can set the following macros to configure to change suCGI's behaviour.
-
 MAX_ENV
     How many environment variables suCGI may accept. Unsigned integer.
     suCGI aborts if the environment contains more variables. Defaults to 256.
@@ -113,10 +108,21 @@ MAX_ENV, MAX_GROUPS, and MAX_STR cannot be set in *config.h*;
 TESTING should not be set in *config.h*.
 
 
+Testing
+=======
+
+Run the test suite by ``make check``. If you want to run the whole test
+suite, you must run it as the superuser.
+
+Create coverage reports by ``make covhtml``. The report can then be found
+in *cov*. Coverage reports require Gcov_ (or Clang_'s Gcov clone) and LCOV_.
+Coverage reports are only accurate if they are generated as the superuser.
+
+
 Installation
 ============
 
-Install suCGI by ``make install``.
+Install suCGI by ``sudo make install``.
 
 You can pass the following variables to ``make`` to adapt the installation:
 
@@ -189,6 +195,8 @@ uninstall
 .. _RATS: https://github.com/andrew-d/rough-auditing-tool-for-security
 
 .. _ShellCheck: https://www.shellcheck.net/
+
+.. _Gcov: https://gcc.gnu.org/onlinedocs/gcc/Gcov.html
 
 .. _LCOV: https://github.com/linux-test-project/lcov
 
