@@ -597,7 +597,7 @@ main(void) {
 		case ERR_ILL:
 			error("%s has no filename suffix.", script);
 		case FAIL:
-			error("no handler for %s.", script);
+			error("no handler registered for %s.", script);
 		default:
 			error("scpt_get_handler returned %u.", rc);
 	}
