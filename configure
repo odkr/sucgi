@@ -25,6 +25,9 @@ tmpdir tmp .
 # Number of child processes to spawn.
 readonly nchildren=4
 
+# Supported Makefile variables
+readonly makevars='CC CFLAGS ARFLAGS LDFLAGS LDLIBS cov_cc'
+
 
 #
 # Functions
@@ -65,17 +68,17 @@ Usage:       configure [-c FILE|-d] [-f] [-q]
              configure -h
 
 Options:
-    -C       Do not replace config.status, even if -f is given.
-    -c FILE  Read build configuration from FILE (default: $conf).
-    -d       Short for -c devel.env.
-    -f       Overwrite existing files.
-    -h       Show this help screen.
-    -q       Be quiet.
+    -C         Do not replace config.status, even if -f is given.
+    -c FILE    Read build configuration from FILE (default: $conf).
+    -d         Short for -c devel.env.
+    -f         Overwrite existing files.
+    -h         Show this help screen.
+    -q         Be quiet.
 
 Environment:
-    CC       The C compiler.
-    CFLAGS   Flags to pass to the C compiler.
-    COV_CC   C compiler to use for coverage reports.
+    CC         The C compiler.
+    CFLAGS     Flags to pass to the C compiler.
+    cov_cc  C compiler to use for coverage reports.
 
 See README.rst and docs/BUILDING.rst for details.
 
@@ -89,7 +92,7 @@ done
 shift $((OPTIND - 1))
 unset opt
 
-[ "$#" -gt 0 ] && err 'too many operands.'
+[ $# -gt 0 ]   && err "too many operands."
 [ "$conf" ]    || err "${bld-}-c${rst_r-}: no filename given."
 [ -e "$conf" ] || err "${bld-}$conf${rst_r-}: no such file." 
 
@@ -206,6 +209,54 @@ fi
 
 
 #
+# Create M4 command line
+#
+
+set --
+for var in $makevars
+do
+	eval "val=\"\${$var-}\""
+	[ "$val" ] && set -- "$@" -D"__${var}__=${val# }"
+done
+
+
+#
+# Save configuration
+#
+
+if [ "$status" ] || ! [ -e config.status ]
+then
+	swap="$TMPDIR/config.status"
+
+	cat <<-'EOF' >"$swap"
+	#!/bin/sh
+	# Last configuration detected by ./configure.
+	# Run this script to regenerate the files based on that configuration.
+
+	EOF
+
+	vars=
+	for var in $makevars
+	do
+		eval "val=\"\${$var-}\""
+		[ "$val" ] || continue
+		printf -- '%s="%s"\n' "$var" "${val# }" >>"$swap"
+		vars="${vars-} $var"
+	done
+
+	cat <<-EOF >>"$swap"
+
+	export ${vars# }
+	./configure -Cf $args
+	EOF
+
+	mv "$swap" config.status
+
+	warn -q "saved configuration in ${bld-}config.status${rst-}."
+fi
+
+
+#
 # Create files
 #
 
@@ -241,11 +292,7 @@ do
 	fi
 
 	swap="$TMPDIR/$output"
-	if m4	-D__CC__="${CC-}"		\
-		-D__CFLAGS__="${CFLAGS# }"	\
-		-D__COV_CC__="${COV_CC-}"	\
-		-D__ARGS__="$args"		\
-		"$input" >"$swap"
+	if m4 -D__args__="$args" "$@" "$input" >"$swap"
 	then
 		
 		mv "$swap" "$output"
