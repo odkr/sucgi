@@ -21,6 +21,7 @@
 
 #include <err.h>
 #include <errno.h>
+#include <pwd.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <stdlib.h>
@@ -28,12 +29,6 @@
 #include "../error.h"
 #include "../path.h"
 
-/* Largest user ID. */
-#if defined(UID_MAX)
-#define UID_MAX_ UID_MAX
-#else /* defined(UID_MAX) */
-#define UID_MAX_ UINT_MAX
-#endif /* defined(UID_MAX) */
 
 int
 main (int argc, char **argv)
@@ -42,31 +37,30 @@ main (int argc, char **argv)
 	char cur[MAX_STR];	/* Current directory. */
 	const char *parent;	/* Parent directory. */
 	const char *fname;	/* Filename. */
-	long uid;		/* User ID. */
+	struct passwd *pwd;	/* A user. */
 	enum error rc;		/* Return code. */
 
 	if (argc != 4) {
-		(void) fputs("usage: path_check_wexcl UID DIR FILE\n", stderr);
+		(void) fputs("usage: path_check_wexcl LOGNAME DIR FILE\n",
+		             stderr);
 		return EXIT_FAILURE;
 	}
 
 	errno = 0;
-	uid = strtol(argv[1], NULL, 10);
 
-	if (errno != 0) {
-		err(EXIT_FAILURE, "strtol %s", argv[1]);
-	}
-	if (uid < 0) {
-		errx(EXIT_FAILURE, "user IDs must be non-negative");
-	}
-	if ((unsigned long) uid > UID_MAX_) {
-		errx(EXIT_FAILURE, "user ID is too large");
+	pwd = getpwnam(argv[1]);
+	if (!pwd) {
+		if (errno == 0) {
+			errx(EXIT_FAILURE, "no such user");
+		} else {
+			err(EXIT_FAILURE, "getpwam");
+		}
 	}
 
 	parent = argv[2];
 	fname = argv[3];
 
-	rc = path_check_wexcl((uid_t) uid, parent, fname, &cur);
+	rc = path_check_wexcl(pwd->pw_uid, parent, fname, &cur);
 	switch (rc) {
 		case OK:
 			break;
@@ -77,8 +71,8 @@ main (int argc, char **argv)
 		case ERR_STAT:
 			error("stat %s: %m.", cur);
 		case FAIL:
-		        error("%s is writable by user IDs other than %lu.",
-			      cur, uid);
+		        error("%s is writable by users other than %s.",
+			      cur, pwd->pw_name);
 		default:
 			error("returned %u.", rc);
 	}

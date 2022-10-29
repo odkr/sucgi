@@ -41,12 +41,15 @@ tmpdir chk
 # Prelude 
 #
 
-euid="$(id -u)"
-egid="$(id -g)"
+user="$(id -un)"
+uid="$(id -u "$user")"
+
 shallow="$TMPDIR/file"
 touch "$shallow"
+
 dir="$TMPDIR/dir"
 mkdir "$dir"
+
 deeper="$dir/file"
 touch "$deeper"
 chmod 600 "$deeper"
@@ -59,43 +62,39 @@ chmod 600 "$deeper"
 no="u=r,g=w,o= u=r,g=,o=w u=rw,g=w,o= u=rw,g=,o=w u=rw,go=w u=rw,go=w"
 for mode in $no
 do
-	chown "$euid:$egid" "$shallow"
 	chmod "$mode" "$shallow"
-	checkerr "$shallow is writable by user IDs other than $euid" \
-		path_check_wexcl "$euid" "$TMPDIR" "$shallow"
+	checkerr "$shallow is writable by users other than $user" \
+		path_check_wexcl "$user" "$TMPDIR" "$shallow"
 
-	chown "$euid:$egid" "$dir"
 	chmod "$mode" "$dir"
 	chmod u+x "$dir"
-	checkerr "$dir is writable by user IDs other than $euid" \
-		path_check_wexcl "$euid" "$TMPDIR" "$deeper"
+	checkerr "$dir is writable by users other than $user" \
+		path_check_wexcl "$user" "$TMPDIR" "$deeper"
 done
 
 yes="u=rw,go= ugo=r"
 for mode in $yes
 do
-	chown "$euid:$egid" "$shallow"
 	chmod "$mode" "$shallow"
 	checkok "$shallow" \
-		path_check_wexcl "$euid" "$TMPDIR" "$shallow"
+		path_check_wexcl "$user" "$TMPDIR" "$shallow"
 
-	[ "$euid" -ne 0 ] &&
-		checkerr "/ is writable by user IDs other than $euid" \
-			path_check_wexcl "$euid" / "$deeper"
+	[ "$uid" -ne 0 ] &&
+		checkerr "/ is writable by users other than $user" \
+			path_check_wexcl "$user" / "$deeper"
 
-	chown "$euid:$egid" "$shallow"
 	chmod "$mode" "$dir"
 	chmod u+wx,go= "$dir"
 	checkok "$deeper" \
-		path_check_wexcl "$euid" "$TMPDIR" "$deeper"
+		path_check_wexcl "$user" "$TMPDIR" "$deeper"
 
 	chmod g+w,o= "$dir"
-	checkerr "$dir is writable by user IDs other than $euid" \
-		path_check_wexcl "$euid" "$TMPDIR" "$deeper"
+	checkerr "$dir is writable by users other than $user" \
+		path_check_wexcl "$user" "$TMPDIR" "$deeper"
 
 	chmod g=,o+w "$dir"
-	checkerr "$dir is writable by user IDs other than $euid" \
-		path_check_wexcl "$euid" "$TMPDIR" "$deeper"
+	checkerr "$dir is writable by users other than $user" \
+		path_check_wexcl "$user" "$TMPDIR" "$deeper"
 done
 
 warn -g "all tests passed."
