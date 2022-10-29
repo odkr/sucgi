@@ -48,7 +48,7 @@ main (int argc, char **argv)
 	bool find_group;	/* Find a group, not a user? */
 	bool print_name;	/* Print a name, not an ID (not for -N)? */
 	long range[2];		/* ID range. */
-	long long max;		/* Upper limit for IDs. */
+	int64_t max;		/* Upper limit for IDs. */
 	long *ids;		/* List of IDs (only for -N). */
 	size_t n;		/* The number of IDs (only for -N). */
 	int ch;			/* An option character. */
@@ -116,12 +116,10 @@ main (int argc, char **argv)
 		if (errno != 0) {
 			err(EXIT_FAILURE, "strtol %s", argv[i]);
 		}
-
 		if (range[i] < 0) {
 			errx(EXIT_FAILURE, "%s: is negative", argv[i]);
 		}
-
-		if ((long long) range[i] > max) {
+		if ((int64_t) range[i] > max) {
 			errx(EXIT_FAILURE, "%s: is too large", argv[i]);
 		}
 	}

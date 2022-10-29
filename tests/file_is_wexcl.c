@@ -30,11 +30,9 @@
 #include "../file.h"
 
 /* Largest user ID. */
-#if defined(UID_MAX)
-#define UID_MAX_ UID_MAX
-#else /* defined(UID_MAX) */
-#define UID_MAX_ UINT_MAX
-#endif /* defined(UID_MAX) */
+#if !defined(UID_MAX)
+#define UID_MAX UINT_MAX
+#endif /* !defined(UID_MAX) */
 
 int
 main (int argc, char **argv)
@@ -49,7 +47,7 @@ main (int argc, char **argv)
 	}
 
 	errno = 0;
-	uid = strtol(argv[1], NULL, 10);
+	uid = strtol(argv[1], NULL, 0);
 
 	if (errno != 0) {
 		err(EXIT_FAILURE, "strtol %s", argv[1]);
@@ -57,7 +55,7 @@ main (int argc, char **argv)
 	if (uid < 0) {
 		errx(EXIT_FAILURE, "user IDs must be non-negative");
 	}
-	if ((unsigned long) uid > UID_MAX_) {
+	if ((uint64_t) uid > (uint64_t) UID_MAX) {
 		errx(EXIT_FAILURE, "user ID is too large");
 	}
 
