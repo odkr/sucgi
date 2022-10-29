@@ -21,48 +21,30 @@
 
 #include <err.h>
 #include <errno.h>
-#include <limits.h>
+#include <pwd.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-#include <sys/types.h>
 #include <unistd.h>
-
-#if !defined(UID_MAX)
-#define UID_MAX_ UINT_MAX
-#else /* !defined(UID_MAX) */
-#define UID_MAX_ UID_MAX
-#endif /* !defined(UID_MAX) */
-
-#if !defined(GID_MAX)
-#define GID_MAX_ UINT_MAX
-#else /* !defined(GID_MAX) */
-#define GID_MAX_ GID_MAX
-#endif /* !defined(GID_MAX) */
 
 int
 main (int argc, char **argv)
 {
-	char **cmd;	/* The command. */
-	long uid;	/* The user ID. */
-	long gid;	/* The group ID. */
-	int ch;		/* An option character. */
-
-	errno = 0;
+	struct passwd *pwd;	/* The user. */
+	char **cmd;		/* The command. */
+	int ch;			/* An option character. */
 
 	/* RATS: ignore */
 	while ((ch = getopt(argc, argv, "h")) != -1) {
 		switch (ch) {
 			case 'h':
 				(void) puts(
-"runas - run a command under the given user and group IDs\n\n"
-"Usage:   runas UID GID CMD [ARG ...]\n"
+"runas - run a command as a user\n\n"
+"Usage:   runas LOGNAME CMD [ARG ...]\n"
 "         runas -h\n\n"
 "Operands:\n"
-"    UID  A user ID.\n"
-"    GID  A group ID.\n"
-"    CMD  The command.\n"
-"    ARG  An argument to CMD.\n\n"
+"    LOGNAME  A login name.\n"
+"    CMD      A command.\n"
+"    ARG      An argument to CMD.\n\n"
 "Options:\n"
 "    -h   Print this help screen.\n\n"
 "Copyright 2022 Odin Kroeger.\n"
@@ -78,46 +60,35 @@ main (int argc, char **argv)
 	argc -= optind;
 	argv += optind;
 
-	if (argc < 3) {
-		(void) fputs("usage: runas UID GID COMM [ARG ...]\n", stderr);
+	if (argc < 2) {
+		(void) fputs("usage: runas LOGNAME CMD [ARG ...]\n", stderr);
 		return EXIT_FAILURE;
 	}
 
-	uid = strtol(argv[0], NULL, 10);
-	if (errno != 0) {
-		err(EXIT_FAILURE, "strtol %s", argv[1]);
-	}
-	if (uid < 0) {
-		errx(EXIT_FAILURE, "user IDs must be non-negative");
-	}
-
-	if ((unsigned long) uid > UID_MAX_) {
-		errx(EXIT_FAILURE, "user ID is too large");
+	errno = 0;
+	pwd = getpwnam(argv[0]);
+	if (!pwd) {
+		if (errno == 0) {
+			errx(EXIT_FAILURE, "no such user");
+		} else {
+			err(EXIT_FAILURE, "getpwnam");
+		}
 	}
 
-	gid = strtol(argv[1], NULL, 10);
-	if (errno != 0) {
-		err(EXIT_FAILURE, "strtol %s", argv[2]);
+	if (setgroups(1, (gid_t[1]) {(gid_t) pwd->pw_gid}) != 0) {
+		err(EXIT_FAILURE, "setgroups %llu",
+		    (long long unsigned) pwd->pw_gid);
 	}
-	if (gid < 0) {
-		errx(EXIT_FAILURE, "group IDs must be non-negative");
+	if (setgid(pwd->pw_gid) != 0) {
+		err(EXIT_FAILURE, "setgid %llu",
+		    (long long unsigned) pwd->pw_gid);
 	}
-
-	if ((unsigned long) gid > GID_MAX_) {
-		errx(EXIT_FAILURE, "group ID is too large");
-	}
-
-	if (setgroups(1, (gid_t[1]) {(gid_t) gid}) != 0) {
-		err(EXIT_FAILURE, "setgroups %ld", gid);
-	}
-	if (setgid((gid_t) gid) != 0) {
-		err(EXIT_FAILURE, "setgid %ld", gid);
-	}
-	if (setuid((uid_t) uid) != 0) {
-		err(EXIT_FAILURE, "setuid %ld", uid);
+	if (setuid(pwd->pw_uid) != 0) {
+		err(EXIT_FAILURE, "setuid %llu",
+		    (long long unsigned) pwd->pw_uid);
 	}
 
-	cmd = &argv[2];
+	cmd = &argv[1];
 	/* RATS: ignore */
 	(void) execvp(*cmd, cmd);
 

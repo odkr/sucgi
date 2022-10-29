@@ -48,7 +48,7 @@ then
 	user="$(owner "$src_dir")"
 	[ "$user" = root ] && user="$(regularuser)"
 else
-	user="$(logname)"
+	user="$(id -un)"
 fi
 group="$(id -g "$user")"
 
@@ -366,7 +366,7 @@ uid="$(id -u "$user")"
 gid="$(id -g "$user")"
 
 # Create a file without an owner.
-unalloc_uid="$(findid -nu 1000 30000)"
+unalloc_uid="$(findid -Nu 1000 30000)"
 noowner="$doc_root/noowner"
 touch "$noowner"
 chown "$unalloc_uid" "$noowner"
@@ -592,4 +592,4 @@ warn "running tests as unprivileged user ..."
 unset DOCUMENT_ROOT
 
 # shellcheck disable=2154
-runas "$uid" "$gid" "$tests_dir/$prog_name"
+runas "$user" "$tests_dir/$prog_name"

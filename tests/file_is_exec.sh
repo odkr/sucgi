@@ -43,12 +43,12 @@ tmpdir chk
 
 umask 0777
 
-euid="$(id -u)"
-egid="$(id -g)"
+uid="$(id -u)"
+gid="$(id -g)"
 
 fname="$TMPDIR/file"
 printf '#!/bin/sh\n:\n' >"$fname"
-chown "$euid:$egid" "$fname"
+chown "$uid:$gid" "$fname"
 
 
 #
@@ -59,9 +59,9 @@ no="ugo= uo=,g=x ug=,o=x"
 for mode in $no
 do
 	warn "checking ${bld-}$mode${rst-} with" \
-	     "owner ${bld-}$euid${rst-} and group ${bld-}$egid${rst-} ..."
+	     "owner ${bld-}$uid${rst-} and group ${bld-}$gid${rst-} ..."
 	chmod "$mode" "$fname"
-	[ "$euid" -ne 0 ] && [ -x "$fname" ] &&
+	[ "$uid" -ne 0 ] && [ -x "$fname" ] &&
 		err "$fname is executable."
 	file_is_exec "$fname" &&
 		err "reported as executable."
@@ -72,25 +72,25 @@ yes="u=x ug=x ugo=x"
 for mode in $yes
 do
 	warn "checking ${bld-}$mode${rst-} with" \
-	     "owner ${bld-}$euid${rst-} and group ${bld-}$egid${rst-} ..."
+	     "owner ${bld-}$uid${rst-} and group ${bld-}$gid${rst-} ..."
 	chmod "$mode" "$fname"
-	[ "$euid" -eq 0 ] || [ -x "$fname" ] || 
+	[ "$uid" -eq 0 ] || [ -x "$fname" ] || 
 		err "$fname is not executable."
 	file_is_exec "$fname" ||
 		err "reported as not executable."
 	chmod ugo= "$fname"
 done
 
-warn "checking ${bld-}/bin/sh${rst-} as user ${bld-}$euid${rst-} ..."
-[ "$euid" -eq 0 ] || [ -x /bin/sh ] || 
+warn "checking ${bld-}/bin/sh${rst-} as user ${bld-}$uid${rst-} ..."
+[ "$uid" -eq 0 ] || [ -x /bin/sh ] || 
 	err "/bin/sh is not executable."
 file_is_exec /bin/sh ||
 	err "not reported as executable."
 
-euid="$(id -u)" && [ "$euid" ] ||
+uid="$(id -u)" && [ "$uid" ] ||
 	err "failed to get process' effective user ID."
 
-if [ "$euid" -ne 0 ]
+if [ "$uid" -ne 0 ]
 then
 	warn -g "all tests passed."
 	exit
@@ -101,8 +101,8 @@ fi
 # Root tests
 #
 
-unalloc_uid="$(findid -nu 1000 30000)"
-unalloc_gid="$(findid -ng 1000 30000)"
+unalloc_uid="$(findid -Nu 1000 30000)"
+unalloc_gid="$(findid -Ng 1000 30000)"
 
 chown "$unalloc_uid:$unalloc_gid" "$fname"
 
@@ -119,30 +119,30 @@ chmod o=x "$fname"
 file_is_exec "$fname" || err "not reported as executable."
 
 warn "checking ${bld-}o=x${rst-} with" \
-     "owner ${bld-}$euid${rst-} and group ${bld-}$unalloc_gid${rst-} ..."
-chown "$euid" "$fname"
+     "owner ${bld-}$uid${rst-} and group ${bld-}$unalloc_gid${rst-} ..."
+chown "$uid" "$fname"
 chmod u=x,go= "$fname"
 file_is_exec "$fname" || err "reported as not executable."
 
 warn "checking ${bld-}u=x${rst-} with" \
-     "owner ${bld-}$unalloc_uid${rst-} and group ${bld-}$egid${rst-} ..."
-chown "$unalloc_uid:$egid" "$fname"
+     "owner ${bld-}$unalloc_uid${rst-} and group ${bld-}$gid${rst-} ..."
+chown "$unalloc_uid:$gid" "$fname"
 file_is_exec "$fname" && err "reported as executable."
 
 warn "checking ${bld-}g=x${rst-} with" \
-     "owner ${bld-}$euid${rst-} and group ${bld-}$unalloc_gid${rst-} ..."
-chown "$euid:$unalloc_gid" "$fname"
+     "owner ${bld-}$uid${rst-} and group ${bld-}$unalloc_gid${rst-} ..."
+chown "$uid:$unalloc_gid" "$fname"
 chmod uo=,g=x "$fname"
 file_is_exec "$fname" && err "reported as executable."
 
 warn "checking ${bld-}g=x${rst-} with" \
-     "owner ${bld-}$unalloc_uid${rst-} and group ${bld-}$egid${rst-} ..."
-chown "$unalloc_uid:$egid" "$fname"
+     "owner ${bld-}$unalloc_uid${rst-} and group ${bld-}$gid${rst-} ..."
+chown "$unalloc_uid:$gid" "$fname"
 file_is_exec "$fname" || err "reported as not executable."
 
 warn "checking ${bld-}g=x${rst-} with" \
-     "owner ${bld-}$euid${rst-} and group ${bld-}$egid${rst-} ..."
-chown "$euid:$egid" "$fname"
+     "owner ${bld-}$uid${rst-} and group ${bld-}$gid${rst-} ..."
+chown "$uid:$gid" "$fname"
 file_is_exec "$fname" && err "reported as executable."
 
 
@@ -154,8 +154,5 @@ regular="$(owner "$0")"
 ! [ "$regular" ] || [ "$regular" = root ] && regular=$(regularuser)
 ! [ "$regular" ] && warn -y "could not run all tests."
 
-uid="$(id -u "$regular")"
-gid="$(id -g "$regular")"
-
 # shellcheck disable=2154
-TMPDIR="$oldtmp" runas "$uid" "$gid" "$script_dir/$prog_name"
+TMPDIR="$oldtmp" runas "$regular" "$script_dir/$prog_name"

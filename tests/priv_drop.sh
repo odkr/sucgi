@@ -42,7 +42,7 @@ tmpdir chk
 
 export PATH
 user="$(id -un)"
-euid="$(id -u)"
+uid="$(id -u)"
 cd -P "$script_dir" || exit
 
 
@@ -50,18 +50,15 @@ cd -P "$script_dir" || exit
 # Test
 #
 
-if [ "$euid" -eq 0 ]
+if [ "$uid" -eq 0 ]
 then
-	owner="$(owner priv_drop)"
-	regular="$(regularuser)"
-
+	owner="$(owner "$src_dir")"
 	[ "$owner" ] && [ "$owner" != root ] && (
-		uid="$(id -u "$owner")"
-		gid="$(id -g "$owner")"
 		checkerr 'Operation not permitted' \
-			runas "$uid" "$gid" priv_drop "$regular"
+			runas "$owner" priv_drop "$owner"
 	)
 
+	regular="$(regularuser)"
 	[ "$regular" ] && [ "$regular" != root ] && (
 		uid="$(id -u "$regular")"
 		gid="$(id -g "$regular")"
