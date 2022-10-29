@@ -1,6 +1,9 @@
 changequote([, ])dnl
 #!/bin/sh
 
+# This script stores the most recent configuration detected by ./configure.
+# Running this script will regenerate the files based on that configuration.
+
 ifdef([__CC__], [ifelse(__CC__, [], [], [CC="__CC__"
 ])], [])dnl
 ifdef([__CFLAGS__], [ifelse(__CFLAGS__, [], [], [CFLAGS="__CFLAGS__"
