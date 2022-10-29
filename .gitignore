@@ -11,6 +11,7 @@
 *.tgz
 *.tgz.asc
 a.out
+config.status
 cov
 local.env
 lcov.info
