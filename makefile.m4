@@ -151,6 +151,9 @@ tests/main: sucgi.c config.h macros.h lib.a
 dnl TODO: Add -DNDEBUG once the software is mature enough.
 sucgi: sucgi.c config.h macros.h lib.a
 
+makefile: makefile.m4
+	./config.status
+
 clean:
 	find . '(' -name '*.o' \
         -o -name '*.ctu-info' -o -name '*.dump' \

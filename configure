@@ -50,9 +50,10 @@ add_macros() {
 #
 
 OPTIND=1 OPTARG='' opt=''
-force='' quiet='' conf=prod.env
-while getopts c:dfqh opt; do
+args="$*" conf=prod.env force='' status=x quiet=''
+while getopts Cc:dfqh opt; do
 	case $opt in
+		(C) status= ;;
 		(c) conf="$OPTARG" ;;
 		(d) conf=devel.env ;;
 		(f) force=x ;;
@@ -142,28 +143,39 @@ fi
 # Check which flags the C compiler supports.
 #
 
-: "${CFLAGS="${cflags-}"}"
 if [ "$CC" ]
 then
-	printf 'Compiler flags:'
+	printf 'Compiler flags: '
+
+	if [ "${CFLAGS-}" ]
+	then
+		printf '%s ' "$CFLAGS"
+	fi
 
 	# shellcheck disable=2086
-	set -- $CFLAGS
-	CFLAGS='' n=0 pids=''
+	set -- $cflags
+	pids=''
 	while [ $# -gt 0 ]
 	do
-		case $1 in (-D*)
-			CFLAGS="$CFLAGS $1"
-			shift
+		flag="$1"
+		shift
+
+		for given in ${CFLAGS-}
+		do
+			[ "$flag" = "$given" ] && continue 2
+		done
+
+		case $flag in (-D*)
+			CFLAGS="${CFLAGS-} $flag"
 			continue
 		esac
 
-		"$CC" -xc -Werror "$1" -o/dev/null - <<-EOF >/dev/null 2>&1 &
+		"$CC" -xc -Werror "$flag" -o/dev/null - \
+		      <<-EOF >/dev/null 2>&1 &
 			int main (void) { return 0; }
 		EOF
 		pids="$pids $!"
-		eval "flag_$!"='$1'
-		shift
+		eval "flag_$!"='$flag'
 
 		if [ $(($# % nchildren)) -eq 0 ]
 		then
@@ -171,11 +183,9 @@ then
 			do
 				if wait "$pid"
 				then
-					eval flag="\"\$flag_$pid\""
+					eval flag="\"\${flag_$pid-}\""
 					unset "flag_$pid"
-					[ "${flag-}" ] || continue;
-					CFLAGS="$CFLAGS $flag"
-					n=$((n + 1))
+					CFLAGS="${CFLAGS-} $flag"
 					printf ' %s' "$flag"
 				fi
 			done
@@ -183,14 +193,14 @@ then
 		fi
 	done
 
-	if [ "$n" -eq 0 ]
+	if ! [ "${CFLAGS-}" ]
 	then
 		printf ' none supported.\a\n'
 	else
 		echo
 	fi
 
-	unset cflags flag n pid
+	unset cflags flag given pid
 fi
 
 
@@ -198,22 +208,23 @@ fi
 # Create files
 #
 
-errc=0 filec=0 genc=0
+filec=0 errc=0 genc=0
 for input in *.m4
 do
 	[ "$input" = "*.m4" ] && break
 	name="$(basename "$input")" || 
 		err "basename $input: exited with status $?."
 	output="${name%.m4}"
+
+	[ "$output" = config.status ] && ! [ "$status" ] && continue
+
 	filec=$((filec + 1))
 
 	# shellcheck disable=2154
 	if [ -e "$output" ]
 	then
-		if [ "$force" ]
+		if ! [ "$force" ]
 		then
-			warn -qy "overwriting ${bld-}$output${rst_y-}."
-		else
 			warn -y "${bld-}$output${rst_y-} exists;${rst-}" \
 			        "give ${bld-}-f${rst-} to overwrite."
 			continue
@@ -224,6 +235,7 @@ do
 	if m4	-D__CC__="${CC-}"		\
 		-D__CFLAGS__="${CFLAGS# }"	\
 		-D__COV_CC__="${COV_CC-}"	\
+		-D__ARGS__="$args"		\
 		"$input" >"$swap"
 	then
 		mv "$swap" "$output"
@@ -253,5 +265,7 @@ then
 		        "file(s) generated."
 	fi
 fi
+
+[ -e config.status ] && chmod +x config.status
 
 exit $errc
