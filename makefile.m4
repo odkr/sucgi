@@ -152,7 +152,7 @@ dnl TODO: Add -DNDEBUG once the software is mature enough.
 sucgi: sucgi.c config.h macros.h lib.a
 
 makefile: makefile.m4
-	./config.status
+	ifdef([__ARGS__], [./config.status], [m4 makefile.m4 > makefile])
 
 clean:
 	find . '(' -name '*.o' \

@@ -65,6 +65,7 @@ Usage:       configure [-c FILE|-d] [-f] [-q]
              configure -h
 
 Options:
+    -C       Do not replace config.status, even if -f is given.
     -c FILE  Read build configuration from FILE (default: $conf).
     -d       Short for -c devel.env.
     -f       Overwrite existing files.
@@ -145,11 +146,11 @@ fi
 
 if [ "$CC" ]
 then
-	printf 'Compiler flags: '
+	printf 'Compiler flags:'
 
 	if [ "${CFLAGS-}" ]
 	then
-		printf '%s ' "$CFLAGS"
+		printf ' %s' "$CFLAGS"
 	fi
 
 	# shellcheck disable=2086
@@ -216,13 +217,21 @@ do
 		err "basename $input: exited with status $?."
 	output="${name%.m4}"
 
-	[ "$output" = config.status ] && ! [ "$status" ] && continue
+	if	[ "$output" = config.status ]	&& 
+		[ -e "$output" ]		&&
+		! [ "$status" ]
+	then
+		warn -q "keeping current ${bld-}config.status${rst-}."
+		continue
+	fi
 
 	filec=$((filec + 1))
 
+	exists=
 	# shellcheck disable=2154
 	if [ -e "$output" ]
 	then
+		exists=x
 		if ! [ "$force" ]
 		then
 			warn -y "${bld-}$output${rst_y-} exists;${rst-}" \
@@ -238,9 +247,13 @@ do
 		-D__ARGS__="$args"		\
 		"$input" >"$swap"
 	then
+		
 		mv "$swap" "$output"
 		genc=$((genc + 1))
-		warn -q "generated ${bld-}$output${rst-}."
+		if [ "$exists" ]
+			then warn -qy "replaced ${bld-}$output${rst_y-}."
+			else warn -q "generated ${bld-}$output${rst-}."
+		fi
 	else
 		rm -f "$swap" || :
 		errc=$((errc + 1))
