@@ -62,13 +62,13 @@ while getopts Cc:dfqh opt; do
 		(f) force=x ;;
 		(q) quiet=x ;;
 		(h) exec cat <<EOF >&2 ;;
-configure - generate build configuration.
+configure - generate build configuration
 
-Usage:       configure [-c FILE|-d] [-f] [-q]
+Usage:       configure [-C] [-c FILE|-d] [-f] [-q]
              configure -h
 
 Options:
-    -C         Do not replace config.status, even if -f is given.
+    -C         Do not update config.status.
     -c FILE    Read build configuration from FILE (default: $conf).
     -d         Short for -c devel.env.
     -f         Overwrite existing files.
@@ -77,8 +77,10 @@ Options:
 
 Environment:
     CC         The C compiler.
-    CFLAGS     Flags to pass to the C compiler.
-    cov_cc  C compiler to use for coverage reports.
+    CFLAGS     Flags to give to the C compiler.
+    ARFLAGS    Flags to give to the archiver.
+    LDFLAGS    Flags to give to the linker.
+    LDLIBS     Flags or names to give to the linker. 
 
 See README.rst and docs/BUILDING.rst for details.
 
@@ -92,7 +94,12 @@ done
 shift $((OPTIND - 1))
 unset opt
 
-[ $# -gt 0 ]   && err "too many operands."
+if [ $# -gt 0 ]
+then
+	printf 'usage: configure [-C] [-c FILE|-d] [-f] [-q]\n' >&2
+	exit 2
+fi
+
 [ "$conf" ]    || err "${bld-}-c${rst_r-}: no filename given."
 [ -e "$conf" ] || err "${bld-}$conf${rst_r-}: no such file." 
 
@@ -250,6 +257,8 @@ then
 	./configure -Cf $args
 	EOF
 
+	chmod +x "$swap"
+
 	mv "$swap" config.status
 
 	warn -q "saved configuration in ${bld-}config.status${rst-}."
@@ -325,7 +334,5 @@ then
 		        "file(s) generated."
 	fi
 fi
-
-[ -e config.status ] && chmod +x config.status
 
 exit $errc
