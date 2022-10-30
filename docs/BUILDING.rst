@@ -61,8 +61,8 @@ Compilation
 
 Compile suCGI by calling ``make``.
 
-Makefile variables
-------------------
+Makefile macros
+---------------
 
 CC
     The C compiler
@@ -80,8 +80,8 @@ LDLIBS
     Flags or names to give to the compiler when it invokes the linker
 
 
-Macros
-------
+Compiler macros
+---------------
 
 MAX_ENV
     How many environment variables suCGI may accept. Unsigned integer.
@@ -142,8 +142,7 @@ www_grp
     Group the webserver runs as
     (defaults to "www-data").
 
-You need to make sure to pass the same variables to ``make install``
-*and* ``make uninstall``.
+``make install`` *and* ``make uninstall`` must be given the same variables.
 
 
 Other targets
