@@ -101,8 +101,8 @@ fi
 # Root tests
 #
 
-unalloc_uid="$(findid -Nu 1000 30000)"
-unalloc_gid="$(findid -Ng 1000 30000)"
+unalloc_uid="$(unallocid -u 1000 30000)"
+unalloc_gid="$(unallocid -g 1000 30000)"
 
 chown "$unalloc_uid:$unalloc_gid" "$fname"
 
@@ -150,9 +150,7 @@ file_is_exec "$fname" && err "reported as executable."
 # Run tests as non-root user
 #
 
-regular="$(owner "$0")"
-! [ "$regular" ] || [ "$regular" = root ] && regular=$(regularuser)
-! [ "$regular" ] && warn -y "could not run all tests."
+regular="$(owner "$0")" || warn -y "could not run all tests."
 
 # shellcheck disable=2154
 TMPDIR="$oldtmp" runas "$regular" "$script_dir/$prog_name"

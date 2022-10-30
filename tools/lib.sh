@@ -237,53 +237,33 @@ pad() (
 	wait $printf $tr
 )
 
+# Find a user whose UID is between $minuid and $maxuid and who
+# only belongs to groups with GIDs between $mingid and $maxgid.
+reguser() (
+	minuid="${1:?}" maxuid="${2:?}" mingid="${3:?}" maxgid="${4:?}"
 
-# Get the login name of the user who invoked the script,
-# even if the script has been invoked via su or sudo.
-regularuser() (
-	# shellcheck disable=2030
-	: "${TMPDIR:=/tmp}"
-	proc="$TMPDIR/ps-$$.fifo" sorted="$TMPDIR/sort-$$.fifo" rc=1
-	mkfifo -m 0700 "$proc" "$sorted"
-
-	pivot="$$"
-	while true
+	pipe="${TMPDIR:-/tmp}/ent-$$.fifo"
+	mkfifo -m 700 "$pipe"	
+	ents -u >"$pipe" & ents=$!
+	while IFS=: read -r uid user
 	do
-		ps -Ao 'pid= ppid= user=' >"$proc" & ps=$! 
-		sort -r <"$proc" >"$sorted" & sort=$!
+		if [ "$uid" -ge "$minuid" ] && [ "$uid" -le "$maxuid" ]
+		then
+			for gid in $(id -G "$user")
+			do
+				[ "$gid" -lt "$mingid" ] ||
+				[ "$gid" -gt "$maxgid" ] &&
+					continue 2
+			done
+			
+			break
+		fi
+	done <"$pipe"
+	rm -f "$pipe"
 
-		cur_user=
-		while read -r pid ppid user
-		do
-			if [ "$pid" -le 1 ]
-			then
-				break 2
-			elif [ "$pid" -eq "$pivot" ]
-			then
-				continue
-			fi
-
-			if	[ "$user" != "$cur_user" ] &&
-				! uid="$(id -u "$user")"
-			then
-				break
-			fi
-
-			if [ "$uid" -ne 0 ]
-			then
-				printf '%s\n' "$user"
-				rc=0
-				break
-			fi
-
-			pivot="$ppid" cur_user="$user"
-		done <"$sorted"
-		
-		wait "$ps" "$sort" || break
- 	done
-
-	rm -f "$proc" "$sorted"
-	return $rc
+	[ "${uid-}" ] || err 'no user ID in given range'
+	
+	printf '%s\n' "$user"
 )
 
 # Create a directory with the filename $prefix-$$ in $dir,
@@ -329,6 +309,49 @@ traverse() (
 		 		cd "$fname" || return ;;
 		esac
 	done
+)
+
+# Find an unallocated ID in a given range.
+# -u finds a user ID, -g a group ID.
+unallocid() (
+	pipe="${TMPDIR:-/tmp}/ents-$$.fifo"
+	
+	OPTIND=1 OPTARG='' opt=
+	opts=''
+	while getopts 'ug' opt
+	do
+		case $opt in
+			(u) opts="$opts -u" ;;
+			(g) opts="$opts -g" ;;
+			(*) return 2
+		esac
+	done
+	shift $((OPTIND - 1))
+	start="${1:?}" stop="${2:?}"
+	
+	mkfifo -m 0700 "$pipe"
+	ents $opts >"$pipe" & ents=$!
+	ids="$(cut -d: -f1 <"$pipe")" || rc=$?
+	rm -f "$pipe"
+	[ "${status-0}" -eq 0 ] || return $rc
+	wait "$ents"
+
+	i="$start"
+	while [ "$i" -le "$stop" ]
+	do
+		for id in $ids
+		do
+			if [ "$i" = "$id" ]
+			then
+				i=$((i + 1))
+				continue 2
+			fi
+		done
+		
+		break
+	done
+
+	printf '%d\n' "$i"
 )
 
 # Print $* to stderr.

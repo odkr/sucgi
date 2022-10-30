@@ -36,17 +36,38 @@ init || exit
 
 
 #
+# Functions
+#
+
+allocuid() (
+	start="${1:?}" stop="${2:?}" pipe="${TMPDIR:-/tmp}/ent-$$.fifo"
+	mkfifo -m 700 "$pipe"
+	
+	ents -u >"$pipe" & ents=$!
+	while IFS=: read -r uid user
+	do
+		[ "$uid" -ge "$start" ] && [ "$uid" -le "$stop" ] && break
+	done <"$pipe"
+	rm -f "$pipe"
+	
+	[ "${uid-}" ] || err -l 'no user ID in given range'
+	
+	printf '%u\n' "$uid"
+)
+
+
+#
 # Prelude
 #
 
 # Effective UID.
 euid="$(id -u)"
 
-# Get a regular user and a their primary group.
+# Get a regular user and their primary group.
 if [ "$euid" -eq 0 ]
 then
-	user="$(owner "$src_dir")"
-	[ "$user" = root ] && user="$(regularuser)"
+	user="$(reguser 500 30000 1 30000 2>/dev/null)" ||
+		err "no unprivileged user found."
 else
 	user="$(id -un)"
 fi
@@ -366,7 +387,7 @@ uid="$(id -u "$user")"
 gid="$(id -g "$user")"
 
 # Create a file without an owner.
-unalloc_uid="$(findid -Nu 1000 30000)"
+unalloc_uid="$(unallocid -u 1000 30000)"
 noowner="$doc_root/noowner"
 touch "$noowner"
 chown "$unalloc_uid" "$noowner"
@@ -376,13 +397,13 @@ root_owned="$doc_root/priv-root"
 touch "$root_owned"
 
 # Create a file owned by a non-root privileged user with a low UID.
-low_uid="$(findid -u 1 500)"
+low_uid="$(allocuid 1 500)"
 low_uid_owned="$doc_root/priv-low-uid"
 touch "$low_uid_owned"
 chown "$low_uid" "$low_uid_owned"
 
 # Create a file owned by a non-root privileged user with a high UID.
-if high_uid="$(findid -u 60000 65536 2>/dev/null)"
+if high_uid="$(allocuid 60000 65536 2>/dev/null)"
 then
 	high_uid_owned="$doc_root/priv-high-uid"
 	touch "$high_uid_owned"
@@ -584,12 +605,7 @@ done
 
 
 #
-# Run tests as ordinary user.
+# All done
 #
 
-warn "running tests as unprivileged user ..."
-
-unset DOCUMENT_ROOT
-
-# shellcheck disable=2154
-runas "$user" "$tests_dir/$prog_name"
+warn -g 'all tests passed.'

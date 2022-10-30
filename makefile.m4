@@ -3,7 +3,7 @@ define([default], [ifdef([$1], [ifelse($1, [], [$2], [$1])], [$2])])dnl
 .POSIX:
 
 #
-# Compiler
+# Compiler variables
 #
 
 ifdef([__CC__], [ifelse(__CC__, [], [], [CC = __CC__
@@ -19,17 +19,17 @@ cov_cc = default([__cov_cc__], [$(CC)])
 
 
 #
-# Libraries
+# Default libraries
 #
 
 core_objs = lib.a(error.o) lib.a(str.o)
 
 
 #
-# Tests
+# Tests suite
 #
 
-tools =		tools/badenv tools/runas tools/findid
+tools =		tools/badenv tools/ents tools/runas
 
 check_bins =	tests/error tests/env_clear tests/env_file_open \
 		tests/env_is_name tests/env_restore tests/main \
@@ -48,22 +48,21 @@ checks =	tests/error.sh tests/env_clear tests/env_file_open.sh \
 
 
 #
-# Analysers
+# Analyser settings
 #
 
-cppcheck_flags =	--quiet --error-exitcode=8 \
-			--language=c --std=c99 \
-			--library=posix --platform=unix64 \
-			--project=cppcheck/sucgi.cppcheck \
-			--library=cppcheck/library.cfg \
-			--suppressions-list=cppcheck/suppressions.txt \
-			--force --inconclusive
+cppchk_flags =	--quiet --error-exitcode=8 \
+		--language=c --std=c99 --platform=unix64 --library=posix \
+		--library=cppcheck/library.cfg \
+		--project=cppcheck/sucgi.cppcheck \
+		--suppressions-list=cppcheck/suppressions.txt \
+		--force --inconclusive
 
-cppcheck_addons =	--addon=cppcheck/cert.py --addon=misra.py
+cppchk_addons =	--addon=cppcheck/cert.py --addon=misra.py
 
 
 #
-# Distribution
+# Distribution settings
 #
 
 package = sucgi
@@ -74,16 +73,16 @@ dist_files = *.c *.h *.m4 configure devel.env prod.env README.rst tests tools
 
 
 #
-# Installer
+# Installer settings
 #
 
 PREFIX = /usr/local
-WWW_GRP = www-data
-CGI_BIN = /usr/lib/cgi-bin
+www_grp = www-data
+cgi_bin = /usr/lib/cgi-bin
 
 
 #
-# Targets
+# Build targets
 #
 
 all: sucgi
@@ -112,7 +111,7 @@ $(tools):
 
 tools/badenv: tools/badenv.c
 
-tools/findid: tools/findid.c
+tools/ents: tools/ents.c
 
 tools/runas: tools/runas.c
 
@@ -157,8 +156,13 @@ tests/main: sucgi.c config.h macros.h lib.a
 dnl TODO: Add -DNDEBUG once the software is mature enough.
 sucgi: sucgi.c config.h macros.h lib.a
 
+
+#
+# Phony targets
+#
+
 makefile: makefile.m4
-	ifdef([__ARGS__], [./config.status], [m4 makefile.m4 > makefile])
+	ifdef([__args__], [./config.status], [m4 makefile.m4 > makefile])
 
 clean:
 	find . '(' -name '*.o' \
@@ -172,19 +176,19 @@ analysis:
 	grep -nri fixme configure *.h *.c *.env tools/* tests/* doc/*
 	flawfinder --error-level=1 -m 0 -D -Q .
 	rats --resultsonly -w3 *.c *.h tools/*.c tests/*.c
-	cppcheck $(cppcheck_flags) --enable=all $(cppcheck_addons) .
-	cppcheck $(cppcheck_flags) --enable=unusedFunction *.h *.c
+	cppcheck $(cppchk_flags) --enable=all $(cppchk_addons) .
+	cppcheck $(cppchk_flags) --enable=unusedFunction *.h *.c
 	shellcheck configure tools/*.sh tests/*.sh
 
 check: $(check_bins)
 	tools/check.sh $(checks)
 
 cov: clean
-	make CC=$(cov_cc) CFLAGS="$(CFLAGS) -O2 --coverage" $(check_bins)
-	tools/check.sh -qs $(check_bins) || :
+	make CC=$(cov_cc) CFLAGS="-O2 --coverage" $(check_bins)
+	-tools/check.sh -qs $(check_bins)
 	find . '(' -name '*.gcda' -o -name '*.gcno' ')' \
 	-exec chown "$$(tools/owner.sh .)" '{}' +
-	-tools/check.sh -s $(checks)
+	tools/check.sh -s $(checks)
 
 lcov.info: cov
 	lcov -c -d . -o $@ --exclude '*/tests/*' --exclude '*/tools/*' \
@@ -200,7 +204,7 @@ covhtml: cov/index.html
 dist: $(dist_ar) $(dist_ar).asc
 
 distclean: clean
-	rm -f lcov.info makefile
+	rm -f config.status lcov.info makefile
 
 distcheck: $(dist_ar)
 	tar -xzf $(dist_ar)
@@ -220,16 +224,16 @@ $(dist_ar).asc: $(dist_ar)
 
 $(DESTDIR)/$(PREFIX)/libexec/sucgi: sucgi
 	cp sucgi $(DESTDIR)/$(PREFIX)/libexec
-	chown $(DESTDIR)/$(PREFIX)/libexec/sucgi root:$(WWW_GRP)
+	chown $(DESTDIR)/$(PREFIX)/libexec/sucgi root:$(www_grp)
 	chmod u=rws,g=x,o= $(DESTDIR)/$(PREFIX)/libexec/sucgi
 
-$(CGI_BIN)/sucgi: $(DESTDIR)/$(PREFIX)/libexec/sucgi
-	ln -s $(DESTDIR)/$(PREFIX)/libexec/sucgi $(CGI_BIN)/sucgi
+$(cgi_bin)/sucgi: $(DESTDIR)/$(PREFIX)/libexec/sucgi
+	ln -s $(DESTDIR)/$(PREFIX)/libexec/sucgi $(cgi_bin)/sucgi
 
-install: $(DESTDIR)/$(PREFIX)/libexec/sucgi $(CGI_BIN)/sucgi
+install: $(DESTDIR)/$(PREFIX)/libexec/sucgi $(cgi_bin)/sucgi
 
 uninstall:
-	rm -f $(CGI_BIN)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
+	rm -f $(cgi_bin)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
 
 .PHONY:	all analysis check clean cov covhtml \
 	dist distcheck distclean install uninstall

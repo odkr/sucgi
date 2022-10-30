@@ -58,7 +58,7 @@ then
 			runas "$owner" priv_drop "$owner"
 	)
 
-	regular="$(regularuser)"
+	regular="$(reguser 500 30000 1 30000)"
 	[ "$regular" ] && [ "$regular" != root ] && (
 		uid="$(id -u "$regular")"
 		gid="$(id -g "$regular")"
