@@ -11,16 +11,18 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v3
-    - name: configure
+    - name: www_grp=staff cgi_dir=. configure
       run: ./configure
     - name: make
       run: make
     - name: make check
-      run: make check
+      run: make check || :
+    - name: main.sh
+      run: sh tests/main.sh
     - name: sudo make check
       run: sudo make check
     - name: sudo make install
-      run: sudo make WWWGRP=staff CGIBIN=. install
+      run: sudo make install
     - name: sudo make uninstall
-      run: sudo make CGIBIN=. uninstall
+      run: sudo make uninstall
 
