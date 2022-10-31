@@ -81,13 +81,11 @@ Generate the *makefile* by::
 
 If ``configure`` succeeded, move on to the next step.
 
-Otherwise, generate the *makefile* by ``m4 makefile.m4 >makefile``.
-Alternatively, configure the build yourself (see `docs/BUILDING.rst`_).
+See `docs/BUILDING.rst`_ for troubleshooting or details.
 
 ----
 
 suCGI is configured at compile-time. Adapt *config.h* to your needs.
-See docs/BUILDING.rst for more options.
 
 ----
 

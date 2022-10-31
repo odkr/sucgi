@@ -18,11 +18,9 @@ For example::
 
 	CC=/opt/obscure/bin/occ ./configure
 
-*configure* saves the information it gathered in the shell script
-*config.status* Running this script regenerates the *makefile* using
-that information. 
-
-See ``./configure -h`` for more information.
+*configure* saves the information it has gathered in the shell script
+*config.status*. Running this script regenerates the *makefile* on the 
+basis of that information. 
 
 If *configure* fails, you can also create the *makefile* by::
 
@@ -33,11 +31,13 @@ is that ``./configure`` enables control flow protection, stack protection,
 and undefined behaviour sanitisation depending on which of those features
 your C compiler supports.
 
+See ``./configure -h`` for more information.
+
 
 Development
 ===========
 
-suCGI's default build configuration for development resides in *devel.env*;
+suCGI's default development configuration resides in *devel.env*;
 load it by passing ``-d`` to *configure*.
 
 Have a look at *configure*, *prod.env*, and *devel.env* for details.
@@ -85,12 +85,12 @@ For the whole test suite to run:
 1. The repository must be owned by a regular user.
 2. The test suite must be invoked as the superuser.
 3. There must be a user with a user ID < 500.
-4. There must be a user with a user ID > 60,000.
+4. There must be a user with a user ID > 30,000.
 
 Create coverage reports by ``make covhtml``. The report can then be found in
 *cov*. Coverage reports require Gcov_ (or Clang_'s Gcov clone) and LCOV_.
 
-For the coverage report to be accurate-ish:
+For the coverage report to be accurate:
 
 1. Coverage data has to be collected as the superuser.
 2. The repository must be world-accessible.
@@ -133,8 +133,8 @@ all
     Alias for "sucgi" and the default target.
 
 analysis
-    Analyse the code with Cppcheck_, Flawfinder_, RATS_, and
-    ShellCheck_, if they are installed.
+    Analyse the code with Cppcheck_, Flawfinder_, RATS_,
+    if they are installed.
 
 check
     Perform tests. Must be run as superuser to perform all tests.
@@ -168,6 +168,9 @@ install
 uninstall
     Uninstall suCGI.
 
+shellcheck
+    Analyse shell scripts with ShellCheck_,
+    if is installed.
 
 .. _Clang: https://clang.llvm.org/
 
