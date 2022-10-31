@@ -25,9 +25,9 @@
 # Aliases
 #
 
-alias check='_line="$LINENO" _check'
-alias err='_line="$LINENO" _err'
-alias warn='_line="$LINENO" _warn'
+alias check='_line="${LINENO-}" _check'
+alias err='_line="${LINENO-}" _err'
+alias warn='_line="${LINENO-}" _warn'
 
 
 #
