@@ -22,17 +22,8 @@
 #if !defined(GIDS_H)
 #define GIDS_H
 
+#include "config.h"
 #include "error.h"
-
-
-/*
- * Constants
- */
-
-/* Maximum number of groups a user can be a member of. */
-#if !defined(MAX_GROUPS)
-#define MAX_GROUPS 32
-#endif /* !defined(MAX_GROUPS) */
 
 
 /*

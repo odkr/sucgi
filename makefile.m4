@@ -100,13 +100,14 @@ cgi_dir = default([__cgi_dir__], [/usr/lib/cgi-bin])
 
 all: sucgi
 
-lib.a(env.o):	env.c env.h macros.h $(core_objs) lib.a(file.o) lib.a(path.o)
+lib.a(env.o):	env.c env.h config.h macros.h \
+		$(core_objs) lib.a(file.o) lib.a(path.o)
 
 lib.a(error.o):	error.c error.h macros.h
 
 lib.a(file.o):	file.c file.h macros.h $(core_objs) lib.a(path.o)
 
-lib.a(gids.o):	gids.c gids.h macros.h lib.a(error.o)
+lib.a(gids.o):	gids.c gids.h config.h macros.h lib.a(error.o)
 
 lib.a(path.o):	path.c path.h macros.h $(core_objs)
 
@@ -114,7 +115,7 @@ lib.a(priv.o):	priv.o priv.h macros.h lib.a(error.o)
 
 lib.a(scpt.o):	scpt.c scpt.h macros.h $(core_objs)
 
-lib.a(str.o):	str.c str.h macros.h lib.a(error.o)
+lib.a(str.o):	str.c str.h config.h macros.h lib.a(error.o)
 
 lib.a:	lib.a(env.o)  lib.a(error.o)  lib.a(file.o) lib.a(gids.o) \
 	lib.a(path.o) lib.a(priv.o) lib.a(scpt.o) lib.a(str.o)

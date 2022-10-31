@@ -61,7 +61,7 @@ gids_get_list(const char *const logname, const gid_t basegid,
 		/*
 		 * This access to grp->gr_mem[i] is misaligned.
 		 * I don't know why. Apple's Libc and musl use similar code.
-		 * FIXME: Check if it's misaligned on Linux, too.
+		 * TODO: Check if it's misaligned on Linux, too.
 		 */
 		for (int i = 0; i <= INT_MAX && grp->gr_mem[i]; i++) {
 			const char *mem = grp->gr_mem[i];

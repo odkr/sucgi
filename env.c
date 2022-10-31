@@ -207,7 +207,7 @@ env_clear(/* RATS: ignore; vars is bound-checked. */
 		return OK;
 	}
 
-	for (int n = 0; n < MAX_ENV; n++) {
+	for (size_t n = 0; n < MAX_ENV; n++) {
 		(*vars)[n] = env[n];
 		if (!env[n]) {
 			return OK;
@@ -238,12 +238,6 @@ env_file_open(const char *const jail, const char *const varname,
 	assert(fd);
 
 	errno = 0;
-	unresolved = calloc(MAX_STR, sizeof(unresolved));
-	if (!unresolved) {
-		return ERR_CALLOC;
-	}
-
-	errno = 0;
 	/* RATS: ignore; value is verified below. */
 	value = getenv(varname);
 	if (!value || *value == '\0') {
@@ -252,6 +246,12 @@ env_file_open(const char *const jail, const char *const varname,
 		} else {
 			return ERR_GETENV;
 		}
+	}
+
+	errno = 0;
+	unresolved = calloc(MAX_STR, sizeof(*unresolved));
+	if (!unresolved) {
+		return ERR_CALLOC;
 	}
 
 	try(str_cp(MAX_STR - 1U, value, unresolved));

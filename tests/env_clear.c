@@ -106,11 +106,11 @@ main (void) {
 		errx(EXIT_FAILURE, "failed to clear the environment");
 	}
 
-	for (int i = 0; i <= MAX_ENV; i++) {
+	for (size_t i = 0; i <= MAX_ENV; i++) {
 		char name[MAX_STR];	/* RATS: ignore */
 
 		/* RATS: ignore */
-		if (snprintf(name, MAX_STR - 1U, "foo%d", i) < 1) {
+		if (snprintf(name, MAX_STR - 1U, "foo%zu", i) < 1) {
 			errx(EXIT_FAILURE, "snprintf: returned < 1 bytes");
 		}
 
