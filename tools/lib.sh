@@ -130,9 +130,9 @@ _check() (
 		
 		eval str="\"\${str_${ch}-}\""
 		_warn -lr "${bld-}expected text on std$ch${rst_r}:"
-		echo "${red-}${bld-}>${rst_r-} $exp${rst-}" >&2
+		printf '%s\n' "${red-}${bld-}>${rst_r-} $exp${rst-}" >&2
 		_warn -lr "${bld-}actual output${rst_r-}:"
-		echo "${str%$lf}" >&2
+		printf '%s' "$str" >&2
 		rc=2
 	done
 
@@ -273,6 +273,10 @@ reguser() (
 				continue 2
 		done
 
+		case $user in (*[!A-Za-z0-9_]*)
+			continue 2
+		esac
+
 		break
 	done <"$pipe"
 	wait $ents || rc=$?
@@ -316,6 +320,7 @@ traverse() (
 	do
 		fname="$1"
 		shift
+		[ "$fname" ] || continue
 
 		case $# in
 		 	(0)	eval "$fcmd"

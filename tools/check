@@ -59,7 +59,7 @@ unset opt
 
 if [ $# -eq 0 ]
 then
-	echo 'usage: check [-s] [-q] TEST [...]' >&2
+	printf 'usage: check [-s] [-q] TEST [...]\n' >&2
 	exit 1
 fi
 

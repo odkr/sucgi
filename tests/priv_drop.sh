@@ -40,6 +40,8 @@ tmpdir chk
 # Prelude
 #
 
+eval "$(main -c)"
+
 export PATH
 user="$(id -un)"
 uid="$(id -u)"
@@ -63,7 +65,7 @@ then
 			runas "$owner" priv_drop "$owner"
 	fi
 
-	if ! regular="$(reguser 500 30000 1 30000)"
+	if ! regular="$(reguser $MIN_UID $MAX_UID $MIN_GID $MAX_GID)"
 	then
 		warn -y "no regular user found."
 		skipc=$((skipc + 1))

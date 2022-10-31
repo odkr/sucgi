@@ -39,22 +39,19 @@ init || exit
 # Prelude
 #
 
-# Were tests skipped?
-skipped=
+# Load build configuration.
+eval "$(main -c)"
 
-# Effective UID.
+# Get the effective UID.
 uid="$(id -u)"
 
-# Get a regular user and their primary group.
+# Find a regular user.
 if [ "$uid" -eq 0 ]
 then
-	if ! user="$(reguser 500 30000 1 30000 2>/dev/null)"
+	if user="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")"
 	then
-		warn -y "no unprivileged user."
-		user="$(id -un)"
-	else
-		# This is needed for coverage reports.
-		ch_cov_own() {
+		# This is a hack to make coverage reports accurate.
+		covown() {
 			find "$src_dir" \
 				'(' -name '*.gcda' -o -name '*.gcno' ')' \
 				-exec chown "${1:?}" '{}' +
@@ -62,30 +59,51 @@ then
 
 		owner="$(tools/owner "$src_dir")"
 		readonly onwner
-		cleanup="ch_cov_own \"\$owner\"; ${cleanup-}"
-		ch_cov_own "$user"
+		cleanup="covown \"\$owner\"; ${cleanup-}"
+		covown "$user"
+	else
+		user="$(id -un)"
 	fi
 else
 	user="$(id -un)"
 fi
 group="$(id -g "$user")"
-
-# Paths
-tests_dir=$(cd -P "$script_dir" && pwd)
-
-# Create a temporary directory in $HOME.
-case $user in (*[!A-Za-z0-9_]*)
-	err "$user is not a portable name."
-esac
-
 eval home="~$user"
-readonly home
+readonly user group home
 
-tmp="$(cd -P "${TMPDIR:-/tmp}" && pwd)"
+# Create a temporary directory and a document root.
+doc_root="$(printf -- "$USER_DIR" "$home")"
+
+IFS=/ i=0
+for seg in $doc_root
+do
+	[ "$seg" ] || continue
+	tmp="${tmp%/}/$seg" i=$((i + 1))
+	[ "$i" -eq 2 ] && break
+done
+unset IFS seg i
+
+case $tmp in
+	(/tmp/*) : ;;
+	(*) err "document root $doc_root not within /tmp."
+esac
 readonly tmp
 
-TMPDIR="$home"
-tmpdir
+catch=
+mkdir "$tmp"
+cleanup="rm -rf \"\$tmp\"; ${cleanup-}"
+catch=x
+[ "$caught" ] && exit $((caught + 128))
+
+TMPDIR="$(cd -P "$tmp" && pwd)"
+export TMPDIR
+
+mkdir -p "$doc_root"
+doc_root="$(cd -P "$doc_root" && pwd)"
+readonly doc_root
+
+# Get the canonical location of main.
+tests_dir=$(cd -P "$script_dir" && pwd)
 
 # Create a list of more environment variables than suCGI permits.
 env_max=256
@@ -94,10 +112,6 @@ do
 	vars="${vars-} v$i="
 done
 unset i
-
-# Create a document root.
-readonly doc_root="$TMPDIR/docroot"
-mkdir "$doc_root"
 
 # Get the system's maximum path length in $TMPDIR.
 path_max="$(getconf PATH_MAX "$TMPDIR")"
@@ -158,8 +172,11 @@ ln -s "$inside" "$in_link"
 env_bin="$(command -v env)"
 env_dir="$(dirname "$env_bin")"
 
-# Make sure the files are owned by a regular user.
+# Make sure the files are owned by the right user.
 [ "$uid" -eq 0 ] && chown -R "$user:$group" "$TMPDIR"
+
+# Were tests skipped?
+skipped=
 
 
 #
@@ -177,7 +194,6 @@ check -s 1 -e'too many environment variables.' \
 
 tests_dir=$(cd -P "$script_dir" && pwd) ||
 	err 'failed to get working directory.'
-
 
 check -s1 -e'found malformed environment variable.' \
 	badenv -n3 foo bar=bar baz=baz "$tests_dir/main"
@@ -258,15 +274,15 @@ check -s1 -e'too long' \
 	DOCUMENT_ROOT="$huge_str_link" main
 
 # Path to document root points to outside of jail.
-check -s1 -e"document root / not within jail" \
+check -s1 -e"document root / not within jail." \
 	DOCUMENT_ROOT=/ main
 
 # Resolved document root points to outside of jail (dots).
-check -s1 -e"document root / not within jail" \
+check -s1 -e"document root / not within jail." \
 	DOCUMENT_ROOT="$doc_root/../../../../../../../../../../../../.." main
 
 # Resolved path to document roots to outside of document root (symlink).
-check -s1 -e"document root / not within jail" \
+check -s1 -e"document root / not within jail." \
 	DOCUMENT_ROOT="$root_link" main
 
 # Document root is of the wrong type.
@@ -319,19 +335,19 @@ check -s1 -e'too long' \
 	PATH_TRANSLATED="$huge_str_link" main
 
 # Path to script points to outside of document root.
-check -s1 -e"script $outside not within document root" \
+check -s1 -e"script $outside not within document root." \
 	PATH_TRANSLATED="$outside" main
 
 # Resolved path to script points to outside of document root (dots).
-check -s1 -e"script $outside not within document root" \
-	PATH_TRANSLATED="$doc_root/../outside" main
+check -s1 -e"script $(dirname "$doc_root") not within document root." \
+	PATH_TRANSLATED="$doc_root/../." main
 
 # Resolved path to script points to outside of document root (symlink).
-check -s1 -e"script $outside not within document root" \
+check -s1 -e"script $outside not within document root." \
 	PATH_TRANSLATED="$out_link" main
 
 # Script is of the wrong type.
-check -s1 -e"script $dir is not a regular file" \
+check -s1 -e"script $dir is not a regular file." \
 	PATH_TRANSLATED="$dir" main
 
 # Script does not exist.
@@ -341,10 +357,10 @@ check -s1 -e"realpath $doc_root/<no file!>: No such file or directory." \
 # Simple test. Should fail but regard PATH_TRANSLANTED as valid.
 if [ "$user" = "$(id -un 0)" ]
 then
-	err="script $inside is owned by privileged user $user"
+	err="script $inside is owned by privileged user $user."
 elif [ "$uid" -eq 0 ]
 then
-	err="document root $doc_root is not $user's user directory."
+	err="$inside has no filename suffix."
 elif inlist -eq 0 $(id -G "$user")
 then
 	err="user $user belongs to privileged group 0."
@@ -406,7 +422,7 @@ if low_uid="$(ents -f1 -c500 -n1)"
 then
 	low_uid_owned="$doc_root/priv-low-uid"
 	touch "$low_uid_owned"
-	chown "${low_uid%:*}" "$low_uid_owned"
+	chown "${low_uid#*:}" "$low_uid_owned"
 else
 	warn -y "no user with an ID < 500."
 	skipped=x
@@ -417,7 +433,7 @@ if high_uid="$(ents -f60000 -n1 2>/dev/null)"
 then
 	high_uid_owned="$doc_root/priv-high-uid"
 	touch "$high_uid_owned"
-	chown "${high_uid:%*}" "$high_uid_owned"
+	chown "${high_uid#*:}" "$high_uid_owned"
 else
 	warn -y "no user with an ID > 60,000."
 	skipped=x
@@ -545,16 +561,14 @@ then
 	exit 1
 fi
 
+
 #
 # Verification of DOCUMENT_ROOT (post-privilege drop)
 #
 
 # DOCUMENT_ROOT is not USER_DIR.
-check -s1 -e"document root $doc_root is not $user's user directory." \
-	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$script" main
-
-# Set a legal DOCUMENT_ROOT.
-export DOCUMENT_ROOT="$home"
+check -s1 -e"document root $TMPDIR is not $user's user directory." \
+	DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED="$script" main
 
 
 #
