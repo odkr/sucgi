@@ -9,12 +9,12 @@ jobs:
     permissions:
       contents: read
       security-events: read
-    runs-on: macos-latest
-    name: codacy-coverage-reporter
+    runs-on: ubuntu-latest
+    name: Codacy Coverage Reporter
     steps:
       - uses: actions/checkout@v3
-      - name: brew install lcov
-        run: brew install lcov
+      - name: apt-get install build-essential m4 lcov
+        run: apt-get install build-essential m4 lcov
       - name: configure
         run: CFLAGS= ./configure -f
       - name: make check
