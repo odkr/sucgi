@@ -11,8 +11,8 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@v3
-    - name: www_grp=staff cgi_dir=. configure
-      run: ./configure
+    - name: ./configure
+      run: www_grp=staff cgi_dir=. ./configure
     - name: make
       run: make
     - name: make check
