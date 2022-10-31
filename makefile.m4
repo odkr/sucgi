@@ -86,8 +86,10 @@ dist_files = *.c *.h *.m4 configure devel.env prod.env README.rst tests tools
 # Installer settings
 #
 
-DESTDIR = default([__DESTDIR__], [/])
+ifnempty([__DESTDIR__], [DESTDIR = __DESTDIR__
+])dnl
 PREFIX = default([__PREFIX__], [/usr/local])
+install_dir = $(DESTDIR)$(PREFIX)
 www_grp = default([__www_grp__], [www-data])
 cgi_dir = default([__cgi_dir__], [/usr/lib/cgi-bin])
 
@@ -230,15 +232,16 @@ $(dist_ar): clean
 $(dist_ar).asc: $(dist_ar)
 	gpg -qab --batch --yes $(dist_ar)
 
-$(DESTDIR)/$(PREFIX)/libexec/sucgi: sucgi
-	cp sucgi $(DESTDIR:/=)$(PREFIX)/libexec
-	chown 0:$(www_grp) $(DESTDIR:/=)$(PREFIX)/libexec/sucgi
-	chmod u=rws,g=x,o= $(DESTDIR:/=)$(PREFIX)/libexec/sucgi
+$(install_dir)/libexec/sucgi: sucgi
+	mkdir -p $(install_dir)/libexec
+	cp sucgi $(install_dir)/libexec
+	chown 0:$(www_grp) $(install_dir)/libexec/sucgi
+	chmod u=rws,g=x,o= $(install_dir)/libexec/sucgi
 
-$(cgi_dir)/sucgi: $(DESTDIR)/$(PREFIX)/libexec/sucgi
-	ln -s $(DESTDIR:/=)$(PREFIX)/libexec/sucgi $(cgi_dir)/sucgi
+$(cgi_dir)/sucgi: $(install_dir)/libexec/sucgi
+	ln -s $(install_dir)/libexec/sucgi $(cgi_dir)/sucgi
 
-install: $(DESTDIR)/$(PREFIX)/libexec/sucgi $(cgi_dir)/sucgi
+install: $(install_dir)/libexec/sucgi $(cgi_dir)/sucgi
 
 uninstall:
 	rm -f $(cgi_dir)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
