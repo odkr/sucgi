@@ -241,7 +241,7 @@ then
 	cat <<-'EOF' >"$swap"
 	#!/bin/sh
 	# Last configuration detected by ./configure.
-	# Run this script to regenerate the files based on that configuration.
+	# Run this script to regenerate the makefile using that configuration.
 
 	EOF
 
