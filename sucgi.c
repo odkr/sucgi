@@ -54,7 +54,7 @@
  */
 
 int
-main(void) {
+main(int argc, char **argv) {
 	/*
 	 * Check whether configuration strings are within bounds.
 	 */
@@ -63,8 +63,8 @@ main(void) {
 	BUILD_BUG_ON(sizeof(JAIL_DIR) >= MAX_STR);
 	BUILD_BUG_ON(sizeof(USER_DIR) <= 1);
 	BUILD_BUG_ON(sizeof(USER_DIR) >= MAX_STR);
-	BUILD_BUG_ON(sizeof(PATH) <= 1);
-	BUILD_BUG_ON(sizeof(PATH) >= MAX_STR);
+	BUILD_BUG_ON(sizeof(SECURE_PATH) <= 1);
+	BUILD_BUG_ON(sizeof(SECURE_PATH) >= MAX_STR);
 
 	
 	/*
@@ -114,6 +114,62 @@ main(void) {
 
 	assert(geteuid() == proc_uid);
 	assert(getegid() == proc_gid);
+
+
+	/*
+	 * Process arguments.
+	 */
+	for (int i = 1; i < argc; i++) {
+		if (strncmp(argv[i], "-h", 3) == 0) {
+			(void) fputs(
+"suCGI - run CGI scripts with the permissions of their owner\n\n"
+"Usage:  sucgi\n"
+"        sucgi -h\n"
+"        sucgi -c\n\n"
+"Options:\n"
+"    -h  Print this help screen.\n"
+"    -c  Print the build configuration.\n\n"
+"Copyright 2022 Odin Kroeger.\n"
+"Released under the GNU General Public License.\n"
+"This programme comes with ABSOLUTELY NO WARRANTY.",
+			       stderr);
+			return EXIT_SUCCESS;
+		} else if (strncmp(argv[i], "-c", 3) == 0) {
+			struct scpt_ent hdb[] = HANDLERS;
+
+			(void) printf("JAIL_DIR=%s\n", JAIL_DIR);
+			(void) printf("USER_DIR=%s\n", USER_DIR);
+			(void) printf("FORCE_HOME=%d\n", FORCE_HOME);
+
+			(void) printf("MIN_UID=%u\n", MIN_UID);
+			(void) printf("MAX_UID=%u\n", MAX_UID);
+			(void) printf("MIN_GID=%u\n", MIN_GID);
+			(void) printf("MAX_GID=%u\n", MAX_GID);
+
+			(void) printf("HANDLERS=");
+			for (int j = 0; hdb[j].suffix; j++) {
+				struct scpt_ent h = hdb[j];
+
+				if (j > 0) {
+					(void) printf(",");
+				}
+				(void) printf("%s:%s", h.suffix, h.handler);
+			}
+			(void) printf("\n");
+
+			(void) printf("SECURE_PATH=%s\n", SECURE_PATH);
+			(void) printf("UMASK=0%o\n", UMASK);
+
+			(void) printf("MAX_GROUPS=%d\n", MAX_GROUPS);
+			(void) printf("MAX_ENV=%u\n", MAX_ENV);
+			(void) printf("MAX_STR=%u\n", MAX_STR);
+
+			return EXIT_SUCCESS;
+		} else {
+			(void) fputs("usage: sucgi [-h|-c]\n", stderr);
+			return EXIT_FAILURE;
+		}
+	}
 
 
 	/*
@@ -340,7 +396,7 @@ main(void) {
 		error("setenv HOME: %m.");
 	}
 
-	if (setenv("PATH", PATH, true) != 0) {
+	if (setenv("PATH", SECURE_PATH, true) != 0) {
 		error("setenv PATH: %m.");
 	}
 

@@ -71,7 +71,7 @@
  * 
  * The filename suffix must be given including the leading dot (e.g., ".php").
  * The handler is looked up in $PATH if its name is relative (e.g., "php");
- * keep in mind that $PATH is set to PATH (see below).
+ * keep in mind that $PATH is set to SECURE_PATH (see below).
  *
  * The array must be terminated with a pair of NULLs.
  */
@@ -83,13 +83,13 @@
 /*
  * A secure $PATH.
  */
-#define PATH "/usr/bin:/bin"
+#define SECURE_PATH "/usr/bin:/bin"
 
 /* 
  * A secure file permission mask. The leading "0" is significant.
  * Added to the current umask.
  */
-#define UMASK 077
+#define UMASK 077U
 
 /*
  * Maximum number of groups a user can be a member of. Signed integer.
@@ -130,7 +130,7 @@
 #define JAIL_DIR "/"
 
 #undef USER_DIR 
-#define USER_DIR "%s"
+#define USER_DIR "/tmp/sucgi-check/%s"
 
 #undef FORCE_HOME
 #define FORCE_HOME false
@@ -221,8 +221,8 @@
 #endif /* MAX_GID > UINT_MAX */
 #endif /* defined(MAX_GID) */
 
-#if !defined(PATH)
-#error PATH is undefined.
+#if !defined(SECURE_PATH)
+#error SECURE_PATH is undefined.
 #endif /* !defined(PATH) */
 
 #if !defined(HANDLERS)
