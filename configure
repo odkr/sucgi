@@ -161,57 +161,46 @@ if [ "$CC" ]
 then
 	printf 'Compiler flags:'
 
-	if [ "${CFLAGS-}" ]
+	if ! [ "${CFLAGS-}" ]
 	then
-		printf ' %s' "$CFLAGS"
-	fi
-
-	# shellcheck disable=2086
-	set -- $cflags
-	pids=''
-	while [ $# -gt 0 ]
-	do
-		flag="$1"
-		shift
-
-		for given in ${CFLAGS-}
+		# shellcheck disable=2086
+		set -- $cflags
+		pids=''
+		while [ $# -gt 0 ]
 		do
-			[ "$flag" = "$given" ] && continue 2
-		done
+			flag="$1"
+			shift
 
-		case $flag in (-D*)
-			CFLAGS="${CFLAGS-} $flag"
-			continue
-		esac
+			case $flag in (-D*)
+				CFLAGS="${CFLAGS-} $flag"
+				continue
+			esac
 
-		"$CC" -xc -Werror "$flag" -o/dev/null - \
-		      <<-EOF >/dev/null 2>&1 &
-			int main (void) { return 0; }
-		EOF
-		pids="$pids $!"
-		eval "flag_$!"='$flag'
+			"$CC" -xc -Werror "$flag" -o/dev/null - \
+			      <<-EOF >/dev/null 2>&1 &
+				int main (void) { return 0; }
+			EOF
+			pids="$pids $!"
+			eval "flag_$!"='$flag'
 
-		if [ $(($# % nchildren)) -eq 0 ]
-		then
-			for pid in $pids
-			do
-				if wait "$pid"
-				then
+			if [ $(($# % nchildren)) -eq 0 ]
+			then
+				for pid in $pids
+				do
+					wait "$pid" || continue
 					eval flag="\"\${flag_$pid-}\""
 					unset "flag_$pid"
 					CFLAGS="${CFLAGS-} $flag"
 					printf ' %s' "$flag"
-				fi
-			done
-			pids=
-		fi
-	done
+				done
+				pids=
+			fi
+		done
+	fi
 
 	if ! [ "${CFLAGS-}" ]
 	then
 		printf ' none supported.\a\n'
-	else
-		echo
 	fi
 
 	unset cflags flag given pid
