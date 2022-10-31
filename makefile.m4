@@ -61,6 +61,8 @@ bins =		$(tool_bins) $(check_bins)
 # Analyser settings
 #
 
+inspect = *.c *.h tools/*.c tests/*.c
+
 cppchk_flags =	--quiet --error-exitcode=8 \
 		--language=c --std=c99 --platform=unix64 --library=posix \
 		--library=cppcheck/library.cfg \
@@ -79,7 +81,8 @@ package = sucgi
 version = 0
 dist_name = $(package)-$(version)
 dist_ar = $(dist_name).tgz
-dist_files = *.c *.h *.m4 configure devel.env prod.env README.rst tests tools
+dist_files = *.c *.h *.m4 configure cppcheck devel.env docs \
+	prod.env README.rst tests tools
 
 
 #
@@ -182,35 +185,8 @@ clean:
        ')' -exec rm -rf '{}' +
 	rm -rf *.o lib.a cov sucgi tmp-* $(bins) $(dist_name) $(dist_name).* 
 
-analysis:
-	grep -nri fixme configure *.h *.c *.env tools/* tests/* doc/*
-	flawfinder --error-level=1 -m 0 -D -Q .
-	rats --resultsonly -w3 *.c *.h tools/*.c tests/*.c
-	cppcheck $(cppchk_flags) --enable=all $(cppchk_addons) .
-	cppcheck $(cppchk_flags) --enable=unusedFunction *.h *.c
-	shellcheck configure tools/check tools/lib.sh tests/*.sh
-
 check: $(tool_bins) $(check_bins)
 	tools/check $(checks)
-
-cov: clean $(tool_bins)
-	chown -R "$$(tools/owner .)" tools/*
-	make CC=$(cov_cc) CFLAGS="-O2 --coverage" $(check_bins)
-	-tools/check -qs $(check_bins)
-	find . '(' -name '*.gcda' -o -name '*.gcno' ')' \
-	-exec chown "$$(tools/owner .)" '{}' +
-	tools/check -s $(checks)
-
-lcov.info: cov tools/owner
-	lcov -c -d . -o $@ --exclude '*/tests/*' --exclude '*/tools/*' \
-		--exclude '/Library/*'
-	chown "$$(tools/owner .)" $@
-
-cov/index.html: lcov.info tools/owner
-	genhtml -o cov lcov.info
-	chown -R "$$(tools/owner .)" cov
-
-covhtml: cov/index.html
 
 dist: $(dist_ar) $(dist_ar).asc
 
@@ -246,6 +222,35 @@ install: $(install_dir)/libexec/sucgi $(cgi_dir)/sucgi
 
 uninstall:
 	rm -f $(cgi_dir)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
+
+analysis:
+	grep -nri fixme $(inspect)
+	flawfinder --error-level=1 -m 0 -D -Q $(inspect)
+	rats --resultsonly -w3 *.c *.h $(inspect)
+	cppcheck $(cppchk_flags) --enable=all $(cppchk_addons) $(inspect)
+
+shellcheck:
+	grep -nri fixme configure *.env tools/check tools/lib.sh tests/*.sh
+	shellcheck -x configure *.env tools/check tools/lib.sh tests/*.sh
+
+cov: clean $(tool_bins)
+	chown -R "$$(tools/owner .)" tools/*
+	make CC=$(cov_cc) CFLAGS="-O2 --coverage" $(check_bins)
+	-tools/check -qs $(check_bins)
+	find . '(' -name '*.gcda' -o -name '*.gcno' ')' \
+	-exec chown "$$(tools/owner .)" '{}' +
+	tools/check -s $(checks)
+
+lcov.info: cov tools/owner
+	lcov -c -d . -o $@ --exclude '*/tests/*' --exclude '*/tools/*' \
+		--exclude '/Library/*'
+	chown "$$(tools/owner .)" $@
+
+cov/index.html: lcov.info tools/owner
+	genhtml -o cov lcov.info
+	chown -R "$$(tools/owner .)" cov
+
+covhtml: cov/index.html
 
 .PHONY:	all analysis check clean cov covhtml \
 	dist distcheck distclean install uninstall
