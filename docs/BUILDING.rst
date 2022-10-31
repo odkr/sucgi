@@ -100,13 +100,18 @@ Run the test suite by ``make check``.
 
 For the whole test suite to run:
 
-(1) The repository must be owned by a regular user.
-(2) The test suite must be invoked as the superuser.
+1. The repository must be owned by a regular user.
+2. The test suite must be invoked as the superuser.
+3. There must be a user with a user ID < 500.
+4. There must be a user with a user ID > 60,000.
 
-Create coverage reports by ``make covhtml``. The report can then be found
-in *cov*. Coverage reports require Gcov_ (or Clang_'s Gcov clone) and LCOV_.
-Coverage reports are only accurate if they are generated as the superuser.
-They are currently broken.
+Create coverage reports by ``make covhtml``. The report can then be found in
+*cov*. Coverage reports require Gcov_ (or Clang_'s Gcov clone) and LCOV_.
+
+For the coverage report to be accurate-ish:
+
+1. Coverage data has to be collected as the superuser.
+2. The repository must be world-accessible.
 
 
 Installation

@@ -52,6 +52,18 @@ then
 	then
 		warn -y "no unprivileged user."
 		user="$(id -un)"
+	else
+		# This is needed for coverage reports.
+		ch_cov_own() {
+			find "$src_dir" \
+				'(' -name '*.gcda' -o -name '*.gcno' ')' \
+				-exec chown "${1:?}" '{}' +
+		}
+
+		owner="$(tools/owner "$src_dir")"
+		readonly onwner
+		cleanup="ch_cov_own \"\$owner\"; ${cleanup-}"
+		ch_cov_own "$user"
 	fi
 else
 	user="$(id -un)"
@@ -401,7 +413,7 @@ else
 fi
 
 # Create a file owned by a non-root privileged user with a high UID.
-if high_uid="$(ents -f60000 -c65536 -n1 2>/dev/null)"
+if high_uid="$(ents -f60000 -n1 2>/dev/null)"
 then
 	high_uid_owned="$doc_root/priv-high-uid"
 	touch "$high_uid_owned"
