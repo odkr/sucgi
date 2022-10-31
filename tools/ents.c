@@ -225,12 +225,14 @@ main(int argc, char **argv)
 				errx(ERR_SIZE, "too many entries");
 			}
 
+			/* RATS: ignore; no use of uninitialised memory. */
 			ids = realloc(ids, new);
 			if (!ids) {
 				err(ERR_OS, "realloc");
 			}
 		}
 
+		/* RATS: ignore; format string is a literal. */
 		printf("%llu:%s\n", (long long unsigned) id, name);
 	} while (nmax < 0 || nids < (size_t) nmax);
 	

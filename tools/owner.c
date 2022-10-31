@@ -65,6 +65,7 @@ main (int argc, char **argv)
 	}
 
 	errno = 0;
+	/* RATS: ignore; no TOCTOU gap, because there is no further use. */
 	if (stat(argv[0], &fstatus) != 0) {
 		err(EXIT_FAILURE, "stat %s", argv[1]);
 	}
