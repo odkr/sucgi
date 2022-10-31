@@ -255,4 +255,4 @@ covhtml: cov/index.html
 .PHONY:	all analysis check clean cov covhtml \
 	dist distcheck distclean install uninstall
 
-.IGNORE: analysis
+.IGNORE: analysis shellcheck
