@@ -56,12 +56,12 @@ add_macros() {
 #
 
 OPTIND=1 OPTARG='' opt=''
-args="$*" conf=prod.env force='' status=x quiet=''
+args="$*" conf=./prod.env force='' status=x quiet=''
 while getopts Cc:dfqh opt; do
 	case $opt in
 		(C) status= ;;
 		(c) conf="$OPTARG" ;;
-		(d) conf=devel.env ;;
+		(d) conf=./devel.env ;;
 		(f) force=x ;;
 		(q) quiet=x ;;
 		(h) exec cat <<EOF >&2 ;;
@@ -71,19 +71,19 @@ Usage:       configure [-C] [-c FILE|-d] [-f] [-q]
              configure -h
 
 Options:
-    -C         Do not update config.status.
-    -c FILE    Read build configuration from FILE (default: $conf).
-    -d         Short for -c devel.env.
-    -f         Overwrite existing files.
-    -h         Show this help screen.
-    -q         Be quiet.
+    -C       Do not update config.status.
+    -c FILE  Read build configuration from FILE (default: $conf).
+    -d       Short for -c devel.env.
+    -f       Overwrite existing files.
+    -h       Show this help screen.
+    -q       Be quiet.
 
 Environment:
-    CC         The C compiler.
-    CFLAGS     Flags to give to the C compiler.
-    ARFLAGS    Flags to give to the archiver.
-    LDFLAGS    Flags to give to the linker.
-    LDLIBS     Flags or names to give to the linker. 
+    CC       The C compiler.
+    CFLAGS   Flags to give to the C compiler.
+    ARFLAGS  Flags to give to the archiver.
+    LDFLAGS  Flags to give to the linker.
+    LDLIBS   Flags or names to give to the linker. 
 
 See README.rst and docs/BUILDING.rst for details.
 
