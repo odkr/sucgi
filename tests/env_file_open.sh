@@ -101,80 +101,80 @@ ln -fs "$inside" "$in_link"
 #
 
 # Jail directory is the empty string.
-checkerr "*jail != '\\0'" \
+check -s134 -e"*jail != '\\0'" \
 	var="$jail/file" env_file_open "" var f
 
 # Environment variable is the empty string.
-checkerr "*varname != '\\0'" \
+check -s134 -e"*varname != '\\0'" \
 	var="$jail/file" env_file_open "$jail" "" f
 
 # Path to jail directory is longer than MAX_STR.
-checkerr 'strnlen(jail, MAX_STR) < MAX_STR' \
+check -s134 -e'strnlen(jail, MAX_STR) < MAX_STR' \
 	var="$jail" env_file_open "$huge_str" var f
 
 # Jail directory does not exist.
-checkerr 'access(jail, F_OK) == 0' \
-	var="/lib/<no file!>/foo" env_file_open '/lib/<no file!>' var f
+check -s134 -e'access(jail, F_OK) == 0' \
+	var="<no file!>/foo" env_file_open '<no file!>' var f
 
 # Path to jail directory is not canonical.
-checkerr 'strncmp(jail, realpath(jail, NULL), MAX_STR) == 0' \
+check -s134 -e'strncmp(jail, realpath(jail, NULL), MAX_STR) == 0' \
 	var="$jail/foo" env_file_open "$in_link" var f
 
 # shellcheck disable=2016
-checkerr '$var unset or empty' \
+check -s1 -e'$var unset or empty' \
 	env_file_open "$jail" var f
 
 # shellcheck disable=2016
-checkerr '$var unset or empty' \
+check -s1 -e'$var unset or empty' \
 	var= env_file_open "$jail" var f
 
 # Path to file is too long (system).
-checkerr 'too long' \
+check -s1 -e'too long' \
 	var="$huge_str" env_file_open "$jail" var f
 
 # Value of environment variable is too long (suCGI).
-checkerr 'path too long' \
+check -s1 -e'path too long' \
 	var="$huge_str" env_file_open "$jail" var f
 
 # Path to file is too long after having been resolved (system).
-checkerr 'too long' \
+check -s1 -e'too long' \
  	var="$huge_path_link" env_file_open "$jail" var f
 
 # Path to file is too long after having been resolved (suCGI).
-checkerr 'too long' \
+check -s1 -e'too long' \
  	var="$huge_str_link" env_file_open "$jail" var f
 
 # Path points to outside of jail directory.
-checkerr "file $outside not within jail" \
+check -s1 -e"file $outside not within jail" \
 	var="$outside" env_file_open "$jail" var f
 
 # Resolved path points to outside of jail directory (dots).
-checkerr "file $outside not within jail" \
+check -s1 -e"file $outside not within jail" \
 	var="$jail/../outside" env_file_open "$jail" var f
 
 # Resolved path points to outside of jail directory (symlink).
-checkerr "file $outside not within jail" \
+check -s1 -e"file $outside not within jail" \
 	var="$out_link" env_file_open "$jail" var f
 
 # File is of the wrong type.
-checkerr "open $inside: Not a directory" \
+check -s1 -e"open $inside: Not a directory" \
 	var="$inside" env_file_open "$jail" var d
 
 # File does not exist.
-checkerr "realpath /lib/<no such file!>: No such file or directory" \
+check -s1 -e"realpath /lib/<no such file!>: No such file or directory" \
 	var="/lib/<no such file!>" env_file_open "$jail" var d
 
 # Simple test.
-checkok $$ \
+check -s0 -o$$ \
 	var="$inside" env_file_open "$jail" var f
 
 # Long filename.
-checkok $$ \
+check -s0 -o$$ \
 	var="$long_path" env_file_open "$jail" var f
 
 # Resolved path is inside of jail.
-checkok $$ \
+check -s0 -o$$ \
 	var="$in_link" env_file_open "$jail" var f
 
-# All good.
+# l good.
 warn -g "all tests passed."

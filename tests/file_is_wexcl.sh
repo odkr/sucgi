@@ -41,8 +41,8 @@ tmpdir chk
 #
 
 umask 0777
-euid="$(id -u)"
-egid="$(id -g)"
+user="$(id -un)"
+group="$(id -gn)"
 fname="$TMPDIR/file"
 touch "$fname"
 
@@ -54,10 +54,10 @@ touch "$fname"
 for mode in g=w o=w ug=w uo=w go=w ugo=w
 do
 	warn "checking ${bld-}$mode${rst-} ..."
-	chown "$euid:$egid" "$fname"
+	chown "$user:$group" "$fname"
 	chmod "$mode" "$fname"
 	# shellcheck disable=2154
-	file_is_wexcl "$euid" "$fname" &&
+	file_is_wexcl "$user" "$fname" &&
 		err "reported as exclusively writable."
 	chmod ugo= "$fname"
 done
@@ -65,17 +65,18 @@ done
 for mode in u=w ugo=
 do
 	warn "checking ${bld-}$mode${rst-} ..."
-	chown "$euid:$egid" "$fname"
+	chown "$user:$group" "$fname"
 	chmod "$mode" "$fname"
 	# shellcheck disable=2154
-	file_is_wexcl "$euid" "$fname" ||
+	file_is_wexcl "$user" "$fname" ||
 		err "reported as not exclusively writable."
 	chmod ugo= "$fname"
 done
 
+owner="$(owner /bin/sh)"
 warn "checking whether ${bld-}/bin/sh${rst-} is" \
-     "exclusively writable by ${bld-}root${rst-} ..."
-file_is_wexcl 0 /bin/sh ||
+     "exclusively writable by ${bld-}$owner${rst-} ..."
+file_is_wexcl "$owner" /bin/sh ||
 	err "reported as not exclusively writable."
 
 warn -g "all tests passed."

@@ -50,9 +50,9 @@ ln -s "$TMPDIR" "$symlink"
 # Main
 #
 
-checkok  $$                                  file_safe_open "$file" f
-checkerr 'Not a directory'                   file_safe_open "$file" d
-checkerr 'Too many levels of symbolic links' file_safe_open "$symlink" d
-checkerr 'No such file or directory'         file_safe_open '/lib/<nofile!>' f
+check -s0 -o$$                                  file_safe_open "$file" f
+check -s1 -e'Not a directory'                   file_safe_open "$file" d
+check -s1 -e'Too many levels of symbolic links' file_safe_open "$symlink" d
+check -s1 -e'No such file or directory'         file_safe_open '<no file!>' f
 
 warn -g "all tests passed."

@@ -40,13 +40,13 @@ tmpdir chk
 # Main
 #
 
-checkerr "*message != '\\0'" error ''
-checkerr '' error %s ''
+check -s134 -e"*message != '\\0'" error ''
+check -s1 error %s ''
 
 for message in - foo bar baz
 do
-	checkerr "$message" error "$message"
-	checkerr "$message" error %s "$message"
+	check -s1 -e"$message" error "$message"
+	check -s1 -e"$message" error %s "$message"
 done
 
 warn -g "all tests passed."

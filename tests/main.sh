@@ -36,38 +36,23 @@ init || exit
 
 
 #
-# Functions
-#
-
-allocuid() (
-	start="${1:?}" stop="${2:?}" pipe="${TMPDIR:-/tmp}/ent-$$.fifo"
-	mkfifo -m 700 "$pipe"
-	
-	ents -u >"$pipe" & ents=$!
-	while IFS=: read -r uid user
-	do
-		[ "$uid" -ge "$start" ] && [ "$uid" -le "$stop" ] && break
-	done <"$pipe"
-	rm -f "$pipe"
-	
-	[ "${uid-}" ] || err -l 'no user ID in given range'
-	
-	printf '%u\n' "$uid"
-)
-
-
-#
 # Prelude
 #
 
+# Were tests skipped?
+skipped=
+
 # Effective UID.
-euid="$(id -u)"
+uid="$(id -u)"
 
 # Get a regular user and their primary group.
-if [ "$euid" -eq 0 ]
+if [ "$uid" -eq 0 ]
 then
-	user="$(reguser 500 30000 1 30000 2>/dev/null)" ||
-		err "no unprivileged user found."
+	if ! user="$(reguser 500 30000 1 30000 2>/dev/null)"
+	then
+		warn -y "no unprivileged user."
+		user="$(id -un)"
+	fi
 else
 	user="$(id -un)"
 fi
@@ -162,7 +147,7 @@ env_bin="$(command -v env)"
 env_dir="$(dirname "$env_bin")"
 
 # Make sure the files are owned by a regular user.
-[ "$euid" -eq 0 ] && chown -R "$user:$group" "$TMPDIR"
+[ "$uid" -eq 0 ] && chown -R "$user:$group" "$TMPDIR"
 
 
 #
@@ -170,7 +155,7 @@ env_dir="$(dirname "$env_bin")"
 #
 
 # shellcheck disable=2086
-checkerr 'too many environment variables.' \
+check -s 1 -e'too many environment variables.' \
 	$vars main
 
 
@@ -182,49 +167,49 @@ tests_dir=$(cd -P "$script_dir" && pwd) ||
 	err 'failed to get working directory.'
 
 
-checkerr 'found malformed environment variable.' \
+check -s1 -e'found malformed environment variable.' \
 	badenv -n3 foo bar=bar baz=baz "$tests_dir/main"
 
-checkerr 'found malformed environment variable.' \
+check -s1 -e'found malformed environment variable.' \
 	badenv -n3 bar=bar foo baz=baz "$tests_dir/main"
 
-checkerr 'found malformed environment variable.' \
+check -s1 -e'found malformed environment variable.' \
 	badenv -n3 bar=bar baz=baz foo "$tests_dir/main"
 
-checkerr 'found malformed environment variable.' \
+check -s1 -e'found malformed environment variable.' \
 	badenv 0bar=bar foo=foo baz=baz "$tests_dir/main"
 
-checkerr 'found malformed environment variable.' \
+check -s1 -e'found malformed environment variable.' \
 	badenv foo=foo 0bar=bar baz=baz "$tests_dir/main"
 
-checkerr 'found malformed environment variable.' \
+check -s1 -e'found malformed environment variable.' \
 	badenv foo=foo baz=baz 0bar=bar "$tests_dir/main"
 
-checkerr 'found malformed environment variable.' \
+check -s1 -e'found malformed environment variable.' \
 	badenv '=baz' foo=foo bar=bar "$tests_dir/main"
 
-checkerr 'found malformed environment variable.' \
+check -s1 -e'found malformed environment variable.' \
 	badenv foo=foo '=baz' bar=bar "$tests_dir/main"
 
-checkerr 'found malformed environment variable.' \
+check -s1 -e'found malformed environment variable.' \
 	badenv foo=foo bar=bar '=baz' "$tests_dir/main"
 
-checkerr 'found malformed environment variable.' \
+check -s1 -e'found malformed environment variable.' \
 	badenv -n3 '' foo=foo bar=bar "$tests_dir/main"
 
-checkerr 'found malformed environment variable.' \
+check -s1 -e'found malformed environment variable.' \
 	badenv -n3 foo=foo '' bar=bar "$tests_dir/main"
 
-checkerr 'found malformed environment variable.' \
+check -s1 -e'found malformed environment variable.' \
 	badenv -n3 foo=foo bar=bar '' "$tests_dir/main"
 
-checkerr 'found malformed environment variable.' \
+check -s1 -e'found malformed environment variable.' \
 	badenv 'foo foo=foo' bar=bar baz=baz "$tests_dir/main"
 
-checkerr 'found malformed environment variable.' \
+check -s1 -e'found malformed environment variable.' \
 	badenv bar=bar 'foo foo=foo' baz=baz "$tests_dir/main"
 
-checkerr 'found malformed environment variable.' \
+check -s1 -e'found malformed environment variable.' \
 	badenv bar=bar baz=baz 'foo foo=foo' "$tests_dir/main"
 
 
@@ -237,56 +222,56 @@ checkerr 'found malformed environment variable.' \
 # (non-existent jail)
 
 # No DOCUMENT_ROOT given.
-checkerr '$DOCUMENT_ROOT unset or empty.' \
+check -s1 -e'$DOCUMENT_ROOT unset or empty.' \
 	main
 
 # $DOCUMENT_ROOT is empty.
-checkerr '$DOCUMENT_ROOT unset or empty.' \
+check -s1 -e'$DOCUMENT_ROOT unset or empty.' \
 	DOCUMENT_ROOT= main
 
 # $DOCUMENT_ROOT is too long (suCGI).
-checkerr 'found too long environment variable.' \
+check -s1 -e'found too long environment variable.' \
 	DOCUMENT_ROOT="$huge_str" main
 
 # $DOCUMENT_ROOT is too long (system).
-checkerr 'too long' \
+check -s1 -e'too long' \
 	DOCUMENT_ROOT="$huge_path" main
 
 # Path to document root is too long after having been resolved (system).
-checkerr 'too long' \
+check -s1 -e'too long' \
 	DOCUMENT_ROOT="$huge_path_link" main
 
 # Path to document root is too long after having been resolved (suCGI).
-checkerr 'too long' \
+check -s1 -e'too long' \
 	DOCUMENT_ROOT="$huge_str_link" main
 
 # Path to document root points to outside of jail.
-checkerr "document root / not within jail" \
+check -s1 -e"document root / not within jail" \
 	DOCUMENT_ROOT=/ main
 
 # Resolved document root points to outside of jail (dots).
-checkerr "document root / not within jail" \
+check -s1 -e"document root / not within jail" \
 	DOCUMENT_ROOT="$doc_root/../../../../../../../../../../../../.." main
 
 # Resolved path to document roots to outside of document root (symlink).
-checkerr "document root / not within jail" \
+check -s1 -e"document root / not within jail" \
 	DOCUMENT_ROOT="$root_link" main
 
 # Document root is of the wrong type.
-checkerr "open $outside: Not a directory." \
+check -s1 -e"open $outside: Not a directory." \
 	DOCUMENT_ROOT="$outside" main
 
 # Document root does not exist.
-checkerr "realpath /lib/<no file!>: No such file or directory." \
-	DOCUMENT_ROOT="/lib/<no file!>" main
+check -s1 -e"realpath <no file!>: No such file or directory." \
+	DOCUMENT_ROOT="<no file!>" main
 
 # Simple test. Should fail but regard DOCUMENT_ROOT as valid.
-checkerr '$PATH_TRANSLATED unset or empty.' \
+check -s1 -e'$PATH_TRANSLATED unset or empty.' \
 	DOCUMENT_ROOT="$doc_root" main
 
 # Long filename. Should fail but regard DOCUMENT_ROOT as valid.
 long_doc_root="${long_path%??????????????}"
-checkerr "realpath $long_doc_root: No such file or directory" \
+check -s1 -e"realpath $long_doc_root: No such file or directory" \
 	DOCUMENT_ROOT="$long_doc_root" main
 
 # DOCUMENT_ROOT remains mostly the same for the remainder of this script.
@@ -298,64 +283,69 @@ export DOCUMENT_ROOT="$doc_root"
 #
 
 # PATH_TRANSLATED is undefined.
-checkerr '$PATH_TRANSLATED unset or empty.' \
+check -s1 -e'$PATH_TRANSLATED unset or empty.' \
 	main
 
 # $PATH_TRANSLATED is empty.
-checkerr '$PATH_TRANSLATED unset or empty.' \
+check -s1 -e'$PATH_TRANSLATED unset or empty.' \
 	PATH_TRANSLATED= main
 
 # $PATH_TRANSLATED is too long (system).
-checkerr 'too long' \
+check -s1 -e'too long' \
 	PATH_TRANSLATED="$huge_path" main
 
 # $PATH_TRANSLATED is too long (suCGI).
-checkerr 'too long' \
+check -s1 -e'too long' \
 	PATH_TRANSLATED="$huge_str" main
 
 # Path to script is too long after having been resolved (system).
-checkerr 'too long' \
+check -s1 -e'too long' \
 	PATH_TRANSLATED="$huge_path_link" main
 
 # Path to script is too long after having been resolved (suCGI).
-checkerr 'too long' \
+check -s1 -e'too long' \
 	PATH_TRANSLATED="$huge_str_link" main
 
 # Path to script points to outside of document root.
-checkerr "script $outside not within document root" \
+check -s1 -e"script $outside not within document root" \
 	PATH_TRANSLATED="$outside" main
 
 # Resolved path to script points to outside of document root (dots).
-checkerr "script $outside not within document root" \
+check -s1 -e"script $outside not within document root" \
 	PATH_TRANSLATED="$doc_root/../outside" main
 
 # Resolved path to script points to outside of document root (symlink).
-checkerr "script $outside not within document root" \
+check -s1 -e"script $outside not within document root" \
 	PATH_TRANSLATED="$out_link" main
 
 # Script is of the wrong type.
-checkerr "script $dir is not a regular file" \
+check -s1 -e"script $dir is not a regular file" \
 	PATH_TRANSLATED="$dir" main
 
 # Script does not exist.
-checkerr "realpath $doc_root/<no file!>: No such file or directory." \
+check -s1 -e"realpath $doc_root/<no file!>: No such file or directory." \
 	PATH_TRANSLATED="$doc_root/<no file!>" main
 
 # Simple test. Should fail but regard PATH_TRANSLANTED as valid.
-if [ "$euid" -eq 0 ]
-	then err="document root $doc_root is not $user's user directory."
-	else err='seteuid 0: Operation not permitted.'
+if [ "$user" = "$(id -un 0)" ]
+then
+	err="script $inside is owned by privileged user $user"
+elif [ "$uid" -eq 0 ]
+then
+	err="document root $doc_root is not $user's user directory."
+else
+	err='seteuid 0: Operation not permitted.'
 fi
-checkerr "$err" \
+check -s1 -e"$err" \
 	PATH_TRANSLATED="$inside" main
 
 # Symlink into jail. Should fail but regard PATH_TRANSLATED as valid.
-checkerr "$err" \
+check -s1 -e"$err" \
 	PATH_TRANSLATED="$in_link" main
 
 # Long filename. Should fail but regard PATH_TRANSLANTED as valid.
 long_path_trans="${long_path%????????????????}"
-checkerr "realpath $long_path_trans: No such file or directory." \
+check -s1 -e"realpath $long_path_trans: No such file or directory." \
 	PATH_TRANSLATED="$long_path_trans" main
 
 
@@ -363,7 +353,7 @@ checkerr "realpath $long_path_trans: No such file or directory." \
 # Simple tests for script ownership.
 #
 
-checkerr "script $env_bin is owned by privileged user root" \
+check -s1 -e"script $env_bin is owned by privileged user root" \
 	DOCUMENT_ROOT="$env_dir" PATH_TRANSLATED="$env_bin" main
 
 
@@ -371,7 +361,7 @@ checkerr "script $env_bin is owned by privileged user root" \
 # Abort unless run by the superuser.
 #
 
-if [ "$euid" -ne 0 ]
+if [ "$uid" -ne 0 ]
 then
 	warn -g 'all tests passed.'
 	exit
@@ -397,17 +387,25 @@ root_owned="$doc_root/priv-root"
 touch "$root_owned"
 
 # Create a file owned by a non-root privileged user with a low UID.
-low_uid="$(allocuid 1 500)"
-low_uid_owned="$doc_root/priv-low-uid"
-touch "$low_uid_owned"
-chown "$low_uid" "$low_uid_owned"
+if low_uid="$(ents -f1 -c500 -n1)"
+then
+	low_uid_owned="$doc_root/priv-low-uid"
+	touch "$low_uid_owned"
+	chown "${low_uid%:*}" "$low_uid_owned"
+else
+	warn -y "no user with an ID < 500."
+	skipped=x
+fi
 
 # Create a file owned by a non-root privileged user with a high UID.
-if high_uid="$(allocuid 60000 65536 2>/dev/null)"
+if high_uid="$(ents -f60000 -c65536 -n1 2>/dev/null)"
 then
 	high_uid_owned="$doc_root/priv-high-uid"
 	touch "$high_uid_owned"
-	chown "$high_uid" "$high_uid_owned"
+	chown "${high_uid:%*}" "$high_uid_owned"
+else
+	warn -y "no user with an ID > 60,000."
+	skipped=x
 fi
 
 # Create a hidden file.
@@ -463,7 +461,7 @@ chmod o+w "$doc_root/otherw.d"
 script_sh="$doc_root/script.sh"
 cat <<'EOF' >"$script_sh"
 #!/bin/sh
-printf 'euid=%s egid=%s ruid=%s rgid=%s\n' \
+printf 'uid=%s egid=%s ruid=%s rgid=%s\n' \
        "$(id -u)" "$(id -g)" "$(id -ur)" "$(id -gr)"
 EOF
 chown "$user:$group" "$script_sh"
@@ -500,31 +498,44 @@ chmod +x "$env"
 #
 
 # Owned by non-existing user.
-checkerr "script $noowner is owned by unallocated UID $unalloc_uid." \
+check -s1 -e"script $noowner is owned by unallocated UID $unalloc_uid." \
 	PATH_TRANSLATED="$noowner" main
 
 # Owned by root.
-checkerr "script $root_owned is owned by privileged user" \
+check -s1 -e"script $root_owned is owned by privileged user" \
 	PATH_TRANSLATED="$root_owned" main
 
 # Owned by a non-root privileged user with a low UID.
-checkerr "script $low_uid_owned is owned by privileged user" \
-	PATH_TRANSLATED="$low_uid_owned" main
+if [ "$low_uid" ]
+then
+	check -s1 -e"script $low_uid_owned is owned by privileged user" \
+		PATH_TRANSLATED="$low_uid_owned" main
+fi
 
 # Owned by a non-root privileged user with a high UID.
 if [ "$high_uid" ]
 then
-	checkerr "script $high_uid_owned is owned by privileged user" \
+	check -s1 -e"script $high_uid_owned is owned by privileged user" \
 		PATH_TRANSLATED="$high_uid_owned" main
 fi
 
+
+#
+# Bail out if there is no unprivileged user.
+#
+
+if [ "$user" = "$(id -un 0)" ]
+then
+	warn -y "skipping post-privilege drop tests."
+	exit 1
+fi
 
 #
 # Verification of DOCUMENT_ROOT (post-privilege drop)
 #
 
 # DOCUMENT_ROOT is not USER_DIR.
-checkerr "document root $doc_root is not $user's user directory." \
+check -s1 -e"document root $doc_root is not $user's user directory." \
 	DOCUMENT_ROOT="$doc_root" PATH_TRANSLATED="$script" main
 
 # Set a legal DOCUMENT_ROOT.
@@ -537,7 +548,7 @@ export DOCUMENT_ROOT="$home"
 
 for hidden in "$hidden_file" "$hidden_dir"
 do
-	checkerr "path $hidden contains hidden files." \
+	check -s1 -e"path $hidden contains hidden files." \
 		PATH_TRANSLATED="$hidden" main
 done
 
@@ -545,10 +556,10 @@ done
 # Neither set-UID nor set-GID bit set.
 #
 
-checkerr "script $setuid's set-user-ID bit is set." \
+check -s1 -e"script $setuid's set-user-ID bit is set." \
 	PATH_TRANSLATED="$setuid" main
 
-checkerr "script $setgid's set-group-ID bit is set." \
+check -s1 -e"script $setgid's set-group-ID bit is set." \
 	PATH_TRANSLATED="$setgid" main
 
 
@@ -558,13 +569,14 @@ checkerr "script $setgid's set-group-ID bit is set." \
 
 for file in "$groupw_file" "$otherw_file"
 do
-	checkerr "$file is writable by users other than $user." \
+	check -s1 -e"$file is writable by users other than $user." \
 		PATH_TRANSLATED="$file" main
 done
 
 for file in "$groupw_dir" "$otherw_dir"
 do
-	checkerr "$(dirname "$file") is writable by users other than $user." \
+	dir="$(dirname "$file")"
+	check -s1 -e"$dir is writable by users other than $user." \
 		PATH_TRANSLATED="$file" main
 done
 
@@ -573,10 +585,10 @@ done
 # Check suffix errors.
 #
 
-checkerr "$suffix_none has no filename suffix." \
+check -s1 -e"$suffix_none has no filename suffix." \
 	PATH_TRANSLATED="$suffix_none" main
 
-checkerr "no handler registered for $suffix_unknown." \
+check -s1 -e"no handler registered for $suffix_unknown." \
 	PATH_TRANSLATED="$suffix_unknown" main
 
 
@@ -586,7 +598,7 @@ checkerr "no handler registered for $suffix_unknown." \
 
 for path in "$script" "$script_sh"
 do
-	checkok "euid=$uid egid=$gid ruid=$uid rgid=$gid" \
+	check -s0 -o "uid=$uid egid=$gid ruid=$uid rgid=$gid" \
 		PATH_TRANSLATED="$path" main
 done
 
@@ -608,4 +620,10 @@ done
 # All done
 #
 
-warn -g 'all tests passed.'
+if [ "$skipped" ]
+then
+	warn -y "some tests were skipped."
+	exit 1
+else
+	warn -g 'all tests passed.'
+fi

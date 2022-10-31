@@ -50,28 +50,40 @@ cd -P "$script_dir" || exit
 # Test
 #
 
+skipc=0
 if [ "$uid" -eq 0 ]
 then
 	owner="$(owner "$src_dir")"
-	[ "$owner" ] && [ "$owner" != root ] && (
-		checkerr 'Operation not permitted' \
+	if [ "$(id -u "$owner")" -eq 0 ]
+	then
+		warn -y "${bld-}$src_dir${rst_y-} owned by superuser."
+		skipc=$((skipc + 1))
+	else
+		check -s1 -e'Operation not permitted' \
 			runas "$owner" priv_drop "$owner"
-	)
+	fi
 
-	regular="$(reguser 500 30000 1 30000)"
-	[ "$regular" ] && [ "$regular" != root ] && (
+	if ! regular="$(reguser 500 30000 1 30000)"
+	then
+		warn -y "no regular user found."
+		skipc=$((skipc + 1))
+	else
 		uid="$(id -u "$regular")"
 		gid="$(id -g "$regular")"
 		
-		checkok "euid=$uid egid=$gid ruid=$uid rgid=$gid" \
+		check -s0 -o"euid=$uid egid=$gid ruid=$uid rgid=$gid" \
 			priv_drop "$regular"
-	)
+	fi	
 
-	checkerr 'could resume superuser privileges' \
+	check -s1 -e'could resume superuser privileges' \
 		priv_drop "$user"
-else
-	checkerr 'Operation not permitted' priv_drop "$user"
-fi
 
-warn -g "all tests passed."
+	case $skipc in
+		(0) warn -g "all tests passed." ;;
+		(*) warn -y "${bld-}$skipc${rst_y-} tests skipped." ;;
+	esac
+else
+	check -s1 -e'Operation not permitted' priv_drop "$user"
+	warn -y "all non-superuser tests passed."
+fi
 

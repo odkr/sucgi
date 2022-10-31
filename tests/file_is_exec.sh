@@ -92,7 +92,7 @@ uid="$(id -u)" && [ "$uid" ] ||
 
 if [ "$uid" -ne 0 ]
 then
-	warn -g "all tests passed."
+	warn -y "all non-superuser tests passed."
 	exit
 fi
 
@@ -150,7 +150,11 @@ file_is_exec "$fname" && err "reported as executable."
 # Run tests as non-root user
 #
 
-regular="$(owner "$0")" || warn -y "could not run all tests."
+if ! owner="$(owner "$src_dir")" || [ "$(id -u "$owner")" -eq 0 ]
+then
+	warn -y "${bld-}$src_dir${rst_y-} owned by superuser, skipping tests."
+	exit 1
+fi
 
 # shellcheck disable=2154
-TMPDIR="$oldtmp" runas "$regular" "$script_dir/$prog_name"
+TMPDIR="$oldtmp" runas "$owner" "$script_dir/$prog_name"

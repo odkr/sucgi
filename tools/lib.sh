@@ -25,8 +25,7 @@
 # Aliases
 #
 
-alias checkerr='_line="$LINENO" _checkerr'
-alias checkok='_line="$LINENO" _checkok'
+alias check='_line="$LINENO" _check'
 alias err='_line="$LINENO" _err'
 alias warn='_line="$LINENO" _warn'
 
@@ -52,49 +51,91 @@ catch() {
 	caught="$signo"
 }
 
-# Abort if a programme doesn't print $err to STDERR or exits with status zero.
-_checkerr() (
-	err="${1?}"
-	shift
-	: "${@:?no command given}"
-	tmpfile="${TMPDIR-/tmp}/checkerr-$$.tmp" rc=0
-	_warn "checking ${bld-}$*${rst-} ..."
-	if env "$@" >/dev/null 2>"$tmpfile"
-	then
-		rc=2
-		_warn -lr "${bld-}$*${rst_r-} exited with status 0."
-	elif ! grep -Fq "$err" "$tmpfile"
-	then
-		prefix="${red-}${bld-}>${rst_r-} " rc=2
-		_warn -lr "${bld-}expected${rst_r} error:"
-		echo "$prefix$err${rst-}" >&2
-		_warn -lr "${bld-}actual${rst_r} error:"
-		sed "s/^/$prefix /; s/\$/${rst-}/" <"$tmpfile" >&2
-	fi
-	rm "$tmpfile" || rc=$?
-	return $rc
-)
+# Check if calling a programme produces a result.
+# -s checks for an exit status (defaults to 0),
+# -o STR for STR on stdout, -e STR for STR on stderr.
+_check() (
+	exp_stat=0 exp_out='' exp_err=''
+	OPTIND=1 OPTARG='' opt=''
+	while getopts 's:o:e:' opt
+	do
+		case $opt in
+			(s) exp_stat="$OPTARG" ;;
+			(o) exp_out="$OPTARG" ;;
+			(e) exp_err="$OPTARG" ;;
+		esac
+	done
+	shift $((OPTIND - 1))
+	: "${@?no command given}"
 
-# Abort if a programme doesn't print $msg or exits with a non-zero status.
-_checkok() (
-	msg="${1?}"
-	shift
-	: "${@:?no command given}"
-	tmpfile="${TMPDIR-/tmp}/checkok-$$.tmp" rc=0
-	_warn "checking ${bld-}$*${rst-} ..."
-	if ! env "$@" >"$tmpfile" 2>&1
-	then
+	: "${TMPDIR:=/tmp}"
+	for ch in out err
+	do
+		eval exp="\"\${exp_${ch}-}\""
+		if [ "$exp" ]
+		then
+			pipe="$TMPDIR/std$ch-$$.fifo"
+			mkfifo -m 0700 "$pipe"
+		else
+			pipe=/dev/null
+		fi
+
+		eval "pipe_${ch}=\"\$pipe\""
+	done
+
+	_warn -q "checking ${bld-}$*${rst-} ..."
+	env "$@" >"$pipe_out" 2>"$pipe_err" & env=$!
+
+	lf="
+"
+	for ch in out err
+	do
+		eval exp="\"\${exp_${ch}-}\""
+		eval pipe="\"\${pipe_${ch}-}\""
+
+		str=
+		while read -r line
+		do
+			[ "$exp" ] || break
+			case $line in (*"$exp"*)
+				eval "ok_${ch}=x"
+				break
+			esac
+			str="$str${red-}${bld-}>${rst_r-} $line${rst-}$lf"
+		done <"$pipe"
+
+		eval "str_${ch}=\"\$str\""
+	done
+
+	stat=0
+	wait "$env" || stat=$?
+
+	for pipe in "$pipe_out" "$pipe_err"
+	do
+		[ "$pipe" = /dev/null ] || rm -f "$pipe"
+	done
+
+	[ "$stat" -eq "$exp_stat" ] || [ "$stat" -eq 141 ] ||
+		_err -l "exited with status ${bld-}$stat${rst_r-}."
+
+	rc=0
+	for ch in out err
+	do
+		eval exp="\"\${exp_${ch}-}\""
+		[ "$exp" ] || continue
+
+		eval ok="\"\${ok_${ch}-}\""
+		[ "$ok" ] && continue
+
+		eval str="\"\${str_${ch}-}\""
+		_warn -lr "${bld-}expected text on std$ch${rst_r}:"
+		echo "${red-}${bld-}>${rst_r-} $exp${rst-}" >&2
+		_warn -lr "${bld-}actual output${rst_r-}:"
+		echo "${str%$lf}" >&2
+
 		rc=2
-		_warn -lr "${bld-}$*${rst_r-} exited with status $?."
-	elif ! grep -Fq "$msg" "$tmpfile"
-	then
-		prefix="${red-}${bld-}>${rst_r-} " rc=2
-		_warn -lr "${bld-}expected${rst_r} output:"
-		echo "$prefix$msg${rst-}" >&2
-		_warn -lr "${bld-}actual${rst_r} output:"
-		sed "s/^/$prefix /; s/\$/${rst-}/" <"$tmpfile" >&2
-	fi
-	rm "$tmpfile" || rc=$?
+	done
+
 	return $rc
 )
 
@@ -110,7 +151,7 @@ cleanup() {
 	exit "$rc"
 }
 
-# Register signals, set variables, a umask, and enable colours.
+# Register signals, set variables, and enable colours.
 init() {
 	# Environment variables.
 	: "${src_dir:?}"
@@ -128,7 +169,7 @@ init() {
 	[ "$caught" ] && exit "$((caught + 128))"
 
 	# Permission mask.
-	umask 077
+	umask 022
 
 	# Colours and formatting.
 	ncols="$(tput colors 2>/dev/null)" || ncols=0
@@ -145,6 +186,7 @@ init() {
 		fi
 	fi
 	rst_g="$rst$grn" rst_r="$rst$red" rst_y="$rst$ylw"
+	quiet=
 
 	# shellcheck disable=2034
 	readonly rst bld grn red ylw rst_g rst_r rst_y
@@ -152,44 +194,21 @@ init() {
 	# Programme name.
 	prog_name="$(basename "$0")" || prog_name="$0"
 	readonly prog_name
-
-	# Linefeed.
-	readonly lf="
-"
 }
 
-# Print the owner of $file
-owner() (
-	file="${1:?}"
-	pipe="${TMPDIR:-/tmp}/ls-$$.fifo" rc=0
-	mkfifo "$pipe"
-	ls -ld "$file" >"$pipe" & ls=$!
-	awk '{print $3}' <"$pipe" & awk=$!
-	wait "$ls"    || rc=$?
-	wait "$awk"   || rc=$?
-	rm -f "$pipe" || rc=$?
-	return $rc
-)
+# Check if $needle matches any member of $@ using $op.
+inlist() (
+	op="${1:?}" needle="${2?}"
+	shift 2
 
-# Check if a line on STDIN contains $str.
-match() (
-	: "${lf:?}"
-	str="${1?}" file=
-
-	while read -r line
+	for straw
 	do
-		case $line in (*"$str"*)
-			return 0
-		esac
-		if [ "$file" ]
-			then file="$file$lf$line"
-			else file="$line"
-		fi
+		eval "[ \"\$needle\" $op \"\$straw\" ]" && return
 	done
 
 	return 1
 )
-	
+
 # Create a path of $len length in $basepath.
 mklongpath() (
 	basepath="${1:?}" len="${2:?}" max=99999
@@ -229,12 +248,13 @@ mklongpath() (
 # Pad $str with $ch up to length $n.
 pad() (
 	str="${1:?}" n="${2:?}" ch="${3:-x}"
-	pipe="${TMPDIR:-/tmp}/pad-$$.fifo"
+	pipe="${TMPDIR:-/tmp}/pad-$$.fifo" rc=0
 	mkfifo -m 0700 "$pipe"
 	printf '%*s\n' "$n" "$str" >"$pipe" & printf=$!
-	tr ' ' "$ch" <"$pipe" & tr=$!
+	tr ' ' "$ch" <"$pipe" || rc=$?
+	wait $printf          || rc=$?
 	rm -f "$pipe"
-	wait $printf $tr
+	return $rc
 )
 
 # Find a user whose UID is between $minuid and $maxuid and who
@@ -242,27 +262,23 @@ pad() (
 reguser() (
 	minuid="${1:?}" maxuid="${2:?}" mingid="${3:?}" maxgid="${4:?}"
 
-	pipe="${TMPDIR:-/tmp}/ent-$$.fifo"
+	pipe="${TMPDIR:-/tmp}/ent-$$.fifo" rc=0
 	mkfifo -m 700 "$pipe"	
-	ents -u >"$pipe" & ents=$!
+	ents -u -f"$minuid" -c"$maxuid" >"$pipe" & ents=$!
 	while IFS=: read -r uid user
 	do
-		if [ "$uid" -ge "$minuid" ] && [ "$uid" -le "$maxuid" ]
-		then
-			for gid in $(id -G "$user")
-			do
-				[ "$gid" -lt "$mingid" ] ||
-				[ "$gid" -gt "$maxgid" ] &&
-					continue 2
-			done
-			
-			break
-		fi
-	done <"$pipe"
-	rm -f "$pipe"
+		for gid in $(id -G "$user")
+		do
+			[ "$gid" -lt "$mingid" ] || [ "$gid" -gt "$maxgid" ] &&
+				continue 2
+		done
 
-	[ "${uid-}" ] || err 'no user ID in given range'
-	
+		break
+	done <"$pipe"
+	wait $ents || rc=$?
+	rm -f "$pipe"
+	[ "$rc" -eq 0 ] && [ "$user" ] || return 1
+
 	printf '%s\n' "$user"
 )
 
@@ -314,8 +330,6 @@ traverse() (
 # Find an unallocated ID in a given range.
 # -u finds a user ID, -g a group ID.
 unallocid() (
-	pipe="${TMPDIR:-/tmp}/ents-$$.fifo"
-	
 	OPTIND=1 OPTARG='' opt=
 	opts=''
 	while getopts 'ug' opt
@@ -327,28 +341,21 @@ unallocid() (
 		esac
 	done
 	shift $((OPTIND - 1))
-	start="${1:?}" stop="${2:?}"
-	
+	start="${1:?}" end="${2:?}"
+	pipe="${TMPDIR:-/tmp}/ents-$$.fifo" rc=0
+
 	mkfifo -m 0700 "$pipe"
-	ents $opts >"$pipe" & ents=$!
+	ents -f"$start" -c"$end" $opts >"$pipe" 2>/dev/null & ents=$!
 	ids="$(cut -d: -f1 <"$pipe")" || rc=$?
 	rm -f "$pipe"
-	[ "${status-0}" -eq 0 ] || return $rc
-	wait "$ents"
+	[ "$rc" -eq 0 ] || return $rc
+	wait "$ents" || [ $? -eq 67 ]
 
 	i="$start"
-	while [ "$i" -le "$stop" ]
+	while [ "$i" -le "$end" ]
 	do
-		for id in $ids
-		do
-			if [ "$i" = "$id" ]
-			then
-				i=$((i + 1))
-				continue 2
-			fi
-		done
-		
-		break
+		inlist -eq $i $ids || break
+		i=$((i + 1))
 	done
 
 	printf '%d\n' "$i"
@@ -379,8 +386,9 @@ _warn() (
 	[ "$line" ] && [ "$_line" ] && printf 'line %d: ' "$_line"
 	[ "$col" ] && [ "${rst-}" ] && printf '%s' "$col"
 	                               printf '%s' "$*"
-	[ "$col" ] && [ "${rst-}" ] && printf '%s' "$rst"
-	                               printf '\a\n'
+	[ "$col" ] && [ "${rst-}" ] && printf "$rst"
+	echo
 
 	return 0
 )
+

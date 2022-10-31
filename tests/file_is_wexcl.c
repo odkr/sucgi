@@ -21,52 +21,42 @@
 
 #include <err.h>
 #include <errno.h>
-#include <limits.h>
+#include <pwd.h>
 #include <stdio.h>
-#include <string.h>
 #include <sys/stat.h>
 #include <stdlib.h>
 
 #include "../file.h"
 
-/* Largest user ID. */
-#if !defined(UID_MAX)
-#define UID_MAX UINT_MAX
-#endif /* !defined(UID_MAX) */
 
 int
 main (int argc, char **argv)
 {
-	struct stat fstatus;
-	const char *fname;
-	long uid;
+	struct passwd *pwd;	/* The user. */
+	struct stat fstatus;	/* The file's status. */
 
 	if (argc != 3) {
-		(void) fputs("usage: file_is_wexcl UID FNAME\n", stderr);
+		(void) fputs("usage: file_is_wexcl LOGNAME FNAME\n", stderr);
 		return EXIT_FAILURE;
 	}
 
 	errno = 0;
-	uid = strtol(argv[1], NULL, 0);
-
-	if (errno != 0) {
-		err(EXIT_FAILURE, "strtol %s", argv[1]);
-	}
-	if (uid < 0) {
-		errx(EXIT_FAILURE, "user IDs must be non-negative");
-	}
-	if ((uint64_t) uid > (uint64_t) UID_MAX) {
-		errx(EXIT_FAILURE, "user ID is too large");
+	pwd = getpwnam(argv[1]);
+	if (!pwd) {
+		if (errno == 0) {
+			errx(EXIT_FAILURE, "no such user");
+		} else {
+			err(EXIT_FAILURE, "getpwnam");
+		}
 	}
 
-	fname = argv[2];
 	errno = 0;
 	/* RATS: ignore */
-	if (stat(fname, &fstatus) != 0) {
-		errx(EXIT_FAILURE, "stat %s", fname);
+	if (stat(argv[2], &fstatus) != 0) {
+		errx(EXIT_FAILURE, "stat %s", argv[2]);
 	}
 
-	if (file_is_wexcl((uid_t) uid, fstatus)) {
+	if (file_is_wexcl(pwd->pw_uid, fstatus)) {
 		return EXIT_SUCCESS;
 	}
 

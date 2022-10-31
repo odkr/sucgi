@@ -45,7 +45,7 @@ Operands:
     TEST  A test.
 
 Options:
-    -s    Do not run tests in parallel.
+    -s    Run tests sequentially, rather than in parallel.
     -q    Suppress all output.
     -h    Show this help screen.
 
@@ -71,8 +71,9 @@ fi
 # Some tests do not handle signals, so they would ignore a TERM.
 cleanup="[ \"\${pids-}\" ] && kill -9 \$pids >/dev/null 2>&1; ${cleanup-}"
 
-errc=0 pids=
-while [ $# -gt 0 ]; do
+testc=$# errc=0 skipc=0 passc=0 pids=
+while [ $# -gt 0 ]
+do
 	name="$(basename "$1")"
 
 	"$1" >/dev/null 2>&1 &
@@ -80,20 +81,26 @@ while [ $# -gt 0 ]; do
 	eval "test_$!"='$name'
 	shift
 
-	if [ $(($# % nchildren)) -eq 0 ]; then
-		for pid in $pids; do
-			eval name="\"\${test_$pid}\""
-			if ! wait "$pid"; then
-				# shellcheck disable=2154
-				warn -rq "${bld-}$name${rst_r-} failed!"
-				errc=$((errc + 1))
-			fi
-		done
-		pids=
-	fi
+	[ $(($# % nchildren)) -eq 0 ] || continue
+	for pid in $pids
+	do
+		eval name="\"\${test_$pid}\""
+
+		set +e
+		wait "$pid"
+		# shellcheck disable=2154
+		case $? in
+			(0) passc=$((passc + 1)) ;;
+			(1) warn -yq "${bld-}$name${rst_y-} has skipped tests."
+			    skipc=$((skipc + 1)) ;;
+			(*) warn -rq "${bld-}$name${rst_r-} failed!"
+			    errc=$((errc + 1)) ;;
+		esac
+		set -e
+	done
+	pids=
 done
 
-# shellcheck disable=2154
-[ $errc -eq 0 ] && warn -gq "all tests passed."
+[ "$errc" -eq 0 ] && warn -gq 'all tests passed.'
 
 exit $errc
