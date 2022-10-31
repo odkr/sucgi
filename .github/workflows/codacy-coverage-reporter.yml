@@ -17,10 +17,10 @@ jobs:
         run: brew install lcov
       - name: configure
         run: CFLAGS= ./configure -f
+      - name: make check
+        run: make check
       - name: sudo make check
-        run: "sudo make check || :"
-      - name: xxx
-        run: sudo tests/main.sh
+        run: sudo make check
       - name: sudo make lcov.info
         run: sudo make lcov.info
       - name: Run codacy-coverage-reporter
