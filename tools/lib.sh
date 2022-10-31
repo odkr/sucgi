@@ -57,12 +57,13 @@ catch() {
 _check() (
 	exp_stat=0 exp_out='' exp_err=''
 	OPTIND=1 OPTARG='' opt=''
-	while getopts 's:o:e:' opt
+	while getopts 's:o:e:v' opt
 	do
 		case $opt in
 			(s) exp_stat="$OPTARG" ;;
 			(o) exp_out="$OPTARG" ;;
 			(e) exp_err="$OPTARG" ;;
+			(*) return 2
 		esac
 	done
 	shift $((OPTIND - 1))
@@ -98,7 +99,7 @@ _check() (
 		do
 			[ "$exp" ] || break
 			case $line in (*"$exp"*)
-				eval "ok_${ch}=x"
+				eval "pat_${ch}=x"
 				break
 			esac
 			str="$str${red-}${bld-}>${rst_r-} $line${rst-}$lf"
@@ -124,15 +125,14 @@ _check() (
 		eval exp="\"\${exp_${ch}-}\""
 		[ "$exp" ] || continue
 
-		eval ok="\"\${ok_${ch}-}\""
-		[ "$ok" ] && continue
-
+		eval pat="\"\${pat_${ch}-}\""
+		[ "$pat" ] && continue
+		
 		eval str="\"\${str_${ch}-}\""
 		_warn -lr "${bld-}expected text on std$ch${rst_r}:"
 		echo "${red-}${bld-}>${rst_r-} $exp${rst-}" >&2
 		_warn -lr "${bld-}actual output${rst_r-}:"
 		echo "${str%$lf}" >&2
-
 		rc=2
 	done
 

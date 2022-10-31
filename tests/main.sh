@@ -269,7 +269,7 @@ check -s1 -e"realpath <no file!>: No such file or directory." \
 check -s1 -e'$PATH_TRANSLATED unset or empty.' \
 	DOCUMENT_ROOT="$doc_root" main
 
-# Long filename. Should fail but regard DOCUMENT_ROOT as valid.
+# Long filename. Should fail but not because the name is too long.
 long_doc_root="${long_path%??????????????}"
 check -s1 -e"realpath $long_doc_root: No such file or directory" \
 	DOCUMENT_ROOT="$long_doc_root" main
@@ -333,6 +333,9 @@ then
 elif [ "$uid" -eq 0 ]
 then
 	err="document root $doc_root is not $user's user directory."
+elif inlist -eq 0 $(id -G "$user")
+then
+	err="user $user belongs to privileged group 0."
 else
 	err='seteuid 0: Operation not permitted.'
 fi
@@ -343,7 +346,7 @@ check -s1 -e"$err" \
 check -s1 -e"$err" \
 	PATH_TRANSLATED="$in_link" main
 
-# Long filename. Should fail but regard PATH_TRANSLANTED as valid.
+# Long filename. Should fail but not because the name is too long.
 long_path_trans="${long_path%????????????????}"
 check -s1 -e"realpath $long_path_trans: No such file or directory." \
 	PATH_TRANSLATED="$long_path_trans" main
@@ -363,7 +366,7 @@ check -s1 -e"script $env_bin is owned by privileged user root" \
 
 if [ "$uid" -ne 0 ]
 then
-	warn -g 'all tests passed.'
+	warn -y 'all non-root tests passed.'
 	exit
 fi
 
