@@ -16,7 +16,7 @@ jobs:
     - name: make
       run: make
     - name: make check
-      run: make check || :
+      run: 'make check || :'
     - name: main.sh
       run: sh tests/main.sh
     - name: sudo make check
