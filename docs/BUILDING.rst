@@ -8,20 +8,19 @@ Configuration
 Use *configure* to generate the *makefile*.
 
 *configure* reads the requested build configuration from the environment
-and the shell script *prod.env*, with the environment taking precedence,
+and the shell script *prod.env* (with the environment taking precedence),
 gathers information from the system, and then generates the *makefile*
 from the template *makefile.m4*.
 
-*configure* accepts the same variables as the *makefile* itself (see below);
-setting a variable with *configure* changes the default of the *makefile*. 
+*configure* accepts the same variables as the *makefile* (see below);
+passing a variable to *configure* changes its default in the *makefile*. 
 For example::
 
 	CC=/opt/obscure/bin/occ ./configure
 
-*configure* stores the information that it has gathered in the shell script
-*config.status*. Run this scrip to regenerate the *makefile* using that
-information. Note, *make* may do this automatically if the modification time
-of *makefile.m4* is more recent than that of the *makefile*.
+*configure* saves the information it gathered in the shell script
+*config.status* Running this script regenerates the *makefile* using
+that information. 
 
 See ``./configure -h`` for more information.
 
@@ -30,9 +29,9 @@ If *configure* fails, you can also create the *makefile* by::
 	m4 makefile.m4 >makefile
 
 The difference between ``./configure`` and ``m4 makefile.m4 >makefile``
-is that ``./configure`` enables supports control flow protection, stack
-protection, and undefined behaviour sanitisation depending on which of
-those features your C compiler supports.
+is that ``./configure`` enables control flow protection, stack protection,
+and undefined behaviour sanitisation depending on which of those features
+your C compiler supports.
 
 
 Development
@@ -41,18 +40,6 @@ Development
 suCGI's default build configuration for development resides in *devel.env*;
 load it by passing ``-d`` to *configure*.
 
-*devel.env* loads *local.env* if it exists; for example::
-
-	# Use GCC v12 by default.
-	: "${CC:="gcc-12"}"
-
-	# Disable GCC-related warnings when building with Clang.
-	[ "${CC-}" = clang ] && add_cflags -Wno-unused-command-line-argument
-
-	# Overwrite existing files.
-	force=x
-
-*configure*'s configuration files are simple shell scripts.
 Have a look at *configure*, *prod.env*, and *devel.env* for details.
 
 
@@ -109,8 +96,12 @@ TESTING should not be set in *config.h*.
 Testing
 =======
 
-Run the test suite by ``make check``. If you want to run the whole test
-suite, you must run it as the superuser.
+Run the test suite by ``make check``. 
+
+For the whole test suite to run:
+
+(1) The repository must be owned by a regular user.
+(2) The test suite must be invoked as the superuser.
 
 Create coverage reports by ``make covhtml``. The report can then be found
 in *cov*. Coverage reports require Gcov_ (or Clang_'s Gcov clone) and LCOV_.
@@ -143,6 +134,7 @@ www_grp
     (defaults to "www-data").
 
 ``make install`` *and* ``make uninstall`` must be given the same variables.
+That being so, you will want to set these variables using *configure*.
 
 
 Other targets
@@ -182,11 +174,6 @@ distcheck
 distclean
     Delete *config.status*, *lcov.info*, *makefile* and
     everything ``make clean`` deletes.
-
-makefile
-    Re-generate the makefile with the current configuration.
-    Some implementations of *make*, including `GNU Make`_,
-    build this target automatically before building others.
 
 install
     Install suCGI.

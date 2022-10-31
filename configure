@@ -26,7 +26,10 @@ tmpdir tmp .
 readonly nchildren=4
 
 # Supported Makefile variables
-readonly makevars='CC CFLAGS ARFLAGS LDFLAGS LDLIBS cov_cc cgi_dir www_grp'
+readonly makevars='
+	CC CFLAGS ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
+	cov_cc cgi_dir www_grp
+'
 
 
 #
