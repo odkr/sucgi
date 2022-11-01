@@ -74,7 +74,7 @@ readonly user group home
 # Create a temporary directory and a document root.
 doc_root="$(printf -- "$USER_DIR" "$home")"
 
-IFS=/ i=0
+IFS=/ i=0 tmp=
 for seg in $doc_root
 do
 	[ "$seg" ] || continue
