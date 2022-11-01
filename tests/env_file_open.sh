@@ -70,14 +70,14 @@ traverse "$jail" "$huge_str" 'mkdir "$fname"' 'echo $$ >"$fname"'
 # Create a shortcut to the path that is longer than the system permits.
 # shellcheck disable=2016
 huge_path_link="$jail/$(traverse "$jail" "$huge_path" \
-	'ln -s "$fname" d && printf d/' \
-	'ln -s "$fname" f && printf f\\n')"
+	'ln -s "$fname" p.d && printf p.d/' \
+	'ln -s "$fname" p.f && printf p.f\\n')"
 
 # Create a shortcut to the path that is longer than suCGI permits.
 # shellcheck disable=2016
 huge_str_link="$jail/$(traverse "$jail" "$huge_str" \
-	'ln -s "$fname" d && printf d/' \
-	'ln -s "$fname" f && printf f\\n')"
+	'ln -s "$fname" s.d && printf s.d/' \
+	'ln -s "$fname" s.f && printf s.f\\n')"
 
 # Create a file inside the jail.
 inside="$jail/inside"
@@ -161,8 +161,8 @@ check -s1 -e"open $inside: Not a directory" \
 	var="$inside" env_file_open "$jail" var d
 
 # File does not exist.
-check -s1 -e"realpath /lib/<no such file!>: No such file or directory" \
-	var="/lib/<no such file!>" env_file_open "$jail" var d
+check -s1 -e"realpath <no file!>: No such file or directory" \
+	var="<no file!>" env_file_open "$jail" var d
 
 # Simple test.
 check -s0 -o$$ \
