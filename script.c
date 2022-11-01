@@ -31,35 +31,35 @@
 #include <string.h>
 
 #include "error.h"
-#include "scpt.h"
+#include "script.h"
 #include "str.h"
 
 
 enum error
-scpt_get_handler(const struct scpt_ent handlerdb[], const char *const scpt,
-                 char (*const handler)[MAX_STR])
+script_get_inter(const struct pair db[], const char *const script,
+                 char (*const inter)[MAX_STR])
 {
-	char path[MAX_STR];	/* Copy of scpt for basename(3). */
+	char path[MAX_STR];	/* Copy of script for basename(3). */
 	const char *fname;	/* Filename portion of scpt. */
 	const char *suffix;	/* Filename suffix. */
 
-	assert(*scpt != '\0');
+	assert(*script != '\0');
 
 	/* basename may alter the path it is given. */
-	try(str_cp(MAX_STR, scpt, path));
+	try(str_cp(MAX_STR, script, path));
 	fname = basename(path);
 	suffix = strrchr(fname, '.');
 	if (!suffix || suffix == fname)
 		return ERR_ILL;
 
-	for (int i = 0; handlerdb[i].suffix; i++) {
-		const struct scpt_ent ent = handlerdb[i];
+	for (int i = 0; db[i].key; i++) {
+		const struct pair ent = db[i];
 
-		if (strncmp(suffix, ent.suffix, MAX_STR) == 0) {
-			if (!ent.handler || *(ent.handler) == '\0')
+		if (strncmp(suffix, ent.key, MAX_STR) == 0) {
+			if (!ent.value || !*(ent.value))
 				return FAIL;
 
-			try(str_cp(MAX_STR, ent.handler, *handler));
+			try(str_cp(MAX_STR, ent.value, *inter));
 			return OK;
 		}
 	}

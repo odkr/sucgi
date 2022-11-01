@@ -67,11 +67,11 @@
 
 /*
  * Handlers to run CGI scripts with if their executable bit is unset.
- * Array of filename suffix-handler pairs.
+ * Array of filename suffix-interpreter pairs.
  * 
  * The filename suffix must be given including the leading dot (e.g., ".php").
- * The handler is looked up in $PATH if its name is relative (e.g., "php");
- * keep in mind that $PATH is set to SECURE_PATH (see below).
+ * The interpreter is looked up in $PATH if its name is relative (e.g., "php"),
+ * but keep in mind that $PATH is set to SECURE_PATH (see below).
  *
  * The array must be terminated with a pair of NULLs.
  */
@@ -83,7 +83,7 @@
 /*
  * A secure $PATH.
  */
-#define SECURE_PATH "/usr/bin:/bin"
+#define SEC_PATH "/usr/bin:/bin"
 
 /* 
  * A secure file permission mask. The leading "0" is significant.
@@ -221,8 +221,8 @@
 #endif /* MAX_GID > UINT_MAX */
 #endif /* defined(MAX_GID) */
 
-#if !defined(SECURE_PATH)
-#error SECURE_PATH is undefined.
+#if !defined(SEC_PATH)
+#error SEC_PATH is undefined.
 #endif /* !defined(PATH) */
 
 #if !defined(HANDLERS)

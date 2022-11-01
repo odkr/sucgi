@@ -43,7 +43,7 @@ init || exit
 ents |
 while IFS=: read -r uid logname
 do
-	cmd="gids_get_list $logname"
+	cmd="gids_get $logname"
 
 	warn "checking ${bld-}$cmd${rst-} ..."
 

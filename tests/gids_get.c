@@ -1,5 +1,5 @@
 /*
- * Test gids_get_list.
+ * Test gids_get.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -37,7 +37,7 @@ main (int argc, char **argv)
 	enum error rc;			/* Return code. */
 
 	if (argc != 2) {
-		(void) fputs("usage: gids_get_list LOGNAME\n", stderr);
+		(void) fputs("usage: gids_get LOGNAME\n", stderr);
 		return EXIT_FAILURE;
 	}
 
@@ -50,7 +50,7 @@ main (int argc, char **argv)
 			err(EXIT_FAILURE, "getpwnam");
 	}
 
-	rc = gids_get_list(pwd->pw_name, pwd->pw_gid, &gids, &ngids);
+	rc = gids_get(pwd->pw_name, pwd->pw_gid, &gids, &ngids);
 	switch (rc) {
 		case OK:
 			break;

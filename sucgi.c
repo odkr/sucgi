@@ -45,7 +45,7 @@
 #include "gids.h"
 #include "path.h"
 #include "priv.h"
-#include "scpt.h"
+#include "script.h"
 #include "str.h"
 
 
@@ -63,8 +63,8 @@ main(int argc, char **argv) {
 	BUILD_BUG_ON(sizeof(JAIL_DIR) >= MAX_STR);
 	BUILD_BUG_ON(sizeof(USER_DIR) <= 1);
 	BUILD_BUG_ON(sizeof(USER_DIR) >= MAX_STR);
-	BUILD_BUG_ON(sizeof(SECURE_PATH) <= 1);
-	BUILD_BUG_ON(sizeof(SECURE_PATH) >= MAX_STR);
+	BUILD_BUG_ON(sizeof(SEC_PATH) <= 1);
+	BUILD_BUG_ON(sizeof(SEC_PATH) >= MAX_STR);
 
 	
 	/*
@@ -75,7 +75,6 @@ main(int argc, char **argv) {
 	 * > info. Bad news if MALLOC_DEBUG_FILE is set to /etc/passwd.)
 	 */
 
-	/* RATS: ignore; env_clear respects MAX_ENV. */
 	const char *vars[MAX_ENV];	/* Backup of environ(2). */
 	enum error rc;			/* Return code. */
 
@@ -119,7 +118,7 @@ main(int argc, char **argv) {
 
 	for (int i = 1; i < argc; i++) {
 		if (strncmp(argv[i], "-h", 3) == 0) {
-			(void) fputs(
+			(void) puts(
 "suCGI - run CGI scripts with the permissions of their owner\n\n"
 "Usage:  sucgi\n"
 "        sucgi -h\n"
@@ -129,11 +128,11 @@ main(int argc, char **argv) {
 "    -c  Print the build configuration.\n\n"
 "Copyright 2022 Odin Kroeger.\n"
 "Released under the GNU General Public License.\n"
-"This programme comes with ABSOLUTELY NO WARRANTY.\n",
-			       stderr);
+"This programme comes with ABSOLUTELY NO WARRANTY."
+			       );
 			return EXIT_SUCCESS;
 		} else if (strncmp(argv[i], "-c", 3) == 0) {
-			struct scpt_ent hdb[] = HANDLERS;
+			struct pair hdb[] = HANDLERS;
 
 			(void) printf("JAIL_DIR=%s\n", JAIL_DIR);
 			(void) printf("USER_DIR=%s\n", USER_DIR);
@@ -145,17 +144,16 @@ main(int argc, char **argv) {
 			(void) printf("MAX_GID=%u\n", MAX_GID);
 
 			(void) printf("HANDLERS=");
-			for (int j = 0; hdb[j].suffix; j++) {
-				struct scpt_ent h = hdb[j];
-
-				if (j > 0) {
+			for (int j = 0; hdb[j].key; j++) {
+				struct pair hdl = hdb[j];
+				
+				if (j > 0)
 					(void) printf(",");
-				}
-				(void) printf("%s:%s", h.suffix, h.handler);
+				(void) printf("%s:%s", hdl.key, hdl.value);
 			}
 			(void) printf("\n");
 
-			(void) printf("SECURE_PATH=%s\n", SECURE_PATH);
+			(void) printf("SEC_PATH=%s\n", SEC_PATH);
 			(void) printf("UMASK=0%o\n", UMASK);
 
 			(void) printf("MAX_GROUPS=%d\n", MAX_GROUPS);
@@ -181,9 +179,9 @@ main(int argc, char **argv) {
 		case ERR_SETENV:
 			error("setenv: %m.");
 		case ERR_ILL:
-			error("found malformed environment variable.");
+			error("encountered malformed variable.");
 		case ERR_LEN:
-			error("found too long environment variable.");
+			error("encountered suspiciously long variable.");
 		default:
 			error("env_restore returned %u.", rc);
 	}
@@ -198,7 +196,6 @@ main(int argc, char **argv) {
 	int doc_fd;			/* -- " -- file descriptor. */
 
 	errno = 0;
-        /* RATS: ignore; this use of realpath should be safe. */
 	jail_dir = realpath(JAIL_DIR, NULL);
 	if (!jail_dir)
 		error("realpath %s: %m.", JAIL_DIR);
@@ -307,7 +304,7 @@ main(int argc, char **argv) {
 		error("script %s is owned by privileged user %s.",
 		      script, owner->pw_name);
 
-	rc = gids_get_list(owner->pw_name, owner->pw_gid,
+	rc = gids_get(owner->pw_name, owner->pw_gid,
 	                   &owner_gids, &owner_ngids);
 	switch (rc) {
 		case OK:
@@ -318,7 +315,7 @@ main(int argc, char **argv) {
 			error("user %s belongs to too many groups.",
 			      owner->pw_name);
 		default:
-			error("gids_get_list returned %u.", rc);
+			error("gids_get returned %u.", rc);
 	}
 
 	assert(owner_ngids > 0);
@@ -381,7 +378,7 @@ main(int argc, char **argv) {
 		error("setenv HOME: %m.");
 
 	errno = 0;
-	if (setenv("PATH", SECURE_PATH, true) != 0)
+	if (setenv("PATH", SEC_PATH, true) != 0)
 		error("setenv PATH: %m.");
 
 	errno = 0;
@@ -475,7 +472,6 @@ main(int argc, char **argv) {
 	 * owned by the same UID, namely, owner->pw_uid.
 	 */
 
-	/* RATS: ignore; path_check_wexcl respects MAX_STR. */
 	char path_cur[MAX_STR];		/* Current sub-path of script path. */
 
 #if FORCE_HOME
@@ -516,7 +512,7 @@ main(int argc, char **argv) {
 		error("exec %s: %m.", script);
 	}
 
-	rc = scpt_get_handler((const struct scpt_ent []) HANDLERS,
+	rc = script_get_inter((const struct pair []) HANDLERS,
 	                      script, &handler);
 	switch (rc) {
 		case OK:
@@ -526,7 +522,7 @@ main(int argc, char **argv) {
 		case FAIL:
 			error("no handler registered for %s.", script);
 		default:
-			error("scpt_get_handler returned %u.", rc);
+			error("script_get_inter returned %u.", rc);
 	}
 
 	assert(*handler);

@@ -195,13 +195,13 @@ check -s 1 -e'too many environment variables.' \
 tests_dir=$(cd -P "$script_dir" && pwd) ||
 	err 'failed to get working directory.'
 
-check -s1 -e'found malformed environment variable.' \
+check -s1 -e'encountered malformed variable.' \
 	badenv -n3 bar=bar baz=baz foo "$tests_dir/main"
 
-check -s1 -e'found malformed environment variable.' \
+check -s1 -e'encountered malformed variable.' \
 	badenv 'SSL_CLIENT_S_DN_ =bar' foo=foo baz=baz "$tests_dir/main"
 
-check -s1 -e'found malformed environment variable.' \
+check -s1 -e'encountered malformed variable.' \
 	badenv -n3 foo=foo '' bar=bar "$tests_dir/main"
 
 
@@ -222,19 +222,19 @@ check -s1 -e'$DOCUMENT_ROOT unset or empty.' \
 	DOCUMENT_ROOT= main
 
 # $DOCUMENT_ROOT is too long (suCGI).
-check -s1 -e'found too long environment variable.' \
+check -s1 -e'encountered suspiciously long variable.' \
 	DOCUMENT_ROOT="$huge_str" main
 
 # $DOCUMENT_ROOT is too long (system).
-check -s1 -e'too long' \
+check -s1 -e'long' \
 	DOCUMENT_ROOT="$huge_path" main
 
 # Path to document root is too long after having been resolved (system).
-check -s1 -e'too long' \
+check -s1 -e'long' \
 	DOCUMENT_ROOT="$huge_path_link" main
 
 # Path to document root is too long after having been resolved (suCGI).
-check -s1 -e'too long' \
+check -s1 -e'long' \
 	DOCUMENT_ROOT="$huge_str_link" main
 
 # Path to document root points to outside of jail.
@@ -283,19 +283,19 @@ check -s1 -e'$PATH_TRANSLATED unset or empty.' \
 	PATH_TRANSLATED= main
 
 # $PATH_TRANSLATED is too long (system).
-check -s1 -e'too long' \
+check -s1 -e'long' \
 	PATH_TRANSLATED="$huge_path" main
 
 # $PATH_TRANSLATED is too long (suCGI).
-check -s1 -e'too long' \
+check -s1 -e'long' \
 	PATH_TRANSLATED="$huge_str" main
 
 # Path to script is too long after having been resolved (system).
-check -s1 -e'too long' \
+check -s1 -e'long' \
 	PATH_TRANSLATED="$huge_path_link" main
 
 # Path to script is too long after having been resolved (suCGI).
-check -s1 -e'too long' \
+check -s1 -e'long' \
 	PATH_TRANSLATED="$huge_str_link" main
 
 # Path to script points to outside of document root.

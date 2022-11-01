@@ -1,5 +1,5 @@
 /*
- * Test scpt_get_handler.
+ * Test script_get_inter.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../scpt.h"
+#include "../script.h"
 #include "../str.h"
 
 /* Exit status for failures. */
@@ -35,8 +35,8 @@
 
 /* Test case. */
 struct args {
-	const char *scpt;
-	const char *handler;
+	const char *script;
+	const char *inter;
 	const enum error rc;
 };
 
@@ -72,13 +72,8 @@ const struct args tests[] = {
 	{NULL, NULL, OK}
 };
 
-/* Prefixes should make no difference. */
-const char *prefixes[] = {
-	"", "/", "./", "dir/", "/dir/", " /", NULL
-};
-
-/* Script handler database for testing. */
-const struct scpt_ent hdb[] = {
+/* Script inter database for testing. */
+const struct pair db[] = {
 	{"", "unreachable"},
 	{".", "dot"},
 	{".sh", "sh"},
@@ -93,33 +88,24 @@ const struct scpt_ent hdb[] = {
 int
 main (void)
 {
-	for (int i = 0; tests[i].scpt; i++) {
- 		for (int j = 0; prefixes[j]; j++) {
-			const struct args t = tests[i];
-			const char *prefix = prefixes[j];
-			char handler[MAX_STR];
-			char scpt[MAX_STR];
-			enum error rc;	
-			int n;
+	for (int i = 0; tests[i].script; i++) {
+		const struct args t = tests[i];
+		char inter[MAX_STR];
+		char script[MAX_STR];
+		enum error rc;	
 
-			*scpt = '\0';
-			(void) memset(handler, 0, MAX_STR);
+		*script = '\0';
+		(void) memset(inter, 0, MAX_STR);
 
-			warnx("checking (hdb, %s%s, -> %s) -> %u ...",
-			      prefix, t.scpt, t.handler, t.rc);
+		warnx("checking (db, %s, -> %s) -> %u ...",
+		      t.script, t.inter, t.rc);
 
-			/* RATS: ignore */
-			n = snprintf(scpt, MAX_STR, "%s%s", prefix, t.scpt);
-			if (n >= (long long) MAX_STR)
-				errx(T_ERR, "input too long");
+		rc = script_get_inter(db, t.script, &inter);
 
-			rc = scpt_get_handler(hdb, scpt, &handler);
-
-			if (t.rc != rc)
-				errx(T_FAIL, "returned %u", rc);
-			if (t.handler && strcmp(t.handler, handler) != 0)
-				errx(T_FAIL, "got handler %s", handler);
-		}
+		if (t.rc != rc)
+			errx(T_FAIL, "returned %u", rc);
+		if (t.inter && strcmp(t.inter, inter) != 0)
+			errx(T_FAIL, "got interpreter %s", inter);
 	}
 
 	warnx("all tests passed");

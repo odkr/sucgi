@@ -35,7 +35,7 @@
 
 /*
  * Expand FORMAT with the given variadic arguments, store the resulting
- * filename in EXP, canonicalise it, and then compare it to FNAME.
+ * filename in PATH, canonicalise it, and then compare it to FNAME.
  *
  * FNAME must be sanitised and canonical.
  *
@@ -47,18 +47,14 @@
  *
  * FIXME: Not unit-tested.
  */
-__attribute__((nonnull(1, 2, 3), 
-               /* RATS: ignore; this is not a call to printf. */
-	       format(printf, 3, 4), warn_unused_result))
-enum error path_check_format(const char *fname,
-                             /* RATS: ignore; exp is bounds-checked. */
-			     char (*const exp)[MAX_STR],
+__attribute__((nonnull(1, 2, 3), format(printf, 3, 4), warn_unused_result))
+enum error path_check_format(const char *fname, char (*const path)[MAX_STR],
                              const char *format, ...);
 
 /*
  * Check if the user with ID UID has exclusive write access to the file
- * named FNAME and each parent directory of FNAME up to PAR and store a
- * copy of the last path checked in CUR.
+ * named FNAME and each parent directory of FNAME up to PARENT and store
+ * a copy of the last path checked in CUR.
  *
  * PAR and FNAME must be sanitised and canonical.
  *
@@ -75,18 +71,17 @@ enum error path_check_format(const char *fname,
  *      Errors marked with an asterisk should be impossible.
  */
 __attribute__((nonnull(2, 3, 4), warn_unused_result))
-enum error path_check_wexcl(const uid_t uid, const char *const par,
+enum error path_check_wexcl(const uid_t uid, const char *const parent,
                             const char *const fname,
-			    /* RATS: ignore; cur is bounds-checked. */
                             char (*const cur)[MAX_STR]);
 
 /*
- * Check if the path PAR names a super-directory of the file named FNAME.
+ * Check if the path PARENT names a super-directory of the file named FNAME.
  *
  * PAR and FNAME must be sanitisied and canonical.
  */
 __attribute__((nonnull(1, 2), pure, warn_unused_result))
-bool path_contains(const char *const par, const char *const fname);
+bool path_contains(const char *const parent, const char *const fname);
 
 
 #endif /* !defined(PATH_H) */

@@ -45,7 +45,7 @@
 
 enum error
 path_check_format(const char *fname,
-                  char (*const exp)[MAX_STR], const char *format, ...)
+                  char (*const path)[MAX_STR], const char *format, ...)
 {
 	char *resolved;		/* Canonicalised path. */
 	int n;			/* Size of expanded path. */
@@ -60,16 +60,16 @@ path_check_format(const char *fname,
 	assert(strncmp(realpath(fname, NULL), fname, MAX_STR) == 0);
 
 	/* Some implementions of sprintf fail to NUL-terminate strings. */
-	(void) memset(*exp, 0, MAX_STR);
+	(void) memset(*path, 0, MAX_STR);
 
 	va_start(ap, format);
-	n = vsnprintf(*exp, MAX_STR, format, ap);
+	n = vsnprintf(*path, MAX_STR, format, ap);
 	va_end(ap);
 
-	if ((*exp)[n] != '\0')
+	if ((*path)[n] != '\0')
 		return ERR_LEN;
 
-	resolved = realpath(*exp, NULL);
+	resolved = realpath(*path, NULL);
 	if (!resolved)
 		return ERR_REALPATH;
 
@@ -80,22 +80,22 @@ path_check_format(const char *fname,
 }
 
 enum error
-path_check_wexcl(const uid_t uid, const char *const par,
+path_check_wexcl(const uid_t uid, const char *const parent,
                  const char *const fname, char (*const cur)[MAX_STR])
 {
 	const char *pos;	/* Current position in filename. */
 
-	assert(*par);
+	assert(*parent);
 	assert(*fname);
-	assert(strnlen(par, MAX_STR) < MAX_STR);
+	assert(strnlen(parent, MAX_STR) < MAX_STR);
 	assert(strnlen(fname, MAX_STR) < MAX_STR);
-	assert(access(par, F_OK) == 0);
+	assert(access(parent, F_OK) == 0);
 	assert(access(fname, F_OK) == 0);
-	assert(strncmp(realpath(par, NULL), par, MAX_STR) == 0);
+	assert(strncmp(realpath(parent, NULL), parent, MAX_STR) == 0);
 	assert(strncmp(realpath(fname, NULL), fname, MAX_STR) == 0);
 
 	/* FIXME: Not unit-tested. */
-	if (!path_contains(par, fname))
+	if (!path_contains(parent, fname))
 		return ERR_ILL;
 
 	/*
@@ -103,8 +103,8 @@ path_check_wexcl(const uid_t uid, const char *const par,
 	 * unless the parent directory is the root directory.
 	 */
 	pos = fname;
-	if (strncmp(par, "/", 2) != 0)
-		pos += strlen(par);
+	if (strncmp(parent, "/", 2) != 0)
+		pos += strlen(parent);
 
 	do {
 		struct stat buf;	/* Current file's status. */
@@ -114,8 +114,8 @@ path_check_wexcl(const uid_t uid, const char *const par,
 
 		/*
 		 * Move the pointer to the end of the current filename.
-		 * If the current filename is '/', this is one character
-		 * to the right; otherwise it is the next '/'.
+		 * If the current filename is '/', then the end is one
+		 * character to the right; otherwise it is the next '/'.
 		 *
 		 * *pos == '/' tests whether the current path is '/' because
 		 * it can only point to a '/' if it still equals fname.
@@ -146,13 +146,13 @@ path_check_wexcl(const uid_t uid, const char *const par,
 }
 
 bool
-path_contains(const char *const par, const char *const fname)
+path_contains(const char *const parent, const char *const fname)
 {
 	size_t len;		/* Parent-directory length. */
 
-	assert(*par);
+	assert(*parent);
 	assert(*fname);
-	assert(strnlen(par, MAX_STR) < MAX_STR);
+	assert(strnlen(parent, MAX_STR) < MAX_STR);
 	assert(strnlen(fname, MAX_STR) < MAX_STR);
 
 	/* The root directory cannot be contained by any path. */
@@ -160,7 +160,7 @@ path_contains(const char *const par, const char *const fname)
 		return false;
 
 	/* The root directory contains any other absolute path. */
-	if (strncmp(par, "/", 2) == 0 && *fname == '/')
+	if (strncmp(parent, "/", 2) == 0 && *fname == '/')
 		return true;
 
 	/* By fiat, the working directory cannot be contained by any path. */
@@ -168,10 +168,10 @@ path_contains(const char *const par, const char *const fname)
 		return false;
 
 	/* The working directory contains any relative path. */
-	if (strncmp(par, ".", 2) == 0 && *fname != '/')
+	if (strncmp(parent, ".", 2) == 0 && *fname != '/')
 		return true;
 
 	/* Check if fname resides in par. */
-	len = strlen(par);
-	return (fname[len] == '/') && strncmp(par, fname, len) == 0;
+	len = strlen(parent);
+	return (fname[len] == '/') && strncmp(parent, fname, len) == 0;
 }

@@ -43,16 +43,16 @@ tool_bins =	tools/badenv tools/ents tools/owner tools/runas
 check_bins =	tests/error tests/env_clear tests/env_file_open \
 		tests/env_is_name tests/env_restore tests/main \
 		tests/file_is_exec tests/file_is_wexcl tests/file_safe_open \
-		tests/gids_get_list tests/priv_drop tests/path_check_wexcl \
-		tests/path_contains tests/scpt_get_handler tests/str_cp \
+		tests/gids_get tests/priv_drop tests/path_check_wexcl \
+		tests/path_contains tests/script_get_inter tests/str_cp \
 		tests/str_split tests/try
 
 checks =	tests/error.sh tests/env_clear tests/env_file_open.sh \
 		tests/env_is_name tests/env_restore tests/main.sh \
 		tests/file_is_exec.sh tests/file_is_wexcl.sh \
-		tests/file_safe_open.sh tests/gids_get_list.sh \
+		tests/file_safe_open.sh tests/gids_get.sh \
 		tests/priv_drop.sh tests/path_check_wexcl.sh \
-		tests/path_contains tests/scpt_get_handler \
+		tests/path_contains tests/script_get_inter \
 		tests/str_cp tests/str_split tests/try
 
 bins =		$(tool_bins) $(check_bins)
@@ -116,12 +116,12 @@ lib.a(path.o):	path.c path.h macros.h $(core_objs)
 
 lib.a(priv.o):	priv.o priv.h macros.h lib.a(error.o)
 
-lib.a(scpt.o):	scpt.c scpt.h macros.h $(core_objs)
+lib.a(script.o):	script.c script.h macros.h $(core_objs)
 
 lib.a(str.o):	str.c str.h config.h macros.h lib.a(error.o)
 
 lib.a:	lib.a(env.o)  lib.a(error.o)  lib.a(file.o) lib.a(gids.o) \
-	lib.a(path.o) lib.a(priv.o) lib.a(scpt.o) lib.a(str.o)
+	lib.a(path.o) lib.a(priv.o) lib.a(script.o) lib.a(str.o)
 
 $(tool_bins):
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $@.c $(LDLIBS)
@@ -151,7 +151,7 @@ tests/file_is_wexcl: tests/file_is_wexcl.c lib.a(file.o)
 
 tests/file_safe_open: tests/file_safe_open.c lib.a(file.o) lib.a(error.o)
 
-tests/gids_get_list: tests/gids_get_list.c lib.a(gids.o)
+tests/gids_get: tests/gids_get.c lib.a(gids.o)
 
 tests/path_contains: tests/path_contains.c lib.a(path.o) 
 
@@ -159,7 +159,7 @@ tests/path_check_wexcl:	tests/path_check_wexcl.c lib.a(path.o) lib.a(error.o)
 
 tests/priv_drop: tests/priv_drop.c lib.a(priv.o) lib.a(error.o)
 
-tests/scpt_get_handler: tests/scpt_get_handler.c lib.a(scpt.o)
+tests/script_get_inter: tests/script_get_inter.c lib.a(script.o)
 
 tests/str_cp: tests/str_cp.c lib.a(str.o) 
 

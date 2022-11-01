@@ -32,9 +32,9 @@
  */
 
 /* A simple key-value store. */
-struct scpt_ent {
-	const char *const suffix;
-	const char *const handler;
+struct pair {
+	const char *const key;
+	const char *const value;
 };
 
 
@@ -43,8 +43,8 @@ struct scpt_ent {
  */
 
 /*
- * Find a script handler matching the filename suffix of SCPT in the array
- * of filename suffix-script handler pairs HANDLERDB and store it in HANDLER.
+ * Find a script interpreter matching the filename suffix of SCRIPT in the
+ * array of filename suffix-interpreter pairs DB and store it in INTER.
  *
  * Return code:
  *      OK        Success.
@@ -53,9 +53,9 @@ struct scpt_ent {
  *      FAIL      No handler has been registered for FNAME's suffix.
  */
 __attribute__((nonnull(1, 2, 3), pure, warn_unused_result))
-enum error scpt_get_handler(const struct scpt_ent handlerdb[],
-                            const char *const scpt,
-                            char (*const handler)[MAX_STR]);
+enum error script_get_inter(const struct pair db[],
+                            const char *const script,
+                            char (*const inter)[MAX_STR]);
 
 
 #endif /* !defined(SCPT_H) */

@@ -37,12 +37,12 @@
  * implementations differ. So re-inventing the wheel seemed the most
  * straightforward course of action.
  *
- * Note, the function signature and the semantics of gids_get_list
+ * Note, the function signature and the semantics of gids_get
  * differ from those of getgrouplist(3), if subtly.
  */
 enum error
-gids_get_list(const char *const logname, const gid_t basegid,
-              gid_t (*const gids)[MAX_GROUPS], int *const ngids)
+gids_get(const char *const logname, const gid_t basegid,
+         gid_t (*const gids)[MAX_GROUPS], int *const ngids)
 {
 	struct group *grp;	/* A group. */
 
