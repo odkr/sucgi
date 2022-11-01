@@ -19,22 +19,9 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#define _ISOC99_SOURCE
-
 #if !defined(_FORTIFY_SOURCE)
 #define _FORTIFY_SOURCE 3
 #endif /* !defined(_FORTIFY_SOURCE) */
-
-#if defined(__linux__)
-#include <linux/version.h>
-#if defined(LINUX_VERSION_CODE) && defined(KERNEL_VERSION)
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0)
-#include <linux/openat2.h>
-#include <sys/syscall.h>
-#include <sys/types.h>
-#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0) */
-#endif /* defined(LINUX_VERSION_CODE) && defined(KERNEL_VERSION) */
-#endif /* defined(__linux__) */
 
 #include <assert.h>
 #include <errno.h>
@@ -45,6 +32,23 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
+
+#if defined(__linux__)
+#include <linux/version.h>
+#if defined(LINUX_VERSION_CODE) && defined(KERNEL_VERSION)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0)
+
+#include <sys/types.h>
+#include <linux/openat2.h>
+
+#include <linux/openat2.h>
+#include <sys/syscall.h>
+
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0) */
+#endif /* defined(LINUX_VERSION_CODE) && defined(KERNEL_VERSION) */
+#endif /* defined(__linux__) */
+
 
 #include "file.h"
 #include "error.h"
@@ -101,7 +105,7 @@ file_safe_open(const char *const fname, const int flags, int *const fd)
 	assert(*fname != '\0');
 
 	(void) memset(&how, 0, sizeof(how));
-	how.flags = (uint64_t) flags | flags;
+	how.flags = (u64) flags;
 	how.resolve = RESOLVE_NO_SYMLINKS | RESOLVE_NO_MAGICLINKS;
 
 	errno = 0;
