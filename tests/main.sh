@@ -196,49 +196,13 @@ tests_dir=$(cd -P "$script_dir" && pwd) ||
 	err 'failed to get working directory.'
 
 check -s1 -e'found malformed environment variable.' \
-	badenv -i -n3 foo bar=bar baz=baz "$tests_dir/main"
+	badenv -n3 bar=bar baz=baz foo "$tests_dir/main"
 
 check -s1 -e'found malformed environment variable.' \
-	badenv -i -n3 bar=bar foo baz=baz "$tests_dir/main"
+	badenv 'SSL_CLIENT_S_DN_ =bar' foo=foo baz=baz "$tests_dir/main"
 
 check -s1 -e'found malformed environment variable.' \
-	badenv -i -n3 bar=bar baz=baz foo "$tests_dir/main"
-
-check -s1 -e'found malformed environment variable.' \
-	badenv -i 0bar=bar foo=foo baz=baz "$tests_dir/main"
-
-check -s1 -e'found malformed environment variable.' \
-	badenv -i foo=foo 0bar=bar baz=baz "$tests_dir/main"
-
-check -s1 -e'found malformed environment variable.' \
-	badenv -i foo=foo baz=baz 0bar=bar "$tests_dir/main"
-
-check -s1 -e'found malformed environment variable.' \
-	badenv -i '=baz' foo=foo bar=bar "$tests_dir/main"
-
-check -s1 -e'found malformed environment variable.' \
-	badenv -i foo=foo '=baz' bar=bar "$tests_dir/main"
-
-check -s1 -e'found malformed environment variable.' \
-	badenv -i foo=foo bar=bar '=baz' "$tests_dir/main"
-
-check -s1 -e'found malformed environment variable.' \
-	badenv -i -n3 '' foo=foo bar=bar "$tests_dir/main"
-
-check -s1 -e'found malformed environment variable.' \
-	badenv -i -n3 foo=foo '' bar=bar "$tests_dir/main"
-
-check -s1 -e'found malformed environment variable.' \
-	badenv -i -n3 foo=foo bar=bar '' "$tests_dir/main"
-
-check -s1 -e'found malformed environment variable.' \
-	badenv -i 'foo foo=foo' bar=bar baz=baz "$tests_dir/main"
-
-check -s1 -e'found malformed environment variable.' \
-	badenv -i bar=bar 'foo foo=foo' baz=baz "$tests_dir/main"
-
-check -s1 -e'found malformed environment variable.' \
-	badenv -i bar=bar baz=baz 'foo foo=foo' "$tests_dir/main"
+	badenv -n3 foo=foo '' bar=bar "$tests_dir/main"
 
 
 #

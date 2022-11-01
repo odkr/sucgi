@@ -36,6 +36,9 @@
 /* Shorthand for an empty list. */
 #define EMPTY {NULL}
 
+/* Shorthad for a list of patterns that matches any variable. */
+#define ANY {"*", NULL}
+
 /* Exit status for failures. */
 #define T_FAIL 2
 
@@ -66,18 +69,18 @@ char huge_var[MAX_STR + 1U] = {0};	/* RATS: ignore */
 /* Tests. */
 struct args tests[] = {
 	/* Errors. */
-	{{huge_var, NULL}, EMPTY, EMPTY, ERR_LEN},
-	{{"", NULL}, EMPTY, EMPTY, ERR_ILL},
-	{{"foo", NULL}, EMPTY, EMPTY, ERR_ILL},
-	{{"=foo", NULL}, EMPTY, EMPTY, ERR_ILL},
+	{{huge_var, NULL}, ANY, EMPTY, ERR_LEN},
+	{{"", NULL}, ANY, EMPTY, ERR_ILL},
+	{{"foo", NULL}, ANY, EMPTY, ERR_ILL},
+	{{"=foo", NULL}, ANY, EMPTY, ERR_ILL},
 
 	/* Other illegal names. */
-	{{" foo=foo", NULL}, EMPTY, EMPTY, ERR_ILL},
-	{{"1foo=foo", NULL}, EMPTY, EMPTY, ERR_ILL},
-	{{"*=foo", NULL}, EMPTY, EMPTY, ERR_ILL},
-	{{"FOO =foo", NULL}, EMPTY, EMPTY, ERR_ILL},
-	{{"$(foo)=foo", NULL}, EMPTY, EMPTY, ERR_ILL},
-	{{"`foo`=foo", NULL}, EMPTY, EMPTY, ERR_ILL},
+	{{" foo=foo", NULL}, ANY, EMPTY, ERR_ILL},
+	{{"1foo=foo", NULL}, ANY, EMPTY, ERR_ILL},
+	{{"*=foo", NULL}, ANY, EMPTY, ERR_ILL},
+	{{"FOO =foo", NULL}, ANY, EMPTY, ERR_ILL},
+	{{"$(foo)=foo", NULL}, ANY, EMPTY, ERR_ILL},
+	{{"`foo`=foo", NULL}, ANY, EMPTY, ERR_ILL},
 
 	/* Simple tests. */
 	{{"foo=bar", NULL}, {"foo", NULL}, {"foo=bar", NULL}, OK},
@@ -91,8 +94,7 @@ struct args tests[] = {
 	{{long_var, NULL}, {"foo", NULL}, {long_var, NULL}, OK},
 
 	/* Odd but legal values. */
-	{{"empty=", "assign==", "space= ", "tab=\t", "lf=\n", NULL},
-	 {"*", NULL},
+	{{"empty=", "assign==", "space= ", "tab=\t", "lf=\n", NULL}, ANY,
 	 {"empty=", "assign==", "space= ", "tab=\t", "lf=\n", NULL}, OK},
 
 	/* Terminator. */

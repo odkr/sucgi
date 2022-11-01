@@ -307,6 +307,10 @@ env_restore(const char *vars[], const char *const patterns[])
 		char *value;		/* Variable value. */
 		size_t len;		/* Variable length. */
 
+		if (!*vars[i]) {
+			return ERR_ILL;
+		}
+#if 0
 		len = strnlen(vars[i], MAX_STR);
 		if (len == 0U) {
 			return ERR_ILL;
@@ -314,22 +318,26 @@ env_restore(const char *vars[], const char *const patterns[])
 		if (len >= MAX_STR) {
 			return ERR_LEN;
 		}
-
+#endif
 		try(str_split(vars[i], "=", &name, &value));
-
-		/* 
-		 * patterns may contain wildcards,
-		 * so the name has to be checked.
-		 */
-		if (!env_is_name(name)) {
-			return ERR_ILL;
-		}
 		if (!value) {
 			return ERR_ILL;
 		}
 
 		for (int j = 0; patterns[j]; j++) {
 			if (fnmatch(patterns[j], name, 0) == 0) {
+				/* 
+				 * patterns may contain wildcards,
+				 * so the name has to be checked.
+				 */
+				if (!env_is_name(name)) {
+					return ERR_ILL;
+				}
+
+				if (strnlen(value, MAX_STR) >= MAX_STR) {
+					return ERR_LEN;
+				}
+
 				errno = 0;
 				if (setenv(name, value, true) != 0) {
 					return ERR_SETENV;
