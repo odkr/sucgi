@@ -552,7 +552,6 @@ main(int argc, char **argv) {
 			error("scpt_get_handler returned %u.", rc);
 	}
 
-	assert(handler);
 	assert(*handler != '\0');
 
 	errno = 0;
