@@ -31,6 +31,7 @@
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0)
 #include <linux/openat2.h>
 #include <sys/syscall.h>
+#include <sys/types.h>
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0) */
 #endif /* defined(LINUX_VERSION_CODE) && defined(KERNEL_VERSION) */
 #endif /* defined(__linux__) */
@@ -100,7 +101,7 @@ file_safe_open(const char *const fname, const int flags, int *const fd)
 	assert(*fname != '\0');
 
 	(void) memset(&how, 0, sizeof(how));
-	how.flags = (uint64_t) flags;
+	how.flags = (uint64_t) flags | flags;
 	how.resolve = RESOLVE_NO_SYMLINKS | RESOLVE_NO_MAGICLINKS;
 
 	errno = 0;
