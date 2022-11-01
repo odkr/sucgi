@@ -28,27 +28,22 @@
 #include <fcntl.h>
 #include <libgen.h>
 #include <limits.h>
+#include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
-
 #if defined(__linux__)
 #include <linux/version.h>
 #if defined(LINUX_VERSION_CODE) && defined(KERNEL_VERSION)
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0)
-
-#include <sys/types.h>
-#include <linux/openat2.h>
-
 #include <linux/openat2.h>
 #include <sys/syscall.h>
-
+#include <sys/types.h>
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0) */
 #endif /* defined(LINUX_VERSION_CODE) && defined(KERNEL_VERSION) */
 #endif /* defined(__linux__) */
-
 
 #include "file.h"
 #include "error.h"
@@ -105,7 +100,7 @@ file_safe_open(const char *const fname, const int flags, int *const fd)
 	assert(*fname != '\0');
 
 	(void) memset(&how, 0, sizeof(how));
-	how.flags = (u64) flags;
+	how.flags = (uint64_t) flags;
 	how.resolve = RESOLVE_NO_SYMLINKS | RESOLVE_NO_MAGICLINKS;
 
 	errno = 0;
