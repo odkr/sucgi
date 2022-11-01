@@ -61,8 +61,6 @@ do
 	warn "checking ${bld-}$mode${rst-} with" \
 	     "owner ${bld-}$uid${rst-} and group ${bld-}$gid${rst-} ..."
 	chmod "$mode" "$fname"
-	[ "$uid" -ne 0 ] && [ -x "$fname" ] &&
-		err "$fname is executable."
 	file_is_exec "$fname" &&
 		err "reported as executable."
 	chmod ugo= "$fname"
@@ -74,8 +72,6 @@ do
 	warn "checking ${bld-}$mode${rst-} with" \
 	     "owner ${bld-}$uid${rst-} and group ${bld-}$gid${rst-} ..."
 	chmod "$mode" "$fname"
-	[ "$uid" -eq 0 ] || [ -x "$fname" ] || 
-		err "$fname is not executable."
 	file_is_exec "$fname" ||
 		err "reported as not executable."
 	chmod ugo= "$fname"
