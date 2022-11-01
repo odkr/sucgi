@@ -25,6 +25,8 @@
 
 #include "../str.h"
 
+/* Exit status for failures. */
+#define T_FAIL 2
 
 /* Test case. */
 struct args {
@@ -73,10 +75,10 @@ main (void) {
 		rc = str_cp(t.n, t.src, dest);
 
 		if (rc != t.rc) {
-			errx(EXIT_FAILURE, "returned %u", rc);
+			errx(T_FAIL, "returned %u", rc);
 		}
 		if (!(t.dest == dest || strcmp(t.dest, dest) == 0)) {
-			errx(EXIT_FAILURE, "got copy '%s'", dest);
+			errx(T_FAIL, "got copy '%s'", dest);
 		}
 	}
 

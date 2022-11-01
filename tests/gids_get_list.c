@@ -31,6 +31,9 @@
 
 #include "../gids.h"
 
+/* Exit status for failures. */
+#define T_FAIL 2
+
 /* Calculate the number of elements in an array. */
 #define NELEMS(x) (sizeof((x)) / sizeof(*(x)))
 
@@ -84,13 +87,13 @@ main (void)
 			rc = gids_get_list(pwd->pw_name, pgid, &gids, &ngids);
 
 			if (rc != OK) {
-				errx(EXIT_FAILURE, "returned %u", rc); 
+				errx(T_FAIL, "returned %u", rc); 
 			}
 			if (ngids < 1) {
-				errx(EXIT_FAILURE, "no GIDs saved");
+				errx(T_FAIL, "no GIDs saved");
 			}
 			if (gids[0] != pgid) {
-				errx(EXIT_FAILURE, "first GID is not %llu",
+				errx(T_FAIL, "first GID is not %llu",
 				     (long long unsigned) pgid);
 			}
 		}

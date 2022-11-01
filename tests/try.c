@@ -24,6 +24,8 @@
 
 #include "../error.h"
 
+/* Exit status for failures. */
+#define T_FAIL 2
 
 /* try wrapper that should always fail. */
 static enum error
@@ -48,12 +50,12 @@ int
 main (void) {
 	warnx("checking OK ...");
 	if (try_ok() != FAIL) {
-		errx(EXIT_FAILURE, "failed");
+		errx(T_FAIL, "failed");
 	}
 
 	warnx("checking FAIL ...");
 	if (try_err() != FAIL) {
-		errx(EXIT_FAILURE, "failed");
+		errx(T_FAIL, "failed");
 	}
 
 	warnx("all tests passed");

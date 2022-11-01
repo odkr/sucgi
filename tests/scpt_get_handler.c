@@ -27,6 +27,8 @@
 #include "../scpt.h"
 #include "../str.h"
 
+/* Exit status for failures. */
+#define T_FAIL 2
 
 /* Test case. */
 struct args {
@@ -106,18 +108,18 @@ main (void)
 			/* RATS: ignore */
 			n = snprintf(scpt, MAX_STR, "%s%s", prefix, t.scpt);
 			if (n >= (long long) MAX_STR) {
-				errx(EXIT_FAILURE, "input too long");
+				errx(T_FAIL, "input too long");
 			}
 
 			rc = scpt_get_handler(hdb, scpt, &handler);
 
 			if (t.rc != rc) {
-				errx(EXIT_FAILURE, "returned %u", rc);
+				errx(T_FAIL, "returned %u", rc);
 			}
 			if (!(t.handler == NULL ||
 			      strcmp(t.handler, handler) == 0))
 			{
-				errx(EXIT_FAILURE, "got handler %s", handler);
+				errx(T_FAIL, "got handler %s", handler);
 			}
 
 		}

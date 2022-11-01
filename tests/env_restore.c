@@ -36,6 +36,9 @@
 /* Shorthand for an empty list. */
 #define EMPTY {NULL}
 
+/* Exit status for failures. */
+#define T_FAIL 2
+
 
 /*
  * Data types
@@ -142,16 +145,16 @@ main (void) {
 		warnx("performing test # %d ...", i + 1);
 
 		if (env_init(t.env) != OK) {
-			errx(EXIT_FAILURE, "env_init did not return OK");
+			errx(T_FAIL, "env_init did not return OK");
 		}
 		if (env_clear(&vars) != OK) {
-			errx(EXIT_FAILURE, "env_clear did not return OK");
+			errx(T_FAIL, "env_clear did not return OK");
 		}
 
 		rc = env_restore(vars, t.patterns);
 
 		if (rc != t.rc) {
-			errx(EXIT_FAILURE, "returned %u, not %u",
+			errx(T_FAIL, "returned %u, not %u",
 			     rc, t.rc);
 		}
 
@@ -162,7 +165,7 @@ main (void) {
 			char *exp;
 
 			if (str_split(var, "=", &name, &exp) != OK) {
-				errx(EXIT_FAILURE,
+				errx(T_FAIL,
 				     "str_split %s: did not return OK", var);
 			}
 
@@ -170,13 +173,13 @@ main (void) {
 			val = getenv(name);
 			
 			if (val && !exp) {
-				errx(EXIT_FAILURE, "$%s is set", name);
+				errx(T_FAIL, "$%s is set", name);
 			}
 			if (!val && exp) {
-				errx(EXIT_FAILURE, "$%s is unset", name);
+				errx(T_FAIL, "$%s is unset", name);
 			}
 			if (val && exp && strcmp(val, exp) != 0) {
-				errx(EXIT_FAILURE, "$%s is '%s'", name, val);
+				errx(T_FAIL, "$%s is '%s'", name, val);
 			}
 		}
 	}

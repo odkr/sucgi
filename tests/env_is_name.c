@@ -26,6 +26,8 @@
 
 #include "../env.h"
 
+/* Exit status for failures. */
+#define T_FAIL 2
 
 /* Test case. */
 struct args {
@@ -73,7 +75,7 @@ main (void)
 
 		ret = env_is_name(t.name);
 		if (ret != t.ret) {
-			errx(EXIT_FAILURE, "mistaken for %s",
+			errx(T_FAIL, "mistaken for %s",
 			     (ret) ? "valid" : "invalid");
 		}
 	}
@@ -85,7 +87,7 @@ main (void)
 			warnx("checking (%s) -> valid ...", var);
 
 			if (!env_is_name(var)) {
-				errx(EXIT_FAILURE, "mistaken for invalid");
+				errx(T_FAIL, "mistaken for invalid");
 			}
 		}
 	}

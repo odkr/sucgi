@@ -26,6 +26,8 @@
 
 #include "../path.h"
 
+/* Exit status for failures. */
+#define T_FAIL 2
 
 /* Test case. */
 struct args {
@@ -82,7 +84,7 @@ main (void)
 
 		ret = path_contains(t.parent, t.fname);
 		if (ret != t.ret) {
-			errx(EXIT_FAILURE, "path_contains returned %s",
+			errx(T_FAIL, "path_contains returned %s",
 			     (ret) ? "true" : "false");
 		}
 	}

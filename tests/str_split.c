@@ -25,6 +25,8 @@
 
 #include "../str.h"
 
+/* Exit status for failures. */
+#define T_FAIL 2
 
 /* Test case. */
 struct args {
@@ -36,7 +38,7 @@ struct args {
 };
 
 /* A string just within limits. */
-char long_str[MAX_STR] = {0};	/* RATS: ignore */
+char long_str[MAX_STR] = {0};		/* RATS: ignore */
 
 /* A string w/o a delimiter that exceeds MAX_STR. */
 char huge_str[MAX_STR + 1U] = {0};	/* RATS: ignore */
@@ -102,13 +104,13 @@ main(void)
 		rc = str_split(t.s, t.sep, &head, &tail);
 
 		if (rc != t.rc) {
-			errx(EXIT_FAILURE, "returned %u", rc);
+			errx(T_FAIL, "returned %u", rc);
 		}
 		if (!(t.head == NULL || strcmp(t.head, head) == 0)) {
-			errx(EXIT_FAILURE, "got head '%s'", head);
+			errx(T_FAIL, "got head '%s'", head);
 		}
 		if (!(t.tail == tail || strcmp(t.tail, tail) == 0)) {
-			errx(EXIT_FAILURE, "got tail '%s'", tail);
+			errx(T_FAIL, "got tail '%s'", tail);
 		}
 	}
 

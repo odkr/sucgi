@@ -29,6 +29,8 @@
 #include "../env.h"
 #include "../str.h"
 
+/* Exit status for failures. */
+#define T_FAIL 2
 
 int
 main (void) {
@@ -41,7 +43,7 @@ main (void) {
 	warnx("clearing the environment ...");
 
 	if (env_clear(NULL) != OK) {
-		errx(EXIT_FAILURE, "failed to clear the environment");
+		errx(T_FAIL, "failed to clear the environment");
 	}
 
 	/* Is the environment cleared? */
@@ -49,15 +51,15 @@ main (void) {
 
 	errno = 0;
 	if (setenv("foo", "bar", true) != 0) {
-		err(EXIT_FAILURE, "setenv foo=bar");
+		err(T_FAIL, "setenv foo=bar");
 	}
 	if (env_clear(&env) != OK) {
-		errx(EXIT_FAILURE, "env_clear: did not return OK");
+		errx(T_FAIL, "env_clear: did not return OK");
 	}
         
 	/* RATS: ignore */
 	if (getenv("foo")) {
-		errx(EXIT_FAILURE, "$foo: present after clean-up");
+		errx(T_FAIL, "$foo: present after clean-up");
 	}
 	
 	nvars = 0;
@@ -66,7 +68,7 @@ main (void) {
 	}
 	
 	if (nvars > 0) {
-		errx(EXIT_FAILURE, "environment not empty after clean-up");
+		errx(T_FAIL, "environment not empty after clean-up");
 	}
 
 	/* Is the environment backed-up? */
@@ -78,7 +80,7 @@ main (void) {
 		char *value;
 
 		if (str_split(*var, "=", &name, &value) != OK) {
-			errx(EXIT_FAILURE, "str_split: did not return OK");
+			errx(T_FAIL, "str_split: did not return OK");
 		}
 		
 		if (strcmp(name, "foo") != 0) {
@@ -93,17 +95,17 @@ main (void) {
 	}
 
 	if (nvars < 1) {
-		errx(EXIT_FAILURE, "failed to store all variables.");
+		errx(T_FAIL, "failed to store all variables.");
 	}
 	if (nvars > 1) {
-		errx(EXIT_FAILURE, "stored too many variables.");
+		errx(T_FAIL, "stored too many variables.");
 	}
 
 	/* Does env_clear error out if there are too many variables? */
 	warnx("checking errors ...");
 
 	if (env_clear(NULL) != OK) {
-		errx(EXIT_FAILURE, "failed to clear the environment");
+		errx(T_FAIL, "failed to clear the environment");
 	}
 
 	for (size_t i = 0; i <= MAX_ENV; i++) {
@@ -111,17 +113,17 @@ main (void) {
 
 		/* RATS: ignore */
 		if (snprintf(name, MAX_STR - 1U, "foo%zu", i) < 1) {
-			errx(EXIT_FAILURE, "snprintf: returned < 1 bytes");
+			errx(T_FAIL, "snprintf: returned < 1 bytes");
 		}
 
 		errno = 0;
 		if (setenv(name, "foo", true) != 0) {
-			err(EXIT_FAILURE, "setenv %s=%s", name, "foo");
+			err(T_FAIL, "setenv %s=%s", name, "foo");
 		}
 	}
 
 	if (env_clear(&env) != ERR_LEN) {
-		errx(EXIT_FAILURE, "accepted > MAX_ENV variables.");
+		errx(T_FAIL, "accepted > MAX_ENV variables.");
 	}
 
 	warnx("all tests passed");
