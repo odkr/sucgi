@@ -26,8 +26,10 @@
 #endif /* !defined(_FORTIFY_SOURCE) */
 
 #include <assert.h>
+#include <grp.h>
 #include <errno.h>
 #include <limits.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include "error.h"
