@@ -31,7 +31,7 @@ More precisely:
 
 * Linux ≥ v5.6 or Apple XNU_ ≥ v7195.50.7.100.1.
 * A C99 compiler that complies with `POSIX.1-2008`_;
-  e.g., GCC_ ≥ v5.1, Clang_ ≥ v3.5, or TinyCC_ ≥ v0.9.
+  e.g., GCC_ ≥ v5.1, Clang_ ≥ v3.5.
 * A C standard library that complies with POSIX.1-2008, is compatible with
   4.4BSD_, and provides a secure implementation of realpath_;
   e.g., glibc_ ≥ v2.28 or Apple's Libc.
@@ -183,8 +183,6 @@ GitHub: https://github.com/odkr/sucgi
 .. _`POSIX.1-2008`: https://pubs.opengroup.org/onlinepubs/9699919799.2008edition/
 
 .. _realpath: https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword=realpath
-
-.. _TinyCC: http://www.tinycc.org/ 
 
 .. _XNU: https://github.com/apple-oss-distributions/xnu/
 
