@@ -305,20 +305,11 @@ env_restore(const char *vars[], const char *const patterns[])
 		/* RATS: ignore; str_split respects MAX_STR. */
 		char name[MAX_STR];	/* Variable name. */
 		char *value;		/* Variable value. */
-		size_t len;		/* Variable length. */
 
 		if (!*vars[i]) {
 			return ERR_ILL;
 		}
-#if 0
-		len = strnlen(vars[i], MAX_STR);
-		if (len == 0U) {
-			return ERR_ILL;
-		}
-		if (len >= MAX_STR) {
-			return ERR_LEN;
-		}
-#endif
+
 		try(str_split(vars[i], "=", &name, &value));
 		if (!value) {
 			return ERR_ILL;
