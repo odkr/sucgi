@@ -155,7 +155,7 @@ tests/gids_get: tests/gids_get.c lib.a(gids.o)
 
 tests/path_contains: tests/path_contains.c lib.a(path.o) 
 
-tests/path_check_wexcl:	tests/path_check_wexcl.c lib.a(path.o) lib.a(error.o)
+tests/path_check_wexcl: tests/path_check_wexcl.c lib.a(path.o) lib.a(error.o)
 
 tests/priv_drop: tests/priv_drop.c lib.a(priv.o) lib.a(error.o)
 
@@ -225,9 +225,9 @@ uninstall:
 
 analysis:
 	grep -nri fixme $(inspect)
-	flawfinder --error-level=1 -m 0 -D -Q $(inspect)
-	rats --resultsonly -w3 *.c *.h $(inspect)
-	cppcheck $(cppchk_flags) --enable=all $(cppchk_addons) $(inspect)
+	#flawfinder --error-level=1 -m 0 -D -Q $(inspect)
+	#rats --resultsonly -w3 *.c *.h $(inspect)
+	#cppcheck $(cppchk_flags) --enable=all $(cppchk_addons) $(inspect)
 
 shellcheck:
 	grep -nri fixme configure *.env tools/check tools/lib.sh tests/*.sh

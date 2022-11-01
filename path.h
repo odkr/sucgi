@@ -61,7 +61,6 @@ enum error path_check_format(const char *fname, char (*const path)[MAX_STR],
  * Return code:
  *      OK          Success.
  *      ERR_CNV*    File descriptor is too large (Linux only).
- *      ERR_ILL     FNAME is not within PAR.
  *      ERR_LEN     FNAME is too long.
  *      ERR_OPEN    open(2) or openat2(2) failed.
  *      ERR_CLOSE   close(2) failed.

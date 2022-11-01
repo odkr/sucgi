@@ -93,10 +93,8 @@ path_check_wexcl(const uid_t uid, const char *const parent,
 	assert(access(fname, F_OK) == 0);
 	assert(strncmp(realpath(parent, NULL), parent, MAX_STR) == 0);
 	assert(strncmp(realpath(fname, NULL), fname, MAX_STR) == 0);
+	assert(path_contains(parent, fname));
 
-	/* FIXME: Not unit-tested. */
-	if (!path_contains(parent, fname))
-		return ERR_ILL;
 
 	/*
 	 * Start parsing after the parent-directory portion,
