@@ -21,6 +21,7 @@
 
 #include <err.h>
 #include <errno.h>
+#include <grp.h>
 #include <pwd.h>
 #include <stdarg.h>
 #include <stdio.h>
