@@ -100,7 +100,10 @@ file_safe_open(const char *const fname, const int flags, int *const fd)
 	assert(*fname != '\0');
 
 	(void) memset(&how, 0, sizeof(how));
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 	how.flags = (uint64_t) flags;
+#pragma GCC diagnostic pop
 	how.resolve = RESOLVE_NO_SYMLINKS | RESOLVE_NO_MAGICLINKS;
 
 	errno = 0;
