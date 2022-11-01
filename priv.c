@@ -33,6 +33,11 @@
 #include "error.h"
 #include "priv.h"
 
+#if defined(__GLIBC__)
+#define NGIDS_T size_t
+#else
+#define NGIDS_T int
+#endif
 
 enum error
 priv_drop(const uid_t uid, const gid_t gid,
@@ -40,7 +45,11 @@ priv_drop(const uid_t uid, const gid_t gid,
 {
 	errno = 0;
 
-	if (setgroups(ngids, gids) != 0) {
+	if (ngids < 0) {
+		return ERR_CNV; /*FIXME undocumented. */
+	}
+
+	if (setgroups((NGIDS_T) ngids, gids) != 0) {
 		return ERR_SETGROUPS;
 	}
 
