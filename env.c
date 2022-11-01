@@ -298,18 +298,15 @@ env_restore(const char *vars[], const char *const patterns[])
 				 * patterns may contain wildcards,
 				 * so the name has to be checked.
 				 */
-				if (!env_is_name(name)) {
+				if (!env_is_name(name))
 					return ERR_ILL;
-				}
 
-				if (strnlen(value, MAX_STR) >= MAX_STR) {
+				if (strnlen(value, MAX_STR) >= MAX_STR)
 					return ERR_LEN;
-				}
 
 				errno = 0;
-				if (setenv(name, value, true) != 0) {
+				if (setenv(name, value, true) != 0)
 					return ERR_SETENV;
-				}
 
 				break;
 			}

@@ -217,7 +217,7 @@ main(int argc, char **argv) {
 		case ERR_OPEN:
 			error("open %s: %m.", doc_root);
 		case ERR_LEN:
-			error("document root path too long.");
+			error("path to document root too long.");
 		case ERR_ILL:
 			error("document root %s not within jail.", doc_root);
 		case ERR_NIL:
@@ -257,7 +257,7 @@ main(int argc, char **argv) {
    		case ERR_OPEN:
    			error("open %s: %m.", script);
    		case ERR_LEN:
-   			error("script path too long.");
+   			error("path to script too long.");
    		case ERR_ILL:
    			error("script %s not within document root.", script);
    		case ERR_NIL:
@@ -305,7 +305,7 @@ main(int argc, char **argv) {
 		      script, owner->pw_name);
 
 	rc = gids_get(owner->pw_name, owner->pw_gid,
-	                   &owner_gids, &owner_ngids);
+	              &owner_gids, &owner_ngids);
 	switch (rc) {
 		case OK:
 			break;
@@ -444,9 +444,8 @@ main(int argc, char **argv) {
 	 */
 
 	/* script is guaranteed to be canonical. */
-	if (strstr(script, "/.")) {
+	if (strstr(script, "/."))
 		error("path %s contains hidden files.", script);
-	}
 
 
 	/*
@@ -502,34 +501,34 @@ main(int argc, char **argv) {
 	 * Run the script.
 	 */
 
-	char handler[MAX_STR];		/* Script interpreter. */
+	char inter[MAX_STR];		/* Script interpreter. */
 
 	if (file_is_exec(script_stat)) {
 		errno = 0;
 		(void) execl(script, script, NULL);
 
 		/* If this point is reached, execution has failed. */
-		error("exec %s: %m.", script);
+		error("execl %s: %m.", script);
 	}
 
 	rc = script_get_inter((const struct pair []) HANDLERS,
-	                      script, &handler);
+	                      script, &inter);
 	switch (rc) {
 		case OK:
 			break;
 		case ERR_ILL:
 			error("%s has no filename suffix.", script);
 		case FAIL:
-			error("no handler registered for %s.", script);
+			error("no interpreter registered for %s.", script);
 		default:
 			error("script_get_inter returned %u.", rc);
 	}
 
-	assert(*handler);
+	assert(*inter);
 
 	errno = 0;
-	(void) execlp(handler, handler, script, NULL);
+	(void) execlp(inter, inter, script, NULL);
 
 	/* If this point is reached, execution has failed. */
-	error("exec %s %s: %m.", handler, script);
+	error("execlp %s %s: %m.", inter, script);
 }

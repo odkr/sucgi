@@ -581,7 +581,7 @@ done
 check -s1 -e"$suffix_none has no filename suffix." \
 	PATH_TRANSLATED="$suffix_none" main
 
-check -s1 -e"no handler registered for $suffix_unknown." \
+check -s1 -e"no interpreter registered for $suffix_unknown." \
 	PATH_TRANSLATED="$suffix_unknown" main
 
 
