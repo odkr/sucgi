@@ -131,7 +131,7 @@ main(int argc, char **argv) {
 "    -c  Print the build configuration.\n\n"
 "Copyright 2022 Odin Kroeger.\n"
 "Released under the GNU General Public License.\n"
-"This programme comes with ABSOLUTELY NO WARRANTY.",
+"This programme comes with ABSOLUTELY NO WARRANTY.\n",
 			       stderr);
 			return EXIT_SUCCESS;
 		} else if (strncmp(argv[i], "-c", 3) == 0) {
