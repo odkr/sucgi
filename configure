@@ -233,8 +233,8 @@ then
 	vars=
 	for var in $makevars
 	do
-		eval "val=\"\${$var-}\""
-		[ "$val" ] || continue
+		eval "val=\"\${$var- }\""
+		[ "$val" = ' ' ] && continue
 		printf -- '%s="%s"\n' "$var" "${val# }" >>"$swap"
 		vars="${vars-} $var"
 	done
