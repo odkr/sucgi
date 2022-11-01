@@ -1,6 +1,7 @@
 .DS_Store
 .vscode
 *.a
+*.bak
 *.ctu-info
 *.dump
 *.gcda
