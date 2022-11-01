@@ -45,7 +45,7 @@ Operands:
     TEST  A test.
 
 Options:
-    -s    Run tests sequentially, rather than in parallel.
+    -s    Run tests sequentially.
     -q    Suppress all output.
     -h    Show this help screen.
 
@@ -68,9 +68,6 @@ fi
 # Main
 #
 
-# Some tests do not handle signals, so they would ignore a TERM.
-cleanup="[ \"\${pids-}\" ] && kill -9 \$pids >/dev/null 2>&1; ${cleanup-}"
-
 testc=$# errc=0 skipc=0 passc=0 pids=
 while [ $# -gt 0 ]
 do
@@ -82,6 +79,7 @@ do
 	shift
 
 	[ $(($# % nchildren)) -eq 0 ] || continue
+	
 	for pid in $pids
 	do
 		eval name="\"\${test_$pid}\""
