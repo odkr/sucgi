@@ -33,11 +33,8 @@
 int
 main (int argc, char **argv)
 {
-	/* RATS: ignore */
 	char cur[MAX_STR];	/* Current directory. */
-	const char *parent;	/* Parent directory. */
-	const char *fname;	/* Filename. */
-	struct passwd *pwd;	/* A user. */
+	struct passwd *pwd;	/* User. */
 	enum error rc;		/* Return code. */
 
 	if (argc != 4) {
@@ -47,20 +44,15 @@ main (int argc, char **argv)
 	}
 
 	errno = 0;
-
 	pwd = getpwnam(argv[1]);
 	if (!pwd) {
-		if (errno == 0) {
+		if (errno == 0)
 			errx(EXIT_FAILURE, "no such user");
-		} else {
+		else
 			err(EXIT_FAILURE, "getpwam");
-		}
 	}
 
-	parent = argv[2];
-	fname = argv[3];
-
-	rc = path_check_wexcl(pwd->pw_uid, parent, fname, &cur);
+	rc = path_check_wexcl(pwd->pw_uid, argv[2], argv[3], &cur);
 	switch (rc) {
 		case OK:
 			break;

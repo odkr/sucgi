@@ -30,6 +30,9 @@
 /* Exit status for failures. */
 #define T_FAIL 2
 
+/* Exit status for errors. */
+#define T_ERR 3
+
 /* Test case. */
 struct args {
 	const char *scpt;
@@ -94,8 +97,8 @@ main (void)
  		for (int j = 0; prefixes[j]; j++) {
 			const struct args t = tests[i];
 			const char *prefix = prefixes[j];
-			char handler[MAX_STR];	/* RATS: ignore */
-			char scpt[MAX_STR];	/* RATS: ignore */
+			char handler[MAX_STR];
+			char scpt[MAX_STR];
 			enum error rc;	
 			int n;
 
@@ -107,21 +110,15 @@ main (void)
 
 			/* RATS: ignore */
 			n = snprintf(scpt, MAX_STR, "%s%s", prefix, t.scpt);
-			if (n >= (long long) MAX_STR) {
-				errx(T_FAIL, "input too long");
-			}
+			if (n >= (long long) MAX_STR)
+				errx(T_ERR, "input too long");
 
 			rc = scpt_get_handler(hdb, scpt, &handler);
 
-			if (t.rc != rc) {
+			if (t.rc != rc)
 				errx(T_FAIL, "returned %u", rc);
-			}
-			if (!(t.handler == NULL ||
-			      strcmp(t.handler, handler) == 0))
-			{
+			if (t.handler && strcmp(t.handler, handler) != 0)
 				errx(T_FAIL, "got handler %s", handler);
-			}
-
 		}
 	}
 

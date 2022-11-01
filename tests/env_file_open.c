@@ -48,13 +48,12 @@ main (int argc, char **argv)
 	var = argv[2];
 	flags = O_RDONLY | O_CLOEXEC;
 
-	if (strncmp(argv[3], "d", 2) == 0) {
+	if      (strncmp(argv[3], "d", 2) == 0)
 		flags = flags | O_DIRECTORY;
-	} else if (strncmp(argv[3], "f", 2) == 0) {
-		/* Do nothing. */
-	} else {
+	else if (strncmp(argv[3], "f", 2) == 0)
+		/* Do nothing. */;
+	else
 		errx(EXIT_FAILURE, "filetype must be 'f' or 'd'.");
-	}
 
 
 	const char *fname;	/* Filename. */
@@ -86,13 +85,11 @@ main (int argc, char **argv)
 	ssize_t n;		/* Bytes read. */
 
 	/* RATS: ignore */
-	while ((n = read(fd, &buf, MAX_STR)) > 0) {
+	while ((n = read(fd, &buf, MAX_STR)) > 0)
 		(void) write(1, buf, (size_t) n);
-	}
 
-	if (n < 0) {
+	if (n < 0)
 		err(EXIT_FAILURE, "read");
-	}
 
 	return EXIT_SUCCESS;
 }

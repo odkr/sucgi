@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Test error.
+# Test gids_get_list.
 #
 # Copyright 2022 Odin Kroeger
 #
@@ -19,7 +19,8 @@
 # You should have received a copy of the GNU General Public License along
 # with suCGI. If not, see <https://www.gnu.org/licenses>.
 #
-# shellcheck disable=1091
+# shellcheck disable=1091,2015
+
 
 #
 # Initialisation
@@ -33,20 +34,28 @@ readonly script_dir src_dir tools_dir
 # shellcheck disable=1091
 . "$tools_dir/lib.sh" || exit
 init || exit
-tmpdir chk
 
 
 #
 # Main
 #
 
-check -s134 -e"*message" error ''
-check -s1 error %s ''
-
-for message in - foo bar baz
+ents |
+while IFS=: read -r uid logname
 do
-	check -s1 -e"$message" error "$message"
-	check -s1 -e"$message" error %s "$message"
-done
+	cmd="gids_get_list $logname"
 
-warn -g "all tests passed."
+	warn "checking ${bld-}$cmd${rst-} ..."
+
+	set -- $($cmd)
+
+	[ $# -gt 0 ] ||
+		err "${bld-}$cmd${rst_r-} found no groups."
+
+	groups="$(id -G "$logname")"
+	for gid
+	do
+		inlist -eq "$gid" $groups && continue
+		err "${bld-}$cmd${rst_r-} found wrong GID${bld-}$gid${rst_r-}."
+	done
+done

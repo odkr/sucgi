@@ -36,6 +36,7 @@
  *
  * Return code:
  *      OK             Success.
+ *      ERR_CNV        NGIDS is smaller than 0.
  *      ERR_SETUID     setuid(2) failed.
  *      ERR_SETGID     setgid(2) failed.
  *      ERR_SETGROUPS  setgroups(2) failed.

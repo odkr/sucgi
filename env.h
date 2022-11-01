@@ -67,19 +67,15 @@ extern const char *const env_vars_safe[];
  *      ERR_LEN  There are more than MAX_ENV environment variables.
  */
 __attribute__((warn_unused_result))
-enum error env_clear(/* RATS: ignore; vars is bound-checked. */
-	             const char *(*const vars)[MAX_ENV]);
+enum error env_clear(const char *(*const vars)[MAX_ENV]);
 
 /*
- * Read a filename from the environment variable VARNAME, canonicalise it,
- * check whether it resides within the directory JAIL, and, if so, open the
- * file, and store a pointer to the canonicalised filename in FNAME and
- * its file descriptor in FD.
+ * Read a filename from the environment variable VAR, canonicalise it, check
+ * whether it resides within the directory JAIL; if it does, open the file and
+ * store its canonicalised filename in FNAME and its file descriptor in FD.
  *
- * JAIL must exist and be to canonical path; if JAIL does not exist and suCGI
- * has not been compiled with NDEBUG defined, then suCGI segfaults with a
- * cryptic error message. If the filename contains symbolic links at the time
- * the file is opened, an EMLINK error is raised.
+ * JAIL must exist and be to canonical path. If the filename contains symbolic
+ * links at the time  the file is opened, an EMLINK error is raised.
  *
  * FNAME is allocated enough memory to store the canonicalised filename and
  * should be freed by the caller. It also contains the last filename passed
@@ -99,7 +95,7 @@ enum error env_clear(/* RATS: ignore; vars is bound-checked. */
  *      Errors marked with an asterisk should be impossible.
  */
 __attribute__((nonnull(1, 2, 4, 5), warn_unused_result))
-enum error env_file_open(const char *const jail, const char *const varname,
+enum error env_file_open(const char *const jail, const char *const var,
                          const int flags, const char **const fname,
 			 int *const fd);
 
@@ -135,8 +131,8 @@ bool env_is_name(const char *const name);
  *
  * Return code:
  *      OK           Success.
- *      ERR_LEN      An environment variable is too long.
- *      ERR_ILL      An environment variable is ill-formed.
+ *      ERR_LEN      Variable name or value is too long.
+ *      ERR_ILL      Variable is ill-formed.
  *      ERR_SETENV   setenv(3) failed.
  */
 __attribute__((nonnull(1, 2), warn_unused_result))

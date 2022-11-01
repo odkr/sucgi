@@ -193,8 +193,7 @@ const char *const env_vars_safe[] = {
  */
 
 enum error
-env_clear(/* RATS: ignore; vars is bound-checked. */
-	  const char *(*const vars)[MAX_ENV])
+env_clear(const char *(*const vars)[MAX_ENV])
 {
 	static char *var;	/* First environment variable. */
 	char **env;		/* Copy of the environ pointer. */
@@ -203,76 +202,64 @@ env_clear(/* RATS: ignore; vars is bound-checked. */
 	env = environ;
 	environ = &var;
 
-	if (!vars) {
+	if (!vars)
 		return OK;
-	}
 
 	for (size_t n = 0; n < MAX_ENV; n++) {
 		(*vars)[n] = env[n];
-		if (!env[n]) {
+		if (!env[n])
 			return OK;
-		}
 	}
 
 	return ERR_LEN;
 }
 
 enum error
-env_file_open(const char *const jail, const char *const varname,
+env_file_open(const char *const jail, const char *const var,
 	      const int flags, const char **const fname, int *const fd)
 {
 	const char *value;	/* Unchecked variable value. */
 	const char *resolved;	/* Resolved filename. */
 	char *unresolved;	/* Unresolved filename. */
 
-	assert(*jail != '\0');
-	assert(*varname != '\0');
+	assert(*jail);
+	assert(*var);
 	assert(strnlen(jail, MAX_STR) < MAX_STR);
-
-	/* RATS: ignore; only tests whether jail exists. */
 	assert(access(jail, F_OK) == 0);
-	/* RATS: ignore; this use of realpath should be safe. */
 	assert(strncmp(jail, realpath(jail, NULL), MAX_STR) == 0);
 	assert(flags != 0);
 	assert(fname);
 	assert(fd);
 
 	errno = 0;
-	/* RATS: ignore; value is verified below. */
-	value = getenv(varname);
-	if (!value || *value == '\0') {
-		if (errno == 0) {
+	value = getenv(var);
+	if (!value || !*value) {
+		if (errno == 0)
 			return ERR_NIL;
-		} else {
+		else
 			return ERR_GETENV;
-		}
 	}
 
 	errno = 0;
 	unresolved = calloc(MAX_STR, sizeof(*unresolved));
-	if (!unresolved) {
+	if (!unresolved)
 		return ERR_CALLOC;
-	}
 
 	try(str_cp(MAX_STR - 1U, value, unresolved));
 	*fname = unresolved;
  
 	errno = 0;
-	/* RATS: ignore; this use of realpath should be safe. */
 	resolved = realpath(*fname, NULL);
-	if (!resolved) {
+	if (!resolved)
 		return ERR_REALPATH;
-	}
 
 	*fname = resolved;
 	free(unresolved);
 
-	if (strnlen(*fname, MAX_STR) >= MAX_STR) {
+	if (strnlen(*fname, MAX_STR) >= MAX_STR)
 		return ERR_LEN;
-	}
-	if (!path_contains(jail, *fname)) {
+	if (!path_contains(jail, *fname))
 		return ERR_ILL;
-	}
 
 	try(file_safe_open(*fname, flags, fd));
 
@@ -282,18 +269,8 @@ env_file_open(const char *const jail, const char *const varname,
 bool
 env_is_name(const char *const name)
 {
-	/* Check if the name is the empty string. */
-	if (*name == '\0') {
-		return false;
-	}
-
-	/* Check if the name starts with a digit. */
-	if (isdigit(*name)) {
-		return false;
-	}
-	
-	/* Check if the first non-valid character is the terminating NUL. */
-	return (name[strspn(name, ENV_NAME_CHARS)] == '\0');
+	return *name && !isdigit(*name) &&
+	       name[strspn(name, ENV_NAME_CHARS)] == '\0';
 }
 
 enum error

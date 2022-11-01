@@ -70,25 +70,21 @@ main (int argc, char **argv)
 	errno = 0;
 	pwd = getpwnam(argv[0]);
 	if (!pwd) {
-		if (errno == 0) {
+		if (errno == 0)
 			errx(EXIT_FAILURE, "no such user");
-		} else {
+		else
 			err(EXIT_FAILURE, "getpwnam");
-		}
 	}
 
-	if (setgroups(1, (gid_t[1]) {(gid_t) pwd->pw_gid}) != 0) {
+	if (setgroups(1, (gid_t[1]) {(gid_t) pwd->pw_gid}) != 0)
 		err(EXIT_FAILURE, "setgroups %llu",
 		    (long long unsigned) pwd->pw_gid);
-	}
-	if (setgid(pwd->pw_gid) != 0) {
+	if (setgid(pwd->pw_gid) != 0)
 		err(EXIT_FAILURE, "setgid %llu",
 		    (long long unsigned) pwd->pw_gid);
-	}
-	if (setuid(pwd->pw_uid) != 0) {
+	if (setuid(pwd->pw_uid) != 0)
 		err(EXIT_FAILURE, "setuid %llu",
 		    (long long unsigned) pwd->pw_uid);
-	}
 
 	cmd = &argv[1];
 	/* RATS: ignore */

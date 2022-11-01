@@ -38,7 +38,11 @@ main (int argc, char **argv)
 {
 	char *fname;		/* File name. */
 	int flags;		/* Open flags. */
-	
+	int fd;			/* File descriptor. */
+	enum error rc;		/* Return code. */
+	char buf[MAX_STR];	/* Buffer. */
+	ssize_t n;		/* Bytes read. */
+
 	if (argc != 3) {
 		(void) fputs("usage: file_safe_open FNAME f|d\n", stderr);
 		return EXIT_FAILURE;
@@ -47,17 +51,12 @@ main (int argc, char **argv)
 	fname = argv[1];
 	flags = O_RDONLY | O_CLOEXEC;
 
-	if (strncmp(argv[2], "d", 2) == 0) {
+	if      (strncmp(argv[2], "d", 2) == 0)
 		flags = flags | O_DIRECTORY;
-	} else if (strncmp(argv[2], "f", 2) == 0) {
-		/* Do nothing. */
-	} else {
+	else if (strncmp(argv[2], "f", 2) == 0)
+		/* Do nothing. */;
+	else
 		errx(EXIT_FAILURE, "filetype must be 'f' or 'd'.");
-	}
-
-
-	int fd;			/* File descriptor. */
-	enum error rc;		/* Return code. */
 
 	rc = file_safe_open(fname, flags, &fd);
 	switch (rc) {
@@ -71,20 +70,11 @@ main (int argc, char **argv)
 			errx(EXIT_FAILURE, "returned %u.", rc);
 	}
 
-
-	/* RATS: ignore */
-	char buf[MAX_STR];	/* Buffer. */
-	ssize_t n;		/* Bytes read. */
-
-	errno = 0;
-	/* RATS: ignore */
-	while ((n = read(fd, &buf, MAX_STR)) > 0) {
+	while ((errno = 0, n = read(fd, &buf, MAX_STR)) > 0)
 		(void) write(1, buf, (size_t) n);
-	}
 
-	if (n < 0) {
+	if (n < 0)
 		err(EXIT_FAILURE, "read");
-	}
 
 	return EXIT_SUCCESS;
 }

@@ -29,8 +29,13 @@
 #include "../env.h"
 #include "../str.h"
 
+
 /* Exit status for failures. */
 #define T_FAIL 2
+
+/* Exit status for errors. */
+#define T_ERR 3
+
 
 int
 main (void) {
@@ -39,37 +44,30 @@ main (void) {
 	const char **var;		/* An environment variable. */
 	int nvars;			/* The number of variables. */
 
+	nvars = 0;
+
 	/* Start with a clean environmenet, hopefully. */
 	warnx("clearing the environment ...");
 
-	if (env_clear(NULL) != OK) {
+	if (env_clear(NULL) != OK)
 		errx(T_FAIL, "failed to clear the environment");
-	}
 
 	/* Is the environment cleared? */
 	warnx("checking cleanup ...");
 
 	errno = 0;
-	if (setenv("foo", "bar", true) != 0) {
+	if (setenv("foo", "bar", true) != 0)
 		err(T_FAIL, "setenv foo=bar");
-	}
-	if (env_clear(&env) != OK) {
-		errx(T_FAIL, "env_clear: did not return OK");
-	}
-        
-	/* RATS: ignore */
-	if (getenv("foo")) {
+	if (env_clear(&env) != OK)
+		errx(T_FAIL, "env_clear failed");
+	if (getenv("foo"))
 		errx(T_FAIL, "$foo: present after clean-up");
-	}
-	
-	nvars = 0;
-	for (var = (const char**) environ; *var; var++) {
+
+	while (environ[nvars])
 		nvars++;
-	}
 	
-	if (nvars > 0) {
+	if (nvars > 0)
 		errx(T_FAIL, "environment not empty after clean-up");
-	}
 
 	/* Is the environment backed-up? */
 	warnx("checking backup ...");
@@ -79,52 +77,41 @@ main (void) {
 		char name[MAX_STR];	/* RATS: ignore */
 		char *value;
 
-		if (str_split(*var, "=", &name, &value) != OK) {
-			errx(T_FAIL, "str_split: did not return OK");
-		}
+		if (str_split(*var, "=", &name, &value) != OK)
+			errx(T_ERR, "str_split: did not return OK");
 		
-		if (strcmp(name, "foo") != 0) {
+		if (strcmp(name, "foo") != 0)
 			continue;
-		}
+		if (strcmp(value, "bar") != 0)
+			continue;
 
-		if (strcmp(value, "bar") != 0) {
-			continue;
-		}
-		
 		nvars++;
 	}
 
-	if (nvars < 1) {
+	if (nvars < 1)
 		errx(T_FAIL, "failed to store all variables.");
-	}
-	if (nvars > 1) {
+	if (nvars > 1)
 		errx(T_FAIL, "stored too many variables.");
-	}
 
 	/* Does env_clear error out if there are too many variables? */
 	warnx("checking errors ...");
 
-	if (env_clear(NULL) != OK) {
-		errx(T_FAIL, "failed to clear the environment");
-	}
+	if (env_clear(NULL) != OK)
+		errx(T_ERR, "failed to clear the environment");
 
 	for (size_t i = 0; i <= MAX_ENV; i++) {
-		char name[MAX_STR];	/* RATS: ignore */
+		char name[MAX_STR];
 
-		/* RATS: ignore */
-		if (snprintf(name, MAX_STR - 1U, "foo%zu", i) < 1) {
-			errx(T_FAIL, "snprintf: returned < 1 bytes");
-		}
+		if (snprintf(name, MAX_STR - 1U, "foo%zu", i) < 1)
+			errx(T_ERR, "snprintf: returned < 1 bytes");
 
 		errno = 0;
-		if (setenv(name, "foo", true) != 0) {
-			err(T_FAIL, "setenv %s=%s", name, "foo");
-		}
+		if (setenv(name, "foo", true) != 0)
+			err(T_ERR, "setenv %s=%s", name, "foo");
 	}
 
-	if (env_clear(&env) != ERR_LEN) {
+	if (env_clear(&env) != ERR_LEN)
 		errx(T_FAIL, "accepted > MAX_ENV variables.");
-	}
 
 	warnx("all tests passed");
 	return EXIT_SUCCESS;

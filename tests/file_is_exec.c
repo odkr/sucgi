@@ -39,13 +39,11 @@ main (int argc, char **argv)
 	}
 
 	errno = 0;
-	/* RATS: ignore */
-	if (stat(argv[1], &fstatus) != 0) {
+	if (stat(argv[1], &fstatus) != 0)
 		err(EXIT_FAILURE, "stat %s", argv[1]);
-	}
 
-	if (file_is_exec(fstatus)) {
+	if (file_is_exec(fstatus))
 		return EXIT_SUCCESS;
-	}
+
 	return EXIT_FAILURE;
 }

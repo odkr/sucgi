@@ -103,14 +103,11 @@ main(int argc, char **argv) {
 	proc_gid = getgid();
 
 	errno = 0;
-
-	if (setegid(proc_gid) != 0) {
+	if (setegid(proc_gid) != 0)
 		error("setegid %llu: %m.", (long long unsigned) proc_gid);
-	}
-
-	if (seteuid(proc_uid) != 0) {
+	errno = 0;
+	if (seteuid(proc_uid) != 0)
 		error("seteuid %llu: %m.", (long long unsigned) proc_uid);
-	}
 
 	assert(geteuid() == proc_uid);
 	assert(getegid() == proc_gid);
@@ -119,6 +116,7 @@ main(int argc, char **argv) {
 	/*
 	 * Process arguments.
 	 */
+
 	for (int i = 1; i < argc; i++) {
 		if (strncmp(argv[i], "-h", 3) == 0) {
 			(void) fputs(
@@ -202,12 +200,11 @@ main(int argc, char **argv) {
 	errno = 0;
         /* RATS: ignore; this use of realpath should be safe. */
 	jail_dir = realpath(JAIL_DIR, NULL);
-	if (!jail_dir) {
+	if (!jail_dir)
 		error("realpath %s: %m.", JAIL_DIR);
-	}
 
 	assert(jail_dir);
-	assert(*jail_dir != '\0');
+	assert(*jail_dir);
         assert(strnlen(jail_dir, MAX_STR) < MAX_STR);
 
 	rc = env_file_open(jail_dir, "DOCUMENT_ROOT",
@@ -232,17 +229,14 @@ main(int argc, char **argv) {
 			error("env_file_open returned %u.", rc);
 	}
 
-	if (close(doc_fd) != 0) {
+	if (close(doc_fd) != 0)
 		error("close %s: %m.", doc_root);
-	}
 
 	assert(doc_root);
-	assert(*doc_root != '\0');
+	assert(*doc_root);
 	assert(doc_fd > -1);
 	assert(strnlen(doc_root, MAX_STR) < MAX_STR);
-	/* RATS: ignore; only tests whether doc_root exists. */
 	assert(access(doc_root, F_OK) == 0);
-        /* RATS: ignore; this use of realpath should be safe. */
 	assert(strncmp(realpath(doc_root, NULL), doc_root, MAX_STR) == 0);
 
 
@@ -276,20 +270,16 @@ main(int argc, char **argv) {
    	}
 
 	assert(script);
-	assert(*script != '\0');
+	assert(*script);
 	assert(strnlen(script, MAX_STR) < MAX_STR);
-	/* RATS: ignore; only tests whether doc_root exists. */
 	assert(access(doc_root, F_OK) == 0);
-        /* RATS: ignore; this use of realpath should be safe. */
 	assert(strncmp(realpath(script, NULL), script, MAX_STR) == 0);
 
 	errno = 0;
-	if (fstat(script_fd, &script_stat) != 0) {
+	if (fstat(script_fd, &script_stat) != 0)
 		error("stat %s: %m.", script);
-	}
-	if (!(script_stat.st_mode & S_IFREG)) {
+	if (!(script_stat.st_mode & S_IFREG))
 		error("script %s is not a regular file.", script);
-	}
 
 
 	/*
@@ -303,21 +293,19 @@ main(int argc, char **argv) {
 	errno = 0;
 	owner = getpwuid(script_stat.st_uid);
 	if (!owner) {
-		if (errno == 0) {
+		if (errno == 0)
 			error("script %s is owned by unallocated UID %llu.",
 			      script, (long long unsigned) script_stat.st_uid);
-		} else {
+		else
 			error("getpwuid %llu: %m.",
 			      (long long unsigned) script_stat.st_uid);
-		}
 	}
 
 	assert(owner->pw_uid == script_stat.st_uid);
 
-	if (owner->pw_uid < MIN_UID || owner->pw_uid > MAX_UID) {
+	if (owner->pw_uid < MIN_UID || owner->pw_uid > MAX_UID)
 		error("script %s is owned by privileged user %s.",
 		      script, owner->pw_name);
-	}
 
 	rc = gids_get_list(owner->pw_name, owner->pw_gid,
 	                   &owner_gids, &owner_ngids);
@@ -338,10 +326,9 @@ main(int argc, char **argv) {
 	for (int i = 0; i < owner_ngids; i++) {
 		const gid_t gid = owner_gids[i];
 
-		if (gid < MIN_GID || gid > MAX_GID) {
+		if (gid < MIN_GID || gid > MAX_GID)
 			error("user %s belongs to privileged group %llu.",
 			      owner->pw_name, (long long unsigned) gid);
-		}
 	}
 
 	assert(owner->pw_gid > MIN_GID);
@@ -353,9 +340,8 @@ main(int argc, char **argv) {
 	 */
 
 	errno = 0;
-	if (seteuid(0) != 0) {
+	if (seteuid(0) != 0)
 		error("seteuid 0: %m.");
-	}
 
 	rc = priv_drop(owner->pw_uid, owner->pw_gid, owner_ngids, owner_gids);
 	switch (rc) {
@@ -387,32 +373,29 @@ main(int argc, char **argv) {
 	 */
 
 	errno = 0;
-
-	if (setenv("DOCUMENT_ROOT", doc_root, true) != 0) {
+	if (setenv("DOCUMENT_ROOT", doc_root, true) != 0)
 		error("setenv DOCUMENT_ROOT: %m.");
-	}
 
-	if (setenv("HOME", owner->pw_dir, true) != 0) {
+	errno = 0;
+	if (setenv("HOME", owner->pw_dir, true) != 0)
 		error("setenv HOME: %m.");
-	}
 
-	if (setenv("PATH", SECURE_PATH, true) != 0) {
+	errno = 0;
+	if (setenv("PATH", SECURE_PATH, true) != 0)
 		error("setenv PATH: %m.");
-	}
 
-	if (setenv("PATH_TRANSLATED", script, true) != 0) {
+	errno = 0;
+	if (setenv("PATH_TRANSLATED", script, true) != 0)
 		error("setenv PATH_TRANSLATED: %m.");
-	}
 
-	if (setenv("USER_NAME", owner->pw_name, true) != 0) {
+	errno = 0;
+	if (setenv("USER_NAME", owner->pw_name, true) != 0)
 		error("setenv USER_NAME: %m.");
-	}
 
-	if (chdir(doc_root) != 0) {
+	errno = 0;
+	if (chdir(doc_root) != 0)
 		error("chdir %s: %m.", doc_root);
-	}
 
-	/* RATS: ignore; the umask is the user's responsibility. */
 	umask(umask(0) | UMASK);
 
 
@@ -428,14 +411,12 @@ main(int argc, char **argv) {
 	 * It also makes sure that users cannot break out of their directory.
 	 */
 
-	/* RATS: ignore; path_check_format respects MAX_STR. */
 	char user_dir[MAX_STR];		/* The user directory. */
 
 #if FORCE_HOME
-	if (!path_contains(owner->pw_dir, doc_root)) {
+	if (!path_contains(owner->pw_dir, doc_root))
 		error("document root %s not within %s's home directory.",
 		      doc_root, owner->pw_name);
-	}
 #endif /* FORCE_HOME */
 
 #pragma GCC diagnostic push
@@ -478,12 +459,10 @@ main(int argc, char **argv) {
 	 * set, this probably indicates a configuration error.
 	 */
 
-	if (script_stat.st_mode & S_ISUID) {
+	if (script_stat.st_mode & S_ISUID)
 		error("script %s's set-user-ID bit is set.", script);
-	}
-	if (script_stat.st_mode & S_ISGID) {
+	if (script_stat.st_mode & S_ISGID)
 		error("script %s's set-group-ID bit is set.", script);
-	}
 
 
 	/*
@@ -527,12 +506,10 @@ main(int argc, char **argv) {
 	 * Run the script.
 	 */
 
-	/* RATS: ignore; scpt_get_handler respects MAX_STR. */
 	char handler[MAX_STR];		/* Script interpreter. */
 
 	if (file_is_exec(script_stat)) {
 		errno = 0;
-		/* RATS: ignore; suCGI's point is to do this safely. */
 		(void) execl(script, script, NULL);
 
 		/* If this point is reached, execution has failed. */
@@ -552,10 +529,9 @@ main(int argc, char **argv) {
 			error("scpt_get_handler returned %u.", rc);
 	}
 
-	assert(*handler != '\0');
+	assert(*handler);
 
 	errno = 0;
-	/* RATS: ignore; suCGI's point is to do this safely. */
 	(void) execlp(handler, handler, script, NULL);
 
 	/* If this point is reached, execution has failed. */

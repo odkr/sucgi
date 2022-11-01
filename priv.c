@@ -45,33 +45,22 @@ priv_drop(const uid_t uid, const gid_t gid,
 {
 	errno = 0;
 
-	if (ngids < 0) {
-		return ERR_CNV; /*FIXME undocumented. */
-	}
+	if (ngids < 0)
+		return ERR_CNV;
 
-	if (setgroups((NGIDS_T) ngids, gids) != 0) {
+	if (setgroups((NGIDS_T) ngids, gids) != 0)
 		return ERR_SETGROUPS;
-	}
-
-	if (setgid(gid) != 0) {
+	if (setgid(gid) != 0)
 		return ERR_SETGID;
-	}
-
-	if (setuid(uid) != 0) {
+	if (setuid(uid) != 0)
 		return ERR_SETUID;
-	}
 	
-	if (setgroups(1, (gid_t [1]) {0}) != -1) {
+	if (setgroups(1, (gid_t [1]) {0}) != -1)
 		return FAIL;
-	}
-
-	if (setgid(0) != -1) {
+	if (setgid(0) != -1)
 		return FAIL;
-	}
-	
-	if (setuid(0) != -1) {
+	if (setuid(0) != -1)
 		return FAIL;
-	}
 
 	return OK;
 }

@@ -66,21 +66,19 @@ main (int argc, char **argv)
 
 	errno = 0;
 	/* RATS: ignore; no TOCTOU gap, because there is no further use. */
-	if (stat(argv[0], &fstatus) != 0) {
+	if (stat(argv[0], &fstatus) != 0)
 		err(EXIT_FAILURE, "stat %s", argv[1]);
-	}
 
 	errno = 0;
 	pwd = getpwuid(fstatus.st_uid);
 	if (!pwd) {
-		if (errno == 0) {
+		if (errno == 0)
 			errx(EXIT_FAILURE, "owned by unallocated UID %llu",
 			     (long long unsigned) fstatus.st_uid);
-		} else {
+		else
 			err(EXIT_FAILURE, "getpwuid %llu", 
 			    (long long unsigned) fstatus.st_uid);
-		}
 	}
 
-	puts(pwd->pw_name);
+	(void) puts(pwd->pw_name);
 }

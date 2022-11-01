@@ -43,22 +43,18 @@ main (int argc, char **argv)
 	errno = 0;
 	pwd = getpwnam(argv[1]);
 	if (!pwd) {
-		if (errno == 0) {
+		if (errno == 0)
 			errx(EXIT_FAILURE, "no such user");
-		} else {
+		else
 			err(EXIT_FAILURE, "getpwnam");
-		}
 	}
 
 	errno = 0;
-	/* RATS: ignore */
-	if (stat(argv[2], &fstatus) != 0) {
+	if (stat(argv[2], &fstatus) != 0)
 		errx(EXIT_FAILURE, "stat %s", argv[2]);
-	}
 
-	if (file_is_wexcl(pwd->pw_uid, fstatus)) {
+	if (file_is_wexcl(pwd->pw_uid, fstatus))
 		return EXIT_SUCCESS;
-	}
 
 	return EXIT_FAILURE;
 }

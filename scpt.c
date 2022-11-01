@@ -37,10 +37,8 @@
 
 enum error
 scpt_get_handler(const struct scpt_ent handlerdb[], const char *const scpt,
-                 /* RATS: ignore; handler is bounds-checked. */
                  char (*const handler)[MAX_STR])
 {
-	/* RATS: ignore; path is bounds-checked. */
 	char path[MAX_STR];	/* Copy of scpt for basename(3). */
 	const char *fname;	/* Filename portion of scpt. */
 	const char *suffix;	/* Filename suffix. */
@@ -49,20 +47,17 @@ scpt_get_handler(const struct scpt_ent handlerdb[], const char *const scpt,
 
 	/* basename may alter the path it is given. */
 	try(str_cp(MAX_STR, scpt, path));
-	/* RATS: ignore; no matching on path is performed. */
 	fname = basename(path);
 	suffix = strrchr(fname, '.');
-	if (!suffix || suffix == fname) {
+	if (!suffix || suffix == fname)
 		return ERR_ILL;
-	}
 
 	for (int i = 0; handlerdb[i].suffix; i++) {
 		const struct scpt_ent ent = handlerdb[i];
 
 		if (strncmp(suffix, ent.suffix, MAX_STR) == 0) {
-			if (!ent.handler || *(ent.handler) == '\0') {
+			if (!ent.handler || *(ent.handler) == '\0')
 				return FAIL;
-			}
 
 			try(str_cp(MAX_STR, ent.handler, *handler));
 			return OK;

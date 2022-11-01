@@ -75,8 +75,8 @@ main (void)
 
 		ret = env_is_name(t.name);
 		if (ret != t.ret) {
-			errx(T_FAIL, "mistaken for %s",
-			     (ret) ? "valid" : "invalid");
+			char *what = (ret) ? "valid" : "invalid";
+			errx(T_FAIL, "mistaken for %s", what);
 		}
 	}
 
@@ -86,9 +86,8 @@ main (void)
 		if (var[strspn(var, ENV_NAME_CHARS)] == '\0') {
 			warnx("checking (%s) -> valid ...", var);
 
-			if (!env_is_name(var)) {
+			if (!env_is_name(var))
 				errx(T_FAIL, "mistaken for invalid");
-			}
 		}
 	}
 

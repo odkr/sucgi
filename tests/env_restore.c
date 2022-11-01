@@ -42,6 +42,9 @@
 /* Exit status for failures. */
 #define T_FAIL 2
 
+/* Exit status for errors. */
+#define T_ERR 3
+
 
 /*
  * Data types
@@ -61,10 +64,10 @@ struct args {
  */
 
 /* String that is as long as MAX_STR. */
-char long_var[MAX_STR] = {0}; 		/*RATS: ignore */
+char long_var[MAX_STR] = {0};
 
 /* String that is longer than MAX_STR. */
-char huge_var[MAX_STR + 1U] = {0};	/* RATS: ignore */
+char huge_var[MAX_STR + 1U] = {0};
 
 /* Tests. */
 struct args tests[] = {
@@ -112,18 +115,15 @@ env_init(/* RATS: ignore */
 {
 	size_t n = 0;
 
-	while (vars[n]) {
+	while (vars[n])
 		n++;
-	}
 
 	environ = calloc(n + 1U, sizeof(char *));
-	if (!environ) {
+	if (!environ)
 		return ERR_CALLOC;
-	}
 	
-	for (size_t i = 0; i < n; i++) {
+	for (size_t i = 0; i < n; i++)
 		environ[i] = vars[i];
-	}
 
 	return OK;
 }
@@ -141,48 +141,38 @@ main (void) {
 
 	for (int i = 0; tests[i].env[0]; i++) {
 		const struct args t = tests[i];
-		const char *vars[MAX_ENV];	/* RATS: ignore */
+		const char *vars[MAX_ENV];
 		enum error rc;
 
 		warnx("performing test # %d ...", i + 1);
 
-		if (env_init(t.env) != OK) {
+		if (env_init(t.env) != OK)
 			errx(T_FAIL, "env_init did not return OK");
-		}
-		if (env_clear(&vars) != OK) {
+		if (env_clear(&vars) != OK)
 			errx(T_FAIL, "env_clear did not return OK");
-		}
 
 		rc = env_restore(vars, t.patterns);
 
-		if (rc != t.rc) {
-			errx(T_FAIL, "returned %u, not %u",
-			     rc, t.rc);
-		}
+		if (rc != t.rc)
+			errx(T_FAIL, "returned %u, not %u", rc, t.rc);
 
 		for (int j = 0; t.clean[j]; j++) {
 			const char *var = t.clean[j];
 			const char *val;
-			char name[MAX_STR];	/* RATS: ignore */
+			char name[MAX_STR];
 			char *exp;
 
-			if (str_split(var, "=", &name, &exp) != OK) {
-				errx(T_FAIL,
-				     "str_split %s: did not return OK", var);
-			}
+			if (str_split(var, "=", &name, &exp) != OK)
+				errx(T_ERR, "str_split %s failed", var);
 
-                        /* RATS: ignore */
 			val = getenv(name);
 			
-			if (val && !exp) {
+			if (val && !exp)
 				errx(T_FAIL, "$%s is set", name);
-			}
-			if (!val && exp) {
+			if (!val && exp)
 				errx(T_FAIL, "$%s is unset", name);
-			}
-			if (val && exp && strcmp(val, exp) != 0) {
+			if (val && exp && strcmp(val, exp) != 0)
 				errx(T_FAIL, "$%s is '%s'", name, val);
-			}
 		}
 	}
 

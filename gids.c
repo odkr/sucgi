@@ -42,7 +42,6 @@
  */
 enum error
 gids_get_list(const char *const logname, const gid_t basegid,
-              /* RATS: ignore; gids is bounds-checked. */
               gid_t (*const gids)[MAX_GROUPS], int *const ngids)
 {
 	struct group *grp;	/* A group. */
@@ -50,9 +49,8 @@ gids_get_list(const char *const logname, const gid_t basegid,
 	(*gids)[0] = basegid;
 	*ngids = 1;
 
-	errno = 0;
 	setgrent();
-	while ((grp = getgrent())) {
+	while ((errno = 0, grp = getgrent())) {
 		const gid_t gid = grp->gr_gid;
 
 		/*
@@ -64,9 +62,8 @@ gids_get_list(const char *const logname, const gid_t basegid,
 			const char *mem = grp->gr_mem[i];
 
 			if (gid != basegid && strcmp(mem, logname) == 0) {
-				if (*ngids < MAX_GROUPS) {
+				if (*ngids < MAX_GROUPS)
 					(*gids)[*ngids] = gid;
-				}
 				(*ngids)++;
 				break;
 			}
@@ -75,12 +72,10 @@ gids_get_list(const char *const logname, const gid_t basegid,
 	}
 	endgrent();
 
-	if (errno != 0) {
+	if (errno != 0)
 		return ERR_GETGRENT;
-	}
-	if (*ngids > MAX_GROUPS) {
+	if (*ngids > MAX_GROUPS)
 		return ERR_LEN;
-	}
 
 	return OK;
 }

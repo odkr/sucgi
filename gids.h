@@ -46,7 +46,6 @@
  */
 __attribute__((no_sanitize("alignment"), nonnull(3, 4), warn_unused_result))
 enum error gids_get_list(const char *const logname, const gid_t basegid,
-                         /* RATS: ignore; gids is bounds-checked. */
                          gid_t (*const gids)[MAX_GROUPS], int *const ngids);
 
 #endif /* !defined(GIDS_H) */

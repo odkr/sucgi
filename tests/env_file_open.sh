@@ -101,11 +101,11 @@ ln -fs "$inside" "$in_link"
 #
 
 # Jail directory is the empty string.
-check -s134 -e"*jail != '\\0'" \
+check -s134 -e'*jail' \
 	var="$jail/file" env_file_open "" var f
 
 # Environment variable is the empty string.
-check -s134 -e"*varname != '\\0'" \
+check -s134 -e'*var' \
 	var="$jail/file" env_file_open "$jail" "" f
 
 # Path to jail directory is longer than MAX_STR.

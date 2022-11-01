@@ -88,45 +88,37 @@ main (int argc, char **argv)
 		}
 	}
 
-	if ((int) nvars > (argc - optind)) {
+	if ((int) nvars > (argc - optind))
 		errx(EXIT_FAILURE, "-n: not that many arguments");
-	}
 
 	vars = &argv[optind];
 	if (nvars < 0) {
 		nvars = 0;
-		while (vars[nvars] && strstr(vars[nvars], "=")) {
+		while (vars[nvars] && strstr(vars[nvars], "="))
 			nvars++;
-		}
 	}
 	if (ienv) {
-		while (environ[nenv]) {
+		while (environ[nenv])
 			nenv++;
-		}
 	}
 
 	new = calloc((size_t) (nenv + nvars + 1), sizeof(char *));
-	if (!new) {
+	if (!new)
 		err(EXIT_FAILURE, "calloc");
-	}
 
-	for (long i = 0; i < nenv; i++) {
+	for (long i = 0; i < nenv; i++)
 		new[i] = environ[i];
-	}
-	for (long i = 0; i < nvars; i++) {
+	for (long i = 0; i < nvars; i++)
 		new[nenv + i] = vars[i];
-	}
 
 	cmd = &argv[(size_t) (optind + nvars)];
 	if (*cmd) {
-		/* RATS: ignore */
 		(void) execve(*cmd, cmd, new);
 		err(EXIT_FAILURE, "exec %s", *cmd);
 	}
 
-	for (; *new; new++) {
+	for (; *new; new++)
 		(void) puts(*new);
-	}
 
 	return EXIT_SUCCESS;
 }

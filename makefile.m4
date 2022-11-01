@@ -50,7 +50,7 @@ check_bins =	tests/error tests/env_clear tests/env_file_open \
 checks =	tests/error.sh tests/env_clear tests/env_file_open.sh \
 		tests/env_is_name tests/env_restore tests/main.sh \
 		tests/file_is_exec.sh tests/file_is_wexcl.sh \
-		tests/file_safe_open.sh tests/gids_get_list \
+		tests/file_safe_open.sh tests/gids_get_list.sh \
 		tests/priv_drop.sh tests/path_check_wexcl.sh \
 		tests/path_contains tests/scpt_get_handler \
 		tests/str_cp tests/str_split tests/try

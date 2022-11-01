@@ -21,84 +21,50 @@
 
 #include <err.h>
 #include <errno.h>
-#include <limits.h>
-#include <grp.h>
 #include <pwd.h>
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include <stdio.h>
 
 #include "../gids.h"
 
-/* Exit status for failures. */
-#define T_FAIL 2
-
-/* Calculate the number of elements in an array. */
-#define NELEMS(x) (sizeof((x)) / sizeof(*(x)))
-
-/* Largest user ID. */
-#if defined(UID_MAX)
-#define UID_MAX_ UID_MAX
-#else /* defined(UID_MAX) */
-#define UID_MAX_ UINT_MAX
-#endif /* defined(UID_MAX) */
-
-/* Largest group ID. */
-#if defined(GID_MAX)
-#define GID_MAX_ GID_MAX
-#else /* defined(GID_MAX) */
-#define GID_MAX_ UINT_MAX
-#endif /* defined(GID_MAX) */
 
 int
-main (void)
+main (int argc, char **argv)
 {
-	/* UIDs to test. */
-	const uid_t uids[] = {0, getuid(), UID_MAX_};
-
-	/* Primary GIDs to test. */
-	const gid_t pgids[] = {0, getgid(), GID_MAX_};
-
-	gid_t gids[MAX_GROUPS];		/* GIDs found. */
-	int ngids;			/* Number of GIDs. */
+	struct passwd *pwd;		/* User. */
+	gid_t gids[MAX_GROUPS];		/* Groups the user is a member of. */
+	int ngids;			/* Number of those groups. */
 	enum error rc;			/* Return code. */
 
-	for (size_t i = 0; i < NELEMS(uids); i++) {
-		for (size_t j = 0; j < NELEMS(pgids); j++) {
-			const uid_t uid = uids[i];	/* UID. */
-			const gid_t pgid = pgids[j];	/* GID. */
-			struct passwd *pwd;		/* User. */
+	if (argc != 2) {
+		(void) fputs("usage: gids_get_list LOGNAME\n", stderr);
+		return EXIT_FAILURE;
+	}
 
-			errno = 0;
-			pwd = getpwuid(uid);
-			if (!pwd) {
-				if (errno == 0) {
-					continue;
-				}
+	errno = 0;
+	pwd = getpwnam(argv[1]);
+	if (!pwd) {
+		if (errno == 0)
+			errx(EXIT_FAILURE, "no such user");
+		else
+			err(EXIT_FAILURE, "getpwnam");
+	}
 
-				err(EXIT_FAILURE, "getpwuid %llu",
-				    (long long unsigned) uid);
-			}
-
-			warnx("checking (%s, %llu, ...) -> OK ...",
-			      pwd->pw_name, (long long unsigned) pgid);
-
-			rc = gids_get_list(pwd->pw_name, pgid, &gids, &ngids);
-
-			if (rc != OK) {
-				errx(T_FAIL, "returned %u", rc); 
-			}
-			if (ngids < 1) {
-				errx(T_FAIL, "no GIDs saved");
-			}
-			if (gids[0] != pgid) {
-				errx(T_FAIL, "first GID is not %llu",
-				     (long long unsigned) pgid);
-			}
-		}
+	rc = gids_get_list(pwd->pw_name, pwd->pw_gid, &gids, &ngids);
+	switch (rc) {
+		case OK:
+			break;
+		case ERR_GETGRENT:
+			error("getgrent: %m.");
+		case ERR_LEN:
+			error("user %s belongs to too many groups.",
+			      pwd->pw_name);
+		default:
+			error("returned %u.", rc);
 	}
 	
-	warnx("all tests passed");
+	for (int i = 0; i < ngids; i++)
+		(void) printf("%llu\n", (long long unsigned) gids[i]);
+	
 	return EXIT_SUCCESS;
 }

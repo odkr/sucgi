@@ -70,59 +70,47 @@ main(int argc, char **argv)
 	size_t nids;		/* Number of seen IDs. */
 	long from;		/* Only print IDs at least this large. */
 	long to;		/* Only print IDs at most this large. */
-	long nmax;		/* Print at most than many IDs. */
-	bool getgr;		/* Print group entries, not passwd ones? */
+	long max;		/* Print at most than many IDs. */
+	bool groups;		/* Print group entries, not passwd ones? */
 	int ch;			/* An option character. */
 
-	getgr = false;
 	from = -1;
 	to = -1;
-	nmax = -1;
+	max = -1;
+	groups = false;
 
 	/* RATS: ignore */
 	while ((ch = getopt(argc, argv, "ugf:c:n:h")) != -1) {
 		switch (ch) {
 			case 'u':
-				getgr = false;
+				groups = false;
 				break;
 			case 'g':
-				getgr = true;
+				groups = true;
 				break;
 			case 'f':
 				errno = 0;
 				from = strtoll(optarg, NULL, 0);
-				if (errno != 0) {
-					err(ERR_USAGE,
-					    "-f: strtoll %s", optarg);
-				}
-				if (from < 0) {
-					errx(ERR_USAGE,
-					     "-f: %s is negative", optarg);
-				}
+				if (errno != 0)
+					err(ERR_USAGE, "-f");
+				if (from < 0)
+					errx(ERR_USAGE, "-f: is negative");
 				break;
 			case 'c':
 				errno = 0;
 				to = strtoll(optarg, NULL, 0);
-				if (errno != 0) {
-					err(ERR_USAGE,
-					    "-c: strtoll %s", optarg);
-				}
-				if (from < 0) {
-					errx(ERR_USAGE,
-					     "-c: %s is negative", optarg);
-				}
+				if (errno != 0)
+					err(ERR_USAGE, "-c");
+				if (from < 0)
+					errx(ERR_USAGE, "-c: is negative");
 				break;
 			case 'n':
 				errno = 0;
-				nmax = strtoll(optarg, NULL, 0);
-				if (errno != 0) {
-					err(ERR_USAGE,
-					    "-n: strtoll %s", optarg);
-				}
-				if (nmax < 1) {
-					errx(ERR_USAGE,
-					     "-n: %s is non-positive", optarg);
-				}
+				max = strtoll(optarg, NULL, 0);
+				if (errno != 0)
+					err(ERR_USAGE, "-n");
+				if (max < 1)
+					errx(ERR_USAGE, "-n: is non-positive");
 				break;
 			case 'h':
 				(void) puts(
@@ -161,9 +149,8 @@ main(int argc, char **argv)
 
 	ids = malloc(sizeof(*ids) * INC);
 	nids = 0;
-	if (!ids) {
+	if (!ids)
 		err(ERR_OS, "malloc");
-	}
 
 	setpwent();
 	setgrent();
@@ -172,17 +159,16 @@ main(int argc, char **argv)
 		id_t id;		/* Entry ID. */
 		char *name;		/* Entry name. */
 		
-		if (getgr) {
+		if (groups) {
 			struct group *grp;	/* A group entry. */
 		
 			errno = 0;
 			grp = getgrent();
 			if (!grp) {
-				if (errno == 0) {
+				if (errno == 0)
 					break;
-				} else {
+				else
 					err(ERR_OS, "getgrent");
-				}
 			}
 			
 			id = grp->gr_gid;
@@ -193,28 +179,22 @@ main(int argc, char **argv)
 			errno = 0;
 			pwd = getpwent();
 			if (!pwd) {
-				if (errno == 0) {
+				if (errno == 0)
 					break;
-				} else {
+				else
 					err(ERR_OS, "getpwent");
-				}
 			}
 			
 			id = pwd->pw_uid;
 			name = pwd->pw_name;
 		}
 
-		if (-1 < from && id < (long long unsigned) from) {
+		if (-1 < from && id < (long long unsigned) from)
 			continue;
-		}
-
-		if (-1 < to && id > (long long unsigned) to) {
+		if (-1 < to && id > (long long unsigned) to)
 			continue;
-		}
-
-		if (lfind(&id, ids, &nids, sizeof(*ids), id_eq)) {
+		if (lfind(&id, ids, &nids, sizeof(*ids), id_eq))
 			continue;
-		}
 
 		ids[nids++] = id;
 		if (nids % INC == 0) {
@@ -223,24 +203,19 @@ main(int argc, char **argv)
 			
 			cur = sizeof(*ids) * nids;
 			new = cur + sizeof(*ids) * INC;
-			if (new < cur) {
+			if (new < cur)
 				errx(ERR_SIZE, "too many entries");
-			}
 
-			/* RATS: ignore; no use of uninitialised memory. */
 			ids = realloc(ids, new);
-			if (!ids) {
+			if (!ids)
 				err(ERR_OS, "realloc");
-			}
 		}
 
-		/* RATS: ignore; format string is a literal. */
 		(void) printf("%llu:%s\n", (long long unsigned) id, name);
-	} while (nmax < 0 || nids < (size_t) nmax);
+	} while (max < 0 || nids < (size_t) max);
 	
-	if (nids == 0) {
+	if (nids == 0)
 		errx(ERR_NOMATCH, "no matches");
-	}
 	
 	return EXIT_SUCCESS;
 }

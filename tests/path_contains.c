@@ -84,8 +84,8 @@ main (void)
 
 		ret = path_contains(t.parent, t.fname);
 		if (ret != t.ret) {
-			errx(T_FAIL, "path_contains returned %s",
-			     (ret) ? "true" : "false");
+			char *what = (ret) ? "true" : "false";
+			errx(T_FAIL, "path_contains returned %s", what);
 		}
 	}
 

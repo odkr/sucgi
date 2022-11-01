@@ -55,14 +55,10 @@ file_is_exec(const struct stat fstatus)
 {
 	mode_t fmode = fstatus.st_mode;	/* Permissions. */
 
-	if (fstatus.st_uid == geteuid()) {
+	if (fstatus.st_uid == geteuid())
 		return fmode & S_IXUSR;
-	}
-
-	if (fstatus.st_gid == getegid()) {
+	if (fstatus.st_gid == getegid())
 		return fmode & S_IXGRP;
-	}
-
 	return fmode & S_IXOTH;
 }
 
@@ -91,13 +87,14 @@ file_is_wexcl(const uid_t uid, const struct stat fstatus)
  */
 
 #if defined(__NR_openat2)
+
 enum error
 file_safe_open(const char *const fname, const int flags, int *const fd)
 {
 	struct open_how how;	/* Flags to openat2(2). */
 	long rc;		/* Return code. */
 
-	assert(*fname != '\0');
+	assert(*fname);
 
 	(void) memset(&how, 0, sizeof(how));
 #pragma GCC diagnostic push
@@ -108,29 +105,26 @@ file_safe_open(const char *const fname, const int flags, int *const fd)
 
 	errno = 0;
 	rc = syscall(__NR_openat2, AT_FDCWD, fname, &how, sizeof(how));
-	if (rc < 0) {
+	if (rc < 0)
 		return ERR_OPEN;
-	}
-	if (rc > INT_MAX) {
+	if (rc > INT_MAX)
 		return ERR_CNV;
-	}
 
 	*fd = (int) rc;
 	return OK;
 }
 
 #elif defined(O_NOFOLLOW_ANY)
+
 enum error
 file_safe_open(const char *const fname, const int flags, int *const fd)
 {
-	assert(*fname != '\0');
+	assert(*fname);
 
 	errno = 0;
-	/* RATS: ignore; see above. */
 	*fd = open(fname, flags | O_NOFOLLOW_ANY);
-	if (*fd < 0) {
+	if (*fd < 0)
 		return ERR_OPEN;
-	}
 
 	return OK;
 }
