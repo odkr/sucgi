@@ -174,7 +174,8 @@ main(int argc, char **argv)
 		
 		if (getgr) {
 			struct group *grp;	/* A group entry. */
-			
+		
+			errno = 0;
 			grp = getgrent();
 			if (!grp) {
 				if (errno == 0) {
@@ -189,6 +190,7 @@ main(int argc, char **argv)
 		} else {
 			struct passwd *pwd;	/* A passwd entry. */
 			
+			errno = 0;
 			pwd = getpwent();
 			if (!pwd) {
 				if (errno == 0) {
@@ -233,11 +235,11 @@ main(int argc, char **argv)
 		}
 
 		/* RATS: ignore; format string is a literal. */
-		printf("%llu:%s\n", (long long unsigned) id, name);
+		(void) printf("%llu:%s\n", (long long unsigned) id, name);
 	} while (nmax < 0 || nids < (size_t) nmax);
 	
 	if (nids == 0) {
-		errx(ERR_NOMATCH, "no matching ID");
+		errx(ERR_NOMATCH, "no matches");
 	}
 	
 	return EXIT_SUCCESS;
