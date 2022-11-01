@@ -76,7 +76,7 @@ while [ $# -gt 0 ]
 do
 	name="$(basename "$1")"
 
-	env -i PATH="$PATH" "$1" >/dev/null 2>&1 &
+	"$1" >/dev/null 2>&1 &
 	pids="$pids $!"
 	eval "test_$!"='$name'
 	shift
