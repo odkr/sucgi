@@ -132,8 +132,11 @@ _check() (
 		[ "$pipe" = /dev/null ] || rm -f "$pipe"
 	done
 
-	[ "$stat" -eq "$exp_stat" ] || [ "$stat" -eq 141 ] ||
-		_err -s70 -l"${red-}exited with status ${bld-}$stat${rst_r-}."
+	if [ "$stat" -ne "$exp_stat" ] && [ "$stat" -ne 141 ]
+	then
+		_warn -l "${red-}exited with status ${bld-}$stat${rst_r-}."
+		exit 70
+	fi
 
 	rc=0
 	for ch in out err
