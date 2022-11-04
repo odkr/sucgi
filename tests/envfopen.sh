@@ -63,7 +63,7 @@ huge_path="$(mklongpath "$jail" "$path_max")"
 dirwalk "$jail" "$huge_path" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
 # Create a path that is longer than suCGI permits.
-huge_str="$(mklongpath "$jail" 1024)"
+huge_str="$(mklongpath "$jail" 4096)"
 # shellcheck disable=2016
 dirwalk "$jail" "$huge_str" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
