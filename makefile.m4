@@ -34,6 +34,14 @@ cov_cc = default([__cov_cc__], [$(CC)])
 objs = 	lib.a(env.o)  lib.a(error.o) lib.a(file.o)   lib.a(gids.o) \
 	lib.a(path.o) lib.a(priv.o)  lib.a(script.o) lib.a(str.o)
 
+
+#
+# Test headers
+#
+
+test_hdrs = sysdefs.h types.h tests/testdefs.h
+
+
 #
 # Test suite
 #
@@ -143,41 +151,39 @@ lib.a(priv.o): priv.o priv.h
 
 lib.a(str.o): str.c str.h
 
-tests/error: tests/error.c lib.a(error.o) 
+tests/error: tests/error.c $(test_hdrs) lib.a(error.o) 
 
-tests/envclear: tests/envclear.c lib.a(env.o)
+tests/envclear: tests/envclear.c $(test_hdrs) lib.a(env.o)
 
-tests/envfopen: tests/envfopen.c lib.a(env.o)
+tests/envfopen: tests/envfopen.c $(test_hdrs) lib.a(env.o)
 
-tests/envisname: tests/envisname.c lib.a(env.o)
+tests/envisname: tests/envisname.c $(test_hdrs) lib.a(env.o)
 
-tests/envrestore: tests/envrestore.c lib.a(env.o)
+tests/envrestore: tests/envrestore.c $(test_hdrs) lib.a(env.o)
 
-tests/fileisexe: tests/fileisexe.c lib.a(file.o)
+tests/fileisexe: tests/fileisexe.c $(test_hdrs) lib.a(file.o)
 
-tests/fileiswex: tests/fileiswex.c lib.a(file.o)
+tests/fileiswex: tests/fileiswex.c $(test_hdrs) lib.a(file.o)
 
-tests/filesopen: tests/filesopen.c lib.a(file.o)
+tests/filesopen: tests/filesopen.c $(test_hdrs) lib.a(file.o)
 
-tests/gidsget: tests/gidsget.c lib.a(gids.o)
+tests/gidsget: tests/gidsget.c $(test_hdrs) lib.a(gids.o)
 
-tests/scptgetint: tests/scptgetint.c lib.a(script.o)
+tests/scptgetint: tests/scptgetint.c $(test_hdrs) lib.a(script.o)
 
-tests/path: tests/pathissub.c lib.a(path.o) 
+tests/path: tests/pathissub.c $(test_hdrs) lib.a(path.o) 
 
-tests/pathchkfmt: tests/pathchkfmt.c lib.a(path.o)
+tests/pathchkfmt: tests/pathchkfmt.c $(test_hdrs) lib.a(path.o)
 
-tests/pathchkwex: tests/pathchkwex.c lib.a(path.o)
+tests/pathchkwex: tests/pathchkwex.c $(test_hdrs) lib.a(path.o)
 
-tests/privdrop: tests/privdrop.c lib.a(priv.o) lib.a(error.o)
+tests/privdrop: tests/privdrop.c $(test_hdrs) lib.a(priv.o) lib.a(error.o)
 
-tests/strcp: tests/strcp.c lib.a(str.o) 
+tests/strcp: tests/strcp.c $(test_hdrs) lib.a(str.o) 
 
-tests/strsplit: tests/strsplit.c lib.a(str.o)
+tests/strsplit: tests/strsplit.c $(test_hdrs) lib.a(str.o)
 
-tests/main: sucgi.c config.h lib.a
-
-$(check_bins): sysdefs.h types.h tests/testdefs.h
+tests/main: sucgi.c $(test_hdrs) config.h lib.a
 
 
 #
