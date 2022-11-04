@@ -25,8 +25,8 @@
 
 #if defined(__linux__) && __linux__
 #include <linux/version.h>
-#if LINUX_VERSION_CODE && KERNEL_VERSION && \
-    LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0)
+#if defined(LINUX_VERSION_CODE) && defined(KERNEL_VERSION)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0)
 #include <linux/openat2.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
@@ -39,6 +39,7 @@
 #include <limits.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "file.h"
@@ -80,7 +81,7 @@ file_is_wexcl(const uid_t uid, const struct stat fstatus)
  *   - path_check_wexcl should only be passed canonical paths.
  */
 
-#if defined(SYS_openat2)
+#if defined(__NR_openat2)
 
 enum retcode
 file_sopen(const char *const fname, const int flags, int *const fd)
@@ -98,7 +99,7 @@ file_sopen(const char *const fname, const int flags, int *const fd)
 	how.resolve = RESOLVE_NO_SYMLINKS | RESOLVE_NO_MAGICLINKS;
 
 	errno = 0;
-	rc = syscall(SYS_openat2, AT_FDCWD, fname, &how, sizeof(how));
+	rc = syscall(__NR_openat2, AT_FDCWD, fname, &how, sizeof(how));
 	if (rc < 0)
 		return ERR_OPEN;
 	if (rc > INT_MAX)
@@ -124,6 +125,6 @@ file_sopen(const char *const fname, const int flags, int *const fd)
 	return OK;
 }
 
-#else /* !defined(SYS_openat2) && !defined(O_NOFOLLOW_ANY) */
+#else /* !defined(__NR_openat2) && !defined(O_NOFOLLOW_ANY) */
 #error "suCGI requires openat2 or O_NOFOLLOW_ANY."
-#endif /* defined(SYS_openat2) || defined(O_NOFOLLOW_ANY) */
+#endif /* defined(__NR_openat2) || defined(O_NOFOLLOW_ANY) */
