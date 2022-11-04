@@ -1,0 +1,30 @@
+name: macOS build 
+
+on:
+  push:
+    branches: [ "main", "release-*" ]
+  pull_request:
+    branches: [ "main", "release-*" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: sudo apt-get install build-essential m4 lcov
+      run: sudo apt-get install build-essential m4 lcov
+    - name: ./configure
+      run: www_grp=staff cgi_dir=/tmp ./configure
+    - name: make
+      run: make
+    - name: sudo sh tests/main.sh
+      run: 'sudo sh tests/main.sh || :'
+    - name: make check
+      run: make check
+    - name: sudo make check
+      run: sudo make check
+    - name: sudo make install
+      run: sudo make install
+    - name: sudo make uninstall
+      run: sudo make uninstall
+
