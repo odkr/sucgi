@@ -132,7 +132,7 @@ huge_path="$(mklongpath "$doc_root" "$path_max")"
 dirwalk "$doc_root" "$huge_path" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
 # Create a path that is longer than suCGI permits.
-huge_str="$(mklongpath "$doc_root" 1024)"
+huge_str="$(mklongpath "$doc_root" "$PATH_SIZE")"
 dirwalk "$doc_root" "$huge_str" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
 # Create a shortcut to the path that is longer than the system permits.

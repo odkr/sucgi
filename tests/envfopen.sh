@@ -40,6 +40,9 @@ tmpdir chk
 # Prelude
 #
 
+# Load the build configuration
+eval "$(main -c)"
+
 # Create the jail.
 readonly jail="$TMPDIR/jail"
 mkdir "$jail"
@@ -50,7 +53,7 @@ path_max="$(getconf PATH_MAX "$jail")"
 
 # Create a path that is as long as the system and suCGI permit.
 if [ "$path_max" -lt 0 ]
-	then max=4096
+	then max="$PATH_SIZE"
 	else max="$path_max"
 fi
 long_path="$(mklongpath "$jail" "$((max - 1))")"
