@@ -1,5 +1,5 @@
 /*
- * Test try.
+ * Definitions for tests.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -19,45 +19,16 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#include <err.h>
-#include <stdlib.h>
+#if !defined(TESTS_TESTDEFS_H)
+#define TESTS_TESTDEFS_H
 
-#include "../error.h"
+/* Exit statuses for tests. */
+enum status {
+	T_PASS = 0,	/* All tests passed. */
+	T_SKIP = 75,	/* Some tests were skipped. */
+	T_FAIL = 70,	/* At least one test failed. */
+	T_ERR = 1	/* Some error occurred. */
+};
 
-/* Exit status for failures. */
-#define T_FAIL 2
 
-/* try wrapper that should always fail. */
-static enum error
-try_ok (void)
-{
-	try(OK);
-	
-	return FAIL;
-}
-
-/* try wrapper that should always fail. */
-static enum error
-try_err (void)
-{
-	try(FAIL);
-
-	/* This point should not be reached. */
-	return OK;
-}
-
-int
-main (void) {
-	warnx("checking OK ...");
-	if (try_ok() != FAIL) {
-		errx(T_FAIL, "failed");
-	}
-
-	warnx("checking FAIL ...");
-	if (try_err() != FAIL) {
-		errx(T_FAIL, "failed");
-	}
-
-	warnx("all tests passed");
-	return EXIT_SUCCESS;
-}
+#endif /* defined(TESTS_TESTDEFS_H) */

@@ -24,30 +24,35 @@
 
 #if !defined(_FORTIFY_SOURCE)
 #define _FORTIFY_SOURCE 3
-#endif /* !defined(_FORTIFY_SOURCE) */
+#endif
 
 #include <assert.h>
 #include <libgen.h>
 #include <string.h>
 
-#include "error.h"
 #include "script.h"
 #include "str.h"
+#include "sysdefs.h"
+#include "types.h"
 
 
-enum error
+enum retcode
 script_get_inter(const struct pair db[], const char *const script,
-                 char (*const inter)[MAX_STR])
+           char inter[PATH_SIZE])
 {
-	char path[MAX_STR];	/* Copy of script for basename(3). */
+	/* RATS: ignore; writes to path are bounds-checked. */
+	char path[PATH_SIZE];	/* Copy of script for basename(3). */
 	const char *fname;	/* Filename portion of scpt. */
 	const char *suffix;	/* Filename suffix. */
+	enum retcode rc;	/* Return code. */
 
 	assert(*script != '\0');
 
 	/* basename may alter the path it is given. */
-	try(str_cp(MAX_STR, script, path));
+	if ((rc = str_cp(PATH_SIZE - 1U, script, path)) != OK)
+		return rc;
 	fname = basename(path);
+
 	suffix = strrchr(fname, '.');
 	if (!suffix || suffix == fname)
 		return ERR_ILL;
@@ -55,12 +60,11 @@ script_get_inter(const struct pair db[], const char *const script,
 	for (int i = 0; db[i].key; i++) {
 		const struct pair ent = db[i];
 
-		if (strncmp(suffix, ent.key, MAX_STR) == 0) {
+		if (strncmp(suffix, ent.key, PATH_SIZE) == 0) {
 			if (!ent.value || !*(ent.value))
 				return FAIL;
 
-			try(str_cp(MAX_STR, ent.value, *inter));
-			return OK;
+			return str_cp(PATH_SIZE - 1U, ent.value, inter);
 		}
 	}
 

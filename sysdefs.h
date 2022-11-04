@@ -1,5 +1,5 @@
 /*
- * Test file_is_exec.
+ * System defininitions for suCGI.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -19,31 +19,22 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#include <err.h>
-#include <errno.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/stat.h>
+#if !defined(SYSDEFS_H)
+#define SYSDEFS_H
 
-#include "../file.h"
+#include <limits.h>
 
-int
-main (int argc, char **argv)
-{
-	struct stat fstatus;
-	
-	if (argc != 2) {
-		(void) fputs("usage: file_is_exec FNAME\n", stderr);
-		return EXIT_FAILURE;
-	}
 
-	errno = 0;
-	if (stat(argv[1], &fstatus) != 0)
-		err(EXIT_FAILURE, "stat %s", argv[1]);
+/* Excise function attributes unless the compiler understands GNU C. */
+#if !defined(__GNUC__) || !__GNUC__
+#define __attribute__(attr)
+#endif
 
-	if (file_is_exec(fstatus))
-		return EXIT_SUCCESS;
+/* Size for arrays that hold filenames. */
+#if defined(PATH_MAX) && PATH_MAX > _POSIX_PATH_MAX
+#define PATH_SIZE PATH_MAX
+#else
+#define PATH_SIZE 4096
+#endif
 
-	return EXIT_FAILURE;
-}
+#endif /* !defined(SYSDEFS_H) */

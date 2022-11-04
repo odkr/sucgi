@@ -22,30 +22,23 @@
 #if !defined(GIDS_H)
 #define GIDS_H
 
-#include "config.h"
-#include "error.h"
+#include "types.h"
 
 
 /*
- * Functions
- */
-
-/*
- * Fetch the groups that the user named LOGNAME is a member of and store
+ * Fetch NGIDS groups that the user named LOGNAME is a member of and store
  * the group ID GID as well the group IDs of those groups in GIDS and the
- * total number of group IDs, including GID, in N.
+ * total number of group IDs, including GID, in NGIDS.
  *
- * GIDS must be large enough to hold NGROUPS_MAX supplementary groups.
+ * GIDS must be large enough to hold NGIDS supplementary groups.
  *
  * Return code:
- *      OK            Success.
- *      ERR_LEN       LOGNAME belongs to more than MAX_GROUPS groups.
- *      ERR_GETGRENT  getgrent(3) failed.
- *
- *      Errors marked with an asterisk should be impossible.
+ *      OK         Success.
+ *      ERR_LEN    LOGNAME belongs to more than NGIDS groups.
+ *      ERR_GETGR  getgrent(3) failed.
  */
-__attribute__((no_sanitize("alignment"), nonnull(3, 4), warn_unused_result))
-enum error gids_get(const char *const logname, const gid_t basegid,
-                    gid_t (*const gids)[MAX_GROUPS], int *const ngids);
+__attribute__((no_sanitize("alignment"), nonnull(1, 3, 4), warn_unused_result))
+enum retcode gids_get(const char *const logname, const gid_t basegid,
+                      gid_t *const gids, int *const ngids);
 
 #endif /* !defined(GIDS_H) */

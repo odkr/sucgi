@@ -22,11 +22,10 @@
 #if !defined(PRIV_H)
 #define PRIV_H
 
-#include <limits.h>
 #include <pwd.h>
 
-#include "macros.h"
-#include "error.h"
+#include "sysdefs.h"
+#include "types.h"
 
 
 /*
@@ -35,16 +34,16 @@
  * is the number of group IDs in GIDS.
  *
  * Return code:
- *      OK             Success.
- *      ERR_CNV        NGIDS is smaller than 0.
- *      ERR_SETUID     setuid(2) failed.
- *      ERR_SETGID     setgid(2) failed.
- *      ERR_SETGROUPS  setgroups(2) failed.
- *      FAIL           Superuser privileges could be resumed.
+ *      OK           Success.
+ *      ERR_CNV      NGIDS is smaller than 0.
+ *      ERR_SETUID   setuid(2) failed.
+ *      ERR_SETGID   setgid(2) failed.
+ *      ERR_SETGRPS  setgroups(2) failed.
+ *      FAIL         Superuser privileges could be resumed.
  */
 __attribute__((nonnull(4), warn_unused_result))
-enum error priv_drop(const uid_t uid, const gid_t gid,
-                     const int ngids, const gid_t gids[ngids]);
+enum retcode priv_drop(const uid_t uid, const gid_t gid,
+                       const int ngids, const gid_t gids[ngids]);
 
 
 #endif /* !defined(PRIV_H) */

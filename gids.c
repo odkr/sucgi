@@ -21,33 +21,39 @@
 
 #if !defined(_FORTIFY_SOURCE)
 #define _FORTIFY_SOURCE 3
-#endif /* !defined(_FORTIFY_SOURCE) */
+#endif
 
+#include <assert.h>
 #include <errno.h>
 #include <grp.h>
 #include <string.h>
 
-#include "str.h"
 #include "gids.h"
-#include "error.h"
+#include "str.h"
+#include "types.h"
 
 
 /*
- * getgrouplist(3) is neither in POSIX.1-2008 nor in 4.4BSD, and its
- * implementations differ. So re-inventing the wheel seemed the most
- * straightforward course of action.
- *
- * Note, the function signature and the semantics of gids_get
- * differ from those of getgrouplist(3), if subtly.
+ * Apple's getgrouplist(3) implementation is broken. It fetches group IDs
+ * as an array of integers, rather than as an array of GIDs, which does not
+ * even line up with their own setgroups(2) implementation. Re-inventing
+ * the wheel seemed the most straightforward course of action.
  */
-enum error
+enum retcode
 gids_get(const char *const logname, const gid_t basegid,
-         gid_t (*const gids)[MAX_GROUPS], int *const ngids)
+         gid_t *const gids, int *const ngids)
 {
-	struct group *grp;	/* A group. */
+	struct group *grp;	/* Group. */
+	int max;		/* Maximum numer of groups. */
 
-	(*gids)[0] = basegid;
+	assert(*logname);
+	assert(*ngids > -1);
+
+	max = *ngids;
 	*ngids = 1;
+
+	if (max > 0)
+		gids[0] = basegid;
 
 	setgrent();
 	while ((errno = 0, grp = getgrent())) {
@@ -62,20 +68,19 @@ gids_get(const char *const logname, const gid_t basegid,
 			const char *mem = grp->gr_mem[i];
 
 			if (gid != basegid && strcmp(mem, logname) == 0) {
-				if (*ngids < MAX_GROUPS)
-					(*gids)[*ngids] = gid;
+				if (*ngids < max)
+					gids[*ngids] = gid;
 				(*ngids)++;
 				break;
 			}
 		}
-
 	}
 	endgrent();
 
-	if (errno != 0)
-		return ERR_GETGRENT;
-	if (*ngids > MAX_GROUPS)
+	if (*ngids > max)
 		return ERR_LEN;
+	if (errno != 0)
+		return ERR_GETGR;
 
 	return OK;
 }

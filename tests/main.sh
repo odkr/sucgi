@@ -72,6 +72,7 @@ eval home="~$user"
 readonly user group home
 
 # Create a temporary directory and a document root.
+# shellcheck disable=2059
 doc_root="$(printf -- "$USER_DIR" "$home")"
 
 IFS=/ i=0 tmp=
@@ -118,8 +119,8 @@ path_max="$(getconf PATH_MAX "$TMPDIR")"
 [ "$path_max" -lt 0 ] && path_max=255
 
 # Create a path that is as long as the system and suCGI permit.
-if [ "$path_max" -gt 1024 ]
-	then max=1024
+if [ "$path_max" -lt 0 ]
+	then max=4096
 	else max="$path_max"
 fi
 long_path="$(mklongpath "$doc_root" "$((max - 1))")"
@@ -128,19 +129,19 @@ echo $$ >"$long_path"
 
 # Create a path that is longer than the system permits.
 huge_path="$(mklongpath "$doc_root" "$path_max")"
-traverse "$doc_root" "$huge_path" 'mkdir "$fname"' 'echo $$ >"$fname"'
+dirwalk "$doc_root" "$huge_path" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
 # Create a path that is longer than suCGI permits.
 huge_str="$(mklongpath "$doc_root" 1024)"
-traverse "$doc_root" "$huge_str" 'mkdir "$fname"' 'echo $$ >"$fname"'
+dirwalk "$doc_root" "$huge_str" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
 # Create a shortcut to the path that is longer than the system permits.
-huge_path_link="$doc_root/$(traverse "$doc_root" "$huge_path" \
+huge_path_link="$doc_root/$(dirwalk "$doc_root" "$huge_path" \
 	'ln -s "$fname" p.d && printf p.d/' \
 	'ln -s "$fname" p.f && printf p.f\\n')"
 
 # Create a shortcut to the path that is longer than suCGI permits.
-huge_str_link="$doc_root/$(traverse "$doc_root" "$huge_str" \
+huge_str_link="$doc_root/$(dirwalk "$doc_root" "$huge_str" \
 	'ln -s "$fname" s.d && printf s.d/' \
 	'ln -s "$fname" s.f && printf s.f\\n')"
 
@@ -180,6 +181,34 @@ skipped=
 
 
 #
+# Check the help dialogue.
+#
+
+check -o 'Print this help screen.' main -h
+
+
+#
+# Check the configuration dump.
+#
+
+check -o 'JAIL_DIR' main -c
+
+
+#
+# Check the version dump.
+#
+
+check -o 'suCGI' main -V
+
+
+#
+# Check the usage message.
+#
+
+check -s 1 -e 'usage: sucgi' main --no-long-opts 
+
+
+#
 # Too many environment variables.
 #
 
@@ -195,23 +224,19 @@ check -s 1 -e'too many environment variables.' \
 tests_dir=$(cd -P "$script_dir" && pwd) ||
 	err 'failed to get working directory.'
 
-check -s1 -e'encountered malformed variable.' \
+check -s1 -e'encountered malformed environment variable.' \
 	badenv -n3 bar=bar baz=baz foo "$tests_dir/main"
 
-check -s1 -e'encountered malformed variable.' \
+check -s1 -e'encountered malformed environment variable.' \
 	badenv 'SSL_CLIENT_S_DN_ =bar' foo=foo baz=baz "$tests_dir/main"
 
-check -s1 -e'encountered malformed variable.' \
+check -s1 -e'encountered malformed environment variable.' \
 	badenv -n3 foo=foo '' bar=bar "$tests_dir/main"
 
 
 #
 # Verification of $DOCUMENT_ROOT (pre-privilege drop).
 #
-
-# TODO:
-# Wrong JAILs require separate binaries.
-# (non-existent jail)
 
 # No DOCUMENT_ROOT given.
 check -s1 -e'$DOCUMENT_ROOT unset or empty.' \
@@ -222,7 +247,7 @@ check -s1 -e'$DOCUMENT_ROOT unset or empty.' \
 	DOCUMENT_ROOT= main
 
 # $DOCUMENT_ROOT is too long (suCGI).
-check -s1 -e'encountered suspiciously long variable.' \
+check -s1 -e'encountered suspiciously long environment variable.' \
 	DOCUMENT_ROOT="$huge_str" main
 
 # $DOCUMENT_ROOT is too long (system).
@@ -319,6 +344,7 @@ check -s1 -e"realpath $doc_root/<no file!>: No such file or directory." \
 	PATH_TRANSLATED="$doc_root/<no file!>" main
 
 # Simple test. Should fail but regard PATH_TRANSLANTED as valid.
+# shellcheck disable=2046
 if [ "$user" = "$(id -un 0)" ]
 then
 	err="script $inside is owned by privileged user $user."
@@ -329,7 +355,7 @@ elif inlist -eq 0 $(id -G "$user")
 then
 	err="user $user belongs to privileged group 0."
 else
-	err='seteuid 0: Operation not permitted.'
+	err='seteuid: Operation not permitted.'
 fi
 check -s1 -e"$err" \
 	PATH_TRANSLATED="$inside" main
@@ -616,7 +642,7 @@ done
 if [ "$skipped" ]
 then
 	warn -y "some tests were skipped."
-	exit 1
+	exit 75
 else
 	warn -g 'all tests passed.'
 fi

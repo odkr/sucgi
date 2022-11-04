@@ -1,5 +1,5 @@
 /*
- * Test path_contains.
+ * Test path_is_subdir.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -25,46 +25,46 @@
 #include <string.h>
 
 #include "../path.h"
+#include "testdefs.h"
+#include "testdefs.h"
 
-/* Exit status for failures. */
-#define T_FAIL 2
 
 /* Test case. */
 struct args {
-	const char *parent;
 	const char *fname;
+	const char *parent;
 	const bool ret;
 };
 
 
 /* Tests. */
-const struct args tests[] = {
+static const struct args tests[] = {
 	/* Absolute paths. */
-	{"/", "/foo", true},
-	{"/foo", "/foo/bar", true},
-	{"/foo", "/bar", false},
+	{"/foo", "/", true},
+	{"/foo/bar", "/foo", true},
 	{"/bar", "/foo", false},
-	{"/foo", "/foobar", false},
-	{"/", "foo", false},
-	{"/foo", "/", false},
+	{"/foo", "/bar", false},
+	{"/foobar", "/foo", false},
+	{"foo", "/", false},
+	{"/", "/foo", false},
 	{"/foo", "/foo", false},
 	{"/", "/", false},
 
 	/* Relative paths. */
-	{"foo", "foo/bar", true},
+	{"foo/bar", "foo", true},
 	{"foo", "foo", false},
-	{"bar", "foo", false},
+	{"foo", "bar", false},
 
 	/* Leading dot. */
-	{".", "./foo", true},
-	{"./foo", "./foo/bar", true},
-	{".", ".foo", true},
-	{"./bar", "./foo", false},
-	{"./foo", ".", false},
-	{"./foo", "./", false},
+	{"./foo", ".", true},
+	{"./foo/bar", "./foo", true},
+	{".foo", ".", true},
+	{"./foo", "./bar", false},
+	{".", "./foo", false},
+	{"./", "./foo", false},
 	{"./foo", "./foo", false},
 	{".", ".", false},
-	{".f", ".foo", false},
+	{".foo", ".f", false},
 	{".foo", ".foo", false},
 
 	/* Terminator. */
@@ -80,12 +80,12 @@ main (void)
 		bool ret;
 
 		warnx("checking (%s, %s) -> %s ...",
-		      t.parent, t.fname, (t.ret) ? "true" : "false");
+		      t.fname, t.parent, (t.ret) ? "true" : "false");
 
-		ret = path_contains(t.parent, t.fname);
+		ret = path_is_subdir(t.fname, t.parent);
 		if (ret != t.ret) {
 			char *what = (ret) ? "true" : "false";
-			errx(T_FAIL, "path_contains returned %s", what);
+			errx(T_FAIL, "path_is_subdir returned %s", what);
 		}
 	}
 

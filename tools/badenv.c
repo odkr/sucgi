@@ -21,6 +21,7 @@
 
 #include <err.h>
 #include <errno.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,38 +36,33 @@ extern char **environ;
 int
 main (int argc, char **argv)
 {
-	char **new;		/* The new environment. */
-	char **vars;		/* The new variables. */
-	char **cmd;		/* The command. */
-	long nenv;		/* Number of current variables. */
-	long nvars;		/* Number of new variables. */
-	bool ienv;		/* Inherit current environment? */
+	char **vars;		/* The new environment variables. */
+	long n;			/* Number of those variables. */
+	long ncur;		/* Number of current variables. */
+	bool copy;		/* Copy current environment? */
 	int ch;			/* An option character. */
 
-	errno = 0;
-	nvars = -1;
-	nenv = 0;
-	ienv = true;
+	n = -1;
+	ncur = 0;
+	copy = true;
 
 	/* RATS: ignore */
-	while ((ch = getopt(argc, argv, "in:h")) != -1) {
+	while ((ch = getopt(argc, argv, "in:h")) != -1)
 		switch (ch) {
-			case 'i':
-				ienv = false;
-				break;
-			case 'n':
-				nvars = strtol(optarg, NULL, 10);
-				if (errno != 0) {
-					err(EXIT_FAILURE,
-					    "strtol %s", optarg);
-				}
-				if (nvars < 0) {
-					errx(EXIT_FAILURE,
-					     "-n: must be non-negative");
-				}
-				break;
-			case 'h':
-				(void) puts(
+		case 'i':
+			copy = false;
+			break;
+		case 'n':
+			n = strtol(optarg, NULL, 10);
+			if (errno != 0)
+				err(EXIT_FAILURE, "-n");
+			if (n < 0)
+				errx(EXIT_FAILURE, "-n: is negative");
+			if (n > INT_MAX)
+				errx(EXIT_FAILURE, "-n: is too large");
+			break;
+		case 'h':
+			(void) puts(
 "badenv - run a programme with a given environment, any environment\n\n"
 "Usage:    badenv [-i] [-n N] [VAR ...] [CMD [ARG ...]]\n"
 "          badenv -h\n\n"
@@ -81,44 +77,41 @@ main (int argc, char **argv)
 "Copyright 2022 Odin Kroeger.\n"
 "Released under the GNU General Public License.\n"
 "This programme comes with ABSOLUTELY NO WARRANTY."
-				);
-				return EXIT_SUCCESS;
-			default:
-				return EXIT_FAILURE;
+			);
+			return EXIT_SUCCESS;
+		default:
+			return EXIT_FAILURE;
 		}
-	}
+	argv += optind;
+	argc -= optind;
 
-	if ((int) nvars > (argc - optind))
+	if ((int) n > argc)
 		errx(EXIT_FAILURE, "-n: not that many arguments");
 
-	vars = &argv[optind];
-	if (nvars < 0) {
-		nvars = 0;
-		while (vars[nvars] && strstr(vars[nvars], "="))
-			nvars++;
-	}
-	if (ienv) {
-		while (environ[nenv])
-			nenv++;
-	}
+	if (n < 0)
+		for (n = 0; n < argc && strstr(argv[n], "="); n++)
+			; /* Empty on purpose. */
+	if (copy)
+		for (; environ[ncur]; ncur++)
+			; /* Empty on purpose. */
 
-	new = calloc((size_t) (nenv + nvars + 1), sizeof(char *));
-	if (!new)
+	vars = calloc((size_t) (ncur + n + 1), sizeof(char *));
+	if (!vars)
 		err(EXIT_FAILURE, "calloc");
 
-	for (long i = 0; i < nenv; i++)
-		new[i] = environ[i];
-	for (long i = 0; i < nvars; i++)
-		new[nenv + i] = vars[i];
+	for (long i = 0; i < ncur; i++)
+		vars[i] = environ[i];
+	for (long i = 0; i < n; i++)
+		vars[ncur + i] = argv[i];
 
-	cmd = &argv[(size_t) (optind + nvars)];
-	if (*cmd) {
-		(void) execve(*cmd, cmd, new);
-		err(EXIT_FAILURE, "exec %s", *cmd);
+	argv += n;
+	if (*argv) {
+		(void) execve(*argv, argv, vars);
+		err(EXIT_FAILURE, "exec %s", *argv);
 	}
 
-	for (; *new; new++)
-		(void) puts(*new);
+	for (; *vars; vars++)
+		(void) puts(*vars);
 
 	return EXIT_SUCCESS;
 }

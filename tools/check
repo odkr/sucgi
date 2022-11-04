@@ -68,7 +68,7 @@ fi
 # Main
 #
 
-testc=$# errc=0 skipc=0 passc=0 pids=
+failc=0 skipc=0 passc=0 pids=
 while [ $# -gt 0 ]
 do
 	name="$(basename "$1")"
@@ -88,17 +88,18 @@ do
 		wait "$pid"
 		# shellcheck disable=2154
 		case $? in
-			(0) passc=$((passc + 1)) ;;
-			(1) warn -yq "${bld-}$name${rst_y-} has skipped tests."
-			    skipc=$((skipc + 1)) ;;
-			(*) warn -rq "${bld-}$name${rst_r-} failed!"
-			    errc=$((errc + 1)) ;;
+			(0)  passc=$((passc + 1)) ;;
+			(70) warn -rq "${bld-}$name${rst_r-} failed!"
+			     failc=$((failc + 1)) ;;
+			(75) warn -yq "${bld-}$name${rst_y-} skipped tests."
+			     skipc=$((skipc + 1)) ;;
+			(*)  err "${bld-}$name${rst_r-} errored out!"
 		esac
 		set -e
 	done
 	pids=
 done
 
-[ "$errc" -eq 0 ] && warn -gq 'all tests passed.'
+[ "$failc" -eq 0 ] && warn -gq 'all tests passed.'
 
-exit $errc
+exit $failc

@@ -19,6 +19,7 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <sys/types.h>
 #include <err.h>
 #include <errno.h>
 #include <grp.h>
@@ -27,20 +28,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 #include "../error.h"
 #include "../priv.h"
 
+
 int
 main (int argc, char **argv)
 {
 	struct passwd *pwd;	/* The passwd entry of the given user. */
-	enum error rc;		/* A return code. */
+	enum retcode rc;	/* A return code. */
 
 	if (argc != 2) {
-		(void) fputs("usage: priv_drop LOGNAME\n", stderr);
+		(void) fputs("usage: privdrop LOGNAME\n", stderr);
 		return EXIT_FAILURE;
 	}
 	
@@ -55,21 +56,21 @@ main (int argc, char **argv)
 
 	rc = priv_drop(pwd->pw_uid, pwd->pw_gid, 1, (gid_t[1]) {pwd->pw_gid});
        	switch (rc) {
-       		case OK:
-       			break;
-       		case ERR_SETGROUPS:
-       			error("setgroups %llu ...: %m.",
-       			      (long long unsigned) pwd->pw_gid);
-       		case ERR_SETGID:
-       			error("setgid %llu: %m.",
-       			      (long long unsigned) pwd->pw_gid);
-       		case ERR_SETUID:
-       			error("setuid %llu: %m.",
-       			      (long long unsigned) pwd->pw_uid);
-       		case FAIL:
-       			error("could resume superuser privileges.");
-       		default:
-       			error("returned %u.", rc);
+	case OK:
+		break;
+	case ERR_SETGRPS:
+		err(EXIT_FAILURE,"setgroups %llu ...",
+		    (long long unsigned) pwd->pw_gid);
+	case ERR_SETGID:
+		err(EXIT_FAILURE, "setgid %llu",
+		    (long long unsigned) pwd->pw_gid);
+	case ERR_SETUID:
+		err(EXIT_FAILURE, "setuid %llu",
+		    (long long unsigned) pwd->pw_uid);
+	case FAIL:
+		errx(EXIT_FAILURE, "could resume superuser privileges.");
+	default:
+		errx(EXIT_FAILURE, "returned %u.", rc);
        	}
 
 	(void) printf("euid=%llu egid=%llu ruid=%llu rgid=%llu\n",

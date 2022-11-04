@@ -19,24 +19,24 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <sys/types.h>
 #include <err.h>
 #include <errno.h>
 #include <grp.h>
 #include <pwd.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/types.h>
 #include <unistd.h>
+
 
 int
 main (int argc, char **argv)
 {
 	struct passwd *pwd;	/* The user. */
-	char **cmd;		/* The command. */
 	int ch;			/* An option character. */
 
 	/* RATS: ignore */
-	while ((ch = getopt(argc, argv, "h")) != -1) {
+	while ((ch = getopt(argc, argv, "h")) != -1)
 		switch (ch) {
 			case 'h':
 				(void) puts(
@@ -57,8 +57,6 @@ main (int argc, char **argv)
 			default:
 				return EXIT_FAILURE;
 		}
-	}
-
 	argc -= optind;
 	argv += optind;
 
@@ -86,10 +84,10 @@ main (int argc, char **argv)
 		err(EXIT_FAILURE, "setuid %llu",
 		    (long long unsigned) pwd->pw_uid);
 
-	cmd = &argv[1];
+	argv++;
 	/* RATS: ignore */
-	(void) execvp(*cmd, cmd);
+	(void) execvp(*argv, argv);
 
 	/* This point should not be reached. */
-	err(EXIT_FAILURE, "exec %s", *cmd);
+	err(EXIT_FAILURE, "exec %s", *argv);
 }

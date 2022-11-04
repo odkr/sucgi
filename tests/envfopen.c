@@ -1,5 +1,5 @@
 /*
- * Test env_file_open.
+ * Test env_fopen.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -19,12 +19,12 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <sys/stat.h>
 #include <err.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
 #include <unistd.h>
 
 #include "../env.h"
@@ -34,58 +34,54 @@
 int
 main (int argc, char **argv)
 {
+	/* RATS: ignore */
+	char buf[BUFSIZ];	/* Buffer. */
 	char *jail;		/* Jail directory. */
 	char *var;		/* Variable name. */
+	const char *fname;	/* Filename. */
 	int flags;		/* Open flags. */
+	int fd;			/* File descriptor. */
+	ssize_t n;		/* Bytes read. */
+	enum retcode rc;		/* Return code. */
 
-	
 	if (argc != 4) {
-		(void) fputs("usage: env_file_open JAIL VAR f|d\n", stderr);
+		(void) fputs("usage: envfopen JAIL VAR f|d\n", stderr);
 		return EXIT_FAILURE;
 	}
 
 	jail = argv[1];
 	var = argv[2];
-	flags = O_RDONLY | O_CLOEXEC;
+	flags = O_RDONLY;
 
 	if      (strncmp(argv[3], "d", 2) == 0)
 		flags = flags | O_DIRECTORY;
 	else if (strncmp(argv[3], "f", 2) == 0)
-		/* Do nothing. */;
+		; /* Empty on purpose. */
 	else
 		errx(EXIT_FAILURE, "filetype must be 'f' or 'd'.");
 
-
-	const char *fname;	/* Filename. */
-	int fd;			/* File descriptor. */
-	enum error rc;		/* Return code. */
-
-	rc = env_file_open(jail, var, flags, &fname, &fd);
+	rc = env_fopen(jail, var, flags, &fname, &fd);
 	switch (rc) {
-		case OK:
-			break;
-		case ERR_GETENV:
-			error("getenv %s: %m.", var);
-		case ERR_REALPATH:
-			error("realpath %s: %m.", fname);
-		case ERR_OPEN:
-			error("open %s: %m.", fname);
-		case ERR_LEN:
-			error("path too long.");
-		case ERR_ILL:
-			error("file %s not within jail.", fname);
-		case ERR_NIL:
-			error("$%s unset or empty.", var);
-		default:
-			error("returned %u.", rc);
+	case OK:
+		break;
+	case ERR_ENV:
+		err(EXIT_FAILURE, "getenv %s", var);
+	case ERR_RES:
+		err(EXIT_FAILURE, "realpath %s", fname);
+	case ERR_OPEN:
+		err(EXIT_FAILURE, "open %s", fname);
+	case ERR_LEN:
+		errx(EXIT_FAILURE, "path too long");
+	case ERR_ILL:
+		errx(EXIT_FAILURE, "file %s not within jail", fname);
+	case ERR_NIL:
+		errx(EXIT_FAILURE, "$%s unset or empty", var);
+	default:
+		errx(EXIT_FAILURE, "returned %u.", rc);
 	}
 
 	/* RATS: ignore */
-	char buf[MAX_STR];	/* Buffer. */
-	ssize_t n;		/* Bytes read. */
-
-	/* RATS: ignore */
-	while ((n = read(fd, &buf, MAX_STR)) > 0)
+	while ((n = read(fd, &buf, BUFSIZ)) > 0)
 		(void) write(1, buf, (size_t) n);
 
 	if (n < 0)

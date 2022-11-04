@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Test if env_file_open only returns safe filenames.
+# Test if envfopen only returns safe filenames.
 #
 # Copyright 2022 Odin Kroeger
 #
@@ -49,8 +49,8 @@ path_max="$(getconf PATH_MAX "$jail")"
 [ "$path_max" -lt 0 ] && path_max=255
 
 # Create a path that is as long as the system and suCGI permit.
-if [ "$path_max" -gt 1024 ]
-	then max=1024
+if [ "$path_max" -lt 0 ]
+	then max=4096
 	else max="$path_max"
 fi
 long_path="$(mklongpath "$jail" "$((max - 1))")"
@@ -60,22 +60,22 @@ echo $$ >"$long_path"
 # Create a path that is longer than the system permits.
 huge_path="$(mklongpath "$jail" "$path_max")"
 # shellcheck disable=2016
-traverse "$jail" "$huge_path" 'mkdir "$fname"' 'echo $$ >"$fname"'
+dirwalk "$jail" "$huge_path" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
 # Create a path that is longer than suCGI permits.
 huge_str="$(mklongpath "$jail" 1024)"
 # shellcheck disable=2016
-traverse "$jail" "$huge_str" 'mkdir "$fname"' 'echo $$ >"$fname"'
+dirwalk "$jail" "$huge_str" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
 # Create a shortcut to the path that is longer than the system permits.
 # shellcheck disable=2016
-huge_path_link="$jail/$(traverse "$jail" "$huge_path" \
+huge_path_link="$jail/$(dirwalk "$jail" "$huge_path" \
 	'ln -s "$fname" p.d && printf p.d/' \
 	'ln -s "$fname" p.f && printf p.f\\n')"
 
 # Create a shortcut to the path that is longer than suCGI permits.
 # shellcheck disable=2016
-huge_str_link="$jail/$(traverse "$jail" "$huge_str" \
+huge_str_link="$jail/$(dirwalk "$jail" "$huge_str" \
 	'ln -s "$fname" s.d && printf s.d/' \
 	'ln -s "$fname" s.f && printf s.f\\n')"
 
@@ -102,79 +102,76 @@ ln -fs "$inside" "$in_link"
 
 # Jail directory is the empty string.
 check -s134 -e'*jail' \
-	var="$jail/file" env_file_open "" var f
+	var="$jail/file" envfopen "" var f
 
 # Environment variable is the empty string.
 check -s134 -e'*var' \
-	var="$jail/file" env_file_open "$jail" "" f
+	var="$jail/file" envfopen "$jail" "" f
 
-# Path to jail directory is longer than MAX_STR.
-check -s134 -e'strnlen(jail, MAX_STR) < MAX_STR' \
-	var="$jail" env_file_open "$huge_str" var f
+# Path to jail directory is longer than PATH_SIZE.
+check -s134 -e'strnlen(jail, PATH_SIZE) < PATH_SIZE' \
+	var="$jail" envfopen "$huge_str" var f
 
 # Jail directory does not exist.
 check -s134 -e'access(jail, F_OK) == 0' \
-	var="<no file!>/foo" env_file_open '<no file!>' var f
+	var="<no file!>/foo" envfopen '<no file!>' var f
 
 # Path to jail directory is not canonical.
-check -s134 -e'strncmp(jail, realpath(jail, NULL), MAX_STR) == 0' \
-	var="$jail/foo" env_file_open "$in_link" var f
+check -s134 -e'strncmp(jail, realpath(jail, NULL), PATH_SIZE) == 0' \
+	var="$jail/foo" envfopen "$in_link" var f
 
 # shellcheck disable=2016
 check -s1 -e'$var unset or empty' \
-	env_file_open "$jail" var f
+	envfopen "$jail" var f
 
 # shellcheck disable=2016
 check -s1 -e'$var unset or empty' \
-	var= env_file_open "$jail" var f
+	var= envfopen "$jail" var f
 
 # Path to file is too long (system).
 check -s1 -e'too long' \
-	var="$huge_str" env_file_open "$jail" var f
+	var="$huge_str" envfopen "$jail" var f
 
 # Value of environment variable is too long (suCGI).
 check -s1 -e'path too long' \
-	var="$huge_str" env_file_open "$jail" var f
+	var="$huge_str" envfopen "$jail" var f
 
 # Path to file is too long after having been resolved (system).
 check -s1 -e'too long' \
- 	var="$huge_path_link" env_file_open "$jail" var f
+ 	var="$huge_path_link" envfopen "$jail" var f
 
 # Path to file is too long after having been resolved (suCGI).
 check -s1 -e'too long' \
- 	var="$huge_str_link" env_file_open "$jail" var f
+ 	var="$huge_str_link" envfopen "$jail" var f
 
 # Path points to outside of jail directory.
 check -s1 -e"file $outside not within jail" \
-	var="$outside" env_file_open "$jail" var f
+	var="$outside" envfopen "$jail" var f
 
 # Resolved path points to outside of jail directory (dots).
 check -s1 -e"file $outside not within jail" \
-	var="$jail/../outside" env_file_open "$jail" var f
+	var="$jail/../outside" envfopen "$jail" var f
 
 # Resolved path points to outside of jail directory (symlink).
 check -s1 -e"file $outside not within jail" \
-	var="$out_link" env_file_open "$jail" var f
+	var="$out_link" envfopen "$jail" var f
 
 # File is of the wrong type.
 check -s1 -e"open $inside: Not a directory" \
-	var="$inside" env_file_open "$jail" var d
+	var="$inside" envfopen "$jail" var d
 
 # File does not exist.
 check -s1 -e"realpath <no file!>: No such file or directory" \
-	var="<no file!>" env_file_open "$jail" var d
+	var="<no file!>" envfopen "$jail" var d
 
 # Simple test.
-check -s0 -o$$ \
-	var="$inside" env_file_open "$jail" var f
+check -s0 -o$$ var="$inside" envfopen "$jail" var f
 
 # Long filename.
-check -s0 -o$$ \
-	var="$long_path" env_file_open "$jail" var f
+check -s0 -o$$ var="$long_path" envfopen "$jail" var f
 
 # Resolved path is inside of jail.
-check -s0 -o$$ \
-	var="$in_link" env_file_open "$jail" var f
+check -s0 -o$$ var="$in_link" envfopen "$jail" var f
 
-# l good.
+# All good.
 warn -g "all tests passed."

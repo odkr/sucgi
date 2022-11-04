@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Test priv_drop.
+# Test if filesopen only opens secure files.
 #
 # Copyright 2022 Odin Kroeger
 #
@@ -40,52 +40,19 @@ tmpdir chk
 # Prelude
 #
 
-eval "$(main -c)"
-
-export PATH
-user="$(id -un)"
-uid="$(id -u)"
-cd -P "$script_dir" || exit
+file="$TMPDIR/file"
+echo $$ >"$file"
+symlink="$TMPDIR/symlink"
+ln -s "$TMPDIR" "$symlink"
 
 
 #
-# Test
+# Main
 #
 
-skipc=0
-if [ "$uid" -eq 0 ]
-then
-	owner="$(owner "$src_dir")"
-	if [ "$(id -u "$owner")" -eq 0 ]
-	then
-		warn -y "${bld-}$src_dir${rst_y-} owned by superuser."
-		skipc=$((skipc + 1))
-	else
-		check -s1 -e'Operation not permitted' \
-			runas "$owner" priv_drop "$owner"
-	fi
+check -s0 -o$$					filesopen "$file" f
+check -s1 -e'Not a directory'			filesopen "$file" d
+check -s1 -e'Too many levels of symbolic links'	filesopen "$symlink" d
+check -s1 -e'No such file or directory'		filesopen '<no file!>' f
 
-	if ! regular="$(reguser $MIN_UID $MAX_UID $MIN_GID $MAX_GID)"
-	then
-		warn -y "no regular user found."
-		skipc=$((skipc + 1))
-	else
-		uid="$(id -u "$regular")"
-		gid="$(id -g "$regular")"
-		
-		check -s0 -o"euid=$uid egid=$gid ruid=$uid rgid=$gid" \
-			priv_drop "$regular"
-	fi	
-
-	check -s1 -e'could resume superuser privileges' \
-		priv_drop "$user"
-
-	case $skipc in
-		(0) warn -g "all tests passed." ;;
-		(*) warn -y "${bld-}$skipc${rst_y-} tests skipped." ;;
-	esac
-else
-	check -s1 -e'Operation not permitted' priv_drop "$user"
-	warn -y "all non-superuser tests passed."
-fi
-
+warn -g "all tests passed."

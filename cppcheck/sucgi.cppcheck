@@ -7,7 +7,7 @@
 		<define name="__GNUC__"/>
 		<define name="__linux__"/>
 		<define name="PATH_MAX=4096"/>
-		<define name="__NR_openat2=437"/>
+		<define name="SYS_openat2=437"/>
 		<define name="UID_MAX=2147483647U"/>
 		<define name="GID_MAX=2147483647U"/>
 		<define name="LOG_PERROR=32"/>

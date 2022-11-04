@@ -24,22 +24,23 @@
 #include <string.h>
 
 #include "../str.h"
+#include "../sysdefs.h"
+#include "testdefs.h"
+#include "testdefs.h"
 
-/* Exit status for failures. */
-#define T_FAIL 2
 
 /* Test case. */
 struct args {
 	size_t n;
 	const char *src;
 	const char *dest;
-	const enum error rc;
+	const enum retcode rc;
 };
 
 /* Tests. */
-const struct args tests[] = {
+static const struct args tests[] = {
 	/* Simple test. */
-	{MAX_STR - 1U, "foo", "foo", OK},
+	{PATH_SIZE - 1U, "foo", "foo", OK},
 
 	/* Almost out of bounds. */
 	{1, "x", "x", OK},
@@ -51,7 +52,7 @@ const struct args tests[] = {
 	{0, "foo", "", ERR_LEN},
 
 	/* Empty strings. */
-	{MAX_STR - 1U, "", "", OK},
+	{PATH_SIZE - 1U, "", "", OK},
 	{1, "", "", OK},
 	{0, "", "", OK},
 
@@ -64,8 +65,8 @@ int
 main (void) {
 	for (int i = 0; tests[i].src; i++) {
 		struct args t = tests[i];
-		char dest[MAX_STR];	/* RATS: ignore */
-		enum error rc; 
+		char dest[PATH_SIZE];	/* RATS: ignore */
+		enum retcode rc; 
 		
 		*dest = '\0';
 
@@ -74,12 +75,10 @@ main (void) {
 
 		rc = str_cp(t.n, t.src, dest);
 
-		if (rc != t.rc) {
+		if (rc != t.rc)
 			errx(T_FAIL, "returned %u", rc);
-		}
-		if (!(t.dest == dest || strcmp(t.dest, dest) == 0)) {
+		if (!(t.dest == dest || strcmp(t.dest, dest) == 0))
 			errx(T_FAIL, "got copy '%s'", dest);
-		}
 	}
 
 	warnx("all tests passed");

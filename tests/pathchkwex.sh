@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Test if path_check_wexcl correctly identifies exclusive write access.
+# Test if pathchkwex correctly identifies exclusive write access.
 #
 # Copyright 2022 Odin Kroeger
 #
@@ -64,37 +64,37 @@ for mode in $no
 do
 	chmod "$mode" "$shallow"
 	check -s1 -e"$shallow is writable by users other than $user" \
-		path_check_wexcl "$user" "$TMPDIR" "$shallow"
+		pathchkwex "$user" "$shallow" "$TMPDIR"
 
 	chmod "$mode" "$dir"
 	chmod u+x "$dir"
 	check -s1 -e"$dir is writable by users other than $user" \
-		path_check_wexcl "$user" "$TMPDIR" "$deeper"
+		pathchkwex "$user" "$deeper" "$TMPDIR"
 done
 
 yes="u=rw,go= ugo=r"
 for mode in $yes
 do
 	chmod "$mode" "$shallow"
-	check -s0 -o"$shallow" \
-		path_check_wexcl "$user" "$TMPDIR" "$shallow"
+	check -o"$shallow" pathchkwex "$user" "$shallow" "$TMPDIR"
 
 	[ "$uid" -ne 0 ] &&
 		check -s1 -e"/ is writable by users other than $user" \
-			path_check_wexcl "$user" / "$deeper"
+			pathchkwex "$user" "$deeper" /
 
 	chmod "$mode" "$dir"
 	chmod u+wx,go= "$dir"
-	check -s0 -o"$deeper" \
-		path_check_wexcl "$user" "$TMPDIR" "$deeper"
+	check -o"$deeper" pathchkwex "$user" "$deeper" "$TMPDIR"
 
 	chmod g+w,o= "$dir"
 	check -s1 -e"$dir is writable by users other than $user" \
-		path_check_wexcl "$user" "$TMPDIR" "$deeper"
+		pathchkwex "$user" "$deeper" "$TMPDIR"
 
 	chmod g=,o+w "$dir"
 	check -s1 -e"$dir is writable by users other than $user" \
-		path_check_wexcl "$user" "$TMPDIR" "$deeper"
+		pathchkwex "$user" "$deeper" "$TMPDIR"
 done
+
+check -o/bin/sh pathchkwex "$(id -un 0)" /bin/sh /
 
 warn -g "all tests passed."

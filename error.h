@@ -22,49 +22,7 @@
 #if !defined(ERROR_H)
 #define ERROR_H
 
-#include "macros.h"
-
-
-/*
- * Macros
- */
-
-/* Return with RC from the current function unless RC equals OK. */
-#define try(rc) 					\
-	do { 						\
-		enum error _try_rc = (rc);		\
-		if (_try_rc != OK) return _try_rc;	\
-	} while (0)
-
-
-/*
- * Data types
- */
-
-enum error {
-	OK = 0,		/* Success. */
-	FAIL,		/* Generic failure. */
-	ERR_CNV,	/* Conversion error. */
-	ERR_NIL,	/* No input. */
-	ERR_LEN,	/* Input is out-of-bounds. */
-	ERR_ILL,	/* Input is ill-formed. */
-	ERR_CALLOC,	/* calloc(3) failed. */
-	ERR_OPEN,	/* open(2)/openat2(2) failed. */
-	ERR_CLOSE,	/* close(2) failed. */
-	ERR_REALPATH,	/* realpath(3) failed. */
-	ERR_STAT,	/* stat(2) failed. */
-	ERR_GETENV,	/* getenv(3) failed. */
-	ERR_SETENV,	/* setenv(3) failed. */
-	ERR_GETGRENT,	/* getgrent(3) failed. */
-	ERR_SETUID,	/* setuid(2) failed. */
-	ERR_SETGID,	/* setgid(2) failed. */
-	ERR_SETGROUPS	/* setgroups(2) failed. */
-};
-
-
-/*
- * Functions
- */
+#include "sysdefs.h"
 
 /* Log MESSAGE as an error and exit with status EXIT_FAILURE. */
 __attribute__((nonnull(1), noreturn))

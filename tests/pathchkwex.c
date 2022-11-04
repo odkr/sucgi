@@ -1,5 +1,5 @@
 /*
- * Test file_is_wexcl.
+ * Test path_check_wexcl.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -22,21 +22,26 @@
 #include <err.h>
 #include <errno.h>
 #include <pwd.h>
-#include <stdio.h>
-#include <sys/stat.h>
+#include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
-#include "../file.h"
+#include "../error.h"
+#include "../path.h"
+#include "../sysdefs.h"
 
 
 int
 main (int argc, char **argv)
 {
-	struct passwd *pwd;	/* The user. */
-	struct stat fstatus;	/* The file's status. */
+	/* RATS: ignore */
+	char cur[PATH_SIZE];		/* Current directory. */
+	struct passwd *pwd;		/* User. */
+	enum retcode rc;		/* Return code. */
 
-	if (argc != 3) {
-		(void) fputs("usage: file_is_wexcl LOGNAME FNAME\n", stderr);
+	if (argc != 4) {
+		(void) fputs("usage: pathchkwex LOGNAME FILE PARENT\n",
+		             stderr);
 		return EXIT_FAILURE;
 	}
 
@@ -46,15 +51,27 @@ main (int argc, char **argv)
 		if (errno == 0)
 			errx(EXIT_FAILURE, "no such user");
 		else
-			err(EXIT_FAILURE, "getpwnam");
+			err(EXIT_FAILURE, "getpwam");
 	}
 
-	errno = 0;
-	if (stat(argv[2], &fstatus) != 0)
-		errx(EXIT_FAILURE, "stat %s", argv[2]);
+	rc = path_check_wexcl(pwd->pw_uid, argv[2], argv[3], cur);
+	switch (rc) {
+	case OK:
+		break;
+	case ERR_OPEN:
+		err(EXIT_FAILURE, "open %s", cur);
+	case ERR_CLOSE:
+		err(EXIT_FAILURE, "close %s", cur);
+	case ERR_STAT:
+		err(EXIT_FAILURE, "stat %s", cur);
+	case FAIL:
+	        errx(EXIT_FAILURE, "%s is writable by users other than %s",
+		     cur, pwd->pw_name);
+	default:
+		errx(EXIT_FAILURE, "returned %u", rc);
+	}
 
-	if (file_is_wexcl(pwd->pw_uid, fstatus))
-		return EXIT_SUCCESS;
+	(void) puts(cur);
 
-	return EXIT_FAILURE;
+	return EXIT_SUCCESS;
 }

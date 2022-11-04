@@ -19,81 +19,91 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#define _ISOC99_SOURCE
-#define _POSIX_C_SOURCE 200809L
 
 #if !defined(_FORTIFY_SOURCE)
 #define _FORTIFY_SOURCE 3
-#endif /* !defined(_FORTIFY_SOURCE) */
+#endif
 
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 #include "file.h"
-#include "error.h"
 #include "path.h"
 #include "str.h"
+#include "sysdefs.h"
+#include "types.h"
 
 
-enum error
-path_check_format(const char *fname,
-                  char (*const path)[MAX_STR], const char *format, ...)
+enum retcode
+path_check_format(const char *fname, char expan[PATH_SIZE],
+                  const char *format, ...)
 {
 	char *resolved;		/* Canonicalised path. */
-	int n;			/* Size of expanded path. */
 	int match;		/* Result of comparison. */
+	int len;		/* Length of expanded path. */
 	va_list ap;		/* Argument pointer. */
 
 	assert(*fname);
 	assert(*format);
-	assert(strnlen(fname, MAX_STR) < MAX_STR);
-	assert(strnlen(format, MAX_STR) < MAX_STR);
+	assert(strnlen(fname, PATH_SIZE) < PATH_SIZE);
+	assert(strnlen(format, PATH_SIZE) < PATH_SIZE);
+	/* RATS: ignore; not a permission check. */
 	assert(access(fname, F_OK) == 0);
-	assert(strncmp(realpath(fname, NULL), fname, MAX_STR) == 0);
+	/* RATS: ignore; the length of fname is checked above. */
+	assert(strncmp(realpath(fname, NULL), fname, PATH_SIZE) == 0);
 
-	/* Some implementions of sprintf fail to NUL-terminate strings. */
-	(void) memset(*path, 0, MAX_STR);
+	/* Some implementions of vsnprintf fail to NUL-terminate strings. */
+	(void) memset(expan, 0, PATH_SIZE);
 
 	va_start(ap, format);
-	n = vsnprintf(*path, MAX_STR, format, ap);
+	/* RATS: ignore; format is controlled by the administrator. */
+	len = vsnprintf(expan, PATH_SIZE, format, ap);
 	va_end(ap);
 
-	if ((*path)[n] != '\0')
+	if (len < 0)
+		return ERR_PRN;
+	if (len >= PATH_SIZE)
 		return ERR_LEN;
 
-	resolved = realpath(*path, NULL);
+	/* RATS: ignore; the length of expan is checked above. */
+	resolved = realpath(expan, NULL);
 	if (!resolved)
-		return ERR_REALPATH;
+		return ERR_RES;
 
-	match = strncmp(fname, resolved, MAX_STR);
+	match = strncmp(fname, resolved, PATH_SIZE);
 	free(resolved);
 
 	return (match == 0) ? OK : FAIL;
 }
 
-enum error
-path_check_wexcl(const uid_t uid, const char *const parent,
-                 const char *const fname, char (*const cur)[MAX_STR])
+enum retcode
+path_check_wexcl(const uid_t uid, const char *const fname,
+                 const char *const parent, char cur[PATH_SIZE])
 {
 	const char *pos;	/* Current position in filename. */
 
 	assert(*parent);
 	assert(*fname);
-	assert(strnlen(parent, MAX_STR) < MAX_STR);
-	assert(strnlen(fname, MAX_STR) < MAX_STR);
+	assert(strnlen(parent, PATH_SIZE) < PATH_SIZE);
+	assert(strnlen(fname, PATH_SIZE) < PATH_SIZE);
+	/* RATS: ignore; not a permission check. */
 	assert(access(parent, F_OK) == 0);
+	/* RATS: ignore; not a permission check. */
 	assert(access(fname, F_OK) == 0);
-	assert(strncmp(realpath(parent, NULL), parent, MAX_STR) == 0);
-	assert(strncmp(realpath(fname, NULL), fname, MAX_STR) == 0);
-	assert(path_contains(parent, fname));
+	/* RATS: ignore; the length of parent is checked above. */
+	assert(strncmp(realpath(parent, NULL), parent, PATH_SIZE) == 0);
+	/* RATS: ignore; the length of fname is checked avove. */
+	assert(strncmp(realpath(fname, NULL), fname, PATH_SIZE) == 0);
+	assert(path_is_subdir(fname, parent));
 
 
 	/*
@@ -101,57 +111,56 @@ path_check_wexcl(const uid_t uid, const char *const parent,
 	 * unless the parent directory is the root directory.
 	 */
 	pos = fname;
-	if (strncmp(parent, "/", 2) != 0)
+	if (strncmp(parent, "/", 2) == 0) {
+		pos++;
+	} else {
+		/* RATS: ignore; parent should be NUL-terminated. */
 		pos += strlen(parent);
+		pos += strcspn(pos, "/");
+	}
 
 	do {
 		struct stat buf;	/* Current file's status. */
-		size_t len;		/* Current filename's length. */
 		int fd;			/* Current file. */
-		int rc;			/* Return code. */
+		int err;		/* stat err. */
+		enum retcode rc;	/* file_sopen return code. */
 
-		/*
-		 * Move the pointer to the end of the current filename.
-		 * If the current filename is '/', then the end is one
-		 * character to the right; otherwise it is the next '/'.
-		 *
-		 * *pos == '/' tests whether the current path is '/' because
-		 * it can only point to a '/' if it still equals fname.
-		 */
-		pos += (*pos == '/') ? 1U : strcspn(pos, "/");
-		len = (size_t) (pos - fname);
-		if (len >= MAX_STR)
-			return ERR_LEN;
+		(void) str_cp((size_t) (pos - fname), fname, cur);
 
-		(void) str_cp(len, fname, *cur);
-
-		try(file_safe_open(*cur, O_RDONLY | O_CLOEXEC, &fd));
+		if ((rc = file_sopen(cur, O_RDONLY, &fd)) != OK)
+			return rc;
 
 		errno = 0;
-		rc = fstat(fd, &buf);
+		err = fstat(fd, &buf);
 		
 		if (close(fd) != 0)
 			return ERR_CLOSE;
-		if (rc != 0)
+		if (err != 0)
 			return ERR_STAT;
 		if (!file_is_wexcl(uid, buf))
 			return FAIL;
 
+		/* Move forward to the start of the next path segment. */
 		pos += strspn(pos, "/");
-	} while (*pos);
+		if (!*pos)
+			break;
+		pos += strcspn(pos, "/");
+	} while (true);
 
 	return OK;
 }
 
 bool
-path_contains(const char *const parent, const char *const fname)
+path_is_subdir(const char *const fname, const char *const parent)
 {
 	size_t len;		/* Parent-directory length. */
 
+	/* RATS: ignore; not a permission check. */
 	assert(*parent);
+	/* RATS: ignore; not a permission check. */
 	assert(*fname);
-	assert(strnlen(parent, MAX_STR) < MAX_STR);
-	assert(strnlen(fname, MAX_STR) < MAX_STR);
+	assert(strnlen(parent, PATH_SIZE) < PATH_SIZE);
+	assert(strnlen(fname, PATH_SIZE) < PATH_SIZE);
 
 	/* The root directory cannot be contained by any path. */
 	if (strncmp(fname, "/", 2) == 0)
@@ -169,7 +178,7 @@ path_contains(const char *const parent, const char *const fname)
 	if (strncmp(parent, ".", 2) == 0 && *fname != '/')
 		return true;
 
-	/* Check if fname resides in par. */
+	/* RATS: ignore; parent should be NUL-terminated. */
 	len = strlen(parent);
 	return (fname[len] == '/') && strncmp(parent, fname, len) == 0;
 }

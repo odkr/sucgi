@@ -20,13 +20,15 @@
  */
 
 #include <err.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "../str.h"
+#include "../sysdefs.h"
+#include "testdefs.h"
+#include "testdefs.h"
 
-/* Exit status for failures. */
-#define T_FAIL 2
 
 /* Test case. */
 struct args {
@@ -34,23 +36,20 @@ struct args {
 	const char *sep;
 	const char *head;
 	const char *tail;
-	enum error rc;
+	enum retcode rc;
 };
 
 /* A string just within limits. */
-char long_str[MAX_STR] = {0};		/* RATS: ignore */
+static char long_str[PATH_SIZE] = {0};
 
-/* A string w/o a delimiter that exceeds MAX_STR. */
-char huge_str[MAX_STR + 1U] = {0};	/* RATS: ignore */
+/* A string w/o a delimiter that exceeds PATH_SIZE. */
+static char huge_str[PATH_SIZE + 1U] = {0};
 
-/* A pair w/ a head that exceeds MAX_STR. */
-char huge_head[MAX_STR + 32U] = {0};	/* RATS: ignore */
-
-/* A pair w/ a tail that exceeds MAX_STR. */
-char huge_tail[MAX_STR + 32U] = {0};	/* RATS: ignore */
+/* A pair w/ a head that exceeds PATH_SIZE. */
+static char huge_head[PATH_SIZE + 32U] = {0};
 
 /* Tests. */
-const struct args tests[] = {
+static const struct args tests[] = {
 	/* Overly long string. */
 	{huge_str, ",", long_str, NULL, ERR_LEN},
 	
@@ -80,38 +79,34 @@ const struct args tests[] = {
 };
 
 
-
 int
 main(void)
 {
 	(void) memset(long_str, 'x', sizeof(long_str) - 1);
 	(void) memset(huge_str, 'x', sizeof(huge_str) - 1);
 	(void) memset(huge_head, 'x', sizeof(huge_head) - 1);
-	/* RATS: ignore. */
-	(void) strncpy(&huge_head[MAX_STR], ",foo", 5);
+	/* RATS: ignore; there is enough space for NUL-termination. */
+	(void) strncpy(&huge_head[PATH_SIZE], ",foo", 5);
 
 	for (int i = 0; tests[i].s; i++) {
 		const struct args t = tests[i];
-		char head[MAX_STR];	/* RATS: ignore */
+		char head[PATH_SIZE];	/* RATS: ignore */
 		char *tail;
-		enum error rc;
+		enum retcode rc;
 
 		*head = '\0';
 
 		warnx("checking (%s, %s, -> %s, -> %s) -> %u ...",
 		      t.s, t.sep, t.head, t.tail, t.rc);
 
-		rc = str_split(t.s, t.sep, &head, &tail);
+		rc = str_split(PATH_SIZE, t.s, t.sep, head, &tail);
 
-		if (rc != t.rc) {
+		if (rc != t.rc)
 			errx(T_FAIL, "returned %u", rc);
-		}
-		if (!(t.head == NULL || strcmp(t.head, head) == 0)) {
+		if (!(t.head == NULL || strcmp(t.head, head) == 0))
 			errx(T_FAIL, "got head '%s'", head);
-		}
-		if (!(t.tail == tail || strcmp(t.tail, tail) == 0)) {
+		if (!(t.tail == tail || strcmp(t.tail, tail) == 0))
 			errx(T_FAIL, "got tail '%s'", tail);
-		}
 	}
 
 	warnx("all tests passed");

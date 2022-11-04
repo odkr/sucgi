@@ -21,7 +21,7 @@
 
 #if !defined(_FORTIFY_SOURCE)
 #define _FORTIFY_SOURCE 3
-#endif /* !defined(_FORTIFY_SOURCE) */
+#endif
 
 #include <assert.h>
 #include <stdarg.h>
@@ -29,13 +29,14 @@
 #include <string.h>
 #include <syslog.h>
 
-#include "error.h"
+#include "types.h"
+
 
 #if defined(LOG_PERROR) && LOG_PERROR
 #define ERROR_LOG_OPTS LOG_CONS | LOG_NDELAY | LOG_PERROR
-#else /* defined(LOG_PERROR) && LOG_PERROR */
+#else
 #define ERROR_LOG_OPTS LOG_CONS | LOG_NDELAY
-#endif /* defined(LOG_PERROR) && LOG_PERROR */
+#endif
 
 
 void

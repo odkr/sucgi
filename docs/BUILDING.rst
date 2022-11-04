@@ -149,7 +149,7 @@ covhtml
     Currently broken.
 
 clean
-    Delete binaries, coverage data, temporary files, and distribution files.
+    Delete binaries, temporary files, and distribution files.
 
 dist
     Make a distribution package. Requires *tar* and GnuPG_.
@@ -159,7 +159,7 @@ distcheck
     passes the test suite, and is self-contained.
 
 distclean
-    Delete *config.status*, *lcov.info*, *makefile* and
+    Delete *config.status*, *cov*, *lcov.info*, *makefile* and
     everything ``make clean`` deletes.
 
 install

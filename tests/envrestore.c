@@ -27,23 +27,23 @@
 
 #include "../env.h"
 #include "../str.h"
+#include "../sysdefs.h"
+#include "testdefs.h"
+#include "testdefs.h"
 
 
 /*
  * Constants
  */
 
+/* Maximum number of environment variables. */
+#define MAX_NVARS 256U
+
 /* Shorthand for an empty list. */
 #define EMPTY {NULL}
 
 /* Shorthad for a list of patterns that matches any variable. */
 #define ANY {"*", NULL}
-
-/* Exit status for failures. */
-#define T_FAIL 2
-
-/* Exit status for errors. */
-#define T_ERR 3
 
 
 /*
@@ -52,10 +52,10 @@
 
 /* Test case. */
 struct args {
-	char *env[MAX_ENV];			/* RATS: ignore */
-	const char *patterns[MAX_ENV];		/* RATS: ignore */
-	const char *clean[MAX_ENV];		/* RATS: ignore */
-	const enum error rc;
+	char *env[MAX_NVARS];			/* RATS: ignore */
+	const char *patterns[MAX_NVARS];	/* RATS: ignore */
+	const char *clean[MAX_NVARS];		/* RATS: ignore */
+	const enum retcode rc;
 };
 
 
@@ -63,11 +63,11 @@ struct args {
  * Globals
  */
 
-/* String that is as long as MAX_STR. */
-char long_var[MAX_STR] = {0};
+/* String that is as long as PATH_SIZE. */
+static char long_var[PATH_SIZE] = {0};
 
-/* String that is longer than MAX_STR. */
-char huge_var[MAX_STR + 1U] = {0};
+/* String that is longer than PATH_SIZE. */
+static char huge_var[PATH_SIZE + 1U] = {0};
 
 /* Tests. */
 struct args tests[] = {
@@ -109,9 +109,8 @@ struct args tests[] = {
  * Functions
  */
 
-static enum error
-env_init(/* RATS: ignore */
-	 char *const vars[MAX_ENV])
+static enum retcode
+env_init(char *const vars[MAX_NVARS])
 {
 	size_t n = 0;
 
@@ -120,7 +119,7 @@ env_init(/* RATS: ignore */
 
 	environ = calloc(n + 1U, sizeof(char *));
 	if (!environ)
-		return ERR_CALLOC;
+		return ERR_MEM;
 	
 	for (size_t i = 0; i < n; i++)
 		environ[i] = vars[i];
@@ -135,21 +134,21 @@ env_init(/* RATS: ignore */
 
 int
 main (void) {
-	(void) memset((void *) long_var, 'x', MAX_STR - 1U);
+	(void) memset((void *) long_var, 'x', PATH_SIZE - 1U);
 	(void) str_cp(4, "foo=", long_var);
-	(void) memset((void *) huge_var, 'x', MAX_STR);
+	(void) memset((void *) huge_var, 'x', PATH_SIZE);
 
 	for (int i = 0; tests[i].env[0]; i++) {
 		const struct args t = tests[i];
-		const char *vars[MAX_ENV];
-		enum error rc;
+		const char *vars[MAX_NVARS];	/* RATS: ignore */
+		enum retcode rc;
 
 		warnx("performing test # %d ...", i + 1);
 
 		if (env_init(t.env) != OK)
-			errx(T_FAIL, "env_init did not return OK");
-		if (env_clear(&vars) != OK)
-			errx(T_FAIL, "env_clear did not return OK");
+			errx(T_FAIL, "env_init failed");
+		if (env_clear(MAX_NVARS, vars) != OK)
+			errx(T_FAIL, "env_clear failed");
 
 		rc = env_restore(vars, t.patterns);
 
@@ -159,12 +158,13 @@ main (void) {
 		for (int j = 0; t.clean[j]; j++) {
 			const char *var = t.clean[j];
 			const char *val;
-			char name[MAX_STR];
+			char name[PATH_SIZE];	/* RATS: ignore */
 			char *exp;
 
-			if (str_split(var, "=", &name, &exp) != OK)
+			if (str_split(PATH_SIZE, var, "=", name, &exp) != OK)
 				errx(T_ERR, "str_split %s failed", var);
 
+			/* RATS: ignore */
 			val = getenv(name);
 			
 			if (val && !exp)

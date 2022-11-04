@@ -28,34 +28,35 @@ cov_cc = default([__cov_cc__], [$(CC)])
 
 
 #
-# Default libraries
+# Object files
 #
 
-core_objs = lib.a(error.o) lib.a(str.o)
-
+objs = 	lib.a(env.o)  lib.a(error.o) lib.a(file.o)   lib.a(gids.o) \
+	lib.a(path.o) lib.a(priv.o)  lib.a(script.o) lib.a(str.o)
 
 #
-# Tests suite
+# Test suite
 #
 
 tool_bins =	tools/badenv tools/ents tools/owner tools/runas
 
-check_bins =	tests/error tests/env_clear tests/env_file_open \
-		tests/env_is_name tests/env_restore tests/main \
-		tests/file_is_exec tests/file_is_wexcl tests/file_safe_open \
-		tests/gids_get tests/priv_drop tests/path_check_wexcl \
-		tests/path_contains tests/script_get_inter tests/str_cp \
-		tests/str_split tests/try
+check_bins =	tests/error tests/envclear tests/envfopen \
+		tests/envisname tests/envrestore tests/main \
+		tests/fileisexe tests/fileiswex tests/filesopen \
+		tests/gidsget tests/privdrop tests/pathchkfmt \
+		tests/pathchkwex tests/path \
+		tests/scptgetint tests/strcp tests/strsplit
 
-checks =	tests/error.sh tests/env_clear tests/env_file_open.sh \
-		tests/env_is_name tests/env_restore tests/main.sh \
-		tests/file_is_exec.sh tests/file_is_wexcl.sh \
-		tests/file_safe_open.sh tests/gids_get.sh \
-		tests/priv_drop.sh tests/path_check_wexcl.sh \
-		tests/path_contains tests/script_get_inter \
-		tests/str_cp tests/str_split tests/try
+checks =	tests/error.sh tests/envclear tests/envfopen.sh \
+		tests/envisname tests/envrestore tests/main.sh \
+		tests/fileisexe.sh tests/fileiswex.sh \
+		tests/filesopen.sh tests/gidsget.sh \
+		tests/privdrop.sh tests/pathchkfmt.sh \
+		tests/pathchkwex.sh tests/path \
+		tests/scptgetint tests/strcp tests/strsplit
 
 bins =		$(tool_bins) $(check_bins)
+
 
 #
 # Analyser settings
@@ -67,7 +68,7 @@ cppchk_flags =	--quiet --error-exitcode=8 \
 		--language=c --std=c99 --platform=unix64 --library=posix \
 		--library=cppcheck/library.cfg \
 		--project=cppcheck/sucgi.cppcheck \
-		--suppressions-list=cppcheck/suppressions.txt \
+		--suppressions-list=cppcheck/suppr.txt \
 		--force --inconclusive
 
 cppchk_addons =	--addon=cppcheck/cert.py --addon=misra.py
@@ -98,84 +99,89 @@ cgi_dir = default([__cgi_dir__], [/usr/lib/cgi-bin])
 
 
 #
-# Build targets
+# Default target
 #
 
 all: sucgi
 
-lib.a(env.o):	env.c env.h config.h macros.h \
-		$(core_objs) lib.a(file.o) lib.a(path.o)
 
-lib.a(error.o):	error.c error.h macros.h
-
-lib.a(file.o):	file.c file.h macros.h $(core_objs) lib.a(path.o)
-
-lib.a(gids.o):	gids.c gids.h config.h macros.h lib.a(error.o)
-
-lib.a(path.o):	path.c path.h macros.h $(core_objs)
-
-lib.a(priv.o):	priv.o priv.h macros.h lib.a(error.o)
-
-lib.a(script.o):	script.c script.h macros.h $(core_objs)
-
-lib.a(str.o):	str.c str.h config.h macros.h lib.a(error.o)
-
-lib.a:	lib.a(env.o)  lib.a(error.o)  lib.a(file.o) lib.a(gids.o) \
-	lib.a(path.o) lib.a(priv.o) lib.a(script.o) lib.a(str.o)
-
-$(tool_bins):
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $@.c $(LDLIBS)
-
-tools/badenv: tools/badenv.c
-
-tools/ents: tools/ents.c
-
-tools/runas: tools/runas.c
-
-.c:
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a $(LDLIBS)
-
-tests/error: tests/error.c lib.a(error.o) 
-
-tests/env_clear: tests/env_clear.c lib.a(env.o)
-
-tests/env_file_open: tests/env_file_open.c lib.a(env.o) lib.a(error.o)
-
-tests/env_is_name: tests/env_is_name.c lib.a(env.o)
-
-tests/env_restore: tests/env_restore.c lib.a(env.o)
-
-tests/file_is_exec: tests/file_is_exec.c lib.a(file.o)
-
-tests/file_is_wexcl: tests/file_is_wexcl.c lib.a(file.o)
-
-tests/file_safe_open: tests/file_safe_open.c lib.a(file.o) lib.a(error.o)
-
-tests/gids_get: tests/gids_get.c lib.a(gids.o)
-
-tests/path_contains: tests/path_contains.c lib.a(path.o) 
-
-tests/path_check_wexcl: tests/path_check_wexcl.c lib.a(path.o) lib.a(error.o)
-
-tests/priv_drop: tests/priv_drop.c lib.a(priv.o) lib.a(error.o)
-
-tests/script_get_inter: tests/script_get_inter.c lib.a(script.o)
-
-tests/str_cp: tests/str_cp.c lib.a(str.o) 
-
-tests/str_split: tests/str_split.c lib.a(str.o)
-
-tests/try: tests/try.c lib.a(error.o)
-
-tests/main: sucgi.c config.h macros.h lib.a
-	$(CC) -DTESTING=1 $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a $(LDLIBS)
+#
+# Commands
+#
 
 dnl TODO: Add -DNDEBUG once the software is mature enough.
-sucgi: sucgi.c config.h macros.h lib.a
+sucgi:
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a $(LDLIBS)
+
+$(check_bins):
+	$(CC) -DTESTING=1 $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a $(LDLIBS)
 
 
 #
-# Phony targets
+# Prerequisites
+#
+
+sucgi: sucgi.c sysdefs.h config.h types.h lib.a
+
+$(objs): sysdefs.h types.h
+
+lib.a: $(objs)
+
+lib.a(env.o): env.c env.h lib.a(file.o) lib.a(path.o)
+
+lib.a(error.o): error.c error.h
+
+lib.a(file.o): file.c file.h lib.a(path.o) lib.a(str.o)
+
+lib.a(gids.o): gids.c gids.h
+
+lib.a(script.o): script.c script.h lib.a(str.o)
+
+lib.a(path.o): path.c path.h lib.a(str.o)
+
+lib.a(priv.o): priv.o priv.h
+
+lib.a(str.o): str.c str.h
+
+$(check_bins): sysdefs.h types.h tests/testdefs.h
+
+tests/error: tests/error.c lib.a(error.o) 
+
+tests/envclear: tests/envclear.c lib.a(env.o)
+
+tests/envfopen: tests/envfopen.c lib.a(env.o)
+
+tests/envisname: tests/envisname.c lib.a(env.o)
+
+tests/envrestore: tests/envrestore.c lib.a(env.o)
+
+tests/fileisexe: tests/fileisexe.c lib.a(file.o)
+
+tests/fileiswex: tests/fileiswex.c lib.a(file.o)
+
+tests/filesopen: tests/filesopen.c lib.a(file.o)
+
+tests/gidsget: tests/gidsget.c lib.a(gids.o)
+
+tests/scptgetint: tests/scptgetint.c lib.a(script.o)
+
+tests/path: tests/pathissub.c lib.a(path.o) 
+
+tests/pathchkfmt: tests/pathchkfmt.c lib.a(path.o)
+
+tests/pathchkwex: tests/pathchkwex.c lib.a(path.o)
+
+tests/privdrop: tests/privdrop.c lib.a(priv.o) lib.a(error.o)
+
+tests/strcp: tests/strcp.c lib.a(str.o) 
+
+tests/strsplit: tests/strsplit.c lib.a(str.o)
+
+tests/main: sucgi.c config.h lib.a
+
+
+#
+# Cleanup
 #
 
 clean:
@@ -183,15 +189,25 @@ clean:
            -name '*.ctu-info' -o -name '*.dump' \
         -o -name '*.gcda'     -o -name '*.gcno' \
        ')' -exec rm -rf '{}' +
-	rm -rf *.o lib.a cov sucgi tmp-* $(bins) $(dist_name) $(dist_name).* 
+	rm -rf *.o lib.a sucgi tmp-* $(bins) $(dist_name) $(dist_name).* 
+
+
+#
+# Tests
+#
 
 check: $(tool_bins) $(check_bins)
 	tools/check $(checks)
 
+
+#
+# Distribution
+#
+
 dist: $(dist_ar) $(dist_ar).asc
 
 distclean: clean
-	rm -f config.status lcov.info makefile
+	rm -rf config.status cov lcov.info makefile
 
 distcheck: $(dist_ar)
 	tar -xzf $(dist_ar)
@@ -209,6 +225,11 @@ $(dist_ar): clean
 $(dist_ar).asc: $(dist_ar)
 	gpg -qab --batch --yes $(dist_ar)
 
+
+#
+# Installation
+#
+
 $(install_dir)/libexec/sucgi: sucgi
 	mkdir -p $(install_dir)/libexec
 	cp sucgi $(install_dir)/libexec
@@ -223,19 +244,14 @@ install: $(install_dir)/libexec/sucgi $(cgi_dir)/sucgi
 uninstall:
 	rm -f $(cgi_dir)/sucgi $(DESTDIR)$(PREFIX)/libexec/sucgi
 
-analysis:
-	grep -nri fixme $(inspect)
-	#flawfinder --error-level=1 -m 0 -D -Q $(inspect)
-	#rats --resultsonly -w3 *.c *.h $(inspect)
-	#cppcheck $(cppchk_flags) --enable=all $(cppchk_addons) $(inspect)
 
-shellcheck:
-	grep -nri fixme configure *.env tools/check tools/lib.sh tests/*.sh
-	shellcheck -x configure *.env tools/check tools/lib.sh tests/*.sh
+#
+# Coverage reports
+#
 
 cov: clean $(tool_bins)
 	chown -R "$$(tools/owner .)" tools/*
-	make CC=$(cov_cc) CFLAGS="-O2 --coverage" $(check_bins)
+	make CC=$(cov_cc) CFLAGS="--coverage -g -O0" $(check_bins)
 	-tools/check -qs $(check_bins)
 	find . '(' -name '*.gcda' -o -name '*.gcno' ')' \
 	-exec chown "$$(tools/owner .)" '{}' +
@@ -252,7 +268,28 @@ cov/index.html: lcov.info tools/owner
 
 covhtml: cov/index.html
 
+
+#
+# Code analysis
+#
+
+analysis:
+	grep -nri fixme $(inspect)
+	rats --resultsonly $(inspect)
+	flawfinder -DQF $(inspect)
+	cppcheck $(cppchk_flags) --enable=all $(inspect) #$(cppchk_addons) $(inspect)
+
+shellcheck:
+	grep -nri fixme configure tools/check tools/lib.sh tests/*.sh
+	shellcheck -x configure tools/check tools/lib.sh tests/*.sh
+
+
+#
+# Special targets
+#
+
 .PHONY:	all analysis check clean cov covhtml \
-	dist distcheck distclean install uninstall
+	dist distcheck distclean install uninstall \
+	rats shellcheck
 
 .IGNORE: analysis shellcheck

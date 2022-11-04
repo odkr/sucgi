@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License along
 # with suCGI. If not, see <https://www.gnu.org/licenses>.
 
-# shellcheck disable=2015
+# shellcheck disable=2015,2031
 
 
 #
@@ -35,9 +35,22 @@ alias warn='_line="${LINENO-}" _warn'
 #
 
 # Print a message to STDERR and exit with a non-zero status.
+# -s sets a different status.
 _err() {
+	rc=2
+	OPTIND=1 OPTARG='' opt=''
+	while getopts s: opt
+	do
+		case $opt in
+			(s) OPTARG="$rc" ;;
+			(*) exit 70
+		esac
+	done
+	shift $((OPTIND - 1))
+
 	_warn -r "$@"
-	exit 2
+	
+	exit "$rc"
 }
 
 # Exit with status $signo + 128 if $catch is set.
@@ -59,6 +72,7 @@ _check() (
 	OPTIND=1 OPTARG='' opt=''
 	while getopts 's:o:e:v' opt
 	do
+		# shellcheck disable=2034
 		case $opt in
 			(s) exp_stat="$OPTARG" ;;
 			(o) exp_out="$OPTARG" ;;
@@ -69,6 +83,7 @@ _check() (
 	shift $((OPTIND - 1))
 	: "${@?no command given}"
 
+	# shellcheck disable=2030
 	: "${TMPDIR:=/tmp}"
 	for ch in out err
 	do
@@ -85,6 +100,7 @@ _check() (
 	done
 
 	_warn -q "checking ${bld-}$*${rst-} ..."
+	# shellcheck disable=2154
 	env "$@" >"$pipe_out" 2>"$pipe_err" & env=$!
 
 	lf="
@@ -116,8 +132,11 @@ _check() (
 		[ "$pipe" = /dev/null ] || rm -f "$pipe"
 	done
 
-	[ "$stat" -eq "$exp_stat" ] || [ "$stat" -eq 141 ] ||
-		_err -l "exited with status ${bld-}$stat${rst_r-}."
+	if [ "$stat" -ne "$exp_stat" ] && [ "$stat" -ne 141 ]
+	then
+		_warn -l "exited with status ${bld-}$stat${rst_r-}."
+		exit 70
+	fi
 
 	rc=0
 	for ch in out err
@@ -133,7 +152,7 @@ _check() (
 		printf '%s\n' "${red-}${bld-}>${rst_r-} $exp${rst-}" >&2
 		_warn -lr "${bld-}actual output${rst_r-}:"
 		printf '%s' "$str" >&2
-		rc=2
+		rc=70
 	done
 
 	return $rc
@@ -198,9 +217,11 @@ init() {
 
 # Check if $needle matches any member of $@ using $op.
 inlist() (
+	# shellcheck disable=2034
 	op="${1:?}" needle="${2?}"
 	shift 2
 
+	# shellcheck disable=2034
 	for straw
 	do
 		eval "[ \"\$needle\" $op \"\$straw\" ]" && return
@@ -212,7 +233,7 @@ inlist() (
 # Create a path of $len length in $basepath.
 mklongpath() (
 	basepath="${1:?}" len="${2:?}" max=99999
-	name_max="$(getconf NAME_MAX "$basepath")" || name_max=14
+	name_max="$(getconf NAME_MAX "$basepath" 2>/dev/null)" || name_max=14
 
 	path="$basepath"
 	while [ "$((${#path} + name_max + 2))" -le "$len" ]
@@ -220,7 +241,7 @@ mklongpath() (
 		i=0
 		while [ $i -lt "$max" ]
 		do
-			seg="$(pad "-$$-$i" "$name_max")"
+			seg="$(pad "$i" "$name_max")"
 			if ! [ -e "$path/$seg" ]
 			then
 				path="$path/$seg"
@@ -230,19 +251,24 @@ mklongpath() (
 		done
 	done
 
-	i=0
+	i=0 fname=
 	while [ $i -lt "$max" ]
 	do
-		seg="$(pad "-$$-$i" "$((len - ${#path} - 1))")"
+		seg="$(pad "$i" "$((len - ${#path} - 1))")"
 		if ! [ -e "$path/$seg" ]
 		then
-			printf '%s\n' "$path/$seg"
-			return 0
+			fname="$path/$seg"
+			break
 		fi
 		i=$((i + 1))
 	done
-	
-	err "failed to generate filename."
+
+	# $path may get so long that the first "$path/$i" that does not exist
+	# is so long that $fname as a whole gets longer than $len.
+	[ "${fname-}" ] && [ "${#fname}" -eq "$len" ] ||
+		err "failed to generate long filename."
+
+	printf '%s\n' "$fname"
 )
 
 # Pad $str with $ch up to length $n.
@@ -265,7 +291,7 @@ reguser() (
 	pipe="${TMPDIR:-/tmp}/ent-$$.fifo" rc=0
 	mkfifo -m 700 "$pipe"	
 	ents -u -f"$minuid" -c"$maxuid" >"$pipe" & ents=$!
-	while IFS=: read -r uid user
+	while IFS=: read -r _ user
 	do
 		for gid in $(id -G "$user")
 		do
@@ -307,7 +333,7 @@ tmpdir() {
 # Starting with, but excluding, $dirname run $dircmd for every path segment
 # of $fname. If $fcmd is given, run $dircmd for every path segment up to,
 # but excluding $fname, and run $fcmd for $fname.
-traverse() (
+dirwalk() (
 	dirname="${1:?}" fname="${2:?}" dircmd="${3:?}" fcmd="${4:-"$3"}"
 
 	IFS=/
@@ -350,6 +376,7 @@ unallocid() (
 	pipe="${TMPDIR:-/tmp}/ents-$$.fifo" rc=0
 
 	mkfifo -m 0700 "$pipe"
+	# shellcheck disable=2086
 	ents -f"$start" -c"$end" $opts >"$pipe" 2>/dev/null & ents=$!
 	ids="$(cut -d: -f1 <"$pipe")" || rc=$?
 	rm -f "$pipe"
@@ -359,7 +386,8 @@ unallocid() (
 	i="$start"
 	while [ "$i" -le "$end" ]
 	do
-		inlist -eq $i $ids || break
+		# shellcheck disable=2086
+		inlist -eq "$i" $ids || break
 		i=$((i + 1))
 	done
 
@@ -391,7 +419,7 @@ _warn() (
 	[ "$line" ] && [ "$_line" ] && printf 'line %d: ' "$_line"
 	[ "$col" ] && [ "${rst-}" ] && printf '%s' "$col"
 	                               printf '%s' "$*"
-	[ "$col" ] && [ "${rst-}" ] && printf "$rst"
+	[ "$col" ] && [ "${rst-}" ] && printf '%s' "$rst"
 	echo
 
 	return 0

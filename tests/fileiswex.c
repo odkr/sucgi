@@ -1,5 +1,5 @@
 /*
- * Test path_check_wexcl.
+ * Test file_is_wexcl.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -19,27 +19,24 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <sys/stat.h>
 #include <err.h>
 #include <errno.h>
 #include <pwd.h>
-#include <string.h>
-#include <sys/stat.h>
+#include <stdio.h>
 #include <stdlib.h>
 
-#include "../error.h"
-#include "../path.h"
+#include "../file.h"
 
 
 int
 main (int argc, char **argv)
 {
-	char cur[MAX_STR];	/* Current directory. */
-	struct passwd *pwd;	/* User. */
-	enum error rc;		/* Return code. */
+	struct passwd *pwd;	/* The user. */
+	struct stat fstatus;	/* The file's status. */
 
-	if (argc != 4) {
-		(void) fputs("usage: path_check_wexcl LOGNAME DIR FILE\n",
-		             stderr);
+	if (argc != 3) {
+		(void) fputs("usage: fileiswex LOGNAME FNAME\n", stderr);
 		return EXIT_FAILURE;
 	}
 
@@ -49,27 +46,15 @@ main (int argc, char **argv)
 		if (errno == 0)
 			errx(EXIT_FAILURE, "no such user");
 		else
-			err(EXIT_FAILURE, "getpwam");
+			err(EXIT_FAILURE, "getpwnam");
 	}
 
-	rc = path_check_wexcl(pwd->pw_uid, argv[2], argv[3], &cur);
-	switch (rc) {
-		case OK:
-			break;
-		case ERR_OPEN:
-			error("open %s: %m.", cur);
-		case ERR_CLOSE:
-			error("close %s: %m.", cur);
-		case ERR_STAT:
-			error("stat %s: %m.", cur);
-		case FAIL:
-		        error("%s is writable by users other than %s.",
-			      cur, pwd->pw_name);
-		default:
-			error("returned %u.", rc);
-	}
+	errno = 0;
+	if (stat(argv[2], &fstatus) != 0)
+		errx(EXIT_FAILURE, "stat %s", argv[2]);
 
-	(void) puts(cur);
+	if (file_is_wexcl(pwd->pw_uid, fstatus))
+		return EXIT_SUCCESS;
 
-	return EXIT_SUCCESS;
+	return EXIT_FAILURE;
 }

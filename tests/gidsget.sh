@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Test if file_is_wexcl correctly identifies exclusive write access.
+# Test gidsget_list.
 #
 # Copyright 2022 Odin Kroeger
 #
@@ -21,6 +21,7 @@
 #
 # shellcheck disable=1091,2015
 
+
 #
 # Initialisation
 #
@@ -37,46 +38,32 @@ tmpdir chk
 
 
 #
-# Prelude
-#
-
-umask 0777
-user="$(id -un)"
-group="$(id -gn)"
-fname="$TMPDIR/file"
-touch "$fname"
-
-
-#
 # Main
 #
 
-for mode in g=w o=w ug=w uo=w go=w ugo=w
+logname="$(id -un)"
+check -s1 -e "user $logname belongs to too many groups" \
+	gidsget -n0 "$logname"
+
+ents | 
+while IFS=: read -r _ logname
 do
-	warn "checking ${bld-}$mode${rst-} ..."
-	chown "$user:$group" "$fname"
-	chmod "$mode" "$fname"
-	# shellcheck disable=2154
-	file_is_wexcl "$user" "$fname" &&
-		err "reported as exclusively writable."
-	chmod ugo= "$fname"
+	cmd="gidsget $logname"
+
+	warn "checking ${bld-}$cmd${rst-} ..."
+
+	# shellcheck disable=2046
+	set -- $($cmd)
+
+	[ $# -gt 0 ] ||
+		err -s70 "${bld-}$cmd${rst_r-} found no groups."
+
+	groups="$(id -G "$logname")"
+	for gid
+	do
+		# shellcheck disable=2086
+		inlist -eq "$gid" $groups && continue
+		err -s70 "${bld-}$cmd${rst_r-}" \
+		         "found wrong GID${bld-}$gid${rst_r-}."
+	done
 done
-
-for mode in u=w ugo=
-do
-	warn "checking ${bld-}$mode${rst-} ..."
-	chown "$user:$group" "$fname"
-	chmod "$mode" "$fname"
-	# shellcheck disable=2154
-	file_is_wexcl "$user" "$fname" ||
-		err "reported as not exclusively writable."
-	chmod ugo= "$fname"
-done
-
-owner="$(owner /bin/sh)"
-warn "checking whether ${bld-}/bin/sh${rst-} is" \
-     "exclusively writable by ${bld-}$owner${rst-} ..."
-file_is_wexcl "$owner" /bin/sh ||
-	err "reported as not exclusively writable."
-
-warn -g "all tests passed."

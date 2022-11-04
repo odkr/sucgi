@@ -1,5 +1,5 @@
 /*
- * Common macros for suCGI.
+ * Test file_is_exe.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -19,15 +19,31 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(MACROS_H)
-#define MACROS_H
+#include <sys/stat.h>
+#include <err.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-/* Excise function attributes unless the compiler understands GNU C. */
-#if !defined(__GNUC__)
-#define __attribute__(attr)
-#endif
+#include "../file.h"
 
-/* Raise a compiler error if COND is false. */
-#define BUILD_BUG_ON(cond) ((void)sizeof(char[1 - 2*!!(cond)]))
+int
+main (int argc, char **argv)
+{
+	struct stat fstatus;
+	
+	if (argc != 2) {
+		(void) fputs("usage: fileisexe FNAME\n", stderr);
+		return EXIT_FAILURE;
+	}
 
-#endif /* !defined(MACROS_H) */
+	errno = 0;
+	if (stat(argv[1], &fstatus) != 0)
+		err(EXIT_FAILURE, "stat %s", argv[1]);
+
+	if (file_is_exe(fstatus))
+		return EXIT_SUCCESS;
+
+	return EXIT_FAILURE;
+}

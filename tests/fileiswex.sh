@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Test if file_safe_open only opens safe files.
+# Test if fileiswex correctly identifies exclusive write access.
 #
 # Copyright 2022 Odin Kroeger
 #
@@ -40,19 +40,43 @@ tmpdir chk
 # Prelude
 #
 
-file="$TMPDIR/file"
-echo $$ >"$file"
-symlink="$TMPDIR/symlink"
-ln -s "$TMPDIR" "$symlink"
+umask 0777
+user="$(id -un)"
+group="$(id -gn)"
+fname="$TMPDIR/file"
+touch "$fname"
 
 
 #
 # Main
 #
 
-check -s0 -o$$                                  file_safe_open "$file" f
-check -s1 -e'Not a directory'                   file_safe_open "$file" d
-check -s1 -e'Too many levels of symbolic links' file_safe_open "$symlink" d
-check -s1 -e'No such file or directory'         file_safe_open '<no file!>' f
+for mode in g=w o=w ug=w uo=w go=w ugo=w
+do
+	warn "checking ${bld-}$mode${rst-} ..."
+	chown "$user:$group" "$fname"
+	chmod "$mode" "$fname"
+	# shellcheck disable=2154
+	fileiswex "$user" "$fname" &&
+		err -s70 "reported as exclusively writable."
+	chmod ugo= "$fname"
+done
+
+for mode in u=w ugo=
+do
+	warn "checking ${bld-}$mode${rst-} ..."
+	chown "$user:$group" "$fname"
+	chmod "$mode" "$fname"
+	# shellcheck disable=2154
+	fileiswex "$user" "$fname" ||
+		err -s70 "reported as not exclusively writable."
+	chmod ugo= "$fname"
+done
+
+owner="$(owner /bin/sh)"
+warn "checking whether ${bld-}/bin/sh${rst-} is" \
+     "exclusively writable by ${bld-}$owner${rst-} ..."
+fileiswex "$owner" /bin/sh ||
+	err -s70 "reported as not exclusively writable."
 
 warn -g "all tests passed."

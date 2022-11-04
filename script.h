@@ -1,5 +1,5 @@
 /*
- * Header for scpt.c.
+ * Header for script.c.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -19,23 +19,12 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(SCPT_H)
-#define SCPT_H
+#if !defined(SCRIPT_H)
+#define SCRIPT_H
 
-#include "macros.h"
-#include "error.h"
 #include "str.h"
-
-
-/*
- * Data types
- */
-
-/* A simple key-value store. */
-struct pair {
-	const char *const key;
-	const char *const value;
-};
+#include "sysdefs.h"
+#include "types.h"
 
 
 /*
@@ -53,9 +42,8 @@ struct pair {
  *      FAIL      No handler has been registered for FNAME's suffix.
  */
 __attribute__((nonnull(1, 2, 3), pure, warn_unused_result))
-enum error script_get_inter(const struct pair db[],
-                            const char *const script,
-                            char (*const inter)[MAX_STR]);
+enum retcode script_get_inter(const struct pair db[], const char *const script,
+                        char inter[PATH_SIZE]);
 
 
-#endif /* !defined(SCPT_H) */
+#endif /* !defined(SCRIPT_H) */

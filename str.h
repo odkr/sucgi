@@ -22,12 +22,10 @@
 #if !defined(STR_H)
 #define STR_H
 
-#include <limits.h>
 #include <stdbool.h>
 
-#include "config.h"
-#include "error.h"
-#include "macros.h"
+#include "sysdefs.h"
+#include "types.h"
 
 
 /*
@@ -39,25 +37,27 @@
  *      ERR_LEN  SRC was truncated.
  */
 __attribute((nonnull(2, 3)))
-enum error str_cp(const size_t len, const char *const src,
-                  /* RATS: ignore; must be checked by developers. */
-                  char dest[len + 1U]);
+enum retcode str_cp(const size_t len, const char *const src,
+                    char dest[len + 1U]);
 
 /*
  * Split S at the first occurence of any character in SEP and store a copy of
  * the substring up to, but not including, that character in HEAD and a
  * pointer to the substring starting after that character in TAIL.
  *
+ * If the substring up to SEP is longer than MAX - 1 characters, an error is
+ * returned. HEAD must be large enough to hold MAX characters, including the
+ * terminating NUL. 
+ *
  * HEAD and TAIL are meaningless if an error occurs.
  *
  * Return code:
  *      OK       Success.
- *      ERR_LEN  S is too long.
+ *      ERR_LEN  HEAD is longer than MAX.
  */
-__attribute__((nonnull(1, 2, 3, 4), warn_unused_result))
-enum error str_split(const char *const s, const char *const sep,
-                     /* RATS: ignore; str_split respects MAX_STR. */
-                     char (*const head)[MAX_STR], char **const tail);
+__attribute__((nonnull(2, 3, 4, 5), warn_unused_result))
+enum retcode str_split(size_t max, const char *const s, const char *const sep,
+                       char head[max], char **const tail);
 
 
 #endif /* !defined(STR_H) */

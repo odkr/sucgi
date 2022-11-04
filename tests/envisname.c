@@ -25,9 +25,9 @@
 #include <string.h>
 
 #include "../env.h"
+#include "testdefs.h"
+#include "testdefs.h"
 
-/* Exit status for failures. */
-#define T_FAIL 2
 
 /* Test case. */
 struct args {
@@ -37,7 +37,7 @@ struct args {
 
 
 /* Tests. */
-const struct args tests[] = {
+static const struct args tests[] = {
 	/* Invalid names. */
 	{"", false},
 	{" foo", false},
@@ -77,17 +77,6 @@ main (void)
 		if (ret != t.ret) {
 			char *what = (ret) ? "valid" : "invalid";
 			errx(T_FAIL, "mistaken for %s", what);
-		}
-	}
-
-	for (int i = 0; env_vars_safe[i]; i++) {
-		const char *var = env_vars_safe[i];
-
-		if (var[strspn(var, ENV_NAME_CHARS)] == '\0') {
-			warnx("checking (%s) -> valid ...", var);
-
-			if (!env_is_name(var))
-				errx(T_FAIL, "mistaken for invalid");
 		}
 	}
 

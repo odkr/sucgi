@@ -21,37 +21,49 @@
 
 #if !defined(_FORTIFY_SOURCE)
 #define _FORTIFY_SOURCE 3
-#endif /* !defined(_FORTIFY_SOURCE) */
-
-#include <assert.h>
-#include <grp.h>
-#include <errno.h>
-#include <limits.h>
-#include <sys/types.h>
-#include <unistd.h>
-
-#include "error.h"
-#include "priv.h"
-
-#if defined(__GLIBC__)
-#define NGIDS_T size_t
-#else
-#define NGIDS_T int
 #endif
 
-enum error
+#include <sys/types.h>
+#include <assert.h>
+#include <errno.h>
+#include <grp.h>
+#include <limits.h>
+#include <unistd.h>
+
+#include "priv.h"
+#include "types.h"
+
+
+/*
+ * Constants
+ */
+
+/* The type of the first argument to setgroups(3). */
+#if defined(__linux__) && __linux__
+#define NGROUPS_T size_t
+#else
+#define NGROUPS_T int
+#endif
+
+
+/*
+ * Functions
+ */
+
+enum retcode
 priv_drop(const uid_t uid, const gid_t gid,
           const int ngids, const gid_t gids[ngids])
 {
-	errno = 0;
-
 	if (ngids < 0)
 		return ERR_CNV;
 
-	if (setgroups((NGIDS_T) ngids, gids) != 0)
-		return ERR_SETGROUPS;
+	errno = 0;
+	if (setgroups((NGROUPS_T) ngids, gids) != 0)
+		return ERR_SETGRPS;
+	errno = 0;
 	if (setgid(gid) != 0)
 		return ERR_SETGID;
+	errno = 0;
 	if (setuid(uid) != 0)
 		return ERR_SETUID;
 	

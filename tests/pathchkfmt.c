@@ -1,5 +1,5 @@
 /*
- * Test gids_get.
+ * Test path_check_format.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -21,50 +21,45 @@
 
 #include <err.h>
 #include <errno.h>
-#include <pwd.h>
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "../gids.h"
+#include "../error.h"
+#include "../path.h"
+#include "../sysdefs.h"
 
 
 int
 main (int argc, char **argv)
 {
-	struct passwd *pwd;		/* User. */
-	gid_t gids[MAX_GROUPS];		/* Groups the user is a member of. */
-	int ngids;			/* Number of those groups. */
-	enum error rc;			/* Return code. */
+	/* RATS: ignore */
+	char exp[PATH_SIZE];		/* Current directory. */
+	enum retcode rc;		/* Return code. */
 
-	if (argc != 2) {
-		(void) fputs("usage: gids_get LOGNAME\n", stderr);
+	if (argc != 5) {
+		(void) fputs("usage: pathchkfmt FILE FMT VA1 VA2\n", stderr);
 		return EXIT_FAILURE;
 	}
 
-	errno = 0;
-	pwd = getpwnam(argv[1]);
-	if (!pwd) {
-		if (errno == 0)
-			errx(EXIT_FAILURE, "no such user");
-		else
-			err(EXIT_FAILURE, "getpwnam");
+#pragma GCC diagnostic ignored "-Wformat"
+#pragma GCC diagnostic ignored "-Wformat-extra-args"
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+	rc = path_check_format(argv[1], exp, argv[2], argv[3], argv[4]);
+#pragma GCC diagnostic pop
+
+	switch (rc) {
+	case OK:
+		break;
+	case ERR_RES:
+		err(EXIT_FAILURE, "realpath %s", exp);
+	case ERR_LEN:
+		errx(EXIT_FAILURE, "expanded user directory is too long");
+	case FAIL:
+		errx(EXIT_FAILURE, "file %s does not match format", argv[1]);
+	default:
+		errx(EXIT_FAILURE, "returned %u.", rc);
 	}
 
-	rc = gids_get(pwd->pw_name, pwd->pw_gid, &gids, &ngids);
-	switch (rc) {
-		case OK:
-			break;
-		case ERR_GETGRENT:
-			error("getgrent: %m.");
-		case ERR_LEN:
-			error("user %s belongs to too many groups.",
-			      pwd->pw_name);
-		default:
-			error("returned %u.", rc);
-	}
-	
-	for (int i = 0; i < ngids; i++)
-		(void) printf("%llu\n", (long long unsigned) gids[i]);
-	
 	return EXIT_SUCCESS;
 }

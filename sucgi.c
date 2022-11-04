@@ -24,21 +24,23 @@
 
 #if !defined(_FORTIFY_SOURCE)
 #define _FORTIFY_SOURCE 3
-#endif /* !defined(_FORTIFY_SOURCE) */
+#endif
 
+#include <sys/stat.h>
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <fnmatch.h>
+#include <limits.h>
 #include <pwd.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <string.h>
-#include <sys/stat.h>
 #include <unistd.h>
 
 #include "config.h"
-#include "macros.h"
 #include "env.h"
 #include "error.h"
 #include "file.h"
@@ -47,6 +49,145 @@
 #include "priv.h"
 #include "script.h"
 #include "str.h"
+#include "sysdefs.h"
+#include "types.h"
+
+
+/*
+ * Constants
+ */
+
+/* Programme version. */
+#define VERSION "0"
+
+/* Maximum number of groups that users are likely to be a member of. */
+#define PRELIM_NGROUPS 32
+
+
+/*
+ * Macros
+ */
+
+/* Raise a compiler error if COND is false. */
+#define BUILD_BUG_ON(cond) ((void)sizeof(char[1 - 2*!!(cond)]))
+
+
+/*
+ * Configuration for test builds
+ */
+
+#if !defined(NDEBUG) && defined(TESTING) && TESTING
+
+#undef JAIL_DIR
+#define JAIL_DIR "/"
+
+#undef USER_DIR 
+#define USER_DIR "/tmp/check-sucgi/%s"
+
+#undef FORCE_HOME
+#define FORCE_HOME false
+
+#undef MIN_UID
+#define MIN_UID 500U
+
+#undef MAX_UID
+#define MAX_UID 30000U
+
+#undef MIN_GID
+#define MIN_GID 1U
+
+#undef MAX_GID
+#define MAX_GID 30000U
+
+#undef HANDLERS
+#define HANDLERS {{".sh", "sh"}, {NULL, NULL}}
+
+#undef PRELIM_NGROUPS
+#define PRELIM_NGROUPS 0
+
+#endif /* !defined(NDEBUG) && defined(TESTING) && TESTING */
+
+
+/*
+ * Verification of configuration
+ */
+
+#if !defined(JAIL_DIR)
+#error JAIL_DIR is undefined.
+#endif
+
+#if !defined(USER_DIR)
+#error USER_DIR is undefined.
+#endif
+
+#if !defined(FORCE_HOME)
+#error FORCE_HOME is undefined.
+#endif
+
+#if !defined(MIN_UID)
+#error MIN_UID is undefined.
+#endif
+
+#if !defined(MAX_UID)
+#error MIN_UID is undefined.
+#endif
+
+#if MIN_UID <= 0 
+#error MIN_UID must be greater than 0.
+#endif
+
+#if MAX_UID < MIN_UID
+#error MAX_UID is smaller than MIN_UID.
+#endif
+
+#if defined(UID_MAX)
+#if MAX_UID > UID_MAX
+#error MAX_UID is greater than UID_MAX.
+#endif
+#else /* !defined(MAX_UID) */
+#if MAX_UID > UINT_MAX
+#error MAX_UID is greater than UINT_MAX.
+#endif
+#endif /* defined(MAX_UID) */
+
+#if !defined(MIN_GID)
+#error MIN_GID is undefined.
+#endif
+
+#if !defined(MAX_GID)
+#error MIN_GID is undefined.
+#endif
+
+#if MIN_GID <= 0
+#error MIN_GID must be greater than 0.
+#endif
+
+#if MAX_GID < MIN_GID
+#error MAX_GID is smaller than MIN_GID.
+#endif
+
+#if defined(GID_MAX)
+#if MAX_GID > GID_MAX
+#error MAX_GID is greater than GID_MAX.
+#endif
+#else /* !defined(MAX_GID) */
+#if MAX_GID > UINT_MAX
+#error MAX_GID is greater than UINT_MAX.
+#endif
+#endif /* defined(MAX_GID) */
+
+#if !defined(SEC_VARS)
+#error SEC_VARS is undefined.
+#endif
+
+#if !defined(HANDLERS)
+#error HANDLERS is undefined.
+#endif
+
+#if !defined(SEC_PATH)
+#error SEC_PATH is undefined.
+#endif
+
 
 
 /*
@@ -60,11 +201,11 @@ main(int argc, char **argv) {
 	 */
 
 	BUILD_BUG_ON(sizeof(JAIL_DIR) <= 1);
-	BUILD_BUG_ON(sizeof(JAIL_DIR) >= MAX_STR);
+	BUILD_BUG_ON(sizeof(JAIL_DIR) >= PATH_SIZE);
 	BUILD_BUG_ON(sizeof(USER_DIR) <= 1);
-	BUILD_BUG_ON(sizeof(USER_DIR) >= MAX_STR);
+	BUILD_BUG_ON(sizeof(USER_DIR) >= PATH_SIZE);
 	BUILD_BUG_ON(sizeof(SEC_PATH) <= 1);
-	BUILD_BUG_ON(sizeof(SEC_PATH) >= MAX_STR);
+	BUILD_BUG_ON(sizeof(SEC_PATH) >= PATH_SIZE);
 
 	
 	/*
@@ -75,17 +216,19 @@ main(int argc, char **argv) {
 	 * > info. Bad news if MALLOC_DEBUG_FILE is set to /etc/passwd.)
 	 */
 
-	const char *vars[MAX_ENV];	/* Backup of environ(2). */
-	enum error rc;			/* Return code. */
+	/* RATS: ignore; writes to env respect MAX_NVARS. */
+	const char *env[MAX_NVARS];	/* Backup of environment. */
+	enum retcode rc;		/* Return code. */
 
-	rc = env_clear(&vars);
+	rc = env_clear(MAX_NVARS, env);
 	switch (rc) {
-		case OK:
-			break;
-		case ERR_LEN:
-			error("too many environment variables.");
-		default:
-			error("env_clear returned %u.", rc);
+	case OK:
+		break;
+	case ERR_LEN:
+		error("too many environment variables.");
+	default:
+		/* Should be unreachable. */
+		error("%d: env_clear returned %u.", __LINE__, rc);
 	}
 	
 	assert(!*environ);
@@ -95,21 +238,14 @@ main(int argc, char **argv) {
 	 * Drop privileges temporarily.
 	 */
 
-	uid_t proc_uid;		/* Process' real user ID. */
-	gid_t proc_gid;		/* Process' real group ID. */
-
-	proc_uid = getuid();
-	proc_gid = getgid();
-
 	errno = 0;
-	if (setegid(proc_gid) != 0)
-		error("setegid %llu: %m.", (long long unsigned) proc_gid);
+	if (setegid(getgid()) != 0)
+		/* Should be unreachable. */
+		error("setegid: %m.");
 	errno = 0;
-	if (seteuid(proc_uid) != 0)
-		error("seteuid %llu: %m.", (long long unsigned) proc_uid);
-
-	assert(geteuid() == proc_uid);
-	assert(getegid() == proc_gid);
+	if (seteuid(getuid()) != 0)
+		/* Should be unreachable. */
+		error("seteuid: %m.");
 
 
 	/*
@@ -121,14 +257,11 @@ main(int argc, char **argv) {
 			(void) puts(
 "suCGI - run CGI scripts with the permissions of their owner\n\n"
 "Usage:  sucgi\n"
-"        sucgi -h\n"
-"        sucgi -c\n\n"
+"        sucgi [-c|-h]\n\n"
 "Options:\n"
 "    -h  Print this help screen.\n"
-"    -c  Print the build configuration.\n\n"
-"Copyright 2022 Odin Kroeger.\n"
-"Released under the GNU General Public License.\n"
-"This programme comes with ABSOLUTELY NO WARRANTY."
+"    -c  Print build configuration.\n"
+"    -V  Print version and license."
 			       );
 			return EXIT_SUCCESS;
 		} else if (strncmp(argv[i], "-c", 3) == 0) {
@@ -156,10 +289,17 @@ main(int argc, char **argv) {
 			(void) printf("SEC_PATH=%s\n", SEC_PATH);
 			(void) printf("UMASK=0%o\n", UMASK);
 
-			(void) printf("MAX_GROUPS=%d\n", MAX_GROUPS);
-			(void) printf("MAX_ENV=%u\n", MAX_ENV);
-			(void) printf("MAX_STR=%u\n", MAX_STR);
+			(void) printf("MAX_NVARS=%u\n", MAX_NVARS);
+			(void) printf("PATH_SIZE=%d\n", PATH_SIZE);
 
+			return EXIT_SUCCESS;
+		} else if (strncmp(argv[i], "-V", 3) == 0) {
+			(void) puts(
+"suCGI v" VERSION "\n"
+"Copyright 2022 Odin Kroeger.\n"
+"Released under the GNU General Public License.\n"
+"This programme comes with ABSOLUTELY NO WARRANTY."
+			       );
 			return EXIT_SUCCESS;
 		} else {
 			(void) fputs("usage: sucgi [-h|-c]\n", stderr);
@@ -171,19 +311,22 @@ main(int argc, char **argv) {
 	/*
 	 * Restore the environment variables needed by CGI scripts.
 	 */
+	
+	const char *const sec_vars[] = SEC_VARS;	/* Secure variables. */
 
-	rc = env_restore(vars, env_vars_safe);
+	rc = env_restore(env, sec_vars);
 	switch (rc) {
-		case OK:
-			break;
-		case ERR_SETENV:
-			error("setenv: %m.");
-		case ERR_ILL:
-			error("encountered malformed variable.");
-		case ERR_LEN:
-			error("encountered suspiciously long variable.");
-		default:
-			error("env_restore returned %u.", rc);
+	case OK:
+		break;
+	case ERR_ENV:
+		error("setenv: %m.");
+	case ERR_ILL:
+		error("encountered malformed environment variable.");
+	case ERR_LEN:
+		error("encountered suspiciously long environment variable.");
+	default:
+		/* Should be unreachable. */
+		error("%d: env_restore returned %u.", __LINE__, rc);
 	}
 
 
@@ -196,34 +339,37 @@ main(int argc, char **argv) {
 	int doc_fd;			/* -- " -- file descriptor. */
 
 	errno = 0;
+	/* RATS: ignore; the length of JAIL_DIR is checked above. */
 	jail_dir = realpath(JAIL_DIR, NULL);
 	if (!jail_dir)
 		error("realpath %s: %m.", JAIL_DIR);
 
 	assert(jail_dir);
 	assert(*jail_dir);
-        assert(strnlen(jail_dir, MAX_STR) < MAX_STR);
+        assert(strnlen(jail_dir, PATH_SIZE) < PATH_SIZE);
 
-	rc = env_file_open(jail_dir, "DOCUMENT_ROOT",
-	                   O_RDONLY | O_CLOEXEC | O_DIRECTORY,
-			   &doc_root, &doc_fd);
+	rc = env_fopen(jail_dir, "DOCUMENT_ROOT", O_RDONLY | O_DIRECTORY,
+	               &doc_root, &doc_fd);
 	switch (rc) {
-		case OK:
-			break;
-		case ERR_GETENV:
-			error("getenv DOCUMENT_ROOT: %m.");
-		case ERR_REALPATH:
-			error("realpath %s: %m.", doc_root);
-		case ERR_OPEN:
-			error("open %s: %m.", doc_root);
-		case ERR_LEN:
-			error("path to document root too long.");
-		case ERR_ILL:
-			error("document root %s not within jail.", doc_root);
-		case ERR_NIL:
-			error("$DOCUMENT_ROOT unset or empty.");
-		default:
-			error("env_file_open returned %u.", rc);
+	case OK:
+		break;
+	case ERR_ENV:
+		error("getenv: %m.");
+	case ERR_MEM:
+		error("strndup: %m.");
+	case ERR_RES:
+		error("realpath %s: %m.", doc_root);
+	case ERR_OPEN:
+		error("open %s: %m.", doc_root);
+	case ERR_LEN:
+		error("path to document root is too long.");
+	case ERR_ILL:
+		error("document root %s not within jail.", doc_root);
+	case ERR_NIL:
+		error("$DOCUMENT_ROOT unset or empty.");
+	default:
+		/* Should be unreachable. */
+		error("%d: env_fopen returned %u.", __LINE__, rc);
 	}
 
 	if (close(doc_fd) != 0)
@@ -232,9 +378,11 @@ main(int argc, char **argv) {
 	assert(doc_root);
 	assert(*doc_root);
 	assert(doc_fd > -1);
-	assert(strnlen(doc_root, MAX_STR) < MAX_STR);
+	assert(strnlen(doc_root, PATH_SIZE) < PATH_SIZE);
+	/* RATS: ignore; not a permission check. */
 	assert(access(doc_root, F_OK) == 0);
-	assert(strncmp(realpath(doc_root, NULL), doc_root, MAX_STR) == 0);
+	/* RATS: ignore; the length of doc_root is checked above. */
+	assert(strncmp(realpath(doc_root, NULL), doc_root, PATH_SIZE) == 0);
 
 
 	/*
@@ -242,35 +390,40 @@ main(int argc, char **argv) {
 	 */
 
 	const char *script;		/* Path to script. */
-	int script_fd;			/* -- " -- file descriptor. */
+	int script_fd;			/* Script file descriptor. */
 	struct stat script_stat;	/* -- " -- filesystem metadata. */
 
-	rc = env_file_open(doc_root, "PATH_TRANSLATED", O_RDONLY | O_CLOEXEC,
-			   &script, &script_fd);
+	rc = env_fopen(doc_root, "PATH_TRANSLATED", O_RDONLY,
+	               &script, &script_fd);
    	switch (rc) {
-   		case OK:
-   			break;
-   		case ERR_GETENV:
-   			error("getenv PATH_TRANSLATED: %m.");
-   		case ERR_REALPATH:
-   			error("realpath %s: %m.", script);
-   		case ERR_OPEN:
-   			error("open %s: %m.", script);
-   		case ERR_LEN:
-   			error("path to script too long.");
-   		case ERR_ILL:
-   			error("script %s not within document root.", script);
-   		case ERR_NIL:
-   			error("$PATH_TRANSLATED unset or empty.");
-   		default:
-   			error("env_file_open returned %u.", rc);
+	case OK:
+		break;
+	case ERR_ENV:
+		error("getenv: %m.");
+	case ERR_MEM:
+		error("calloc: %m.");
+	case ERR_RES:
+		error("realpath %s: %m.", script);
+	case ERR_OPEN:
+		error("open %s: %m.", script);
+	case ERR_LEN:
+		error("path to script is too long.");
+	case ERR_ILL:
+		error("script %s not within document root.", script);
+	case ERR_NIL:
+		error("$PATH_TRANSLATED unset or empty.");
+	default:
+		/* Should be unreachable. */
+		error("%d: env_fopen returned %u.", __LINE__, rc);
    	}
 
 	assert(script);
 	assert(*script);
-	assert(strnlen(script, MAX_STR) < MAX_STR);
-	assert(access(doc_root, F_OK) == 0);
-	assert(strncmp(realpath(script, NULL), script, MAX_STR) == 0);
+	assert(strnlen(script, PATH_SIZE) < PATH_SIZE);
+	/* RATS: ignore; not a permission check. */
+	assert(access(script, F_OK) == 0);
+	/* RATS: ignore; the length of script is checked above. */
+	assert(strncmp(realpath(script, NULL), script, PATH_SIZE) == 0);
 
 	errno = 0;
 	if (fstat(script_fd, &script_stat) != 0)
@@ -283,9 +436,9 @@ main(int argc, char **argv) {
 	 * Check if the script is owned by a regular user.
 	 */
 
-	struct passwd *owner;		/* The script's owner. */
-	gid_t owner_gids[MAX_GROUPS];	/* Groups they are a member of. */
-	int owner_ngids;		/* Number of those groups. */
+	struct passwd *owner;		/* Script owner. */
+	gid_t *groups;			/* Groups they are a member of. */
+	int ngroups;			/* Number of groups. */
 
 	errno = 0;
 	owner = getpwuid(script_stat.st_uid);
@@ -304,32 +457,53 @@ main(int argc, char **argv) {
 		error("script %s is owned by privileged user %s.",
 		      script, owner->pw_name);
 
-	rc = gids_get(owner->pw_name, owner->pw_gid,
-	              &owner_gids, &owner_ngids);
-	switch (rc) {
-		case OK:
-			break;
-		case ERR_GETGRENT:
-			error("getgrent: %m.");
-		case ERR_LEN:
+	ngroups = PRELIM_NGROUPS;
+	groups = malloc((size_t) ngroups * sizeof(*groups));
+	if (!groups)
+		error("malloc: %m.");
+
+	rc = gids_get(owner->pw_name, owner->pw_gid, groups, &ngroups);
+
+	assert(ngroups > 0);
+
+	if (rc == ERR_LEN) {
+		size_t gid_size = sizeof(*groups);
+
+		/* Check for overflow. */
+		if ((size_t) ngroups > SIZE_MAX/gid_size)
 			error("user %s belongs to too many groups.",
-			      owner->pw_name);
-		default:
-			error("gids_get returned %u.", rc);
+		              owner->pw_name);
+
+		/* RATS: ignore; garbage irrelevant, alignment correct. */
+		groups = realloc(groups, (size_t) ngroups * gid_size);
+		if (!groups)
+			error("realloc: %m");
+		
+		rc = gids_get(owner->pw_name, owner->pw_gid, groups, &ngroups);
 	}
 
-	assert(owner_ngids > 0);
+	switch (rc) {
+	case OK:
+		break;
+	case ERR_GETGR:
+		error("getgrent: %m.");
+	default:
+		/* Should be unreachable. */
+		error("%d: gids_get returned %u.", __LINE__, rc);
+	}
 
-	for (int i = 0; i < owner_ngids; i++) {
-		const gid_t gid = owner_gids[i];
+	assert(ngroups > 0);
 
-		if (gid < MIN_GID || gid > MAX_GID)
+	for (int i = 0; i < ngroups; i++) {
+		gid_t gid = groups[i];
+
+		if (MAX_GID < gid || gid < MIN_GID)
 			error("user %s belongs to privileged group %llu.",
 			      owner->pw_name, (long long unsigned) gid);
 	}
 
-	assert(owner->pw_gid > MIN_GID);
-	assert(owner->pw_gid < MAX_GID);	
+	assert(owner->pw_gid >= MIN_GID);
+	assert(owner->pw_gid <= MAX_GID);	
 
 
 	/*
@@ -338,25 +512,23 @@ main(int argc, char **argv) {
 
 	errno = 0;
 	if (seteuid(0) != 0)
-		error("seteuid 0: %m.");
+		error("seteuid: %m.");
 
-	rc = priv_drop(owner->pw_uid, owner->pw_gid, owner_ngids, owner_gids);
+	rc = priv_drop(owner->pw_uid, owner->pw_gid, ngroups, groups);
 	switch (rc) {
-		case OK:
-			break;
-		case ERR_SETGROUPS:
-			error("setgroups %llu ...: %m.",
-			      (long long unsigned) owner->pw_gid);
-		case ERR_SETGID:
-			error("setgid %llu: %m.",
-			      (long long unsigned) owner->pw_gid);
-		case ERR_SETUID:
-			error("setuid %llu: %m.",
-			      (long long unsigned) owner->pw_uid);
-		case FAIL:
-			error("could resume superuser privileges.");
-		default:
-			error("priv_drop returned %u.", rc);
+	case OK:
+		break;
+	case ERR_SETGRPS:
+		error("setgroups: %m.");
+	case ERR_SETGID:
+		error("setgid: %m.");
+	case ERR_SETUID:
+		error("setuid: %m.");
+	case FAIL:
+		error("could resume superuser privileges.");
+	default:
+		/* Should be unreachable. */
+		error("%d: priv_drop returned %u.", __LINE__, rc);
 	}
 
 	assert(geteuid() == owner->pw_uid);
@@ -371,28 +543,29 @@ main(int argc, char **argv) {
 
 	errno = 0;
 	if (setenv("DOCUMENT_ROOT", doc_root, true) != 0)
-		error("setenv DOCUMENT_ROOT: %m.");
+		error("setenv: %m.");
 
 	errno = 0;
 	if (setenv("HOME", owner->pw_dir, true) != 0)
-		error("setenv HOME: %m.");
+		error("setenv: %m.");
 
 	errno = 0;
 	if (setenv("PATH", SEC_PATH, true) != 0)
-		error("setenv PATH: %m.");
+		error("setenv: %m.");
 
 	errno = 0;
 	if (setenv("PATH_TRANSLATED", script, true) != 0)
-		error("setenv PATH_TRANSLATED: %m.");
+		error("setenv: %m.");
 
 	errno = 0;
 	if (setenv("USER_NAME", owner->pw_name, true) != 0)
-		error("setenv USER_NAME: %m.");
+		error("setenv: %m.");
 
 	errno = 0;
 	if (chdir(doc_root) != 0)
 		error("chdir %s: %m.", doc_root);
 
+	/* RATS: ignore; the umask is the administrator's responsibility. */
 	umask(umask(0) | UMASK);
 
 
@@ -408,32 +581,34 @@ main(int argc, char **argv) {
 	 * It also makes sure that users cannot break out of their directory.
 	 */
 
-	char user_dir[MAX_STR];		/* The user directory. */
+	/* RATS: ignore; path_check_format respects PATH_SIZE. */
+	char user_dir[PATH_SIZE];	/* The user directory. */
 
-#if FORCE_HOME
-	if (!path_contains(owner->pw_dir, doc_root))
+	if (FORCE_HOME && !path_is_subdir(doc_root, owner->pw_dir))
 		error("document root %s not within %s's home directory.",
 		      doc_root, owner->pw_name);
-#endif /* FORCE_HOME */
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat"
 #pragma GCC diagnostic ignored "-Wformat-extra-args"
-	rc = path_check_format(doc_root, &user_dir, USER_DIR,
+	rc = path_check_format(doc_root, user_dir, USER_DIR,
 	                       owner->pw_dir, owner->pw_name);
 #pragma GCC diagnostic pop
 	switch (rc) {
-		case OK:
-			break;
-		case ERR_REALPATH:
-			error("realpath %s: %m.", user_dir);
-		case ERR_LEN:
-			error("expanded user directory is too long.");
-		case FAIL:
-			error("document root %s is not %s's user directory.",
-			      doc_root, owner->pw_name);
-		default:
-			error("path_check_format returned %u.", rc);
+	case OK:
+		break;
+	case ERR_RES:
+		error("realpath %s: %m.", user_dir);
+	case ERR_PRN:
+		error("vsnprintf: %m.");
+	case ERR_LEN:
+		error("expanded user directory is too long.");
+	case FAIL:
+		error("document root %s is not %s's user directory.",
+		      doc_root, owner->pw_name);
+	default:
+		/* Should be unreachable. */
+		error("%d: path_check_format returned %u.", __LINE__, rc);
 	}
 
 
@@ -471,29 +646,31 @@ main(int argc, char **argv) {
 	 * owned by the same UID, namely, owner->pw_uid.
 	 */
 
-	char path_cur[MAX_STR];		/* Current sub-path of script path. */
+	/* RATS: ignore; path_check_wexcl respects PATH_SIZE. */
+	char script_cur[PATH_SIZE];	/* Sub-path of script path. */
+	const char *base_dir;		/* Base directory. */
 
-#if FORCE_HOME
-#define BASE_DIR owner->pw_dir
-#else
-#define BASE_DIR doc_root
-#endif
+	if (FORCE_HOME)
+		base_dir = owner->pw_dir;
+	else
+		base_dir = doc_root;
 
-	rc = path_check_wexcl(owner->pw_uid, BASE_DIR, script, &path_cur);
+	rc = path_check_wexcl(owner->pw_uid, script, base_dir, script_cur);
 	switch (rc) {
-		case OK:
-			break;
-		case ERR_OPEN:
-			error("open %s: %m.", path_cur);
-		case ERR_CLOSE:
-			error("close %s: %m.", path_cur);
-		case ERR_STAT:
-			error("stat %s: %m.", path_cur);
-		case FAIL:
-		        error("%s is writable by users other than %s.",
-			      path_cur, owner->pw_name);
-		default:
-			error("path_check_wexcl returned %u.", rc);
+	case OK:
+		break;
+	case ERR_OPEN:
+		error("open %s: %m.", script_cur);
+	case ERR_CLOSE:
+		error("close %s: %m.", script_cur);
+	case ERR_STAT:
+		error("stat %s: %m.", script_cur);
+	case FAIL:
+	        error("%s is writable by users other than %s.",
+		      script_cur, owner->pw_name);
+	default:
+		/* Should be unreachable. */
+		error("%d: path_check_wexcl returned %u.", __LINE__, rc);
 	}
 
 
@@ -501,19 +678,13 @@ main(int argc, char **argv) {
 	 * Run the script.
 	 */
 
-	char inter[MAX_STR];		/* Script interpreter. */
+	if (!file_is_exe(script_stat)) {
+		/* RATS: ignore; script_get_inter respects PATH_SIZE. */
+		char interp[PATH_SIZE];			/* Interpreter. */
+		const struct pair db[] = HANDLERS;	/* Database. */
 
-	if (file_is_exec(script_stat)) {
-		errno = 0;
-		(void) execl(script, script, NULL);
-
-		/* If this point is reached, execution has failed. */
-		error("execl %s: %m.", script);
-	}
-
-	rc = script_get_inter((const struct pair []) HANDLERS,
-	                      script, &inter);
-	switch (rc) {
+		rc = script_get_inter(db, script, interp);
+		switch (rc) {
 		case OK:
 			break;
 		case ERR_ILL:
@@ -521,14 +692,24 @@ main(int argc, char **argv) {
 		case FAIL:
 			error("no interpreter registered for %s.", script);
 		default:
-			error("script_get_inter returned %u.", rc);
+			/* Should be unreachable. */
+			error("%d: script_get_inter returned %u.", __LINE__, rc);
+		}
+
+		assert(*interp);
+
+		errno = 0;
+		/* RATS: ignore; suCGI's whole point is to do this securely. */
+		(void) execlp(interp, interp, script, NULL);
+
+		/* If this point is reached, execution has failed. */
+		error("execlp %s %s: %m.", interp, script);
 	}
 
-	assert(*inter);
-
 	errno = 0;
-	(void) execlp(inter, inter, script, NULL);
+	/* RATS: ignore; suCGI's whole point is to do this securely. */
+	(void) execl(script, script, NULL);
 
 	/* If this point is reached, execution has failed. */
-	error("execlp %s %s: %m.", inter, script);
+	error("execl %s: %m.", script);
 }

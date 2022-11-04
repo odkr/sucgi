@@ -26,23 +26,26 @@
 
 #include "../script.h"
 #include "../str.h"
+#include "../sysdefs.h"
+#include "testdefs.h"
+#include "testdefs.h"
 
-/* Exit status for failures. */
-#define T_FAIL 2
-
-/* Exit status for errors. */
-#define T_ERR 3
 
 /* Test case. */
 struct args {
 	const char *script;
 	const char *inter;
-	const enum error rc;
+	const enum retcode rc;
 };
 
+/* A string just within limits. */
+static char long_str[PATH_SIZE] = {0};
+
+/* A string that exceeds PATH_SIZE. */
+static char huge_str[PATH_SIZE + 1U] = {0};
 
 /* Tests. */
-const struct args tests[] = {
+static const struct args tests[] = {
 	/* Simple errors. */
 	{"file", NULL, ERR_ILL},
 	{".", NULL, ERR_ILL},
@@ -52,6 +55,7 @@ const struct args tests[] = {
 	{"file.empty", NULL, FAIL},
 	{"file.py", NULL, FAIL},
 	{"file.post", NULL, FAIL},
+	{huge_str, NULL, ERR_LEN},
 
 	/* Empty string shenanigans. */
 	{" ", NULL, ERR_ILL},
@@ -67,13 +71,14 @@ const struct args tests[] = {
 	/* Simple test. */
 	{"file.sh", "sh", OK},
 	{"file.", "dot", OK},
+	{long_str, "sh", OK},
 
 	/* Terminator. */
 	{NULL, NULL, OK}
 };
 
 /* Script inter database for testing. */
-const struct pair db[] = {
+static const struct pair db[] = {
 	{"", "unreachable"},
 	{".", "dot"},
 	{".sh", "sh"},
@@ -88,19 +93,24 @@ const struct pair db[] = {
 int
 main (void)
 {
+	(void) memset(huge_str, 'x', sizeof(huge_str) - 1);
+	(void) memset(long_str, 'x', sizeof(long_str) - 1);
+	/* RATS: ignore; there is enough space for NUL-termination. */
+	(void) strncpy(&long_str[sizeof(long_str) - 4], ".sh", 4);
+
 	for (int i = 0; tests[i].script; i++) {
 		const struct args t = tests[i];
-		char inter[MAX_STR];
-		char script[MAX_STR];
-		enum error rc;	
+		char inter[PATH_SIZE];	/* RATS: ignore */
+		char script[PATH_SIZE];	/* RATS: ignore */
+		enum retcode rc;	
 
 		*script = '\0';
-		(void) memset(inter, 0, MAX_STR);
+		(void) memset(inter, 0, PATH_SIZE);
 
 		warnx("checking (db, %s, -> %s) -> %u ...",
 		      t.script, t.inter, t.rc);
 
-		rc = script_get_inter(db, t.script, &inter);
+		rc = script_get_inter(db, t.script, inter);
 
 		if (t.rc != rc)
 			errx(T_FAIL, "returned %u", rc);

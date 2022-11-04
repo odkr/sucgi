@@ -8,7 +8,7 @@
 
 
 /*
- * CGI scripts are only executed if they are inside this path.
+ * CGI scripts are only executed if they are inside this path. String.
  *
  * Should correspond to the UserDir directive of your Apache configuation
  * (or the equivalent directive of the webserver you use).
@@ -20,7 +20,7 @@
 #define JAIL_DIR "/home"
 
 /*
- * The document root of user websites.
+ * The document root of user websites. String.
  *
  * "%1$s" or "%s" is replaced with the home directory of the script's owner.
  * "%2$s" is replaced with their login name.
@@ -35,8 +35,7 @@
 #define USER_DIR "%s/public_html"
 
 /*
- * Must the user directory reside in the user's home directory?
- * Boolean value.
+ * Must the user directory reside in the user's home directory? Boolean.
  */
 #define FORCE_HOME true
 
@@ -66,12 +65,160 @@
 #define MAX_GID 30000U
 
 /*
+ * Secure environment variables. Array of shell wildcard patterns.
+ *
+ * Variables that match none of the given patterns are discarded.
+ * See fnmatch(3) for the syntax. The array must be NULL-terminated.
+ *
+ * The list below has been adopted from:
+ *      - RFC 3876
+ *	  <https://datatracker.ietf.org/doc/html/rfc3875>
+ *      - Kira Matrejek, CGI Programming 101, chap. 3
+ *	  <http://www.cgi101.com/book/ch3/text.html>
+ *      - Apache's suEXEC
+ *	  <https://github.com/apache/httpd/blob/trunk/support/suexec.c>
+ *      - the Apache v2.4 documentation
+ *	  <https://httpd.apache.org/docs/2.4/expr.html>
+ *      - the mod_ssl documentation
+ *	  <https://httpd.apache.org/docs/2.4/mod/mod_ssl.html>
+ *
+ * The list must include DOCUMENT_ROOT and PATH_TRANSLATED.
+ * HOME, PATH, and USER_NAME are set regardless.
+ *
+ * There should be no need to adapt this list.
+ */
+#define SEC_VARS {					\
+	"AUTH_TYPE",					\
+	"CONTENT_LENGTH",				\
+	"CONTENT_TYPE",					\
+	"CONTEXT_DOCUMENT_ROOT",			\
+	"CONTEXT_PREFIX",				\
+	"DATE_GMT",					\
+	"DATE_LOCAL",					\
+	"DOCUMENT_NAME",				\
+	"DOCUMENT_PATH_INFO",				\
+	"DOCUMENT_ROOT",				\
+	"DOCUMENT_URI",					\
+	"GATEWAY_INTERFACE",				\
+	"HANDLER",					\
+	"HTTP_ACCEPT",					\
+	"HTTP_COOKIE",					\
+	"HTTP_FORWARDED",				\
+	"HTTP_HOST",					\
+	"HTTP_PROXY_CONNECTION",			\
+	"HTTP_REFERER",					\
+	"HTTP_USER_AGENT",				\
+	"HTTP2",					\
+	"HTTPS",					\
+	"IS_SUBREQ",					\
+	"IPV6",						\
+	"LAST_MODIFIED",				\
+	"PATH_INFO",					\
+	"PATH_TRANSLATED",				\
+	"QUERY_STRING",					\
+	"QUERY_STRING_UNESCAPED",			\
+	"REMOTE_ADDR",					\
+	"REMOTE_HOST",					\
+	"REMOTE_IDENT",					\
+	"REMOTE_PORT",					\
+	"REMOTE_USER",					\
+	"REDIRECT_ERROR_NOTES",				\
+	"REDIRECT_HANDLER",				\
+	"REDIRECT_QUERY_STRING",			\
+	"REDIRECT_REMOTE_USER",				\
+	"REDIRECT_SCRIPT_FILENAME",			\
+	"REDIRECT_STATUS REDIRECT_URL",			\
+	"REQUEST_LOG_ID",				\
+	"REQUEST_METHOD",				\
+	"REQUEST_SCHEME",				\
+	"REQUEST_STATUS",				\
+	"REQUEST_URI",					\
+	"SCRIPT_FILENAME",				\
+	"SCRIPT_NAME",					\
+	"SCRIPT_URI",					\
+	"SCRIPT_URL",					\
+	"SERVER_ADMIN",					\
+	"SERVER_NAME",					\
+	"SERVER_ADDR",					\
+	"SERVER_PORT",					\
+	"SERVER_PROTOCOL",				\
+	"SERVER_SIGNATURE",				\
+	"SERVER_SOFTWARE",				\
+	"SSL_CIPHER",					\
+	"SSL_CIPHER_EXPORT",				\
+	"SSL_CIPHER_USEKEYSIZE",			\
+	"SSL_CIPHER_ALGKEYSIZE",			\
+	"SSL_CLIENT_M_VERSION",				\
+	"SSL_CLIENT_M_SERIAL",				\
+	"SSL_CLIENT_S_DN",				\
+	"SSL_CLIENT_S_DN_*",				\
+	"SSL_CLIENT_SAN_Email_*",			\
+	"SSL_CLIENT_SAN_DNS_*",				\
+	"SSL_CLIENT_SAN_OTHER_msUPN_*",			\
+	"SSL_CLIENT_I_DN",				\
+	"SSL_CLIENT_I_DN_*",				\
+	"SSL_CLIENT_V_START",				\
+	"SSL_CLIENT_V_END",				\
+	"SSL_CLIENT_V_REMAIN",				\
+	"SSL_CLIENT_A_SIG",				\
+	"SSL_CLIENT_A_KEY",				\
+	"SSL_CLIENT_CERT",				\
+	"SSL_CLIENT_CERT_CHAIN_*",			\
+	"SSL_CLIENT_CERT_RFC4523_CEA",			\
+	"SSL_CLIENT_VERIFY",				\
+	"SSL_COMPRESS_METHOD",				\
+	"SSL_PROTOCOL",					\
+	"SSL_SECURE_RENEG",				\
+	"SSL_SERVER_M_VERSION",				\
+	"SSL_SERVER_M_SERIAL",				\
+	"SSL_SERVER_S_DN",				\
+	"SSL_SERVER_SAN_Email_*",			\
+	"SSL_SERVER_SAN_DNS_*",				\
+	"SSL_SERVER_SAN_OTHER_dnsSRV_*",		\
+	"SSL_SERVER_S_DN_*",				\
+	"SSL_SERVER_I_DN",				\
+	"SSL_SERVER_I_DN_*",				\
+	"SSL_SERVER_V_START",				\
+	"SSL_SERVER_V_END",				\
+	"SSL_SERVER_A_SIG",				\
+	"SSL_SERVER_A_KEY",				\
+	"SSL_SERVER_CERT",				\
+	"SSL_SESSION_ID",				\
+	"SSL_SESSION_RESUMED",				\
+	"SSL_SRP_USER",					\
+	"SSL_SRP_USERINFO",				\
+	"SSL_TLS_SNI",					\
+	"SSL_VERSION_INTERFACE",			\
+	"SSL_VERSION_LIBRARY",				\
+	"UNIQUE_ID",					\
+	"USER_NAME",					\
+	"THE_REQUEST",					\
+	"TIME_YEAR",					\
+	"TIME_MON",					\
+	"TIME_DAY",					\
+	"TIME_HOUR",					\
+	"TIME_MIN",					\
+	"TIME_SEC",					\
+	"TIME_WDAY",					\
+	"TIME",						\
+	"TZ",						\
+	NULL	/* Array terminator. DO NOT REMOVE. */	\
+}
+
+/*
+ * Maximum number of environment variables. Unsigned integer.
+ * suCGI aborts if the environment contains more variables.
+ * Setting this number to anything lower than 128 may break CGI scripts.
+ */
+#define MAX_NVARS 256U
+
+/*
  * Handlers to run CGI scripts with if their executable bit is unset.
  * Array of filename suffix-interpreter pairs.
  * 
  * The filename suffix must be given including the leading dot (e.g., ".php").
  * The interpreter is looked up in $PATH if its name is relative (e.g., "php"),
- * but keep in mind that $PATH is set to SECURE_PATH (see below).
+ * but keep in mind that $PATH is set to SEC_PATH (see below).
  *
  * The array must be terminated with a pair of NULLs.
  */
@@ -91,152 +238,5 @@
  */
 #define UMASK 077U
 
-/*
- * Maximum number of groups a user can be a member of. Signed integer.
- * suCGI rejects users who belong to more groups.
- */
-#define MAX_GROUPS 32
-
-/*
- * Maximum number of environment variables. Unsigned integer.
- * suCGI aborts if the environment contains more variables.
- * Setting this lower than 192 may break some CGI scripts.
- */
-#define MAX_ENV 256U
-
-/*
- * Maximum string length in bytes, including the terminating NUL. 
- * Unsigned integer. suCGI aborts if an environment variables is longer.
- * The length of an environment variable includes its name and the "=".
- * Must be at most as long as PATH_MAX.
- */
-#define MAX_STR 1024U
-
-
-/******************************************************
- * That's all folks. Do not venture beyond this line. *
- *****************************************************/
-
-#include <limits.h>
-
-
-/*
- * Test builds
- */
-
-#if !defined(NDEBUG) && defined(TESTING) && TESTING
-
-#undef JAIL_DIR
-#define JAIL_DIR "/"
-
-#undef USER_DIR 
-#define USER_DIR "/tmp/sucgi-check/%s"
-
-#undef FORCE_HOME
-#define FORCE_HOME false
-
-#undef MIN_UID
-#define MIN_UID 500U
-
-#undef MAX_UID
-#define MAX_UID 30000U
-
-#undef MIN_GID
-#define MIN_GID 1U
-
-#undef MAX_GID
-#define MAX_GID 30000U
-
-#undef HANDLERS
-#define HANDLERS {{".sh", "sh"}, {NULL, NULL}}
-
-#endif /* !defined(NDEBUG) && defined(TESTING) && TESTING */
-
-
-/*
- * Verification
- */
-
-#if !defined(JAIL_DIR)
-#error JAIL_DIR is undefined.
-#endif /* !defined(JAIL_DIR) */
-
-#if !defined(USER_DIR)
-#error USER_DIR is undefined.
-#endif /* !defined(USER_DIR) */
-
-#if !defined(FORCE_HOME)
-#error FORCE_HOME is undefined.
-#endif /* !defined(FORCE_HOME) */
-
-#if !defined(MIN_UID)
-#error MIN_UID is undefined.
-#endif /* !defined(MIN_UID) */
-
-#if !defined(MAX_UID)
-#error MIN_UID is undefined.
-#endif /* !defined(MIN_UID) */
-
-#if MIN_UID <= 0 
-#error MIN_UID must be greater than 0.
-#endif /* MIN_UID <= 0 */
-
-#if MAX_UID < MIN_UID
-#error MAX_UID is smaller than MIN_UID.
-#endif /* MAX_UID <= MIN_UID */
-
-#if defined(UID_MAX)
-#if MAX_UID > UID_MAX
-#error MAX_UID is greater than UID_MAX.
-#endif /* MAX_UID > UID_MAX */
-#else /* defined(MAX_UID) */
-#if MAX_UID > UINT_MAX
-#error MAX_UID is greater than UINT_MAX.
-#endif /* MAX_UID > UINT_MAX */
-#endif /* defined(MAX_UID) */
-
-#if !defined(MIN_GID)
-#error MIN_GID is undefined.
-#endif /* !defined(MIN_GID) */
-
-#if !defined(MAX_GID)
-#error MIN_GID is undefined.
-#endif /* !defined(MIN_GID) */
-
-#if MIN_GID <= 0
-#error MIN_GID must be greater than 0.
-#endif /* MIN_GID <= 0 */
-
-#if MAX_GID < MIN_GID
-#error MAX_GID is smaller than MIN_GID.
-#endif /* MAX_GID <= MIN_GID */
-
-#if defined(GID_MAX)
-#if MAX_GID > GID_MAX
-#error MAX_GID is greater than GID_MAX.
-#endif /* MAX_GID > GID_MAX */
-#else /* defined(MAX_GID) */
-#if MAX_GID > UINT_MAX
-#error MAX_GID is greater than UINT_MAX.
-#endif /* MAX_GID > UINT_MAX */
-#endif /* defined(MAX_GID) */
-
-#if !defined(SEC_PATH)
-#error SEC_PATH is undefined.
-#endif /* !defined(PATH) */
-
-#if !defined(HANDLERS)
-#error HANDLERS is undefined.
-#endif /* !defined(HANDLERS) */
-
-#if defined(PATH_MAX) && PATH_MAX > -1 && PATH_MAX < MAX_STR
-#error MAX_STR is greater than PATH_MAX.
-#endif /* defined(PATH_MAX) && PATH_MAX > -1 && PATH_MAX < MAX_STR */
-
-
-/*
- * Include guard off duty.
- */
 
 #endif /* !defined(CONFIG_H). */
-

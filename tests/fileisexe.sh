@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Test if file_is_exec correctly identifies executables.
+# Test if fileisexe correctly identifies executables.
 #
 # Copyright 2022 Odin Kroeger
 #
@@ -61,8 +61,8 @@ do
 	warn "checking ${bld-}$mode${rst-} with" \
 	     "owner ${bld-}$uid${rst-} and group ${bld-}$gid${rst-} ..."
 	chmod "$mode" "$fname"
-	file_is_exec "$fname" &&
-		err "reported as executable."
+	fileisexe "$fname" &&
+		err -s70 "reported as executable."
 	chmod ugo= "$fname"
 done
 
@@ -72,16 +72,16 @@ do
 	warn "checking ${bld-}$mode${rst-} with" \
 	     "owner ${bld-}$uid${rst-} and group ${bld-}$gid${rst-} ..."
 	chmod "$mode" "$fname"
-	file_is_exec "$fname" ||
-		err "reported as not executable."
+	fileisexe "$fname" ||
+		err -s70 "reported as not executable."
 	chmod ugo= "$fname"
 done
 
 warn "checking ${bld-}/bin/sh${rst-} as user ${bld-}$uid${rst-} ..."
 [ "$uid" -eq 0 ] || [ -x /bin/sh ] || 
 	err "/bin/sh is not executable."
-file_is_exec /bin/sh ||
-	err "not reported as executable."
+fileisexe /bin/sh ||
+	err -s70 "not reported as executable."
 
 uid="$(id -u)" && [ "$uid" ] ||
 	err "failed to get process' effective user ID."
@@ -106,40 +106,40 @@ warn "checking ${bld-}o=${rst-} with" \
      "owner ${bld-}$unalloc_uid${rst-} and" \
      "group ${bld-}$unalloc_gid${rst-} ..."
 chmod o= "$fname"
-file_is_exec "$fname" && err "reported as executable."
+fileisexe "$fname" && err "reported as executable."
 
 warn "checking ${bld-}o=x${rst-} with" \
      "owner ${bld-}$unalloc_uid${rst-} and" \
      "group ${bld-}$unalloc_gid${rst-} ..."
 chmod o=x "$fname"
-file_is_exec "$fname" || err "not reported as executable."
+fileisexe "$fname" || err -s70 "not reported as executable."
 
 warn "checking ${bld-}o=x${rst-} with" \
      "owner ${bld-}$uid${rst-} and group ${bld-}$unalloc_gid${rst-} ..."
 chown "$uid" "$fname"
 chmod u=x,go= "$fname"
-file_is_exec "$fname" || err "reported as not executable."
+fileisexe "$fname" || err -s70 "reported as not executable."
 
 warn "checking ${bld-}u=x${rst-} with" \
      "owner ${bld-}$unalloc_uid${rst-} and group ${bld-}$gid${rst-} ..."
 chown "$unalloc_uid:$gid" "$fname"
-file_is_exec "$fname" && err "reported as executable."
+fileisexe "$fname" && err -s70 "reported as executable."
 
 warn "checking ${bld-}g=x${rst-} with" \
      "owner ${bld-}$uid${rst-} and group ${bld-}$unalloc_gid${rst-} ..."
 chown "$uid:$unalloc_gid" "$fname"
 chmod uo=,g=x "$fname"
-file_is_exec "$fname" && err "reported as executable."
+fileisexe "$fname" && err -s70 "reported as executable."
 
 warn "checking ${bld-}g=x${rst-} with" \
      "owner ${bld-}$unalloc_uid${rst-} and group ${bld-}$gid${rst-} ..."
 chown "$unalloc_uid:$gid" "$fname"
-file_is_exec "$fname" || err "reported as not executable."
+fileisexe "$fname" || err -s70 "reported as not executable."
 
 warn "checking ${bld-}g=x${rst-} with" \
      "owner ${bld-}$uid${rst-} and group ${bld-}$gid${rst-} ..."
 chown "$uid:$gid" "$fname"
-file_is_exec "$fname" && err "reported as executable."
+fileisexe "$fname" && err -s70 "reported as executable."
 
 
 #

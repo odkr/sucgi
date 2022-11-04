@@ -24,7 +24,7 @@
 
 #if !defined(_FORTIFY_SOURCE)
 #define _FORTIFY_SOURCE 3
-#endif /* !defined(_FORTIFY_SOURCE) */
+#endif
 
 #include <fnmatch.h>
 #include <stdarg.h>
@@ -32,10 +32,10 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "error.h"
 #include "str.h"
+#include "types.h"
 
-enum error
+enum retcode
 str_cp(const size_t len, const char *const src, char dest[len + 1U])
 {
 	char *end;	/* Position of last byte of src. */
@@ -51,22 +51,22 @@ str_cp(const size_t len, const char *const src, char dest[len + 1U])
 	return OK;
 }
 
-enum error
-str_split(const char *const s, const char *const sep,
-          char (*const head)[MAX_STR], char **const tail)
+enum retcode
+str_split(size_t max, const char *const s, const char *const sep,
+          char head[max], char **const tail)
 {
+	size_t len;	/* Length of head. */
+
 	*tail = strpbrk(s, sep);
-	if (*tail) {
-		size_t len;	/* Length of head. */
+	if (!*tail)
+		return str_cp(max - 1U, s, head);
 		
-		len = (size_t) (*tail - s);
-		if (len >= MAX_STR)
-			return ERR_LEN;
-		(void) (str_cp(len, s, *head));
-		(*tail)++;
-	} else {
-		try(str_cp(MAX_STR - 1U, s, *head));
-	}
+	len = (size_t) (*tail - s);
+	if (len >= max)
+		return ERR_LEN;
+
+	(void) str_cp(len, s, head);
+	(*tail)++;
 
 	return OK;
 }

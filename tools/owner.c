@@ -19,13 +19,14 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#include <sys/stat.h>
 #include <err.h>
 #include <errno.h>
 #include <pwd.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/stat.h>
 #include <unistd.h>
+
 
 int
 main (int argc, char **argv)
@@ -65,7 +66,6 @@ main (int argc, char **argv)
 	}
 
 	errno = 0;
-	/* RATS: ignore; no TOCTOU gap, because there is no further use. */
 	if (stat(argv[0], &fstatus) != 0)
 		err(EXIT_FAILURE, "stat %s", argv[1]);
 

@@ -19,7 +19,6 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-
 #include <err.h>
 #include <errno.h>
 #include <pwd.h>
@@ -80,40 +79,40 @@ main(int argc, char **argv)
 	groups = false;
 
 	/* RATS: ignore */
-	while ((ch = getopt(argc, argv, "ugf:c:n:h")) != -1) {
+	while ((ch = getopt(argc, argv, "ugf:c:n:h")) != -1)
 		switch (ch) {
-			case 'u':
-				groups = false;
-				break;
-			case 'g':
-				groups = true;
-				break;
-			case 'f':
-				errno = 0;
-				from = strtoll(optarg, NULL, 0);
-				if (errno != 0)
-					err(ERR_USAGE, "-f");
-				if (from < 0)
-					errx(ERR_USAGE, "-f: is negative");
-				break;
-			case 'c':
-				errno = 0;
-				to = strtoll(optarg, NULL, 0);
-				if (errno != 0)
-					err(ERR_USAGE, "-c");
-				if (from < 0)
-					errx(ERR_USAGE, "-c: is negative");
-				break;
-			case 'n':
-				errno = 0;
-				max = strtoll(optarg, NULL, 0);
-				if (errno != 0)
-					err(ERR_USAGE, "-n");
-				if (max < 1)
-					errx(ERR_USAGE, "-n: is non-positive");
-				break;
-			case 'h':
-				(void) puts(
+		case 'u':
+			groups = false;
+			break;
+		case 'g':
+			groups = true;
+			break;
+		case 'f':
+			errno = 0;
+			from = strtoll(optarg, NULL, 0);
+			if (errno != 0)
+				err(ERR_USAGE, "-f");
+			if (from < 0)
+				errx(ERR_USAGE, "-f: is negative");
+			break;
+		case 'c':
+			errno = 0;
+			to = strtoll(optarg, NULL, 0);
+			if (errno != 0)
+				err(ERR_USAGE, "-c");
+			if (from < 0)
+				errx(ERR_USAGE, "-c: is negative");
+			break;
+		case 'n':
+			errno = 0;
+			max = strtoll(optarg, NULL, 0);
+			if (errno != 0)
+				err(ERR_USAGE, "-n");
+			if (max < 1)
+				errx(ERR_USAGE, "-n: is non-positive");
+			break;
+		case 'h':
+			(void) puts(
 "ents - print users or groups\n\n"
 "Usage:    ents [-u|-g] [-f N] [-c N]\n"
 "          ents -h\n\n"
@@ -132,13 +131,11 @@ main(int argc, char **argv)
 "Copyright 2022 Odin Kroeger.\n"
 "Released under the GNU General Public License.\n"
 "This programme comes with ABSOLUTELY NO WARRANTY."
-				);
-				return OK;
-			default:
-				return ERR_USAGE;
+			);
+			return OK;
+		default:
+			return ERR_USAGE;
 		}
-	}
-
 	argc -= optind;
 	argv += optind;
 
@@ -156,11 +153,11 @@ main(int argc, char **argv)
 	setgrent();
 
 	do {
-		id_t id;		/* Entry ID. */
-		char *name;		/* Entry name. */
+		id_t id;
+		char *name;
 		
 		if (groups) {
-			struct group *grp;	/* A group entry. */
+			struct group *grp;
 		
 			errno = 0;
 			grp = getgrent();
@@ -174,7 +171,7 @@ main(int argc, char **argv)
 			id = grp->gr_gid;
 			name = grp->gr_name;
 		} else {
-			struct passwd *pwd;	/* A passwd entry. */
+			struct passwd *pwd;
 			
 			errno = 0;
 			pwd = getpwent();
@@ -196,8 +193,10 @@ main(int argc, char **argv)
 		if (lfind(&id, ids, &nids, sizeof(*ids), id_eq))
 			continue;
 
+		(void) printf("%llu:%s\n", (long long unsigned) id, name);
+
 		ids[nids++] = id;
-		if (nids % INC == 0) {
+		if (nids % INC != 0) {
 			size_t cur;
 			size_t new;
 			
@@ -206,12 +205,11 @@ main(int argc, char **argv)
 			if (new < cur)
 				errx(ERR_SIZE, "too many entries");
 
+			/* RATS: ignore */
 			ids = realloc(ids, new);
 			if (!ids)
 				err(ERR_OS, "realloc");
 		}
-
-		(void) printf("%llu:%s\n", (long long unsigned) id, name);
 	} while (max < 0 || nids < (size_t) max);
 	
 	if (nids == 0)

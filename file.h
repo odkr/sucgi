@@ -22,18 +22,19 @@
 #if !defined(FILE_H)
 #define FILE_H
 
-#include <stdbool.h>
 #include <sys/stat.h>
+#include <stdbool.h>
 
-#include "macros.h"
 #include "error.h"
+#include "sysdefs.h"
+#include "types.h"
 
 
 /*
  * Check if FSTATUS indicates that the current user has execute permissions.
  */
 __attribute__((pure, warn_unused_result))
-bool file_is_exec(const struct stat fstatus);
+bool file_is_exe(const struct stat fstatus);
 
 /*
  * Check if FSTATUS indicates that only UID has write permissions.
@@ -45,6 +46,8 @@ bool file_is_wexcl(const uid_t uid, const struct stat fstatus);
  * Open FNAME with FLAGS and store its file descriptor in FD.
  * FNAME must not contain symbolic links.
  *
+ * FD is closed on exit.
+ *
  * Return code:
  *      OK        Success.
  *      ERR_CNV*  File descriptor is too large (Linux only).
@@ -53,7 +56,7 @@ bool file_is_wexcl(const uid_t uid, const struct stat fstatus);
  *      Errors marked with an asterisk should be impossible.
  */
 __attribute__((nonnull(1, 3), warn_unused_result))
-enum error file_safe_open(const char *const fname,
-                          const int flags, int *const fd);
+enum retcode file_sopen(const char *const fname, const int flags,
+                        int *const fd);
 
 #endif /* !defined(FILE_H) */
