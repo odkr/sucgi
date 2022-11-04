@@ -31,6 +31,7 @@
 #include <sys/syscall.h>
 #include <sys/types.h>
 #endif
+#endif
 #endif /* defined(__linux__) && __linux__ */
 
 #include <assert.h>
