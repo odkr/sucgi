@@ -95,6 +95,4 @@ do
 		pathchkwex "$user" "$deeper" "$TMPDIR"
 done
 
-check -o/bin/sh pathchkwex "$(id -un 0)" /bin/sh /
-
 warn -g "all tests passed."
