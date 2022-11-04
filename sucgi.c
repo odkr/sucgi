@@ -256,11 +256,11 @@ main(int argc, char **argv) {
 			(void) puts(
 "suCGI - run CGI scripts with the permissions of their owner\n\n"
 "Usage:  sucgi\n"
-"        sucgi [-c|-h]\n\n"
+"        sucgi [-c|-V|-h]\n\n"
 "Options:\n"
-"    -h  Print this help screen.\n"
 "    -c  Print build configuration.\n"
-"    -V  Print version and license."
+"    -V  Print version and license.\n"
+"    -h  Print this help screen."
 			       );
 			return EXIT_SUCCESS;
 		} else if (strncmp(argv[i], "-c", 3) == 0) {
@@ -301,7 +301,7 @@ main(int argc, char **argv) {
 			       );
 			return EXIT_SUCCESS;
 		} else {
-			(void) fputs("usage: sucgi [-h|-c]\n", stderr);
+			(void) fputs("usage: sucgi [-c|-V|-h]\n", stderr);
 			return EXIT_FAILURE;
 		}
 	}
