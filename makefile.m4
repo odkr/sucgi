@@ -143,8 +143,6 @@ lib.a(priv.o): priv.o priv.h
 
 lib.a(str.o): str.c str.h
 
-$(check_bins): sysdefs.h types.h tests/testdefs.h
-
 tests/error: tests/error.c lib.a(error.o) 
 
 tests/envclear: tests/envclear.c lib.a(env.o)
@@ -178,6 +176,8 @@ tests/strcp: tests/strcp.c lib.a(str.o)
 tests/strsplit: tests/strsplit.c lib.a(str.o)
 
 tests/main: sucgi.c config.h lib.a
+
+$(check_bins): sysdefs.h types.h tests/testdefs.h
 
 
 #
