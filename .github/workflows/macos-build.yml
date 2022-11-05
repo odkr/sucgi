@@ -1,4 +1,4 @@
-name: Ubuntu build 
+name: macOS build 
 
 on:
   push:
@@ -8,17 +8,18 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
     - uses: actions/checkout@v3
-    - name: sudo apt-get install build-essential m4 lcov
-      run: sudo apt-get install build-essential m4 lcov
     - name: ./configure
       run: www_grp=staff cgi_dir=/tmp ./configure
     - name: make
       run: make
-    - name: sudo sh tests/main.sh
-      run: 'sudo sh tests/main.sh || :'
+    - name: test
+      run: 
+        | make check
+	| sh tests/main.sh || :
+      	| sudo sh tests/main.sh || :
     - name: make check
       run: make check
     - name: sudo make check
