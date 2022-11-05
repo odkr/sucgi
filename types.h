@@ -24,8 +24,8 @@
 
 /* A simple key-value store. */
 struct pair {
-	const char *const key;   /* cppcheck-suppress unusedStructMember */
-	const char *const value; /* cppcheck-suppress unusedStructMember */
+	const char *const key;
+	const char *const value;
 };
 
 /* Return code for functions. */
