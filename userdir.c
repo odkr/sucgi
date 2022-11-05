@@ -59,7 +59,7 @@ userdir_resolve(const char *const s, const struct passwd *user,
 
 	if (len < 0)
 		return ERR_PRN;
-	if (len >= PATH_SIZE)
+	if ((size_t) len >= PATH_SIZE)
 		return ERR_LEN;
 
 	/* RATS: ignore; the length of user_dir is checked above. */
