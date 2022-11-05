@@ -415,10 +415,10 @@ main(int argc, char **argv) {
 			(void) printf("JAIL_DIR=%s\n", JAIL_DIR);
 			(void) printf("USER_DIR=%s\n", USER_DIR);
 
-			(void) printf("MIN_UID=%u\n", MIN_UID);
-			(void) printf("MAX_UID=%u\n", MAX_UID);
-			(void) printf("MIN_GID=%u\n", MIN_GID);
-			(void) printf("MAX_GID=%u\n", MAX_GID);
+			(void) printf("MIN_UID=%d\n", MIN_UID);
+			(void) printf("MAX_UID=%d\n", MAX_UID);
+			(void) printf("MIN_GID=%d\n", MIN_GID);
+			(void) printf("MAX_GID=%d\n", MAX_GID);
 
 			(void) printf("HANDLERS=");
 			for (struct pair *h = hdb; h->key; h++)
@@ -430,7 +430,7 @@ main(int argc, char **argv) {
 			(void) printf("UMASK=0%o\n", UMASK);
 
 			(void) printf("MAX_NVARS=%u\n", MAX_NVARS);
-			(void) printf("PATH_SIZE=%d\n", PATH_SIZE);
+			(void) printf("PATH_SIZE=%zu\n", PATH_SIZE);
 
 			return EXIT_SUCCESS;
 		} else if (strncmp(argv[i], "-V", 3) == 0) {
