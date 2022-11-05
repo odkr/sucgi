@@ -33,8 +33,7 @@ readonly script_dir src_dir tools_dir
 # shellcheck disable=1091
 . "$tools_dir/lib.sh" || exit
 init || exit
-oldtmp="${TMPDIR:-/tmp}"
-tmpdir chk
+tmpdir tmp "$src_dir"
 
 
 #
@@ -78,7 +77,7 @@ do
 done
 
 warn "checking ${bld-}/bin/sh${rst-} as user ${bld-}$uid${rst-} ..."
-[ "$uid" -eq 0 ] || [ -x /bin/sh ] || 
+[ "$uid" -eq 0 ] || [ -x /bin/sh ] ||
 	err "/bin/sh is not executable."
 fileisexe /bin/sh ||
 	err -s70 "not reported as executable."
@@ -88,8 +87,9 @@ uid="$(id -u)" && [ "$uid" ] ||
 
 if [ "$uid" -ne 0 ]
 then
-	warn -y "all non-superuser tests passed."
-	exit
+	[ $(id -u $(ps -o user= $PPID)) -ne 0 ] &&
+		warn -y "all non-superuser tests passed."
+	exit 0
 fi
 
 
@@ -153,4 +153,6 @@ then
 fi
 
 # shellcheck disable=2154
-TMPDIR="$oldtmp" runas "$owner" "$script_dir/$prog_name"
+runas "$owner" "$script_dir/$prog_name"
+
+warn -g "all tests passed."
