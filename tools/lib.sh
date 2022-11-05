@@ -233,39 +233,40 @@ inlist() (
 # Create a path of $len length in $basepath.
 mklongpath() (
 	basepath="${1:?}" len="${2:?}" max=99999
-	name_max="$(getconf NAME_MAX "$basepath" 2>/dev/null)" || name_max=14
+	namemax="$(getconf NAME_MAX "$basepath" 2>/dev/null)" || namemax=14
+	dirs=$((len / namemax + 1))
+	dirlen=$((len / dirs))
 
-	path="$basepath"
-	while [ "$((${#path} + name_max + 2))" -le "$len" ]
-	do
+	dir="$basepath" target=$((len - dirlen - 1))
+	while [ ${#dir} -le $target ]
+	do			
 		i=0
 		while [ $i -lt "$max" ]
 		do
-			seg="$(pad "$i" "$name_max")"
-			if ! [ -e "$path/$seg" ]
+			seg="$(pad "$i" "$dirlen")"
+			if ! [ -e "$dir/$seg" ]
 			then
-				path="$path/$seg"
+				dir="$dir/$seg"
 				continue 2
 			fi
 			i=$((i + 1))
 		done
 	done
-
+	
 	i=0 fname=
 	while [ $i -lt "$max" ]
 	do
-		seg="$(pad "$i" "$((len - ${#path} - 1))")"
-		if ! [ -e "$path/$seg" ]
+		seg="$(pad "$i" "$((len - ${#dir} - 1))")"
+		if ! [ -e "$dir/$seg" ]
 		then
-			fname="$path/$seg"
+			fname="$dir/$seg"
 			break
 		fi
 		i=$((i + 1))
 	done
 
-	# $path may get so long that the first "$path/$i" that does not exist
-	# is so long that $fname as a whole gets longer than $len.
-	[ "${fname-}" ] && [ "${#fname}" -eq "$len" ] ||
+	# This should be guaranteed, but who knows?
+	[ "${#fname}" -eq "$len" ] ||
 		err "failed to generate long filename."
 
 	printf '%s\n' "$fname"
