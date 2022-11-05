@@ -31,7 +31,6 @@
 #include <fcntl.h>
 #include <stdarg.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -81,7 +80,7 @@ path_check_wexcl(const uid_t uid, const char *const fname,
 		struct stat buf;	/* Current file's status. */
 		int fd;			/* Current file. */
 		int err;		/* stat err. */
-		enum retval rc;	/* file_sopen return code. */
+		enum retval rc;		/* file_sopen return code. */
 
 		(void) str_cp((size_t) (pos - fname), fname, cur);
 

@@ -82,10 +82,10 @@ main (void) {
 
 	nvars = 0;
 	for (var = env; *var; var++) {
-		char name[PATH_MAX];	/* RATS: ignore */
+		char name[PATH_SIZE];	/* RATS: ignore */
 		char *value;
 
-		if (str_split(PATH_MAX, *var, "=", name, &value) != OK)
+		if (str_split(PATH_SIZE, *var, "=", name, &value) != OK)
 			errx(T_ERR, "str_split: did not return OK");
 		
 		if (strcmp(name, "foo") != 0)
@@ -108,9 +108,9 @@ main (void) {
 		errx(T_ERR, "failed to clear the environment");
 
 	for (size_t i = 0; i <= MAX_NVARS; i++) {
-		char name[PATH_MAX];	/* RATS: ignore */
+		char name[PATH_SIZE];	/* RATS: ignore */
 
-		if (snprintf(name, PATH_MAX - 1U, "foo%zu", i) < 1)
+		if (snprintf(name, PATH_SIZE - 1U, "foo%zu", i) < 1)
 			errx(T_ERR, "snprintf: returned < 1 bytes");
 
 		errno = 0;

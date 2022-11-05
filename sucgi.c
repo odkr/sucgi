@@ -601,7 +601,7 @@ main(int argc, char **argv) {
 		      script, owner->pw_name);
 
 	ngroups = PRELIM_NGROUPS;
-	groups = malloc((size_t) ngroups * sizeof(*groups));
+	groups = (gid_t *) malloc((size_t) ngroups * sizeof(*groups));
 	if (!groups)
 		error("malloc: %m.");
 
@@ -618,7 +618,7 @@ main(int argc, char **argv) {
 		              owner->pw_name);
 
 		/* RATS: ignore; garbage irrelevant, alignment correct. */
-		groups = realloc(groups, (size_t) ngroups * gid_size);
+		groups = (gid_t *) realloc(groups, (size_t) ngroups * gid_size);
 		if (!groups)
 			error("realloc: %m");
 		
@@ -724,10 +724,9 @@ main(int argc, char **argv) {
 	 * It also makes sure that users cannot break out of their directory.
 	 */
 
-	/* RATS: ignore; path_check_format respects PATH_SIZE. */
-	char user_dir[PATH_SIZE];	/* Resolved user directory. */
+	char *user_dir;		/* Resolved user directory. */
 
-	rc = userdir_resolve(USER_DIR, owner, user_dir);
+	rc = userdir_resolve(USER_DIR, owner, &user_dir);
 
 	switch (rc) {
 	case OK:
@@ -766,9 +765,9 @@ main(int argc, char **argv) {
 	 * set, this probably indicates a configuration error.
 	 */
 
-	if (script_stat.st_mode & S_ISUID)
+	if ((script_stat.st_mode & S_ISUID) != 0)
 		error("script %s's set-user-ID bit is set.", script);
-	if (script_stat.st_mode & S_ISGID)
+	if ((script_stat.st_mode & S_ISGID) != 0)
 		error("script %s's set-group-ID bit is set.", script);
 
 

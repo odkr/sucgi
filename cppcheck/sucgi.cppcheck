@@ -3,11 +3,6 @@
 	<paths>
 		<dir name="."/>
 	</paths>
-	<includedir>
-		<dir name="/usr/local/include"/>
-		<dir name="/Library/Developer/CommandLineTools/usr/lib/clang/14.0.0/include"/>
-		<dir name="/Library/Developer/CommandLineTools/usr/include"/>
-	</includedir>
 	<defines>
 		<!-- GNU C -->
 		<define name="__GNUC__"/>

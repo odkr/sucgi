@@ -100,13 +100,14 @@ __attribute__((nonnull(1), pure, warn_unused_result))
 bool env_is_name(const char *const name);
 
 /*
- * Restore every environment variable in ENV that matches one the the given
- * PATTERNS. ENV is a NULL-terminated array of variables saved with env_clear.
- * PATTERNS is a NULL-terminated array of shell wildcard patterns.
+ * Restore every environment variable in VARS that matches one the the given
+ * PATTERNS. VARS is a NULL-terminated array of environment variables saved
+ * with env_clear. PATTERNS is a NULL-terminated array of shell wildcard
+ * patterns. Seen fnmatch(3) for the syntax.
  *
- * The name of the variable that is currently processed is stored in NAME,
- * unless the variable could not be split up into a name and a value. If
- * the first variable cannot be split up, NAME is not initialised.
+ * The name of the current variable is stored in NAME, unless the variable
+ * could not be split up into a name and a value. If the first variable
+ * cannot be split up, NAME is not initialised.
  *
  * Note, an attacker may populate the environment with variables that are
  * not NUL-termianted. If the memory area after such a variable contains

@@ -45,6 +45,7 @@ gids_get(const char *const logname, const gid_t basegid,
 {
 	struct group *grp;	/* Group. */
 	int max;		/* Maximum numer of groups. */
+	errno_t err;		/* Copy of errno. */
 
 	assert(*logname);
 	assert(*ngids > -1);
@@ -75,12 +76,13 @@ gids_get(const char *const logname, const gid_t basegid,
 			}
 		}
 	}
+	err = errno;
 	endgrent();
 
+	if (err != 0)
+		return ERR_GETGR;
 	if (*ngids > max)
 		return ERR_LEN;
-	if (errno != 0)
-		return ERR_GETGR;
 
 	return OK;
 }

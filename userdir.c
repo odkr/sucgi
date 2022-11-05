@@ -34,41 +34,52 @@
 
 #include "str.h"
 #include "types.h"
+#include "userdir.h"
 
 
 enum retval
 userdir_resolve(const char *const s, const struct passwd *user,
-                char user_dir[PATH_SIZE])
+                char **user_dir)
 {
-	int len;		/* Length of expanded string. */
+	char *expan;		/* Expanded string. */
 	char *resolved;		/* Resolved path. */
-	enum retval rc;		/* Return code. */
+	int len;		/* Length of expanded string. */
 
 	assert(*s != '\0');
+
+	expan = (char *) malloc(PATH_SIZE * sizeof(char *)) ;
+	if (!expan)
+		return ERR_MEM;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 	if (*s != '/')
-		len = snprintf(user_dir, PATH_SIZE, "%s/%s", user->pw_dir, s);
+		len = snprintf(expan, PATH_SIZE, "%s/%s", user->pw_dir, s);
 	else if (strstr(s, "%s"))
 		/* RATS: ignore; format is controlled by the administrator. */
-		len = snprintf(user_dir, PATH_SIZE, s, user->pw_name);
+		len = snprintf(expan, PATH_SIZE, s, user->pw_name);
 	else
-		len = snprintf(user_dir, PATH_SIZE, "%s/%s", s, user->pw_name);
+		len = snprintf(expan, PATH_SIZE, "%s/%s", s, user->pw_name);
 #pragma GCC diagnostic pop
 
-	if (len < 0)
+	if (len < 0) {
+		free(expan);
 		return ERR_PRN;
-	if ((size_t) len >= PATH_SIZE)
+	}
+	if ((size_t) len >= PATH_SIZE) {
+		free(expan);
 		return ERR_LEN;
+	}
 
-	/* RATS: ignore; the length of user_dir is checked above. */
-	resolved = realpath(user_dir, NULL);
+	*user_dir = expan;
+
+	/* RATS: ignore; the length of expan is checked above. */
+	resolved = realpath(expan, NULL);
 	if (!resolved)
 		return ERR_RES;
 
-	rc = str_cp(PATH_SIZE, resolved, user_dir);
-	free(resolved);
+	*user_dir = resolved;
+	free(expan);
 
-	return rc;
+	return OK;
 }

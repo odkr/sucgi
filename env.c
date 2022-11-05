@@ -100,7 +100,8 @@ env_fopen(const char *const jail, const char *const var,
 
 	errno = 0;
 	*fname = NULL;
-	
+
+	errno = 0;
 	/* RATS: ignore; value is sanitised below. */
 	value = getenv(var);
 	if (!value || !*value) {
@@ -111,7 +112,7 @@ env_fopen(const char *const jail, const char *const var,
 	}
 
 	errno = 0;
-	unresolved = calloc(PATH_SIZE, sizeof(*unresolved));
+	unresolved = (char *) calloc(PATH_SIZE, sizeof(*unresolved));
 	if (!unresolved)
 		return ERR_MEM;
 
@@ -147,15 +148,15 @@ env_is_name(const char *const name)
 }
 
 enum retval
-env_restore(const char **env, const char *const *patterns,
+env_restore(const char **vars, const char *const *patterns,
             char name[ENV_MAX_NAME])
 {
-	assert(*env);
+	assert(*vars);
 
-	for (; *env; env++) {
+	for (const char **var = vars; *var; var++) {
 		char *value;
 
-		if (str_split(ENV_MAX_NAME, *env, "=", name, &value) != OK)
+		if (str_split(ENV_MAX_NAME, *var, "=", name, &value) != OK)
 			return ERR_CNV;
 		if (!value || *name == '\0')
 			return ERR_CNV;

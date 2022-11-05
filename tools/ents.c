@@ -145,7 +145,7 @@ main(int argc, char **argv)
 		return ERR_USAGE;
 	}
 
-	ids = malloc(sizeof(*ids) * INC);
+	ids = (id_t *) calloc(INC, sizeof(*ids));
 	nids = 0;
 	if (!ids)
 		err(ERR_OS, "malloc");

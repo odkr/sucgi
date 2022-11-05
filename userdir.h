@@ -41,7 +41,7 @@
  */
 __attribute__((nonnull(1, 2, 3), format(printf, 1, 0), warn_unused_result))
 enum retval userdir_resolve(const char *const s, const struct passwd *user,
-                            char user_dir[PATH_SIZE]);
+                            char **user_dir);
 
 
 #endif /* !defined(USERDIR_H) */

@@ -33,8 +33,7 @@
 int
 main (int argc, char **argv)
 {
-	/* RATS: ignore */
-	char user_dir[PATH_SIZE];	/* User directory. */
+	char *user_dir;			/* User directory. */
 	struct passwd *user;		/* User. */
 	enum retval rc;			/* Return code. */
 
@@ -54,7 +53,7 @@ main (int argc, char **argv)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
-	rc = userdir_resolve(argv[1], user, user_dir);
+	rc = userdir_resolve(argv[1], user, &user_dir);
 #pragma GCC diagnostic pop
 
 	switch (rc) {

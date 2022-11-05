@@ -29,6 +29,7 @@
 #include <string.h>
 #include <syslog.h>
 
+#include "error.h"
 #include "types.h"
 
 
