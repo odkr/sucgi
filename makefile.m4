@@ -77,6 +77,7 @@ cppchk_flags =	--quiet --error-exitcode=8 \
 		--library=posix --library=cppcheck/library.cfg \
 		--project=cppcheck/sucgi.cppcheck \
 		--suppressions-list=cppcheck/suppr.txt --inline-suppr \
+		--cppcheck-build-dir=cppcheck/build \
 		--force --inconclusive
 
 cppchk_addons =	--addon=cppcheck/cert.py --addon=misra.py
