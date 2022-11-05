@@ -46,7 +46,8 @@ path_max="$(getconf PATH_MAX "$TMPDIR")"
 
 user="$(id -un)"
 eval home="~$user"
-homebase=$(dirname "$home")
+# shellcheck disable=2154
+homebase="$(dirname "$home")"
 
 long_path="$(mklongpath "$TMPDIR" "$((path_max - 1))")"
 long_format="$(mklongpath "$TMPDIR/%s" "$((path_max - 1))")"

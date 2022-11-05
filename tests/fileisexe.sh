@@ -87,7 +87,7 @@ uid="$(id -u)" && [ "$uid" ] ||
 
 if [ "$uid" -ne 0 ]
 then
-	[ $(id -u $(ps -o user= $PPID)) -ne 0 ] &&
+	[ "$(id -u "$(ps -o user= $PPID)")" -ne 0 ] &&
 		warn -y "all non-superuser tests passed."
 	exit 0
 fi
