@@ -1,5 +1,5 @@
 /*
- * Headers for priv.c.
+ * Headers for userdir.c.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -19,31 +19,29 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(PRIV_H)
-#define PRIV_H
+#if !defined(USERDIR_H)
+#define USERDIR_H
 
 #include <pwd.h>
 
-#include "sysconf.h"
 #include "types.h"
 
-
 /*
- * Set the process' real and effective UID and GID to UID and GID
- * and the supplementary groups to GIDS respectively, where NGIDS
- * is the number of group IDs in GIDS.
+ * Take S to be a user directory pattern (see config.h) for the given USER,
+ * resolve the pattern, and store the result in USER_DIR.
+ *
+ * The expanded string is stored in USER_DIR before it is resolved with
+ * realpath(3) and can be used in error messages.
  *
  * Return value:
- *      OK           Success.
- *      ERR_CNV      NGIDS is smaller than 0.
- *      ERR_SETUID   setuid(2) failed.
- *      ERR_SETGID   setgid(2) failed.
- *      ERR_SETGRPS  setgroups(2) failed.
- *      FAIL         Superuser privileges could be resumed.
+ *      OK       Success.
+ *      ERR_PRN  snprintf(3) failed.
+ *      ERR_LEN  The expanded string is longer than PATH_SIZE - 1 bytes.
+ *      ERR_RES  realpath(3) failed.
  */
-__attribute__((nonnull(4), warn_unused_result))
-enum retval priv_drop(const uid_t uid, const gid_t gid,
-                      const int ngids, const gid_t gids[ngids]);
+__attribute__((nonnull(1, 2, 3), format(printf, 1, 0), warn_unused_result))
+enum retval userdir_resolve(const char *const s, const struct passwd *user,
+                            char user_dir[PATH_SIZE]);
 
 
-#endif /* !defined(PRIV_H) */
+#endif /* !defined(USERDIR_H) */

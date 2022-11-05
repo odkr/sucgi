@@ -28,7 +28,6 @@
 #include <unistd.h>
 
 #include "../env.h"
-#include "../error.h"
 
 
 int
@@ -42,7 +41,7 @@ main (int argc, char **argv)
 	int flags;		/* Open flags. */
 	int fd;			/* File descriptor. */
 	ssize_t n;		/* Bytes read. */
-	enum retcode rc;		/* Return code. */
+	enum retval rc;		/* Return code. */
 
 	if (argc != 4) {
 		(void) fputs("usage: envfopen JAIL VAR f|d\n", stderr);

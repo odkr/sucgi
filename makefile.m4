@@ -31,15 +31,17 @@ cov_cc = default([__cov_cc__], [$(CC)])
 # Object files
 #
 
-objs = 	lib.a(env.o)  lib.a(error.o) lib.a(file.o)   lib.a(gids.o) \
-	lib.a(path.o) lib.a(priv.o)  lib.a(script.o) lib.a(str.o)
+objs = 	lib.a(env.o)  lib.a(error.o) lib.a(file.o)   lib.a(gids.o)	\
+	lib.a(path.o) lib.a(priv.o)  lib.a(script.o) lib.a(str.o)	\
+	lib.a(userdir.o)
 
 
 #
-# Test headers
+# Headers
 #
 
-test_hdrs = sysdefs.h types.h tests/testdefs.h
+def_hdrs = sysconf.h types.h
+test_hdrs = sysconf.h types.h tests/testdefs.h
 
 
 #
@@ -48,20 +50,18 @@ test_hdrs = sysdefs.h types.h tests/testdefs.h
 
 tool_bins =	tools/badenv tools/ents tools/owner tools/runas
 
-check_bins =	tests/error tests/envclear tests/envfopen \
-		tests/envisname tests/envrestore tests/main \
-		tests/fileisexe tests/fileiswex tests/filesopen \
-		tests/gidsget tests/privdrop tests/pathchkfmt \
-		tests/pathchkwex tests/path \
-		tests/scptgetint tests/strcp tests/strsplit
+check_bins =	tests/error tests/envclear tests/envfopen tests/envisname \
+		tests/envrestore tests/main tests/fileisexe tests/fileiswex \
+		tests/filesopen tests/gidsget tests/privdrop tests/pathchkxcl \
+		tests/pathissub tests/scptgetint tests/strcp tests/strsplit \
+		tests/userdirres
 
 checks =	tests/error.sh tests/envclear tests/envfopen.sh \
 		tests/envisname tests/envrestore tests/main.sh \
-		tests/fileisexe.sh tests/fileiswex.sh \
-		tests/filesopen.sh tests/gidsget.sh \
-		tests/privdrop.sh tests/pathchkfmt.sh \
-		tests/pathchkwex.sh tests/path \
-		tests/scptgetint tests/strcp tests/strsplit
+		tests/fileisexe.sh tests/fileiswex.sh tests/filesopen.sh \
+		tests/gidsget.sh tests/privdrop.sh tests/pathchkxcl.sh \
+		tests/pathissub tests/scptgetint tests/strcp tests/strsplit \
+		tests/userdirres.sh
 
 bins =		$(tool_bins) $(check_bins)
 
@@ -129,9 +129,9 @@ $(check_bins):
 # Prerequisites
 #
 
-sucgi: sucgi.c sysdefs.h config.h types.h lib.a
+sucgi: sucgi.c config.h $(def_hdrs) lib.a
 
-$(objs): sysdefs.h types.h
+$(objs): $(def_hdrs)
 
 lib.a: $(objs)
 
@@ -150,6 +150,8 @@ lib.a(path.o): path.c path.h lib.a(str.o)
 lib.a(priv.o): priv.o priv.h
 
 lib.a(str.o): str.c str.h
+
+lib.a(userdir.o): userdir.c userdir.h
 
 tests/error: tests/error.c $(test_hdrs) lib.a(error.o) 
 
@@ -171,11 +173,9 @@ tests/gidsget: tests/gidsget.c $(test_hdrs) lib.a(gids.o)
 
 tests/scptgetint: tests/scptgetint.c $(test_hdrs) lib.a(script.o)
 
-tests/path: tests/pathissub.c $(test_hdrs) lib.a(path.o) 
+tests/pathissub: tests/pathissub.c $(test_hdrs) lib.a(path.o) 
 
-tests/pathchkfmt: tests/pathchkfmt.c $(test_hdrs) lib.a(path.o)
-
-tests/pathchkwex: tests/pathchkwex.c $(test_hdrs) lib.a(path.o)
+tests/pathchkxcl: tests/pathchkxcl.c $(test_hdrs) lib.a(path.o)
 
 tests/privdrop: tests/privdrop.c $(test_hdrs) lib.a(priv.o) lib.a(error.o)
 
@@ -183,7 +183,9 @@ tests/strcp: tests/strcp.c $(test_hdrs) lib.a(str.o)
 
 tests/strsplit: tests/strsplit.c $(test_hdrs) lib.a(str.o)
 
-tests/main: sucgi.c $(test_hdrs) config.h lib.a
+tests/userdirres: tests/userdirres.c $(test_hdrs) lib.a(userdir.o)
+
+tests/main: sucgi.c config.h $(test_hdrs) lib.a
 
 
 #
@@ -192,8 +194,8 @@ tests/main: sucgi.c $(test_hdrs) config.h lib.a
 
 clean:
 	find . '(' \
-           -name '*.ctu-info' -o -name '*.dump' \
-        -o -name '*.gcda'     -o -name '*.gcno' \
+           -name '*.ctu-info'  -o -name '*.dump'                    \
+        -o -name '*.gcda'      -o -name '*.gcno'  -o -name '*.dSYM' \
        ')' -exec rm -rf '{}' +
 	rm -rf *.o lib.a sucgi tmp-* $(bins) $(dist_name) $(dist_name).* 
 

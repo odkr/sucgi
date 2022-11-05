@@ -27,7 +27,7 @@
 
 #include "../env.h"
 #include "../str.h"
-#include "../sysdefs.h"
+#include "../sysconf.h"
 #include "testdefs.h"
 #include "testdefs.h"
 
@@ -55,7 +55,8 @@ struct args {
 	char *env[MAX_NVARS];			/* RATS: ignore */
 	const char *patterns[MAX_NVARS];	/* RATS: ignore */
 	const char *clean[MAX_NVARS];		/* RATS: ignore */
-	const enum retcode rc;
+	const char name[ENV_MAX_NAME];		/* RATS: ignore */
+	const enum retval rc;
 };
 
 
@@ -71,37 +72,37 @@ static char huge_var[PATH_SIZE + 1U] = {0};
 
 /* Tests. */
 struct args tests[] = {
-	/* Errors. */
-	{{huge_var, NULL}, ANY, EMPTY, ERR_LEN},
-	{{"", NULL}, ANY, EMPTY, ERR_ILL},
-	{{"foo", NULL}, ANY, EMPTY, ERR_ILL},
-	{{"=foo", NULL}, ANY, EMPTY, ERR_ILL},
+	/* Malformed variables of all sorts. */
+	{{huge_var, NULL}, ANY, EMPTY, "", ERR_CNV},
+	{{"", NULL}, ANY, EMPTY, "", ERR_CNV},
+	{{"foo", NULL}, ANY, EMPTY, "", ERR_CNV},
+	{{"=foo", NULL}, ANY, EMPTY, "", ERR_CNV},
 
 	/* Other illegal names. */
-	{{" foo=foo", NULL}, ANY, EMPTY, ERR_ILL},
-	{{"1foo=foo", NULL}, ANY, EMPTY, ERR_ILL},
-	{{"*=foo", NULL}, ANY, EMPTY, ERR_ILL},
-	{{"FOO =foo", NULL}, ANY, EMPTY, ERR_ILL},
-	{{"$(foo)=foo", NULL}, ANY, EMPTY, ERR_ILL},
-	{{"`foo`=foo", NULL}, ANY, EMPTY, ERR_ILL},
+	{{" foo=foo", NULL}, ANY, EMPTY, " foo", ERR_ILL},
+	{{"1foo=foo", NULL}, ANY, EMPTY, "1foo", ERR_ILL},
+	{{"*=foo", NULL}, ANY, EMPTY, "*", ERR_ILL},
+	{{"FOO =foo", NULL}, ANY, EMPTY, "FOO ", ERR_ILL},
+	{{"$(foo)=foo", NULL}, ANY, EMPTY, "$(foo)", ERR_ILL},
+	{{"`foo`=foo", NULL}, ANY, EMPTY, "`foo`", ERR_ILL},
 
 	/* Simple tests. */
-	{{"foo=bar", NULL}, {"foo", NULL}, {"foo=bar", NULL}, OK},
-	{{"foo=bar", NULL}, EMPTY, EMPTY, OK},
+	{{"foo=bar", NULL}, {"foo", NULL}, {"foo=bar", NULL}, "", OK},
+	{{"foo=bar", NULL}, EMPTY, EMPTY, "", OK},
 	{{"foo=foo", "bar=bar", "baz=baz", NULL}, {"*", NULL},
-	 {"foo=foo", "bar=bar", "baz=baz", NULL}, OK},
+	 {"foo=foo", "bar=bar", "baz=baz", NULL}, "", OK},
 	{{"foo=foo", "bar=bar", "baz=baz", NULL}, {"f*", "b*", NULL},
-	 {"foo=foo", "bar=bar", "baz=baz", NULL}, OK},
+	 {"foo=foo", "bar=bar", "baz=baz", NULL}, "", OK},
 	{{"foo=foo", "bar=bar", "baz=baz", NULL}, {"f*", NULL},
-	 {"foo=foo", "bar", "baz", NULL}, OK},
-	{{long_var, NULL}, {"foo", NULL}, {long_var, NULL}, OK},
+	 {"foo=foo", "bar", "baz", NULL}, "", OK},
+	{{long_var, NULL}, {"foo", NULL}, {long_var, NULL}, "", OK},
 
 	/* Odd but legal values. */
 	{{"empty=", "assign==", "space= ", "tab=\t", "lf=\n", NULL}, ANY,
-	 {"empty=", "assign==", "space= ", "tab=\t", "lf=\n", NULL}, OK},
+	 {"empty=", "assign==", "space= ", "tab=\t", "lf=\n", NULL}, "", OK},
 
 	/* Terminator. */
-	{EMPTY, EMPTY, EMPTY, OK}
+	{EMPTY, EMPTY, EMPTY, "", OK}
 };
 
 
@@ -109,7 +110,7 @@ struct args tests[] = {
  * Functions
  */
 
-static enum retcode
+static enum retval
 env_init(char *const vars[MAX_NVARS])
 {
 	size_t n = 0;
@@ -140,8 +141,9 @@ main (void) {
 
 	for (int i = 0; tests[i].env[0]; i++) {
 		const struct args t = tests[i];
-		const char *vars[MAX_NVARS];	/* RATS: ignore */
-		enum retcode rc;
+		const char *vars[MAX_NVARS];		/* RATS: ignore */
+		char name[PATH_SIZE];			/* RATS: ignore */
+		enum retval rc;
 
 		warnx("performing test # %d ...", i + 1);
 
@@ -150,15 +152,16 @@ main (void) {
 		if (env_clear(MAX_NVARS, vars) != OK)
 			errx(T_FAIL, "env_clear failed");
 
-		rc = env_restore(vars, t.patterns);
+		rc = env_restore(vars, t.patterns, name);
 
 		if (rc != t.rc)
 			errx(T_FAIL, "returned %u, not %u", rc, t.rc);
+		if (*t.name != '\0' && strncmp(t.name, name, PATH_SIZE) != 0)
+			errx(T_FAIL, "returned variable name %s", name);
 
 		for (int j = 0; t.clean[j]; j++) {
 			const char *var = t.clean[j];
 			const char *val;
-			char name[PATH_SIZE];	/* RATS: ignore */
 			char *exp;
 
 			if (str_split(PATH_SIZE, var, "=", name, &exp) != OK)

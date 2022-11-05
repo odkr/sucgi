@@ -28,7 +28,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "../error.h"
 #include "../file.h"
 #include "../str.h"
 #include "testdefs.h"
@@ -44,7 +43,7 @@ main (int argc, char **argv)
 	int flags;		/* Open flags. */
 	int fd;			/* File descriptor. */
 	ssize_t n;		/* Bytes read. */
-	enum retcode rc;		/* Return code. */
+	enum retval rc;		/* Return code. */
 
 	if (argc != 3) {
 		(void) fputs("usage: filesopen FNAME f|d\n", stderr);

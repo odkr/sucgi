@@ -35,11 +35,11 @@
 int
 main (int argc, char **argv)
 {
-	struct passwd *pwd;		/* User. */
-	gid_t gids[GIDS_SIZE];		/* Groups the user is a member of. */
-	int ngids;			/* Number of those groups. */
-	int ch;				/* Option character. */
-	enum retcode rc;		/* Return code. */
+	struct passwd *pwd;	/* User. */
+	gid_t gids[GIDS_SIZE];	/* Groups the user is a member of. */
+	int ngids;		/* Number of those groups. */
+	int ch;			/* Option character. */
+	enum retval rc;		/* Return code. */
 
 	ngids = GIDS_SIZE;
 

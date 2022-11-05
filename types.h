@@ -29,13 +29,13 @@ struct pair {
 };
 
 /* Return code for functions. */
-enum retcode {
+enum retval {
 	OK = 0,		/* Success. */
 	FAIL,		/* Generic failure. */
 	ERR_CNV,	/* Conversion error. */
 	ERR_NIL,	/* No input. */
-	ERR_LEN,	/* Input is out-of-bounds. */
-	ERR_ILL,	/* Input is ill-formed. */
+	ERR_LEN,	/* Value is out-of-bounds. */
+	ERR_ILL,	/* Value is ill-formed. */
 	ERR_MEM,	/* calloc(3) failed. */
 	ERR_OPEN,	/* open(2)/openat2(2) failed. */
 	ERR_CLOSE,	/* close(2) failed. */

@@ -84,7 +84,7 @@ file_is_wexcl(const uid_t uid, const struct stat fstatus)
 
 #if defined(__NR_openat2)
 
-enum retcode
+enum retval
 file_sopen(const char *const fname, const int flags, int *const fd)
 {
 	struct open_how how;	/* Flags to openat2(2). */
@@ -93,10 +93,7 @@ file_sopen(const char *const fname, const int flags, int *const fd)
 	assert(*fname);
 
 	(void) memset(&how, 0, sizeof(how));
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-	how.flags = (uint64_t) flags | O_CLOEXEC;
-#pragma GCC diagnostic pop
+	how.flags = (uint64_t) (flags | O_CLOEXEC);
 	how.resolve = RESOLVE_NO_SYMLINKS | RESOLVE_NO_MAGICLINKS;
 
 	errno = 0;
@@ -112,7 +109,7 @@ file_sopen(const char *const fname, const int flags, int *const fd)
 
 #elif defined(O_NOFOLLOW_ANY)
 
-enum retcode
+enum retval
 file_sopen(const char *const fname, const int flags, int *const fd)
 {
 	assert(*fname);

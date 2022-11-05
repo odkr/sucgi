@@ -50,7 +50,7 @@
  * Functions
  */
 
-enum retcode
+enum retval
 priv_drop(const uid_t uid, const gid_t gid,
           const int ngids, const gid_t gids[ngids])
 {

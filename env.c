@@ -40,7 +40,7 @@
 #include "file.h"
 #include "path.h"
 #include "str.h"
-#include "sysdefs.h"
+#include "sysconf.h"
 #include "types.h"
 
 
@@ -57,7 +57,7 @@
  * Functions
  */
 
-enum retcode
+enum retval
 env_clear(size_t max, const char *vars[max])
 {
 	static char *var;	/* First environment variable. */
@@ -79,14 +79,14 @@ env_clear(size_t max, const char *vars[max])
 	return ERR_LEN;
 }
 
-enum retcode
+enum retval
 env_fopen(const char *const jail, const char *const var,
 	  const int flags, const char **const fname, int *const fd)
 {
 	const char *value;	/* Unchecked variable value. */
 	const char *resolved;	/* Resolved filename. */
 	char *unresolved;	/* Unresolved filename. */
-	enum retcode rc;	/* Return code. */
+	enum retval rc;		/* Return code. */
 
 	assert(*jail);
 	assert(*var);
@@ -113,7 +113,8 @@ env_fopen(const char *const jail, const char *const var,
 	if (!unresolved)
 		return ERR_MEM;
 
-	if ((rc = str_cp(PATH_SIZE - 1U, value, unresolved)) != OK)
+	rc = str_cp(PATH_SIZE - 1U, value, unresolved);
+	if (rc != OK)
 		return rc;
 	*fname = unresolved;
  
@@ -141,23 +142,21 @@ env_is_name(const char *const name)
 	       name[strspn(name, ENV_NAME_CHARS)] == '\0';
 }
 
-enum retcode
-env_restore(const char **vars, const char *const *pats)
+enum retval
+env_restore(const char **env, const char *const *patterns,
+            char name[ENV_MAX_NAME])
 {
-	assert(*vars);
+	assert(*env);
 
-	for (const char **var = &vars[0]; *var; var++) {
-		/* RATS: ignore; str_split respects PATH_SIZE. */
-		char name[PATH_SIZE];	/* Variable name. */
-		char *value;		/* Variable value. */
-		enum retcode rc;	/* Return code. */
+	for (; *env; env++) {
+		char *value;
 
-		if ((rc = str_split(PATH_SIZE, *var, "=", name, &value)) != OK)
-			return rc;
-		if (!value)
-			return ERR_ILL;
+		if (str_split(ENV_MAX_NAME, *env, "=", name, &value) != OK)
+			return ERR_CNV;
+		if (!value || *name == '\0')
+			return ERR_CNV;
 
-		for (const char *const *pat = pats; *pat; pat++) {
+		for (const char *const *pat = patterns; *pat; pat++) {
 			if (fnmatch(*pat, name, 0) == 0) {
 				/* 
 				 * patterns may contain wildcards,

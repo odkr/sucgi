@@ -39,7 +39,7 @@
  * even line up with their own setgroups(2) implementation. Re-inventing
  * the wheel seemed the most straightforward course of action.
  */
-enum retcode
+enum retval
 gids_get(const char *const logname, const gid_t basegid,
          gid_t *const gids, int *const ngids)
 {

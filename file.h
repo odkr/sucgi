@@ -26,7 +26,7 @@
 #include <stdbool.h>
 
 #include "error.h"
-#include "sysdefs.h"
+#include "sysconf.h"
 #include "types.h"
 
 
@@ -48,7 +48,7 @@ bool file_is_wexcl(const uid_t uid, const struct stat fstatus);
  *
  * FD is closed on exit.
  *
- * Return code:
+ * Return value:
  *      OK        Success.
  *      ERR_CNV*  File descriptor is too large (Linux only).
  *      ERR_OPEN  open(2)/openat2(2) failed.
@@ -56,7 +56,7 @@ bool file_is_wexcl(const uid_t uid, const struct stat fstatus);
  *      Errors marked with an asterisk should be impossible.
  */
 __attribute__((nonnull(1, 3), warn_unused_result))
-enum retcode file_sopen(const char *const fname, const int flags,
-                        int *const fd);
+enum retval file_sopen(const char *const fname, const int flags,
+                       int *const fd);
 
 #endif /* !defined(FILE_H) */

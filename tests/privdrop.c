@@ -30,7 +30,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "../error.h"
 #include "../priv.h"
 
 
@@ -38,7 +37,7 @@ int
 main (int argc, char **argv)
 {
 	struct passwd *pwd;	/* The passwd entry of the given user. */
-	enum retcode rc;	/* A return code. */
+	enum retval rc;		/* A return code. */
 
 	if (argc != 2) {
 		(void) fputs("usage: privdrop LOGNAME\n", stderr);

@@ -39,11 +39,11 @@
 #include "file.h"
 #include "path.h"
 #include "str.h"
-#include "sysdefs.h"
+#include "sysconf.h"
 #include "types.h"
 
 
-enum retcode
+enum retval
 path_check_format(const char *fname, char expan[PATH_SIZE],
                   const char *format, ...)
 {
@@ -85,7 +85,7 @@ path_check_format(const char *fname, char expan[PATH_SIZE],
 	return (match == 0) ? OK : FAIL;
 }
 
-enum retcode
+enum retval
 path_check_wexcl(const uid_t uid, const char *const fname,
                  const char *const parent, char cur[PATH_SIZE])
 {
@@ -123,11 +123,13 @@ path_check_wexcl(const uid_t uid, const char *const fname,
 		struct stat buf;	/* Current file's status. */
 		int fd;			/* Current file. */
 		int err;		/* stat err. */
-		enum retcode rc;	/* file_sopen return code. */
+		enum retval rc;	/* file_sopen return code. */
 
 		(void) str_cp((size_t) (pos - fname), fname, cur);
 
-		if ((rc = file_sopen(cur, O_RDONLY, &fd)) != OK)
+
+		rc = file_sopen(cur, O_RDONLY, &fd);
+		if (rc != OK)
 			return rc;
 
 		errno = 0;

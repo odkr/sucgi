@@ -24,7 +24,7 @@
 #include <string.h>
 
 #include "../str.h"
-#include "../sysdefs.h"
+#include "../sysconf.h"
 #include "testdefs.h"
 #include "testdefs.h"
 
@@ -34,7 +34,7 @@ struct args {
 	size_t n;
 	const char *src;
 	const char *dest;
-	const enum retcode rc;
+	const enum retval rc;
 };
 
 /* Tests. */
@@ -66,7 +66,7 @@ main (void) {
 	for (int i = 0; tests[i].src; i++) {
 		struct args t = tests[i];
 		char dest[PATH_SIZE];	/* RATS: ignore */
-		enum retcode rc; 
+		enum retval rc; 
 		
 		*dest = '\0';
 

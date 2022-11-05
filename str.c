@@ -35,7 +35,7 @@
 #include "str.h"
 #include "types.h"
 
-enum retcode
+enum retval
 str_cp(const size_t len, const char *const src, char dest[len + 1U])
 {
 	char *end;	/* Position of last byte of src. */
@@ -51,22 +51,24 @@ str_cp(const size_t len, const char *const src, char dest[len + 1U])
 	return OK;
 }
 
-enum retcode
+enum retval
 str_split(size_t max, const char *const s, const char *const sep,
           char head[max], char **const tail)
 {
-	size_t len;	/* Length of head. */
-
 	*tail = strpbrk(s, sep);
-	if (!*tail)
-		return str_cp(max - 1U, s, head);
-		
-	len = (size_t) (*tail - s);
-	if (len >= max)
-		return ERR_LEN;
 
-	(void) str_cp(len, s, head);
-	(*tail)++;
+	if (*tail) {
+		size_t len;	/* Length of head. */
 
-	return OK;
+		len = (size_t) (*tail - s);
+		if (len >= max)
+			return ERR_LEN;
+
+		(void) str_cp(len, s, head);
+		(*tail)++;
+
+		return OK;
+	}
+
+	return str_cp(max - 1U, s, head);
 }

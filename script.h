@@ -23,7 +23,7 @@
 #define SCRIPT_H
 
 #include "str.h"
-#include "sysdefs.h"
+#include "sysconf.h"
 #include "types.h"
 
 
@@ -35,15 +35,15 @@
  * Find a script interpreter matching the filename suffix of SCRIPT in the
  * array of filename suffix-interpreter pairs DB and store it in INTER.
  *
- * Return code:
+ * Return value:
  *      OK        Success.
  *      ERR_LEN   FNAME is longer than MAX_STR - 1 bytes.
  *      ERR_ILL   FNAME has no filename suffix.
  *      FAIL      No handler has been registered for FNAME's suffix.
  */
 __attribute__((nonnull(1, 2, 3), pure, warn_unused_result))
-enum retcode script_get_inter(const struct pair db[], const char *const script,
-                        char inter[PATH_SIZE]);
+enum retval script_get_inter(const struct pair db[], const char *const script,
+                             char inter[PATH_SIZE]);
 
 
 #endif /* !defined(SCRIPT_H) */

@@ -49,18 +49,6 @@ main (int argc, char **argv)
 	/* RATS: ignore */
 	while ((ch = getopt(argc, argv, "in:h")) != -1)
 		switch (ch) {
-		case 'i':
-			copy = false;
-			break;
-		case 'n':
-			n = strtol(optarg, NULL, 10);
-			if (errno != 0)
-				err(EXIT_FAILURE, "-n");
-			if (n < 0)
-				errx(EXIT_FAILURE, "-n: is negative");
-			if (n > INT_MAX)
-				errx(EXIT_FAILURE, "-n: is too large");
-			break;
 		case 'h':
 			(void) puts(
 "badenv - run a programme with a given environment, any environment\n\n"
@@ -79,6 +67,18 @@ main (int argc, char **argv)
 "This programme comes with ABSOLUTELY NO WARRANTY."
 			);
 			return EXIT_SUCCESS;
+		case 'i':
+			copy = false;
+			break;
+		case 'n':
+			n = strtol(optarg, NULL, 10);
+			if (errno != 0)
+				err(EXIT_FAILURE, "-n");
+			if (n < 0)
+				errx(EXIT_FAILURE, "-n: is negative");
+			if (n > INT_MAX)
+				errx(EXIT_FAILURE, "-n: is too large");
+			break;
 		default:
 			return EXIT_FAILURE;
 		}

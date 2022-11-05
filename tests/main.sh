@@ -68,12 +68,11 @@ else
 	user="$(id -un)"
 fi
 group="$(id -g "$user")"
-eval home="~$user"
-readonly user group home
+readonly user group
 
 # Create a temporary directory and a document root.
 # shellcheck disable=2059
-doc_root="$(printf -- "$USER_DIR" "$home")"
+doc_root="$(printf -- "$USER_DIR" "$user")"
 
 IFS=/ i=0 tmp=
 for seg in $doc_root
@@ -225,14 +224,13 @@ tests_dir=$(cd -P "$script_dir" && pwd) ||
 	err 'failed to get working directory.'
 
 check -s1 -e'encountered malformed environment variable.' \
-	badenv -n3 bar=bar baz=baz foo "$tests_dir/main"
-
-check -s1 -e'encountered malformed environment variable.' \
-	badenv 'SSL_CLIENT_S_DN_ =bar' foo=foo baz=baz "$tests_dir/main"
-
-check -s1 -e'encountered malformed environment variable.' \
 	badenv -n3 foo=foo '' bar=bar "$tests_dir/main"
 
+check -s1 -e'encountered malformed environment variable.' \
+	badenv -n3 bar=bar baz=baz foo "$tests_dir/main"
+
+check -s1 -e"bad characters in variable name SSL_CLIENT_S_DN_ ." \
+	badenv 'SSL_CLIENT_S_DN_ =bar' foo=foo baz=baz "$tests_dir/main"
 
 #
 # Verification of $DOCUMENT_ROOT (pre-privilege drop).
@@ -247,7 +245,7 @@ check -s1 -e'$DOCUMENT_ROOT unset or empty.' \
 	DOCUMENT_ROOT= main
 
 # $DOCUMENT_ROOT is too long (suCGI).
-check -s1 -e'encountered suspiciously long environment variable.' \
+check -s1 -e'$DOCUMENT_ROOT is too long.' \
 	DOCUMENT_ROOT="$huge_str" main
 
 # $DOCUMENT_ROOT is too long (system).

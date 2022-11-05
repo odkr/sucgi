@@ -24,8 +24,16 @@
 
 #include "error.h"
 #include "str.h"
-#include "sysdefs.h"
+#include "sysconf.h"
 #include "types.h"
+
+
+/*
+ * Constants
+ */
+
+/* Maximum variable name length. */
+#define ENV_MAX_NAME 128
 
 
 /*
@@ -45,12 +53,12 @@ extern char **environ;
  * VARS. If VARS is NULL, the old environment is discarded. VARS must point
  * to a memory area that is large enough to hold MAX pointers to strings.
  *
- * Return code:
+ * Return value:
  *      OK       Success.
  *      ERR_LEN  There are more than MAX environment variables.
  */
 __attribute__((warn_unused_result))
-enum retcode env_clear(size_t max, const char *vars[max]);
+enum retval env_clear(size_t max, const char *vars[max]);
 
 /*
  * Read a filename from the environment variable VAR, canonicalise it, check
@@ -66,7 +74,7 @@ enum retcode env_clear(size_t max, const char *vars[max]);
  *
  * FD is closed on exit.
  *
- * Return code:
+ * Return value:
  *      OK        Success.
  *      ERR_CNV*  File descriptor is too large (Linux only).
  *      ERR_ILL   The file is not within the jail.
@@ -80,9 +88,9 @@ enum retcode env_clear(size_t max, const char *vars[max]);
  *      Errors marked with an asterisk should be impossible.
  */
 __attribute__((nonnull(1, 2, 4, 5), warn_unused_result))
-enum retcode env_fopen(const char *const jail, const char *const var,
-                       const int flags, const char **const fname,
-                       int *const fd);
+enum retval env_fopen(const char *const jail, const char *const var,
+                      const int flags, const char **const fname,
+                      int *const fd);
 
 
 /*
@@ -92,19 +100,23 @@ __attribute__((nonnull(1), pure, warn_unused_result))
 bool env_is_name(const char *const name);
 
 /*
- * Restore every environment variable in VARS that matches one the the given
- * PATS. VARS is a NULL-terminated array of variables saved with env_clear.
- * PATS is a NULL-terminated array of shell wildcard patterns.
+ * Restore every environment variable in ENV that matches one the the given
+ * PATTERNS. ENV is a NULL-terminated array of variables saved with env_clear.
+ * PATTERNS is a NULL-terminated array of shell wildcard patterns.
+ *
+ * The name of the variable that is currently processed is stored in NAME,
+ * unless the variable could not be split up into a name and a value. If
+ * the first variable cannot be split up, NAME is not initialised.
  *
  * Note, an attacker may populate the environment with variables that are
  * not NUL-termianted. If the memory area after such a variable contains
- * a NUL within MAX - 1 characters either from the start of the variable or
- * from the position of the first '=', then setenv(3) will overshoot and
- * dump the contents of that memory area into the environment. That said,
- * suCGI should not be privy to any information that is not in the
- * environment already, so such an attack should be pointless.
+ * a NUL within PATH_SIZE - 1 characters starting from the position of the
+ * first '=', then setenv(3) will overshoot and dump the contents of that
+ * memory area into the environment. That said, suCGI should not be privy
+ * to any information that is not in the  environment already, so such an
+ * attack should be pointless.
  *
- * If VARS contains multiple assignments to the same variable name, it
+ * If ENV contains multiple assignments to the same variable name, it
  * depends on the system's libc how many and which of those assignments
  * are honoured. This cannot be helped because some implementations of
  * setenv(3), e.g., Apple's Libc, may store multiple assignments to the
@@ -115,14 +127,16 @@ bool env_is_name(const char *const name);
  * usually implemented so that it returns a variable's authoritative
  * value. So this should not be an issue, usually.
  *
- * Return code:
+ * Return value:
  *      OK       Success.
- *      ERR_LEN  Variable name or value is longer than PATH_SIZE - 1 bytes.
- *      ERR_ILL  Variable is ill-formed.
+ *      ERR_CNV  Variable could not be split up into a name and a value.
+ *      ERR_ILL  Variable name is illegal.
+ *      ERR_LEN  Variable value is longer than PATH_SIZE - 1 bytes.
  *      ERR_ENV  setenv(3) failed.
  */
 __attribute__((nonnull(1, 2), warn_unused_result))
-enum retcode env_restore (const char **vars, const char *const *pats);
+enum retval env_restore (const char **env, const char *const *patterns,
+                         char name[ENV_MAX_NAME]);
 
 
 #endif /* !defined(ENV_H) */

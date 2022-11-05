@@ -22,7 +22,7 @@
 #if !defined(ERROR_H)
 #define ERROR_H
 
-#include "sysdefs.h"
+#include "sysconf.h"
 
 /* Log MESSAGE as an error and exit with status EXIT_FAILURE. */
 __attribute__((nonnull(1), noreturn))

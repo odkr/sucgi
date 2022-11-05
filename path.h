@@ -24,7 +24,7 @@
 
 #include <stdbool.h>
 
-#include "sysdefs.h"
+#include "sysconf.h"
 #include "types.h"
 
 
@@ -34,7 +34,7 @@
  *
  * FNAME must be sanitised and canonical.
  *
- * Return code:
+ * Return value:
  *      OK       FNAME matches the expanded filename.
  *      ERR_PRN  vsnprintf(3) failed.
  *      ERR_LEN  The expanded filename is longer than PATH_SIZE - 1 bytes.
@@ -42,8 +42,8 @@
  *      FAIL     FNAME does not match EXP.
  */
 __attribute__((nonnull(1, 2, 3), format(printf, 3, 4), warn_unused_result))
-enum retcode path_check_format(const char *fname, char expan[PATH_SIZE],
-                         const char *format, ...);
+enum retval path_check_format(const char *fname, char expan[PATH_SIZE],
+                              const char *format, ...);
 
 /*
  * Check if the user with ID UID has exclusive write access to the file
@@ -52,7 +52,7 @@ enum retcode path_check_format(const char *fname, char expan[PATH_SIZE],
  *
  * PARENT and FNAME must be sanitised and canonical.
  *
- * Return code:
+ * Return value:
  *      OK          Success.
  *      ERR_CNV*    File descriptor is too large (Linux only).
  *      ERR_LEN     FNAME is too long.
@@ -64,8 +64,8 @@ enum retcode path_check_format(const char *fname, char expan[PATH_SIZE],
  *      Errors marked with an asterisk should be impossible.
  */
 __attribute__((nonnull(2, 3, 4), warn_unused_result))
-enum retcode path_check_wexcl(const uid_t uid, const char *const fname,
-                         const char *const parent, char cur[PATH_SIZE]);
+enum retval path_check_wexcl(const uid_t uid, const char *const fname,
+                             const char *const parent, char cur[PATH_SIZE]);
 
 /*
  * Check if FNAME is a sub-directory of PARENT.

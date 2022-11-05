@@ -25,7 +25,7 @@
 #include <string.h>
 
 #include "../str.h"
-#include "../sysdefs.h"
+#include "../sysconf.h"
 #include "testdefs.h"
 #include "testdefs.h"
 
@@ -36,7 +36,7 @@ struct args {
 	const char *sep;
 	const char *head;
 	const char *tail;
-	enum retcode rc;
+	enum retval rc;
 };
 
 /* A string just within limits. */
@@ -92,7 +92,7 @@ main(void)
 		const struct args t = tests[i];
 		char head[PATH_SIZE];	/* RATS: ignore */
 		char *tail;
-		enum retcode rc;
+		enum retval rc;
 
 		*head = '\0';
 

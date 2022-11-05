@@ -1,5 +1,5 @@
 /*
- * System defininitions for suCGI.
+ * Detect system features.
  *
  * Copyright 2022 Odin Kroeger
  *

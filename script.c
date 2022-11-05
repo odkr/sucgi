@@ -32,24 +32,25 @@
 
 #include "script.h"
 #include "str.h"
-#include "sysdefs.h"
+#include "sysconf.h"
 #include "types.h"
 
 
-enum retcode
+enum retval
 script_get_inter(const struct pair db[], const char *const script,
-           char inter[PATH_SIZE])
+                 char inter[PATH_SIZE])
 {
 	/* RATS: ignore; writes to path are bounds-checked. */
 	char path[PATH_SIZE];	/* Copy of script for basename(3). */
 	const char *fname;	/* Filename portion of scpt. */
 	const char *suffix;	/* Filename suffix. */
-	enum retcode rc;	/* Return code. */
+	enum retval rc;		/* Return code. */
 
 	assert(*script != '\0');
 
 	/* basename may alter the path it is given. */
-	if ((rc = str_cp(PATH_SIZE - 1U, script, path)) != OK)
+	rc = str_cp(PATH_SIZE - 1U, script, path);
+	if (rc != OK)
 		return rc;
 	fname = basename(path);
 

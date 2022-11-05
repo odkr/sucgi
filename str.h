@@ -24,7 +24,7 @@
 
 #include <stdbool.h>
 
-#include "sysdefs.h"
+#include "sysconf.h"
 #include "types.h"
 
 
@@ -32,13 +32,13 @@
  * Copy LEN bytes from string SRC to DEST, which will be NUL-terminated.
  * DEST must be large enough to hold LEN + 1 bytes.
  *
- * Return code:
+ * Return value:
  *      OK       Success.
  *      ERR_LEN  SRC was truncated.
  */
 __attribute((nonnull(2, 3)))
-enum retcode str_cp(const size_t len, const char *const src,
-                    char dest[len + 1U]);
+enum retval str_cp(const size_t len, const char *const src,
+                   char dest[len + 1U]);
 
 /*
  * Split S at the first occurence of any character in SEP and store a copy of
@@ -51,13 +51,13 @@ enum retcode str_cp(const size_t len, const char *const src,
  *
  * HEAD and TAIL are meaningless if an error occurs.
  *
- * Return code:
+ * Return value:
  *      OK       Success.
  *      ERR_LEN  HEAD is longer than MAX.
  */
 __attribute__((nonnull(2, 3, 4, 5), warn_unused_result))
-enum retcode str_split(size_t max, const char *const s, const char *const sep,
-                       char head[max], char **const tail);
+enum retval str_split(size_t max, const char *const s, const char *const sep,
+                      char head[max], char **const tail);
 
 
 #endif /* !defined(STR_H) */

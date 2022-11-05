@@ -81,6 +81,29 @@ main(int argc, char **argv)
 	/* RATS: ignore */
 	while ((ch = getopt(argc, argv, "ugf:c:n:h")) != -1)
 		switch (ch) {
+		case 'h':
+			(void) puts(
+"ents - print users or groups\n\n"
+"Usage:    ents [-u|-g] [-f N] [-c N] [-n N]\n"
+"          ents -h\n\n"
+"Options:\n"
+"    -u    Print users (default).\n"
+"    -g    Print groups.\n"
+"    -f N  Only print entries with an ID greater than or equal to N.\n"
+"    -c N  Only print entries with an IDs less than or equal to N.\n"
+"    -n N  Only print the first N matches.\n"
+"    -h    Print this help screen.\n\n"
+"Exit statuses:\n"
+"     0    Success.\n"
+"    64    Usage error.\n"
+"    67    No matches.\n"
+"    69    Too many matches.\n"
+"    71    System error.\n\n"
+"Copyright 2022 Odin Kroeger.\n"
+"Released under the GNU General Public License.\n"
+"This programme comes with ABSOLUTELY NO WARRANTY."
+			);
+			return OK;
 		case 'u':
 			groups = false;
 			break;
@@ -111,28 +134,6 @@ main(int argc, char **argv)
 			if (max < 1)
 				errx(ERR_USAGE, "-n: is non-positive");
 			break;
-		case 'h':
-			(void) puts(
-"ents - print users or groups\n\n"
-"Usage:    ents [-u|-g] [-f N] [-c N]\n"
-"          ents -h\n\n"
-"Options:\n"
-"    -u    Print users (default).\n"
-"    -g    Print groups.\n"
-"    -f N  Only print entries with an ID greater than or equal to N.\n"
-"    -c N  Only print entries with an IDs less than or equal to N.\n"
-"    -h    Print this help screen.\n\n"
-"Exit statuses:\n"
-"     0    Success.\n"
-"    64    Usage error.\n"
-"    67    No matches.\n"
-"    69    Too many matches.\n"
-"    71    System error.\n\n"
-"Copyright 2022 Odin Kroeger.\n"
-"Released under the GNU General Public License.\n"
-"This programme comes with ABSOLUTELY NO WARRANTY."
-			);
-			return OK;
 		default:
 			return ERR_USAGE;
 		}

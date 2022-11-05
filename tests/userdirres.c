@@ -1,5 +1,5 @@
 /*
- * Test path_check_wexcl.
+ * Test userdir_resolve.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -26,52 +26,51 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "../error.h"
-#include "../path.h"
-#include "../sysdefs.h"
+#include "../sysconf.h"
+#include "../userdir.h"
 
 
 int
 main (int argc, char **argv)
 {
 	/* RATS: ignore */
-	char cur[PATH_SIZE];		/* Current directory. */
-	struct passwd *pwd;		/* User. */
-	enum retcode rc;		/* Return code. */
+	char user_dir[PATH_SIZE];	/* User directory. */
+	struct passwd *user;		/* User. */
+	enum retval rc;			/* Return code. */
 
-	if (argc != 4) {
-		(void) fputs("usage: pathchkwex LOGNAME FILE PARENT\n",
-		             stderr);
+	if (argc != 3) {
+		(void) fputs("usage: userdir FMT LOGNAME\n", stderr);
 		return EXIT_FAILURE;
 	}
 
 	errno = 0;
-	pwd = getpwnam(argv[1]);
-	if (!pwd) {
+	user = getpwnam(argv[2]);
+	if (!user) {
 		if (errno == 0)
 			errx(EXIT_FAILURE, "no such user");
 		else
-			err(EXIT_FAILURE, "getpwam");
+			err(EXIT_FAILURE, "getpwnam %s", argv[2]);
 	}
 
-	rc = path_check_wexcl(pwd->pw_uid, argv[2], argv[3], cur);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+	rc = userdir_resolve(argv[1], user, user_dir);
+#pragma GCC diagnostic pop
+
 	switch (rc) {
 	case OK:
 		break;
-	case ERR_OPEN:
-		err(EXIT_FAILURE, "open %s", cur);
-	case ERR_CLOSE:
-		err(EXIT_FAILURE, "close %s", cur);
-	case ERR_STAT:
-		err(EXIT_FAILURE, "stat %s", cur);
-	case FAIL:
-	        errx(EXIT_FAILURE, "%s is writable by users other than %s",
-		     cur, pwd->pw_name);
+	case ERR_RES:
+		err(EXIT_FAILURE, "realpath %s", user_dir);
+	case ERR_PRN:
+		err(EXIT_FAILURE, "vsnprintf");
+	case ERR_LEN:
+		errx(EXIT_FAILURE, "expanded user directory is too long");
 	default:
 		errx(EXIT_FAILURE, "returned %u", rc);
 	}
 
-	(void) puts(cur);
+	(void) puts(user_dir);
 
 	return EXIT_SUCCESS;
 }

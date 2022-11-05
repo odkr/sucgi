@@ -318,6 +318,7 @@ tmpdir() {
 	[ "${__tmpdir_tmpdir-}" ] && return
 	# shellcheck disable=2031
 	__tmpdir_prefix="${1:-tmp}" __tmpdir_dir="${2:-"${TMPDIR:-/tmp}"}"
+	mkdir -p "$__tmpdir_dir"
 	__tmpdir_real="$(cd -P "$__tmpdir_dir" && pwd)" ||
 		err "cd -P $__tmpdir_dir && pwd: exited with status $?."
 	readonly __tmpdir_tmpdir="$__tmpdir_real/$__tmpdir_prefix-$$"

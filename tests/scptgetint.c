@@ -26,7 +26,7 @@
 
 #include "../script.h"
 #include "../str.h"
-#include "../sysdefs.h"
+#include "../sysconf.h"
 #include "testdefs.h"
 #include "testdefs.h"
 
@@ -35,7 +35,7 @@
 struct args {
 	const char *script;
 	const char *inter;
-	const enum retcode rc;
+	const enum retval rc;
 };
 
 /* A string just within limits. */
@@ -102,7 +102,7 @@ main (void)
 		const struct args t = tests[i];
 		char inter[PATH_SIZE];	/* RATS: ignore */
 		char script[PATH_SIZE];	/* RATS: ignore */
-		enum retcode rc;	
+		enum retval rc;	
 
 		*script = '\0';
 		(void) memset(inter, 0, PATH_SIZE);

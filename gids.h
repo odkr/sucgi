@@ -32,13 +32,13 @@
  *
  * GIDS must be large enough to hold NGIDS supplementary groups.
  *
- * Return code:
+ * Return value:
  *      OK         Success.
  *      ERR_LEN    LOGNAME belongs to more than NGIDS groups.
  *      ERR_GETGR  getgrent(3) failed.
  */
 __attribute__((no_sanitize("alignment"), nonnull(1, 3, 4), warn_unused_result))
-enum retcode gids_get(const char *const logname, const gid_t basegid,
-                      gid_t *const gids, int *const ngids);
+enum retval gids_get(const char *const logname, const gid_t basegid,
+                     gid_t *const gids, int *const ngids);
 
 #endif /* !defined(GIDS_H) */
