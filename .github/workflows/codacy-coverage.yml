@@ -13,8 +13,8 @@ jobs:
     name: Codacy Coverage Reporter
     steps:
       - uses: actions/checkout@v3
-      - name: sudo apt-get install build-essential m4 lcov
-        run: sudo apt-get install build-essential m4 lcov
+      - name: sudo apt-get install gcov lcov
+        run: sudo apt-get install gcov lcov
       - name: configure
         run: CFLAGS= ./configure
       - name: make check
