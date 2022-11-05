@@ -242,16 +242,16 @@ static const char *const sec_env_vars[] = {
 #define FORCE_HOME false
 
 #undef MIN_UID
-#define MIN_UID 500U
+#define MIN_UID 500
 
 #undef MAX_UID
-#define MAX_UID 30000U
+#define MAX_UID 30000
 
 #undef MIN_GID
-#define MIN_GID 1U
+#define MIN_GID 1
 
 #undef MAX_GID
-#define MAX_GID 30000U
+#define MAX_GID 30000
 
 #undef HANDLERS
 #define HANDLERS {{".sh", "sh"}, {NULL, NULL}}
