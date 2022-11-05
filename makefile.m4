@@ -70,17 +70,15 @@ bins =		$(tool_bins) $(check_bins)
 # Analyser settings
 #
 
-inspect = *.c *.h tools/*.c tests/*.c
+inspect = *.c *.h
 
-cppchk_flags =	--quiet --error-exitcode=8 \
-		--language=c --std=c99 --platform=unix64 \
-		--library=posix --library=cppcheck/library.cfg \
-		--project=cppcheck/sucgi.cppcheck \
-		--suppressions-list=cppcheck/suppr.txt --inline-suppr \
-		--cppcheck-build-dir=cppcheck/build \
-		--force --inconclusive
+cppcheck_flags =	--quiet --error-exitcode=8 \
+			--language=c --std=c99 --platform=unix64 \
+			--library=posix --library=cppcheck/library.cfg \
+			--project=cppcheck/sucgi.cppcheck \
+			--suppressions-list=cppcheck/suppr.txt --inline-suppr #\
 
-cppchk_addons =	--addon=cppcheck/cert.py --addon=misra.py
+cppcheck_addons =	--addon=cppcheck/cert.py --addon=misra.py
 
 
 #
@@ -284,7 +282,7 @@ analysis:
 	grep -nri fixme $(inspect)
 	rats --resultsonly $(inspect)
 	flawfinder -DQF $(inspect)
-	cppcheck $(cppchk_flags) --enable=all $(inspect) #$(cppchk_addons) $(inspect)
+	cppcheck $(cppcheck_flags) --enable=all $(cppcheck_addons) $(inspect)
 
 shellcheck:
 	grep -nri fixme configure tools/check tools/lib.sh tests/*.sh
