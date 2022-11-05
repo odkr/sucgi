@@ -107,8 +107,11 @@ main (void)
 		*script = '\0';
 		(void) memset(inter, 0, PATH_SIZE);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-overflow"
 		warnx("checking (db, %s, -> %s) -> %u ...",
 		      t.script, t.inter, t.rc);
+#pragma GCC diagnostic pop
 
 		rc = script_get_inter(db, t.script, inter);
 
