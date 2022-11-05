@@ -88,8 +88,8 @@ env_fopen(const char *const jail, const char *const var,
 	char *unresolved;	/* Unresolved filename. */
 	enum retval rc;		/* Return code. */
 
-	assert(*jail);
-	assert(*var);
+	assert(*jail != '\0');
+	assert(*var != '\0');
 	assert(strnlen(jail, PATH_SIZE) < PATH_SIZE);
 	/* RATS: ignore; not a permission check. */
 	assert(access(jail, F_OK) == 0);

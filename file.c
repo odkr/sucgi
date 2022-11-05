@@ -90,7 +90,7 @@ file_sopen(const char *const fname, const int flags, int *const fd)
 	struct open_how how;	/* Flags to openat2(2). */
 	long rc;		/* Return code. */
 
-	assert(*fname);
+	assert(*fname != '\0');
 
 	(void) memset(&how, 0, sizeof(how));
 	how.flags = (uint64_t) (flags | O_CLOEXEC);
@@ -112,7 +112,7 @@ file_sopen(const char *const fname, const int flags, int *const fd)
 enum retval
 file_sopen(const char *const fname, const int flags, int *const fd)
 {
-	assert(*fname);
+	assert(*fname != '\0');
 
 	errno = 0;
 	/* RATS: ignore; see above. */

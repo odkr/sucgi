@@ -488,7 +488,7 @@ main(int argc, char **argv) {
 		error("realpath %s: %m.", JAIL_DIR);
 
 	assert(jail_dir);
-	assert(*jail_dir);
+	assert(*jail_dir != '\0');
         assert(strnlen(jail_dir, PATH_SIZE) < PATH_SIZE);
 
 	rc = env_fopen(jail_dir, "DOCUMENT_ROOT", O_RDONLY | O_DIRECTORY,
@@ -519,7 +519,7 @@ main(int argc, char **argv) {
 		error("close %s: %m.", doc_root);
 
 	assert(doc_root);
-	assert(*doc_root);
+	assert(*doc_root != '\0');
 	assert(doc_fd > -1);
 	assert(strnlen(doc_root, PATH_SIZE) < PATH_SIZE);
 	/* RATS: ignore; not a permission check. */
@@ -561,7 +561,7 @@ main(int argc, char **argv) {
    	}
 
 	assert(script);
-	assert(*script);
+	assert(*script != '\0');
 	assert(strnlen(script, PATH_SIZE) < PATH_SIZE);
 	/* RATS: ignore; not a permission check. */
 	assert(access(script, F_OK) == 0);
@@ -815,10 +815,10 @@ main(int argc, char **argv) {
 
 	if (!file_is_exe(script_stat)) {
 		/* RATS: ignore; script_get_inter respects PATH_SIZE. */
-		char interp[PATH_SIZE];			/* Interpreter. */
+		char inter[PATH_SIZE];			/* Interpreter. */
 		const struct pair db[] = HANDLERS;	/* Database. */
 
-		rc = script_get_inter(db, script, interp);
+		rc = script_get_inter(db, script, inter);
 		switch (rc) {
 		case OK:
 			break;
@@ -831,14 +831,14 @@ main(int argc, char **argv) {
 			error("%d: script_get_inter returned %u.", __LINE__, rc);
 		}
 
-		assert(*interp);
+		assert(*inter != '\0');
 
 		errno = 0;
 		/* RATS: ignore; suCGI's whole point is to do this securely. */
-		(void) execlp(interp, interp, script, NULL);
+		(void) execlp(inter, inter, script, NULL);
 
 		/* If this point is reached, execution has failed. */
-		error("execlp %s %s: %m.", interp, script);
+		error("execlp %s %s: %m.", inter, script);
 	}
 
 	errno = 0;

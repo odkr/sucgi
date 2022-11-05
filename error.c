@@ -45,7 +45,7 @@ error(const char *const message, ...)
 {
 	va_list ap;
 
-	assert(*message);
+	assert(*message != '\0');
 
 	openlog("sucgi", ERROR_LOG_OPTS, LOG_AUTH);
 

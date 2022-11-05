@@ -47,7 +47,7 @@ gids_get(const char *const logname, const gid_t basegid,
 	int max;		/* Maximum numer of groups. */
 	errno_t err;		/* Copy of errno. */
 
-	assert(*logname);
+	assert(*logname != '\0');
 	assert(*ngids > -1);
 
 	max = *ngids;

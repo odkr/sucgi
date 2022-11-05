@@ -48,8 +48,8 @@ path_check_wexcl(const uid_t uid, const char *const fname,
 {
 	const char *pos;	/* Current position in filename. */
 
-	assert(*parent);
-	assert(*fname);
+	assert(*parent != '\0');
+	assert(*fname != '\0');
 	assert(strnlen(parent, PATH_SIZE) < PATH_SIZE);
 	assert(strnlen(fname, PATH_SIZE) < PATH_SIZE);
 	/* RATS: ignore; not a permission check. */
@@ -114,10 +114,8 @@ path_is_subdir(const char *const fname, const char *const parent)
 {
 	size_t len;		/* Parent-directory length. */
 
-	/* RATS: ignore; not a permission check. */
-	assert(*parent);
-	/* RATS: ignore; not a permission check. */
-	assert(*fname);
+	assert(*parent != '\0');
+	assert(*fname != '\0');
 	assert(strnlen(parent, PATH_SIZE) < PATH_SIZE);
 	assert(strnlen(fname, PATH_SIZE) < PATH_SIZE);
 
