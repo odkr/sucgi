@@ -100,6 +100,6 @@ do
 	pids=
 done
 
-[ "$failc" -eq 0 ] && warn -gq 'all tests passed.'
+[ "$failc" -eq 0 ] && [ "$skipc" -eq 0 ] && warn -gq 'all tests passed.'
 
 exit $failc
