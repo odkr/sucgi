@@ -15,11 +15,6 @@ jobs:
       run: www_grp=staff cgi_dir=/tmp ./configure
     - name: make
       run: make
-    - name: test
-      run: 
-        | make check
-	| sh tests/main.sh || :
-      	| sudo sh tests/main.sh || :
     - name: make check
       run: make check
     - name: sudo make check
