@@ -452,6 +452,7 @@ main(int argc, char **argv) {
 	 * Restore the environment variables needed by CGI scripts.
 	 */
 
+	/* RATS: ignore; env_restore respects ENV_MAX_NAME. */
 	char env_name[ENV_MAX_NAME];	/* Name of last variable. */
 
 	rc = env_restore(env, sec_env_vars, env_name);
