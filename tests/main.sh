@@ -548,7 +548,7 @@ fi
 if [ "$user" = "$(id -un 0)" ]
 then
 	warn -y "skipping post-privilege drop tests."
-	exit 1
+	exit 75
 fi
 
 
