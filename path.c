@@ -44,48 +44,6 @@
 
 
 enum retval
-path_check_format(const char *fname, char expan[PATH_SIZE],
-                  const char *format, ...)
-{
-	char *resolved;		/* Canonicalised path. */
-	int match;		/* Result of comparison. */
-	int len;		/* Length of expanded path. */
-	va_list ap;		/* Argument pointer. */
-
-	assert(*fname);
-	assert(*format);
-	assert(strnlen(fname, PATH_SIZE) < PATH_SIZE);
-	assert(strnlen(format, PATH_SIZE) < PATH_SIZE);
-	/* RATS: ignore; not a permission check. */
-	assert(access(fname, F_OK) == 0);
-	/* RATS: ignore; the length of fname is checked above. */
-	assert(strncmp(realpath(fname, NULL), fname, PATH_SIZE) == 0);
-
-	/* Some implementions of vsnprintf fail to NUL-terminate strings. */
-	(void) memset(expan, 0, PATH_SIZE);
-
-	va_start(ap, format);
-	/* RATS: ignore; format is controlled by the administrator. */
-	len = vsnprintf(expan, PATH_SIZE, format, ap);
-	va_end(ap);
-
-	if (len < 0)
-		return ERR_PRN;
-	if (len >= PATH_SIZE)
-		return ERR_LEN;
-
-	/* RATS: ignore; the length of expan is checked above. */
-	resolved = realpath(expan, NULL);
-	if (!resolved)
-		return ERR_RES;
-
-	match = strncmp(fname, resolved, PATH_SIZE);
-	free(resolved);
-
-	return (match == 0) ? OK : FAIL;
-}
-
-enum retval
 path_check_wexcl(const uid_t uid, const char *const fname,
                  const char *const parent, char cur[PATH_SIZE])
 {

@@ -29,23 +29,6 @@
 
 
 /*
- * Expand FORMAT with the given variadic arguments, store the resulting
- * filename in EXPAN, canonicalise it, and then compare it to FNAME.
- *
- * FNAME must be sanitised and canonical.
- *
- * Return value:
- *      OK       FNAME matches the expanded filename.
- *      ERR_PRN  vsnprintf(3) failed.
- *      ERR_LEN  The expanded filename is longer than PATH_SIZE - 1 bytes.
- *      ERR_RES  realpath(3) failed.
- *      FAIL     FNAME does not match EXP.
- */
-__attribute__((nonnull(1, 2, 3), format(printf, 3, 4), warn_unused_result))
-enum retval path_check_format(const char *fname, char expan[PATH_SIZE],
-                              const char *format, ...);
-
-/*
  * Check if the user with ID UID has exclusive write access to the file
  * named FNAME and each parent directory of FNAME up to PARENT and store
  * a copy of the last path checked in CUR.
