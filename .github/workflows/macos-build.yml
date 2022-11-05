@@ -12,7 +12,9 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: ./configure
-      run: www_grp=staff cgi_dir=/tmp CC=clang ./configure
+      run: 
+      	| #www_grp=staff cgi_dir=/tmp CC=clang ./configure
+	| CC=clang ./configure
     - name: make
       run: make
     - name: test
