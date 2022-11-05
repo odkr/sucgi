@@ -497,6 +497,7 @@ cp -p "$script_sh" "$suffix_unknown"
 script="${script_sh%.sh}"
 cp -p "$script_sh" "$script"
 chmod +x "$script"
+[ -x "$script" ] && "$script" >/dev/null 2>&1 || script=
 
 # Create a script that prints the environment.
 env_sh="$doc_root/env.sh"
@@ -510,6 +511,7 @@ chown "$user:$group" "$env_sh"
 env="${env_sh%.sh}"
 cp -p "$env_sh" "$env"
 chmod +x "$env"
+[ -x "$env" ] && "$env" >/dev/null 2>&1 || env=
 
 
 #
@@ -615,6 +617,8 @@ check -s1 -e"no interpreter registered for $suffix_unknown." \
 
 for path in "$script" "$script_sh"
 do
+	[ "$script" ] || skipped=y
+
 	check -s0 -o "uid=$uid egid=$gid ruid=$uid rgid=$gid" \
 		PATH_TRANSLATED="$path" main
 done
@@ -626,6 +630,8 @@ done
 
 for path in "$env" "$env_sh"
 do
+	[ "$path" ] || skipped=y
+
 	warn "checking ${bld-}PATH_TRANSLATED=$env_sh foo=foo main${rst-} ..."
 
 	PATH_TRANSLATED="$path" foo=foo main |
