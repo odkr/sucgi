@@ -56,7 +56,7 @@ enum status {
 int
 id_eq (const void *const a, const void *const b)
 {	
-	return (*(id_t *) a == *(id_t *) b) ? 0 : 1;
+	return (*(const id_t *) a == *(const id_t *) b) ? 0 : 1;
 }
 
 /*
