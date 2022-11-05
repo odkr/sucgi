@@ -134,7 +134,7 @@ bool env_is_name(const char *const name);
  *      ERR_LEN  Variable value is longer than PATH_SIZE - 1 bytes.
  *      ERR_ENV  setenv(3) failed.
  */
-__attribute__((nonnull(1, 2), warn_unused_result))
+__attribute__((nonnull(1, 2, 3), warn_unused_result))
 enum retval env_restore (const char **env, const char *const *patterns,
                          char name[ENV_MAX_NAME]);
 

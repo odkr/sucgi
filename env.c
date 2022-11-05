@@ -99,6 +99,8 @@ env_fopen(const char *const jail, const char *const var,
 	assert(fd);
 
 	errno = 0;
+	*fname = NULL;
+	
 	/* RATS: ignore; value is sanitised below. */
 	value = getenv(var);
 	if (!value || !*value) {
@@ -114,8 +116,10 @@ env_fopen(const char *const jail, const char *const var,
 		return ERR_MEM;
 
 	rc = str_cp(PATH_SIZE - 1U, value, unresolved);
-	if (rc != OK)
+	if (rc != OK) {
+		free(unresolved);
 		return rc;
+	}
 	*fname = unresolved;
  
 	errno = 0;
