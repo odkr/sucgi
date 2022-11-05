@@ -73,10 +73,10 @@ bins =		$(tool_bins) $(check_bins)
 inspect = *.c *.h tools/*.c tests/*.c
 
 cppchk_flags =	--quiet --error-exitcode=8 \
-		--language=c --std=c99 --platform=unix64 --library=posix \
-		--library=cppcheck/library.cfg \
+		--language=c --std=c99 --platform=unix64 \
+		--library=posix --library=cppcheck/library.cfg \
 		--project=cppcheck/sucgi.cppcheck \
-		--suppressions-list=cppcheck/suppr.txt \
+		--suppressions-list=cppcheck/suppr.txt --inline-suppr \
 		--force --inconclusive
 
 cppchk_addons =	--addon=cppcheck/cert.py --addon=misra.py
@@ -258,11 +258,9 @@ uninstall:
 #
 
 cov: clean $(tool_bins)
-	chown -R "$$(tools/owner .)" tools/*
 	make CC=$(cov_cc) CFLAGS="--coverage -g -O0" $(check_bins)
 	-tools/check -qs $(check_bins)
-	find . '(' -name '*.gcda' -o -name '*.gcno' ')' \
-	-exec chown "$$(tools/owner .)" '{}' +
+	chown -R "$$(tools/owner .)" .
 	tools/check -s $(checks)
 
 lcov.info: cov tools/owner

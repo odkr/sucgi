@@ -1,0 +1,19 @@
+//
+// Cppcheck
+//
+
+// Cppcheck doesn't find all system includes.
+missingIncludeSystem
+
+// suCGI neither handles signals nor does it have multiple threads,
+// so there is no need to use reentrant functions.
+getpwentCalled
+getpwnamCalled
+getpwuidCalled
+getgrentCalled
+
+// Cppcheck assumes enums are signed integers, but they are not.
+invalidPrintfArgType_uint:tests/*
+
+// Don't check include files on MacOS.
+ConfigurationNotChecked:/Library/*

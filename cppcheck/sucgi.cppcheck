@@ -3,14 +3,26 @@
 	<paths>
 		<dir name="."/>
 	</paths>
+	<includedir>
+		<dir name="/usr/local/include"/>
+		<dir name="/Library/Developer/CommandLineTools/usr/lib/clang/14.0.0/include"/>
+		<dir name="/Library/Developer/CommandLineTools/usr/include"/>
+	</includedir>
 	<defines>
+		<!-- GNU C -->
 		<define name="__GNUC__"/>
+
+		<!-- Linux >= v5.6 -->
 		<define name="__linux__"/>
+		<define name="__NR_openat2=437"/>
 		<define name="PATH_MAX=4096"/>
-		<define name="SYS_openat2=437"/>
+		
+		<!-- Apple XNU >= v7195.50.7.100.1 -->
 		<define name="UID_MAX=2147483647U"/>
 		<define name="GID_MAX=2147483647U"/>
+		<define name="O_NOFOLLOW_ANY=0x20000000"/>
+
+		<!-- Apple Libc and glibc -->
 		<define name="LOG_PERROR=32"/>
-		<undefine name="TESTING"/>
 	</defines>
 </project>
