@@ -17,8 +17,6 @@ jobs:
       run: make
     - name: make check
       run: make check
-    - name: testing ...
-      run: "sudo tests/main.sh || :"
     - name: sudo make check
       run: sudo make check
     - name: sudo make install
