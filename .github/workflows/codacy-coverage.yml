@@ -9,14 +9,14 @@ jobs:
     permissions:
       contents: read
       security-events: read
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     name: Codacy Coverage Reporter
     steps:
       - uses: actions/checkout@v3
       - name: sudo apt-get install build-essential m4 lcov
         run: sudo apt-get install build-essential m4 lcov
       - name: configure
-        run: CFLAGS= ./configure -f
+        run: CFLAGS= ./configure
       - name: make check
         run: make check
       - name: sudo make check
