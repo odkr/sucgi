@@ -55,7 +55,7 @@ struct args {
 	char *env[MAX_NVARS];			/* RATS: ignore */
 	const char *patterns[MAX_NVARS];	/* RATS: ignore */
 	const char *clean[MAX_NVARS];		/* RATS: ignore */
-	const char name[ENV_MAX_NAME];		/* RATS: ignore */
+	const char name[PATH_SIZE];		/* RATS: ignore */
 	const enum retval rc;
 };
 
