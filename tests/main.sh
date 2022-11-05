@@ -558,7 +558,7 @@ fi
 
 # DOCUMENT_ROOT is not USER_DIR.
 check -s1 -e"document root $TMPDIR is not $user's user directory." \
-	DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED="$script" main
+	DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED="$script_sh" main
 
 
 #
@@ -617,7 +617,7 @@ check -s1 -e"no interpreter registered for $suffix_unknown." \
 
 for path in "$script" "$script_sh"
 do
-	[ "$script" ] || skipped=y
+	[ "$path" ] || skipped=y
 
 	check -s0 -o "uid=$uid egid=$gid ruid=$uid rgid=$gid" \
 		PATH_TRANSLATED="$path" main
