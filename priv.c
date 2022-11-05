@@ -54,8 +54,7 @@ enum retval
 priv_drop(const uid_t uid, const gid_t gid,
           const int ngids, const gid_t gids[ngids])
 {
-	if (ngids < 0)
-		return ERR_CNV;
+	assert(ngids > - 1);
 
 	errno = 0;
 	if (setgroups((NGROUPS_T) ngids, gids) != 0)
