@@ -58,5 +58,8 @@ jobs:
         run: |
           sonar-scanner --define sonar.host.url="${{ env.SONAR_SERVER_URL }}" \
                         --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
-                        --define sonar.cfamily.gcov.reportsPath="gcov"
+                        --define sonar.cfamily.gcov.reportsPath="gcov" \
+			--define sonar.projectKey=odkr_sucgi \
+			--define sonar.organization=odkr \
+			--define sonar.cfamily.cache.enabled=false
 
