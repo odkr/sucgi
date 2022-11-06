@@ -25,7 +25,7 @@
 #define JAIL_DIR "/home"
 
 /*
- * The document root of user websites. Filename pattern. 
+ * The document root of user websites. Filename pattern.
  * CGI scripts are only run if they are with the user's document root.
  *
  * Mirrors Apache's *UserDir* directive, save for that suCGI uses a "%s"
@@ -85,7 +85,7 @@
 /*
  * Handlers to run CGI scripts with if their executable bit is unset.
  * Array of filename suffix-script interpreter pairs.
- * 
+ *
  * The filename suffix must be given including the leading dot (e.g., ".php").
  * The interpreter is looked up in $PATH if its name is relative (e.g., "php"),
  * but keep in mind that $PATH is set to SEC_PATH (see below).
@@ -102,7 +102,7 @@
  */
 #define SEC_PATH "/usr/bin:/bin"
 
-/* 
+/*
  * A secure file permission mask. Unsigned integer.
  * The leading "0" is significant!
  */
