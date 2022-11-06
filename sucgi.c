@@ -73,9 +73,6 @@
  * Macros
  */
 
-/* Count the number of elements in an array. */
-#define NELEMS(arr) (sizeof((arr)) / sizeof(*(arr)))
-
 /* Raise a compiler error if COND is false. */
 #define BUILD_BUG_ON(cond) ((void)sizeof(char[1 - 2*!!(cond)]))
 
