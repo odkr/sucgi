@@ -286,13 +286,13 @@ covhtml: cov/index.html
 #
 
 analysis:
-	grep -nri FIXME $(inspect)
+	! grep -nri FIXME $(inspect)
 	rats --resultsonly $(inspect)
 	flawfinder -DQF $(inspect)
 	cppcheck $(cppcheck_flags) --enable=all $(cppcheck_addons) $(inspect)
 
 shellcheck:
-	grep -nri FIXME configure tools/check tools/lib.sh tests/*.sh
+	! grep -nri FIXME configure tools/check tools/lib.sh tests/*.sh
 	shellcheck -x configure tools/check tools/lib.sh tests/*.sh
 
 
