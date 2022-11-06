@@ -1,7 +1,5 @@
-..
-	|coverage|
-..
-	|codacy|
+|coverage|
+|codacy|
 ..
 	|security|
 ..
