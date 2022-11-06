@@ -718,7 +718,7 @@ main(int argc, char **argv) {
 		error("chdir %s: %m.", doc_root);
 
 	/* RATS: ignore; the umask is the administrator's responsibility. */
-	umask(umask(0) | UMASK);
+	umask(UMASK);
 
 
 	/*

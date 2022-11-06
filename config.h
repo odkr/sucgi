@@ -104,7 +104,7 @@
 
 /* 
  * A secure file permission mask. Unsigned integer.
- * The leading "0" is significant! Added to the current umask.
+ * The leading "0" is significant!
  */
 #define UMASK 077U
 
