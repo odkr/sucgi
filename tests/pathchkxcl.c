@@ -34,7 +34,7 @@ int
 main (int argc, char **argv)
 {
 	/* RATS: ignore */
-	char cur[PATH_SIZE];	/* Current directory. */
+	char cur[PATH_MAX_LEN];	/* Current directory. */
 	struct passwd *pwd;	/* User. */
 	enum retval rc;		/* Return code. */
 

@@ -40,7 +40,7 @@ init || exit
 #
 
 # Load build configuration.
-eval "$(main -c)"
+eval "$(main -C)"
 
 # Get the effective UID.
 uid="$(id -u)"
@@ -131,7 +131,7 @@ huge_path="$(mklongpath "$doc_root" "$path_max")"
 dirwalk "$doc_root" "$huge_path" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
 # Create a path that is longer than suCGI permits.
-huge_str="$(mklongpath "$doc_root" "$PATH_SIZE")"
+huge_str="$(mklongpath "$doc_root" "$PATH_MAX_LEN")"
 dirwalk "$doc_root" "$huge_str" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
 # Create a shortcut to the path that is longer than the system permits.
@@ -190,7 +190,7 @@ check -o 'Print this help screen.' main -h
 # Check the configuration dump.
 #
 
-check -o 'JAIL_DIR' main -c
+check -o 'JAIL_DIR' main -C
 
 
 #
@@ -355,6 +355,7 @@ then
 else
 	err='seteuid: Operation not permitted.'
 fi
+
 check -s1 -e"$err" \
 	PATH_TRANSLATED="$inside" main
 

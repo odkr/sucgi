@@ -111,7 +111,7 @@ bool env_is_name(const char *const name);
  *
  * Note, an attacker may populate the environment with variables that are
  * not NUL-termianted. If the memory area after such a variable contains
- * a NUL within PATH_SIZE - 1 characters starting from the position of the
+ * a NUL within PATH_MAX_LEN - 1 characters starting from the position of the
  * first '=', then setenv(3) will overshoot and dump the contents of that
  * memory area into the environment. That said, suCGI should not be privy
  * to any information that is not in the  environment already, so such an
@@ -132,7 +132,7 @@ bool env_is_name(const char *const name);
  *      OK       Success.
  *      ERR_CNV  Variable could not be split up into a name and a value.
  *      ERR_ILL  Variable name is illegal.
- *      ERR_LEN  Variable value is longer than PATH_SIZE - 1 bytes.
+ *      ERR_LEN  Variable value is longer than PATH_MAX_LEN - 1 bytes.
  *      ERR_ENV  setenv(3) failed.
  */
 __attribute__((nonnull(1, 2, 3), warn_unused_result))

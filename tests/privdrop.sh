@@ -40,7 +40,7 @@ tmpdir chk
 # Prelude
 #
 
-eval "$(main -c)"
+eval "$(main -C)"
 : "${MIN_UID:?}" "${MAX_UID:?}" "${MIN_GID:?}" "${MAX_GID:?}"
 
 export PATH

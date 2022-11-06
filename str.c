@@ -26,6 +26,8 @@
 #define _FORTIFY_SOURCE 3
 #endif
 
+#include <assert.h>
+#include <errno.h>
 #include <fnmatch.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -36,20 +38,41 @@
 #include "types.h"
 
 enum retval
-str_cp(const size_t len, const char *const src, char dest[len + 1U])
+str_cp(const size_t n, const char *const src, char dest[n + 1U])
 {
 	char *end;	/* Position of last byte of src. */
-	size_t n;	/* Bytes copied. */
+	size_t len;	/* Bytes copied. */
 
-	end = stpncpy(dest, src, len);
-	n = (size_t) (end - dest);
-	dest[n] = '\0';
+	end = stpncpy(dest, src, n);
+	len = (size_t) (end - dest);
+	dest[len] = '\0';
 
-	if (src[n] != '\0')
+	if (src[len] != '\0')
 		return ERR_LEN;
 
 	return OK;
 }
+
+enum retval
+str_dup(const size_t n, const char *const src, char **const dest)
+{
+	enum retval rc;		/* Return code. */
+
+	assert(n > 0U);
+
+	errno = 0;
+	*dest = (char *) malloc(n * sizeof(**dest));
+	if (!*dest)
+		return ERR_MEM;
+
+	rc = str_cp(n - 1U, src, *dest);
+	if (rc == OK)
+		return rc;
+
+	free(*dest);
+	return ERR_LEN;
+}
+
 
 enum retval
 str_split(size_t max, const char *const s, const char *const sep,

@@ -346,11 +346,11 @@ main(int argc, char **argv) {
 	 */
 
 	BUILD_BUG_ON(sizeof(JAIL_DIR) <= 1);
-	BUILD_BUG_ON(sizeof(JAIL_DIR) >= PATH_SIZE);
+	BUILD_BUG_ON(sizeof(JAIL_DIR) >= PATH_MAX_LEN);
 	BUILD_BUG_ON(sizeof(USER_DIR) <= 1);
-	BUILD_BUG_ON(sizeof(USER_DIR) >= PATH_SIZE);
+	BUILD_BUG_ON(sizeof(USER_DIR) >= PATH_MAX_LEN);
 	BUILD_BUG_ON(sizeof(SEC_PATH) <= 1);
-	BUILD_BUG_ON(sizeof(SEC_PATH) >= PATH_SIZE);
+	BUILD_BUG_ON(sizeof(SEC_PATH) >= PATH_MAX_LEN);
 
 	
 	/*
@@ -402,14 +402,14 @@ main(int argc, char **argv) {
 			(void) puts(
 "suCGI - run CGI scripts with the permissions of their owner\n\n"
 "Usage:  sucgi\n"
-"        sucgi [-c|-V|-h]\n\n"
+"        sucgi [-C|-V|-h]\n\n"
 "Options:\n"
-"    -c  Print build configuration.\n"
+"    -C  Print build configuration.\n"
 "    -V  Print version and license.\n"
 "    -h  Print this help screen."
 			       );
 			return EXIT_SUCCESS;
-		} else if (strncmp(argv[i], "-c", 3) == 0) {
+		} else if (strncmp(argv[i], "-C", 3) == 0) {
 			struct pair hdb[] = HANDLERS;
 
 			(void) printf("JAIL_DIR=%s\n", JAIL_DIR);
@@ -430,7 +430,7 @@ main(int argc, char **argv) {
 			(void) printf("UMASK=0%o\n", UMASK);
 
 			(void) printf("MAX_NVARS=%u\n", MAX_NVARS);
-			(void) printf("PATH_SIZE=%zu\n", PATH_SIZE);
+			(void) printf("PATH_MAX_LEN=%zu\n", PATH_MAX_LEN);
 
 			return EXIT_SUCCESS;
 		} else if (strncmp(argv[i], "-V", 3) == 0) {
@@ -489,7 +489,7 @@ main(int argc, char **argv) {
 
 	assert(jail_dir);
 	assert(*jail_dir != '\0');
-        assert(strnlen(jail_dir, PATH_SIZE) < PATH_SIZE);
+        assert(strnlen(jail_dir, PATH_MAX_LEN) < PATH_MAX_LEN);
 
 	rc = env_fopen(jail_dir, "DOCUMENT_ROOT", O_RDONLY | O_DIRECTORY,
 	               &doc_root, &doc_fd);
@@ -521,11 +521,11 @@ main(int argc, char **argv) {
 	assert(doc_root);
 	assert(*doc_root != '\0');
 	assert(doc_fd > -1);
-	assert(strnlen(doc_root, PATH_SIZE) < PATH_SIZE);
+	assert(strnlen(doc_root, PATH_MAX_LEN) < PATH_MAX_LEN);
 	/* RATS: ignore; not a permission check. */
 	assert(access(doc_root, F_OK) == 0);
 	/* RATS: ignore; the length of doc_root is checked above. */
-	assert(strncmp(realpath(doc_root, NULL), doc_root, PATH_SIZE) == 0);
+	assert(strncmp(realpath(doc_root, NULL), doc_root, PATH_MAX_LEN) == 0);
 
 
 	/*
@@ -562,11 +562,11 @@ main(int argc, char **argv) {
 
 	assert(script);
 	assert(*script != '\0');
-	assert(strnlen(script, PATH_SIZE) < PATH_SIZE);
+	assert(strnlen(script, PATH_MAX_LEN) < PATH_MAX_LEN);
 	/* RATS: ignore; not a permission check. */
 	assert(access(script, F_OK) == 0);
 	/* RATS: ignore; the length of script is checked above. */
-	assert(strncmp(realpath(script, NULL), script, PATH_SIZE) == 0);
+	assert(strncmp(realpath(script, NULL), script, PATH_MAX_LEN) == 0);
 
 	errno = 0;
 	if (fstat(script_fd, &script_stat) != 0)
@@ -602,13 +602,14 @@ main(int argc, char **argv) {
 
 	ngroups = PRELIM_NGROUPS;
 	groups = (gid_t *) malloc((size_t) ngroups * sizeof(*groups));
+
 	if (!groups)
 		error("malloc: %m.");
 
 	rc = gids_get(owner->pw_name, owner->pw_gid, groups, &ngroups);
 
 	assert(ngroups > 0);
-
+	
 	if (rc == ERR_LEN) {
 		size_t gid_size = sizeof(*groups);
 
@@ -636,11 +637,12 @@ main(int argc, char **argv) {
 	}
 
 	assert(ngroups > 0);
+	assert(groups[0] > 0);
 
 	for (int i = 0; i < ngroups; i++) {
 		gid_t gid = groups[i];
 
-		if (MAX_GID < gid || gid < MIN_GID)
+		if (gid < MIN_GID || gid > MAX_GID)
 			error("user %s belongs to privileged group %llu.",
 			      owner->pw_name, (long long unsigned) gid);
 	}
@@ -742,7 +744,7 @@ main(int argc, char **argv) {
 		error("%d: path_check_format returned %u.", __LINE__, rc);
 	}
 
-	if (strncmp(doc_root, user_dir, PATH_SIZE) != 0)
+	if (strncmp(doc_root, user_dir, PATH_MAX_LEN) != 0)
 		error("document root %s is not %s's user directory.",
 		      doc_root, owner->pw_name);
 
@@ -781,8 +783,8 @@ main(int argc, char **argv) {
 	 * owned by the same UID, namely, owner->pw_uid.
 	 */
 
-	/* RATS: ignore; path_check_wexcl respects PATH_SIZE. */
-	char script_cur[PATH_SIZE];	/* Sub-path of script path. */
+	/* RATS: ignore; path_check_wexcl respects PATH_MAX_LEN. */
+	char script_cur[PATH_MAX_LEN];	/* Sub-path of script path. */
 	const char *base_dir;		/* Base directory. */
 
 	if (*USER_DIR == '/')
@@ -814,11 +816,11 @@ main(int argc, char **argv) {
 	 */
 
 	if (!file_is_exe(script_stat)) {
-		/* RATS: ignore; script_get_inter respects PATH_SIZE. */
-		char inter[PATH_SIZE];			/* Interpreter. */
+		/* RATS: ignore; script_get_int respects PATH_MAX_LEN. */
+		char inter[PATH_MAX_LEN];			/* Interpreter. */
 		const struct pair db[] = HANDLERS;	/* Database. */
 
-		rc = script_get_inter(db, script, inter);
+		rc = script_get_int(db, script, inter);
 		switch (rc) {
 		case OK:
 			break;
@@ -828,7 +830,7 @@ main(int argc, char **argv) {
 			error("no interpreter registered for %s.", script);
 		default:
 			/* Should be unreachable. */
-			error("%d: script_get_inter returned %u.", __LINE__, rc);
+			error("%d: script_get_int returned %u.", __LINE__, rc);
 		}
 
 		assert(*inter != '\0');

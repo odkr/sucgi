@@ -32,9 +32,9 @@
 
 /* Size for arrays that hold filenames. */
 #if defined(PATH_MAX) && PATH_MAX > _POSIX_PATH_MAX
-#define PATH_SIZE ((size_t) PATH_MAX)
+#define PATH_MAX_LEN ((size_t) PATH_MAX)
 #else
-#define PATH_SIZE ((size_t) 4096)
+#define PATH_MAX_LEN ((size_t) 4096)
 #endif
 
 #endif /* !defined(SYSDEFS_H) */

@@ -47,26 +47,26 @@ userdir_resolve(const char *const s, const struct passwd *user,
 
 	assert(*s != '\0');
 
-	expan = (char *) malloc(PATH_SIZE * sizeof(char *)) ;
+	expan = (char *) malloc(PATH_MAX_LEN * sizeof(char *)) ;
 	if (!expan)
 		return ERR_MEM;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 	if (*s != '/')
-		len = snprintf(expan, PATH_SIZE, "%s/%s", user->pw_dir, s);
+		len = snprintf(expan, PATH_MAX_LEN, "%s/%s", user->pw_dir, s);
 	else if (strstr(s, "%s"))
 		/* RATS: ignore; format is controlled by the administrator. */
-		len = snprintf(expan, PATH_SIZE, s, user->pw_name);
+		len = snprintf(expan, PATH_MAX_LEN, s, user->pw_name);
 	else
-		len = snprintf(expan, PATH_SIZE, "%s/%s", s, user->pw_name);
+		len = snprintf(expan, PATH_MAX_LEN, "%s/%s", s, user->pw_name);
 #pragma GCC diagnostic pop
 
 	if (len < 0) {
 		free(expan);
 		return ERR_PRN;
 	}
-	if ((size_t) len >= PATH_SIZE) {
+	if ((size_t) len >= PATH_MAX_LEN) {
 		free(expan);
 		return ERR_LEN;
 	}

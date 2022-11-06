@@ -36,7 +36,7 @@
  * Return value:
  *      OK       Success.
  *      ERR_PRN  snprintf(3) failed.
- *      ERR_LEN  The expanded string is longer than PATH_SIZE - 1 bytes.
+ *      ERR_LEN  The expanded string is longer than PATH_MAX_LEN - 1 bytes.
  *      ERR_RES  realpath(3) failed.
  */
 __attribute__((nonnull(1, 2, 3), format(printf, 1, 0), warn_unused_result))

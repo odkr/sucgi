@@ -53,15 +53,15 @@ tool_bins =	tools/badenv tools/ents tools/owner tools/runas
 check_bins =	tests/error tests/envclear tests/envfopen tests/envisname \
 		tests/envrestore tests/main tests/fileisexe tests/fileiswex \
 		tests/filesopen tests/gidsget tests/privdrop tests/pathchkxcl \
-		tests/pathissub tests/scptgetint tests/strcp tests/strsplit \
-		tests/userdirres
+		tests/pathissub tests/scptgetint tests/strcp tests/strdup \
+		tests/strsplit tests/userdirres
 
 checks =	tests/error.sh tests/envclear tests/envfopen.sh \
 		tests/envisname tests/envrestore tests/main.sh \
 		tests/fileisexe.sh tests/fileiswex.sh tests/filesopen.sh \
 		tests/gidsget.sh tests/privdrop.sh tests/pathchkxcl.sh \
-		tests/pathissub tests/scptgetint tests/strcp tests/strsplit \
-		tests/userdirres.sh
+		tests/pathissub tests/scptgetint tests/strcp tests/strdup \
+		tests/strsplit tests/userdirres.sh
 
 bins =		$(tool_bins) $(check_bins)
 
@@ -179,6 +179,8 @@ tests/pathchkxcl: tests/pathchkxcl.c $(test_hdrs) lib.a(path.o)
 tests/privdrop: tests/privdrop.c $(test_hdrs) lib.a(priv.o) lib.a(error.o)
 
 tests/strcp: tests/strcp.c $(test_hdrs) lib.a(str.o) 
+
+tests/strdup: tests/strdup.c $(test_hdrs) lib.a(str.o) 
 
 tests/strsplit: tests/strsplit.c $(test_hdrs) lib.a(str.o)
 

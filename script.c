@@ -37,19 +37,19 @@
 
 
 enum retval
-script_get_inter(const struct pair db[], const char *const script,
-                 char inter[PATH_SIZE])
+script_get_int(const struct pair db[], const char *const script,
+               char inter[PATH_MAX_LEN])
 {
 	/* RATS: ignore; writes to path are bounds-checked. */
-	char path[PATH_SIZE];	/* Copy of script for basename(3). */
-	const char *fname;	/* Filename portion of scpt. */
-	const char *suffix;	/* Filename suffix. */
-	enum retval rc;		/* Return code. */
+	char path[PATH_MAX_LEN];	/* Copy of script for basename(3). */
+	const char *fname;		/* Filename portion of scpt. */
+	const char *suffix;		/* Filename suffix. */
+	enum retval rc;			/* Return code. */
 
 	assert(*script != '\0');
 
 	/* basename may alter the path it is given. */
-	rc = str_cp(PATH_SIZE - 1U, script, path);
+	rc = str_cp(PATH_MAX_LEN - 1U, script, path);
 	if (rc != OK)
 		return rc;
 	fname = basename(path);
@@ -61,11 +61,11 @@ script_get_inter(const struct pair db[], const char *const script,
 	for (int i = 0; db[i].key; i++) {
 		const struct pair ent = db[i];
 
-		if (strncmp(suffix, ent.key, PATH_SIZE) == 0) {
+		if (strncmp(suffix, ent.key, PATH_MAX_LEN) == 0) {
 			if (!ent.value || !*(ent.value))
 				return FAIL;
 
-			return str_cp(PATH_SIZE - 1U, ent.value, inter);
+			return str_cp(PATH_MAX_LEN - 1U, ent.value, inter);
 		}
 	}
 

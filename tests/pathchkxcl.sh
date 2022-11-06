@@ -54,6 +54,9 @@ deeper="$dir/file"
 touch "$deeper"
 chmod 600 "$deeper"
 
+root="$(id -un 0)"
+bin="$(cd -P /bin && pwd)"
+
 
 #
 # Main
@@ -94,5 +97,7 @@ do
 	check -s1 -e"$dir is writable by users other than $user" \
 		pathchkxcl "$user" "$deeper" "$TMPDIR"
 done
+
+check -o"$bin/sh" pathchkxcl "$root" "$bin/sh" "$bin"
 
 warn -g "all tests passed."

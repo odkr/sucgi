@@ -90,11 +90,11 @@ env_fopen(const char *const jail, const char *const var,
 
 	assert(*jail != '\0');
 	assert(*var != '\0');
-	assert(strnlen(jail, PATH_SIZE) < PATH_SIZE);
+	assert(strnlen(jail, PATH_MAX_LEN) < PATH_MAX_LEN);
 	/* RATS: ignore; not a permission check. */
 	assert(access(jail, F_OK) == 0);
 	/* RATS: ignore; length of jail is checked above. */
-	assert(strncmp(jail, realpath(jail, NULL), PATH_SIZE) == 0);
+	assert(strncmp(jail, realpath(jail, NULL), PATH_MAX_LEN) == 0);
 	assert(fname);
 	assert(fd);
 
@@ -111,18 +111,11 @@ env_fopen(const char *const jail, const char *const var,
 			return ERR_ENV;
 	}
 
-	errno = 0;
-	unresolved = (char *) calloc(PATH_SIZE, sizeof(*unresolved));
-	if (!unresolved)
-		return ERR_MEM;
-
-	rc = str_cp(PATH_SIZE - 1U, value, unresolved);
-	if (rc != OK) {
-		free(unresolved);
+	rc = str_dup(PATH_MAX_LEN, value, &unresolved);
+	if (rc != OK)
 		return rc;
-	}
 	*fname = unresolved;
- 
+	
 	errno = 0;
 	/* RATS: ignore; length of fname is checked above. */
 	resolved = realpath(*fname, NULL);
@@ -132,7 +125,7 @@ env_fopen(const char *const jail, const char *const var,
 	*fname = resolved;
 	free(unresolved);
 
-	if (strnlen(*fname, PATH_SIZE) >= PATH_SIZE)
+	if (strnlen(*fname, PATH_MAX_LEN) >= PATH_MAX_LEN)
 		return ERR_LEN;
 	if (!path_is_subdir(*fname, jail))
 		return ERR_ILL;
@@ -169,7 +162,7 @@ env_restore(const char **vars, const char *const *patterns,
 				 */
 				if (!env_is_name(name))
 					return ERR_ILL;
-				if (strnlen(value, PATH_SIZE) >= PATH_SIZE)
+				if (strnlen(value, PATH_MAX_LEN) >= PATH_MAX_LEN)
 					return ERR_LEN;
 
 				errno = 0;

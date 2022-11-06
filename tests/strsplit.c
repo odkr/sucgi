@@ -40,13 +40,13 @@ struct args {
 };
 
 /* A string just within limits. */
-static char long_str[PATH_SIZE] = {0};
+static char long_str[PATH_MAX_LEN] = {0};
 
-/* A string w/o a delimiter that exceeds PATH_SIZE. */
-static char huge_str[PATH_SIZE + 1U] = {0};
+/* A string w/o a delimiter that exceeds PATH_MAX_LEN. */
+static char huge_str[PATH_MAX_LEN + 1U] = {0};
 
-/* A pair w/ a head that exceeds PATH_SIZE. */
-static char huge_head[PATH_SIZE + 32U] = {0};
+/* A pair w/ a head that exceeds PATH_MAX_LEN. */
+static char huge_head[PATH_MAX_LEN + 32U] = {0};
 
 /* Tests. */
 static const struct args tests[] = {
@@ -86,11 +86,11 @@ main(void)
 	(void) memset(huge_str, 'x', sizeof(huge_str) - 1);
 	(void) memset(huge_head, 'x', sizeof(huge_head) - 1);
 	/* RATS: ignore; there is enough space for NUL-termination. */
-	(void) strncpy(&huge_head[PATH_SIZE], ",foo", 5);
+	(void) strncpy(&huge_head[PATH_MAX_LEN], ",foo", 5);
 
 	for (int i = 0; tests[i].s; i++) {
 		const struct args t = tests[i];
-		char head[PATH_SIZE];	/* RATS: ignore */
+		char head[PATH_MAX_LEN];	/* RATS: ignore */
 		char *tail;
 		enum retval rc;
 
@@ -99,7 +99,7 @@ main(void)
 		warnx("checking (%s, %s, -> %s, -> %s) -> %u ...",
 		      t.s, t.sep, t.head, t.tail, t.rc);
 
-		rc = str_split(PATH_SIZE, t.s, t.sep, head, &tail);
+		rc = str_split(PATH_MAX_LEN, t.s, t.sep, head, &tail);
 
 		if (rc != t.rc)
 			errx(T_FAIL, "returned %u", rc);

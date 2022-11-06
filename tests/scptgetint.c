@@ -1,5 +1,5 @@
 /*
- * Test script_get_inter.
+ * Test script_get_int.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -39,10 +39,10 @@ struct args {
 };
 
 /* A string just within limits. */
-static char long_str[PATH_SIZE] = {0};
+static char long_str[PATH_MAX_LEN] = {0};
 
-/* A string that exceeds PATH_SIZE. */
-static char huge_str[PATH_SIZE + 1U] = {0};
+/* A string that exceeds PATH_MAX_LEN. */
+static char huge_str[PATH_MAX_LEN + 1U] = {0};
 
 /* Tests. */
 static const struct args tests[] = {
@@ -100,20 +100,17 @@ main (void)
 
 	for (int i = 0; tests[i].script; i++) {
 		const struct args t = tests[i];
-		char inter[PATH_SIZE];	/* RATS: ignore */
-		char script[PATH_SIZE];	/* RATS: ignore */
+		char inter[PATH_MAX_LEN];	/* RATS: ignore */
+		char script[PATH_MAX_LEN];	/* RATS: ignore */
 		enum retval rc;	
 
 		*script = '\0';
-		(void) memset(inter, 0, PATH_SIZE);
+		(void) memset(inter, 0, PATH_MAX_LEN);
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-overflow"
 		warnx("checking (db, %s, -> %s) -> %u ...",
 		      t.script, t.inter, t.rc);
-#pragma GCC diagnostic pop
 
-		rc = script_get_inter(db, t.script, inter);
+		rc = script_get_int(db, t.script, inter);
 
 		if (t.rc != rc)
 			errx(T_FAIL, "returned %u", rc);

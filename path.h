@@ -48,7 +48,7 @@
  */
 __attribute__((nonnull(2, 3, 4), warn_unused_result))
 enum retval path_check_wexcl(const uid_t uid, const char *const fname,
-                             const char *const parent, char cur[PATH_SIZE]);
+                             const char *const parent, char cur[PATH_MAX_LEN]);
 
 /*
  * Check if FNAME is a sub-directory of PARENT.

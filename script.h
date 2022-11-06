@@ -42,8 +42,8 @@
  *      FAIL      No handler has been registered for FNAME's suffix.
  */
 __attribute__((nonnull(1, 2, 3), pure, warn_unused_result))
-enum retval script_get_inter(const struct pair db[], const char *const script,
-                             char inter[PATH_SIZE]);
+enum retval script_get_int(const struct pair db[], const char *const script,
+                           char inter[PATH_MAX_LEN]);
 
 
 #endif /* !defined(SCRIPT_H) */

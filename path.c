@@ -44,22 +44,22 @@
 
 enum retval
 path_check_wexcl(const uid_t uid, const char *const fname,
-                 const char *const parent, char cur[PATH_SIZE])
+                 const char *const parent, char cur[PATH_MAX_LEN])
 {
 	const char *pos;	/* Current position in filename. */
 
 	assert(*parent != '\0');
 	assert(*fname != '\0');
-	assert(strnlen(parent, PATH_SIZE) < PATH_SIZE);
-	assert(strnlen(fname, PATH_SIZE) < PATH_SIZE);
+	assert(strnlen(parent, PATH_MAX_LEN) < PATH_MAX_LEN);
+	assert(strnlen(fname, PATH_MAX_LEN) < PATH_MAX_LEN);
 	/* RATS: ignore; not a permission check. */
 	assert(access(parent, F_OK) == 0);
 	/* RATS: ignore; not a permission check. */
 	assert(access(fname, F_OK) == 0);
 	/* RATS: ignore; the length of parent is checked above. */
-	assert(strncmp(realpath(parent, NULL), parent, PATH_SIZE) == 0);
+	assert(strncmp(realpath(parent, NULL), parent, PATH_MAX_LEN) == 0);
 	/* RATS: ignore; the length of fname is checked avove. */
-	assert(strncmp(realpath(fname, NULL), fname, PATH_SIZE) == 0);
+	assert(strncmp(realpath(fname, NULL), fname, PATH_MAX_LEN) == 0);
 	assert(path_is_subdir(fname, parent));
 
 
@@ -116,8 +116,8 @@ path_is_subdir(const char *const fname, const char *const parent)
 
 	assert(*parent != '\0');
 	assert(*fname != '\0');
-	assert(strnlen(parent, PATH_SIZE) < PATH_SIZE);
-	assert(strnlen(fname, PATH_SIZE) < PATH_SIZE);
+	assert(strnlen(parent, PATH_MAX_LEN) < PATH_MAX_LEN);
+	assert(strnlen(fname, PATH_MAX_LEN) < PATH_MAX_LEN);
 
 	/* The root directory cannot be contained by any path. */
 	if (strncmp(fname, "/", 2) == 0)

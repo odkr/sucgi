@@ -7,10 +7,11 @@ misra-c2012-8.2:env.h:61
 misra-c2012-8.2:priv.h:45
 misra-c2012-8.2:str.h:40
 misra-c2012-8.2:str.h:59
+misra-c2012-8.2:str.h:70
 misra-c2012-22.10:env.c:108
 misra-c2012-22.10:sucgi.c:589
 
-// Rules that are followed, but not checked automatically:
+// Rules that are followed, but should not be checked by Cppcheck:
 misra-c2012-2.5		// Too many false positives.
 misra-c2012-16.6	// -- " --.
 misra-c2012-21.1	// -- " --.
@@ -22,13 +23,13 @@ misra-c2012-15.5	// Most functions perform no cleanup.
 misra-c2012-15.6	// Violates K & R, noisy.
 
 // `env_is_name` must be public for the test suite.
-misra-c2012-8.7:env.c:144
+misra-c2012-8.7:env.c:137
 
 // `sec_env_vars` is, effectively, a configuration value.
 // Placing it on top makes it easier to find.
 misra-c2012-8.9:sucgi.c:110
 
-// BUILD_BUG_ON cannot help but violate rule 10.4, but is useful.
+// BUILD_BUG_ON cannot help but violate rule 10.4.
 misra-c2012-10.4:sucgi.c:348
 misra-c2012-10.4:sucgi.c:349
 misra-c2012-10.4:sucgi.c:350
@@ -36,22 +37,22 @@ misra-c2012-10.4:sucgi.c:351
 misra-c2012-10.4:sucgi.c:352
 misra-c2012-10.4:sucgi.c:353
 
-// Cast to size_t. No loss of information can occur.
+// Casts to size_t; information cannot be lost.
 misra-c2012-10.8:path.c:85
-misra-c2012-10.8:str.c:45
-misra-c2012-10.8:str.c:63
+misra-c2012-10.8:str.c:47
+misra-c2012-10.8:str.c:86
 
 // Testing for NULL with `var == NULL` is unidiomatic.
 misra-c2012-14.4:gids.c:60
-misra-c2012-14.4:str.c:60
-misra-c2012-14.4:sucgi.c:757
+misra-c2012-14.4:str.c:83
+misra-c2012-14.4:sucgi.c:759
 misra-c2012-14.4:userdir.c:58
 
-// `switch`-clauses in sucgi.c not terminated with a `break`
-// are terminated with an `error`.
+// `switch`-clauses in sucgi.c that are not terminated
+// with `break` are terminated with `error`.
 misra-c2012-16.3:sucgi.c
 
-// `error` wraps `vsyslog` and thus must use variadic arguments.
+// `error` supports format strings and ergo must use variadic arguments.
 misra-c2012-17.1:error.c
 
 // `path_check_wexcl` would be more complex without pointer arithmetics.
@@ -62,8 +63,8 @@ misra-c2012-18.4:path.c:103
 misra-c2012-18.4:path.c:106
 
 // `str_cp` only substracts pointers, which doesn't violate rule 18.4.
-misra-c2012-18.4:str.c:45
-misra-c2012-18.4:str.c:63
+misra-c2012-18.4:str.c:47
+misra-c2012-18.4:str.c:86
 
 // sucgi.c only uses `#undef` for testing and when TESTING is set.
 misra-c2012-20.5:sucgi.c
@@ -71,20 +72,22 @@ misra-c2012-20.5:sucgi.c
 // sucgi.c needs to allocate space for the list of groups the user is a
 // member of, and the number of those groups can only be known at run-time.
 misra-c2012-21.3:sucgi.c:604
-misra-c2012-21.3:sucgi.c:621
+misra-c2012-21.3:sucgi.c:622
+
+// `str_dup` is a safer version of `strndup` and must allocate memory.
+misra-c2012-21.3:str.c:64
+misra-c2012-21.3:str.c:72
 
 // `env_fopen` and `userdir_resolve` use a pointer to return the current
 // filename, but those filenames are resolved with `realpath`, so memory
-// has to be allocated manually.
-misra-c2012-21.3:env.c:115
-misra-c2012-21.3:env.c:121
-misra-c2012-21.3:env.c:133
+// has to be allocated at run-time.
+misra-c2012-21.3:env.c:126
 misra-c2012-21.3:userdir.c:50
 misra-c2012-21.3:userdir.c:66
 misra-c2012-21.3:userdir.c:70
 misra-c2012-21.3:userdir.c:82
 
-// suCGI must talk to the user when -h, -c, or -V is given.
+// suCGI must talk to the user when -h, -C, or -V is given.
 misra-c2012-21.6:sucgi.c
 
 // `userdir_resolve` needs `snprintf` to expand strings.

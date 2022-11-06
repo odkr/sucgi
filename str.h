@@ -29,16 +29,27 @@
 
 
 /*
- * Copy LEN bytes from string SRC to DEST, which will be NUL-terminated.
- * DEST must be large enough to hold LEN + 1 bytes.
+ * Copy N bytes, excluding the terminating NUL, from string SRC to DEST, which
+ * will be NUL-terminated. DEST must be large enough to hold N + 1 bytes.
  *
  * Return value:
  *      OK       Success.
  *      ERR_LEN  SRC was truncated.
  */
 __attribute((nonnull(2, 3)))
-enum retval str_cp(const size_t len, const char *const src,
-                   char dest[len + 1U]);
+enum retval str_cp(const size_t n, const char *const src, char dest[n + 1U]);
+
+/*
+ * Copy N bytes, including the terminating NUL, from string SRC to DEST, which
+ * is allocated N bytes of memory and should be freed by the caller. However,
+ * DEST is freed automatically if SRC turns out to be longer than N bytes.
+ *
+ * Return value:
+ *      OK       Success.
+ *      ERR_LEN  SRC is longer than N + 1 bytes.
+ */
+__attribute((nonnull(2, 3)))
+enum retval str_dup(const size_t n, const char *const src, char **const dest);
 
 /*
  * Split S at the first occurence of any character in SEP and store a copy of

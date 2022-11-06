@@ -41,7 +41,7 @@ tmpdir chk
 #
 
 # Load the build configuration
-eval "$(main -c)"
+eval "$(main -C)"
 
 # Create the jail.
 readonly jail="$TMPDIR/jail"
@@ -53,7 +53,7 @@ path_max="$(getconf PATH_MAX "$jail")"
 
 # Create a path that is as long as the system and suCGI permit.
 if [ "$path_max" -lt 0 ]
-	then max="$PATH_SIZE"
+	then max="$PATH_MAX_LEN"
 	else max="$path_max"
 fi
 long_path="$(mklongpath "$jail" "$((max - 1))")"
@@ -111,8 +111,8 @@ check -s134 -e'*jail' \
 check -s134 -e'*var' \
 	var="$jail/file" envfopen "$jail" "" f
 
-# Path to jail directory is longer than PATH_SIZE.
-check -s134 -e'strnlen(jail, PATH_SIZE) < PATH_SIZE' \
+# Path to jail directory is longer than PATH_MAX_LEN.
+check -s134 -e'strnlen(jail, PATH_MAX_LEN) < PATH_MAX_LEN' \
 	var="$jail" envfopen "$huge_str" var f
 
 # Jail directory does not exist.
@@ -120,7 +120,7 @@ check -s134 -e'access(jail, F_OK) == 0' \
 	var="<no file!>/foo" envfopen '<no file!>' var f
 
 # Path to jail directory is not canonical.
-check -s134 -e'strncmp(jail, realpath(jail, NULL), PATH_SIZE) == 0' \
+check -s134 -e'strncmp(jail, realpath(jail, NULL), PATH_MAX_LEN) == 0' \
 	var="$jail/foo" envfopen "$in_link" var f
 
 # shellcheck disable=2016

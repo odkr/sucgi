@@ -55,7 +55,7 @@ struct args {
 	char *env[MAX_NVARS];			/* RATS: ignore */
 	const char *patterns[MAX_NVARS];	/* RATS: ignore */
 	const char *clean[MAX_NVARS];		/* RATS: ignore */
-	const char name[PATH_SIZE];		/* RATS: ignore */
+	const char name[PATH_MAX_LEN];		/* RATS: ignore */
 	const enum retval rc;
 };
 
@@ -64,11 +64,11 @@ struct args {
  * Globals
  */
 
-/* String that is as long as PATH_SIZE. */
-static char long_var[PATH_SIZE] = {0};
+/* String that is as long as PATH_MAX_LEN. */
+static char long_var[PATH_MAX_LEN] = {0};
 
-/* String that is longer than PATH_SIZE. */
-static char huge_var[PATH_SIZE + 1U] = {0};
+/* String that is longer than PATH_MAX_LEN. */
+static char huge_var[PATH_MAX_LEN + 1U] = {0};
 
 /* Tests. */
 struct args tests[] = {
@@ -135,14 +135,14 @@ env_init(char *const vars[MAX_NVARS])
 
 int
 main (void) {
-	(void) memset((void *) long_var, 'x', PATH_SIZE - 1U);
+	(void) memset((void *) long_var, 'x', PATH_MAX_LEN - 1U);
 	(void) str_cp(4, "foo=", long_var);
-	(void) memset((void *) huge_var, 'x', PATH_SIZE);
+	(void) memset((void *) huge_var, 'x', PATH_MAX_LEN);
 
 	for (int i = 0; tests[i].env[0]; i++) {
 		const struct args t = tests[i];
 		const char *vars[MAX_NVARS];		/* RATS: ignore */
-		char name[PATH_SIZE];			/* RATS: ignore */
+		char name[PATH_MAX_LEN];			/* RATS: ignore */
 		enum retval rc;
 
 		warnx("performing test # %d ...", i + 1);
@@ -156,7 +156,7 @@ main (void) {
 
 		if (rc != t.rc)
 			errx(T_FAIL, "returned %u, not %u", rc, t.rc);
-		if (*t.name != '\0' && strncmp(t.name, name, PATH_SIZE) != 0)
+		if (*t.name != '\0' && strncmp(t.name, name, PATH_MAX_LEN) != 0)
 			errx(T_FAIL, "returned variable name %s", name);
 
 		for (int j = 0; t.clean[j]; j++) {
@@ -164,7 +164,7 @@ main (void) {
 			const char *val;
 			char *exp;
 
-			if (str_split(PATH_SIZE, var, "=", name, &exp) != OK)
+			if (str_split(PATH_MAX_LEN, var, "=", name, &exp) != OK)
 				errx(T_ERR, "str_split %s failed", var);
 
 			/* RATS: ignore */

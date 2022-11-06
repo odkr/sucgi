@@ -40,21 +40,21 @@ struct args {
 /* Tests. */
 static const struct args tests[] = {
 	/* Simple test. */
-	{PATH_MAX_LEN - 1U, "foo", "foo", OK},
+	{PATH_MAX_LEN, "foo", "foo", OK},
 
 	/* Almost out of bounds. */
-	{1, "x", "x", OK},
+	{2, "x", "x", OK},
 	
 	/* Truncation. */
-	{3, "abcd", "abc", ERR_LEN},
+	{4, "abcd", NULL, ERR_LEN},
 
 	/* Truncate to 0. */
-	{0, "foo", "", ERR_LEN},
+	{1, "foo", NULL, ERR_LEN},
 
 	/* Empty strings. */
 	{PATH_MAX_LEN - 1U, "", "", OK},
+	{2, "", "", OK},
 	{1, "", "", OK},
-	{0, "", "", OK},
 
 	/* Terminator. */
 	{0, NULL, NULL, OK}
@@ -65,19 +65,17 @@ int
 main (void) {
 	for (int i = 0; tests[i].src; i++) {
 		struct args t = tests[i];
-		char dest[PATH_MAX_LEN];	/* RATS: ignore */
+		char *dest;
 		enum retval rc; 
-		
-		*dest = '\0';
 
 		warnx("checking (%zu, %s, -> %s) -> %u ...",
 		      t.n, t.src, t.dest, t.rc);
 
-		rc = str_cp(t.n, t.src, dest);
+		rc = str_dup(t.n, t.src, &dest);
 
 		if (rc != t.rc)
 			errx(T_FAIL, "returned %u", rc);
-		if (!(t.dest == dest || strcmp(t.dest, dest) == 0))
+		if (t.dest && strcmp(t.dest, dest) != 0)
 			errx(T_FAIL, "got copy '%s'", dest);
 	}
 
