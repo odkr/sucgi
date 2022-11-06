@@ -98,6 +98,6 @@ do
 		pathchkxcl "$user" "$deeper" "$TMPDIR"
 done
 
-check -o"$bin/sh" pathchkxcl "$root" "$bin/sh" "$bin"
+check -o"$bin/cat" pathchkxcl "$root" "$bin/cat" "$bin"
 
 warn -g "all tests passed."
