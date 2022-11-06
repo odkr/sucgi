@@ -397,8 +397,13 @@ main(int argc, char **argv) {
 	 * Process arguments.
 	 */
 
-	for (int i = 1; i < argc; i++) {
-		if (strncmp(argv[i], "-h", 3) == 0) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
+	switch (argc) {
+	case 1:
+		break;
+	case 2:
+		if (strncmp(argv[1], "-h", 3) == 0) {
 			(void) puts(
 "suCGI - run CGI scripts with the permissions of their owner\n\n"
 "Usage:  sucgi\n"
@@ -407,9 +412,9 @@ main(int argc, char **argv) {
 "    -C  Print build configuration.\n"
 "    -V  Print version and license.\n"
 "    -h  Print this help screen."
-			       );
+			);
 			return EXIT_SUCCESS;
-		} else if (strncmp(argv[i], "-C", 3) == 0) {
+		} else if (strncmp(argv[1], "-C", 3) == 0) {
 			struct pair hdb[] = HANDLERS;
 
 			(void) printf("JAIL_DIR=%s\n", JAIL_DIR);
@@ -433,7 +438,7 @@ main(int argc, char **argv) {
 			(void) printf("PATH_MAX_LEN=%zu\n", PATH_MAX_LEN);
 
 			return EXIT_SUCCESS;
-		} else if (strncmp(argv[i], "-V", 3) == 0) {
+		} else if (strncmp(argv[1], "-V", 3) == 0) {
 			(void) puts(
 "suCGI v" VERSION "\n"
 "Copyright 2022 Odin Kroeger.\n"
@@ -441,11 +446,13 @@ main(int argc, char **argv) {
 "This programme comes with ABSOLUTELY NO WARRANTY."
 			       );
 			return EXIT_SUCCESS;
-		} else {
-			(void) fputs("usage: sucgi [-c|-V|-h]\n", stderr);
-			return EXIT_FAILURE;
 		}
+		/* Fall-through intended. */
+	default:
+		(void) fputs("usage: sucgi [-c|-V|-h]\n", stderr);
+		return EXIT_FAILURE;		
 	}
+#pragma GCC diagnostic pop
 
 
 	/*
@@ -571,7 +578,7 @@ main(int argc, char **argv) {
 	errno = 0;
 	if (fstat(script_fd, &script_stat) != 0)
 		error("stat %s: %m.", script);
-	if (!(script_stat.st_mode & S_IFREG))
+	if ((script_stat.st_mode & S_IFREG) == 0)
 		error("script %s is not a regular file.", script);
 
 
