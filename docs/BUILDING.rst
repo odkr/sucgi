@@ -95,6 +95,8 @@ For the coverage report to be accurate:
 1. Coverage data has to be collected as the superuser.
 2. The repository must be world-accessible.
 
+Coverage reports do *not* work on Linux.
+
 
 Installation
 ============
