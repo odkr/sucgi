@@ -9,7 +9,7 @@ misra-c2012-8.2:str.h:40
 misra-c2012-8.2:str.h:59
 misra-c2012-8.2:str.h:70
 misra-c2012-22.10:env.c:108
-misra-c2012-22.10:sucgi.c:589
+misra-c2012-22.10:sucgi.c:596
 
 // Rules that are followed, but should not be checked by Cppcheck:
 misra-c2012-2.5		// Too many false positives.
@@ -45,8 +45,11 @@ misra-c2012-10.8:str.c:86
 // Testing for NULL with `var == NULL` is unidiomatic.
 misra-c2012-14.4:gids.c:60
 misra-c2012-14.4:str.c:83
-misra-c2012-14.4:sucgi.c:759
+misra-c2012-14.4:sucgi.c:766
 misra-c2012-14.4:userdir.c:58
+
+// Conditional falls through to a `default` clause.
+misra-c2012-15.7:sucgi.c:449
 
 // `switch`-clauses in sucgi.c that are not terminated
 // with `break` are terminated with `error`.
@@ -71,8 +74,8 @@ misra-c2012-20.5:sucgi.c
 
 // sucgi.c needs to allocate space for the list of groups the user is a
 // member of, and the number of those groups can only be known at run-time.
-misra-c2012-21.3:sucgi.c:604
-misra-c2012-21.3:sucgi.c:622
+misra-c2012-21.3:sucgi.c:611
+misra-c2012-21.3:sucgi.c:629
 
 // `str_dup` is a safer version of `strndup` and must allocate memory.
 misra-c2012-21.3:str.c:64
