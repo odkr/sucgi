@@ -20,7 +20,7 @@
  */
 
 #define _ISOC99_SOURCE
-#define _POSIX_C_SOURCE 200809L
+#define _XOPEN_SOURCE 700
 
 #if !defined(_FORTIFY_SOURCE)
 #define _FORTIFY_SOURCE 3
