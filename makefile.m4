@@ -72,11 +72,10 @@ bins =		$(tool_bins) $(check_bins)
 
 inspect = *.c *.h
 
-cppcheck_flags =	--quiet --error-exitcode=8 \
-			--language=c --std=c99 --platform=unix64 \
+cppcheck_flags =	--quiet --language=c --std=c99 --platform=unix64 \
 			--library=posix --library=cppcheck/library.cfg \
 			--project=cppcheck/sucgi.cppcheck \
-			--suppressions-list=cppcheck/suppr.txt --inline-suppr #\
+			--suppressions-list=cppcheck/suppr.txt
 
 cppcheck_addons =	--addon=cppcheck/cert.py --addon=misra.py
 
