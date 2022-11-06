@@ -215,7 +215,7 @@ check: $(tool_bins) $(check_bins)
 dist: $(dist_ar) $(dist_ar).asc
 
 distclean: clean
-	rm -rf config.status cov lcov.info makefile
+	rm -rf config.status cov gcov lcov.info makefile
 
 distcheck: $(dist_ar)
 	tar -xzf $(dist_ar)
@@ -258,10 +258,16 @@ uninstall:
 #
 
 cov: clean $(tool_bins)
-	make CC=$(cov_cc) CFLAGS="--coverage -g -O0" $(check_bins)
+	make CC=$(cov_cc) CFLAGS="--coverage -O2" $(check_bins)
 	-tools/check -qs $(check_bins)
 	chown -R "$$(tools/owner .)" .
 	tools/check -s $(checks)
+
+gcov: cov
+	ar -t lib.a | sed -n '/^.*\.o$$/p' | xargs gcov -p sucgi
+	mkdir -p gcov
+	find . -type f -name '*.gcov' -exec mv '{}' gcov ';'
+	chown -R "$((tools/owner .)" gcov
 
 lcov.info: cov tools/owner
 	lcov -c -d . -o $@ --exclude '*/tests/*' --exclude '*/tools/*' \
@@ -280,13 +286,13 @@ covhtml: cov/index.html
 #
 
 analysis:
-	grep -nri fixme $(inspect)
+	grep -nri FIXME $(inspect)
 	rats --resultsonly $(inspect)
 	flawfinder -DQF $(inspect)
 	cppcheck $(cppcheck_flags) --enable=all $(cppcheck_addons) $(inspect)
 
 shellcheck:
-	grep -nri fixme configure tools/check tools/lib.sh tests/*.sh
+	grep -nri FIXME configure tools/check tools/lib.sh tests/*.sh
 	shellcheck -x configure tools/check tools/lib.sh tests/*.sh
 
 
