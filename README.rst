@@ -1,12 +1,8 @@
 |coverage|
 |codacy|
-
-..
-	|security|
-..
-	|reliability|
-..
-	|maintainability|
+|security|
+|reliability|
+|maintainability|
 
 
 =====
