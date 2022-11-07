@@ -10,12 +10,6 @@ jobs:
   sonarcloud:
     runs-on: ubuntu-latest
     steps:
-    - name: Build
-      run: |
-        ./configure
-        make check
-        sudo make check
-        sudo make gcov
     - uses: actions/checkout@v2
       with:
           fetch-depth: 0
@@ -24,6 +18,13 @@ jobs:
             -Dsonar.projectKey=odkr_sucgi
             -Dsonar.cfamily.gcov.reportsPath=gcov
             -Dsonar.cfamily.cache.enabled=false
+
+    - name: Build
+      run: |
+        ./configure
+        make check
+        sudo make check
+        sudo make gcov
 
     - name: SonarCloud Scan
       uses: sonarsource/sonarcloud-github-action@master
