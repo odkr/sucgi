@@ -94,7 +94,10 @@ file_sopen(const char *const fname, const int flags, int *const fd)
 	assert(flags >= 0);
 
 	(void) memset(&how, 0, sizeof(how));
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
 	how.flags = ((uint64_t) flags | O_CLOEXEC);
+#pragma GCC diagnostic pop
 	how.resolve = RESOLVE_NO_SYMLINKS | RESOLVE_NO_MAGICLINKS;
 
 	errno = 0;
