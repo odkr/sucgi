@@ -53,6 +53,7 @@ jobs:
           sudo make check
 
       - name: Generate coverage reports
+        run: |
           sudo make gcov
 
       - name: Run build-wrapper
