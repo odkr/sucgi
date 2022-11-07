@@ -11,15 +11,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Build
-	  run: |
-	       ./configure
-		   make check
-		   sudo make check
-		   sudo make gcov
+      run: |
+        ./configure
+        make check
+        sudo make check
+        sudo make gcov
     - uses: actions/checkout@v2
       with:
           fetch-depth: 0
-          args: |
+          args: >
             -Dsonar.organization=odkr
             -Dsonar.projectKey=odkr_sucgi
             -Dsonar.cfamily.gcov.reportsPath=gcov
