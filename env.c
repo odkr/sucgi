@@ -111,7 +111,7 @@ env_fopen(const char *const jail, const char *const var,
 	}
 
 	errno = 0;
-	*fname = (char *) calloc(PATH_MAX_LEN, sizeof(*unresolved));
+	*fname = (char *) calloc(PATH_MAX_LEN, sizeof(**fname));
 	if (!*fname)
 		return ERR_MEM;
 
