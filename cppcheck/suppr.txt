@@ -7,7 +7,7 @@ misra-c2012-8.2:env.h:61
 misra-c2012-8.2:priv.h:45
 misra-c2012-8.2:str.h:40
 misra-c2012-8.2:str.h:58
-misra-c2012-22.10:env.c:108
+misra-c2012-22.10:env.c:107
 misra-c2012-22.10:sucgi.c:635
 
 // Rules that are followed but that should not be checked by Cppcheck:
@@ -22,7 +22,7 @@ misra-c2012-15.5	// Most functions perform no cleanup.
 misra-c2012-15.6	// Violates K & R, noisy.
 
 // `env_is_name` must be public for the test suite.
-misra-c2012-8.7:env.c:144
+misra-c2012-8.7:env.c:140
 
 // `sec_env_vars` is, effectively, a configuration value.
 // Placing it on top makes it easier to find.
@@ -74,9 +74,8 @@ misra-c2012-20.5:sucgi.c
 // `env_fopen` and `userdir_resolve` use a pointer to return the current
 // filename, but those filenames are resolved with `realpath`, so memory
 // has to be allocated at run-time.
-misra-c2012-21.3:env.c:115
-misra-c2012-21.3:env.c:121
-misra-c2012-21.3:env.c:133
+misra-c2012-21.3:env.c:114
+misra-c2012-21.3:env.c:128
 misra-c2012-21.3:userdir.c:50
 misra-c2012-21.3:userdir.c:66
 misra-c2012-21.3:userdir.c:70

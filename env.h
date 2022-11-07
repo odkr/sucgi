@@ -89,7 +89,7 @@ enum retval env_clear(size_t max, const char *vars[max]);
  */
 __attribute__((nonnull(1, 2, 4, 5), warn_unused_result))
 enum retval env_fopen(const char *const jail, const char *const var,
-                      const int flags, const char **const fname,
+                      const int flags, char **const fname,
                       int *const fd);
 
 

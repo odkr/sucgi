@@ -534,7 +534,7 @@ main(int argc, char **argv) {
 	 * Get the document root.
 	 */
 
-	const char *doc_root;		/* Document root. */
+	char *doc_root;			/* Document root. */
 	int doc_fd;			/* -- " -- file descriptor. */
 
 	rc = env_fopen(jail_dir, "DOCUMENT_ROOT", O_RDONLY | O_DIRECTORY,
@@ -579,7 +579,7 @@ main(int argc, char **argv) {
 	 * Get the script.
 	 */
 
-	const char *script;		/* Path to script. */
+	char *script;			/* Path to script. */
 	int script_fd;			/* Script file descriptor. */
 	struct stat script_stat;	/* -- " -- filesystem metadata. */
 

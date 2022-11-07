@@ -81,11 +81,10 @@ env_clear(size_t max, const char *vars[max])
 
 enum retval
 env_fopen(const char *const jail, const char *const var,
-	  const int flags, const char **const fname, int *const fd)
+	  const int flags, char **const fname, int *const fd)
 {
 	const char *value;	/* Unchecked variable value. */
-	const char *resolved;	/* Resolved filename. */
-	char *unresolved;	/* Unresolved filename. */
+	char *resolved;		/* Resolved filename. */
 	enum retval rc;		/* Return code. */
 
 	assert(*jail != '\0');
@@ -112,25 +111,22 @@ env_fopen(const char *const jail, const char *const var,
 	}
 
 	errno = 0;
-	unresolved = (char *) calloc(PATH_MAX_LEN, sizeof(*unresolved));
-	if (!unresolved)
+	*fname = (char *) calloc(PATH_MAX_LEN, sizeof(*unresolved));
+	if (!*fname)
 		return ERR_MEM;
 
-	rc = str_cp(PATH_MAX_LEN - 1U, value, unresolved);
-	if (rc != OK) {
-		free(unresolved);
+	rc = str_cp(PATH_MAX_LEN - 1U, value, *fname);
+	if (rc != OK)
 		return rc;
-	}
-	*fname = unresolved;
 	
 	errno = 0;
 	/* RATS: ignore; length of fname is checked above. */
 	resolved = realpath(*fname, NULL);
 	if (!resolved)
 		return ERR_RES;
-
+	
+	free(*fname);
 	*fname = resolved;
-	free(unresolved);
 
 	if (strnlen(*fname, PATH_MAX_LEN) >= PATH_MAX_LEN)
 		return ERR_LEN;

@@ -37,7 +37,7 @@ main (int argc, char **argv)
 	char buf[BUFSIZ];	/* Buffer. */
 	char *jail;		/* Jail directory. */
 	char *var;		/* Variable name. */
-	const char *fname;	/* Filename. */
+	char *fname;		/* Filename. */
 	int flags;		/* Open flags. */
 	int fd;			/* File descriptor. */
 	ssize_t n;		/* Bytes read. */
