@@ -187,14 +187,14 @@ main(int argc, char **argv)
 			name = pwd->pw_name;
 		}
 
-		if (-1 < from && id < (long long unsigned) from)
+		if (-1 < from && id < (unsigned long long) from)
 			continue;
-		if (-1 < to && id > (long long unsigned) to)
+		if (-1 < to && id > (unsigned long long) to)
 			continue;
 		if (lfind(&id, ids, &nids, sizeof(*ids), id_eq))
 			continue;
 
-		(void) printf("%llu:%s\n", (long long unsigned) id, name);
+		(void) printf("%llu:%s\n", (unsigned long long) id, name);
 
 		ids[nids++] = id;
 		if (nids % INC != 0) {

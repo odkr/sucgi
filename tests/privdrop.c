@@ -59,13 +59,13 @@ main (int argc, char **argv)
 		break;
 	case ERR_SETGRPS:
 		err(EXIT_FAILURE,"setgroups %llu ...",
-		    (long long unsigned) pwd->pw_gid);
+		    (unsigned long long) pwd->pw_gid);
 	case ERR_SETGID:
 		err(EXIT_FAILURE, "setgid %llu",
-		    (long long unsigned) pwd->pw_gid);
+		    (unsigned long long) pwd->pw_gid);
 	case ERR_SETUID:
 		err(EXIT_FAILURE, "setuid %llu",
-		    (long long unsigned) pwd->pw_uid);
+		    (unsigned long long) pwd->pw_uid);
 	case FAIL:
 		errx(EXIT_FAILURE, "could resume superuser privileges.");
 	default:
@@ -73,10 +73,10 @@ main (int argc, char **argv)
        	}
 
 	(void) printf("euid=%llu egid=%llu ruid=%llu rgid=%llu\n",
-	              (long long unsigned) geteuid(),
-	              (long long unsigned) getegid(),
-	              (long long unsigned) getuid(),
-	              (long long unsigned) getgid());
+	              (unsigned long long) geteuid(),
+	              (unsigned long long) getegid(),
+	              (unsigned long long) getuid(),
+	              (unsigned long long) getgid());
 
 	return EXIT_SUCCESS;
 }

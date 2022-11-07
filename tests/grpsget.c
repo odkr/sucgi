@@ -91,7 +91,7 @@ main (int argc, char **argv)
 	}
 
 	for (int i = 0; i < ngids; i++)
-		(void) printf("%llu\n", (long long unsigned) gids[i]);
+		(void) printf("%llu\n", (unsigned long long) gids[i]);
 	
 	return EXIT_SUCCESS;
 }

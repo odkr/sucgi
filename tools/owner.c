@@ -74,10 +74,10 @@ main (int argc, char **argv)
 	if (!pwd) {
 		if (errno == 0)
 			errx(EXIT_FAILURE, "owned by unallocated UID %llu",
-			     (long long unsigned) fstatus.st_uid);
+			     (unsigned long long) fstatus.st_uid);
 		else
 			err(EXIT_FAILURE, "getpwuid %llu",
-			    (long long unsigned) fstatus.st_uid);
+			    (unsigned long long) fstatus.st_uid);
 	}
 
 	(void) puts(pwd->pw_name);

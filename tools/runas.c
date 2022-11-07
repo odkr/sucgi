@@ -76,13 +76,13 @@ main (int argc, char **argv)
 
 	if (setgroups(1, (gid_t[1]) {(gid_t) pwd->pw_gid}) != 0)
 		err(EXIT_FAILURE, "setgroups %llu",
-		    (long long unsigned) pwd->pw_gid);
+		    (unsigned long long) pwd->pw_gid);
 	if (setgid(pwd->pw_gid) != 0)
 		err(EXIT_FAILURE, "setgid %llu",
-		    (long long unsigned) pwd->pw_gid);
+		    (unsigned long long) pwd->pw_gid);
 	if (setuid(pwd->pw_uid) != 0)
 		err(EXIT_FAILURE, "setuid %llu",
-		    (long long unsigned) pwd->pw_uid);
+		    (unsigned long long) pwd->pw_uid);
 
 	argv++;
 	/* RATS: ignore */
