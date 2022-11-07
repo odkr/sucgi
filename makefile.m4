@@ -271,7 +271,7 @@ gcov: cov
 
 lcov.info: cov tools/owner
 	lcov -c -d . -o $@ --exclude '*/tests/*' --exclude '*/tools/*' \
-		--exclude '/Library/*'
+		--exclude '/usr/*' --exclude '/Library/*'
 	chown "$$(tools/owner .)" $@
 
 cov/index.html: lcov.info tools/owner
