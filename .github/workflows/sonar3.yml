@@ -56,6 +56,9 @@ jobs:
         run: |
           ./configure
           sudo make gcov
+          sudo make clean
+          chown -R runner .
+          chmod -R ugo+r .
 
       - name: Run build-wrapper
         run: |
