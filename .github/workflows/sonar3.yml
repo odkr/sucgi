@@ -63,10 +63,11 @@ jobs:
       - name: Run sonar-scanner
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONARCLOUD_TOKEN }} # Put the name of your token here
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          sonar-scanner -D sonar.host.url="${{ env.SONAR_SERVER_URL }}" \
-                        -D sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
+          sonar-scanner -Dsonar.host.url="${{ env.SONAR_SERVER_URL }}" \
+                        -Dsonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
                         -Dsonar.organization=odkr \
                         -Dsonar.projectKey=odkr_sucgi \
-                        -Dsonar.cfamily.gcov.reportsPath=gcov
+                        -Dsonar.cfamily.gcov.reportsPath=gcov \
+                        -Dsonar.cfamily.cache.enabled=false
