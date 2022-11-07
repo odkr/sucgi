@@ -67,7 +67,7 @@ str_split(size_t max, const char *const s, const char *const sep,
 			return ERR_LEN;
 
 		(void) str_cp(len, s, head);
-		(*tail)++;
+		++(*tail);
 
 		return OK;
 	}
