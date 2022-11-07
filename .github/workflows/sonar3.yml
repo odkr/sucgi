@@ -55,6 +55,7 @@ jobs:
       - name: Generate coverage reports
         run: |
           sudo make gcov
+          sudo make clean
 
       - name: Run build-wrapper
         run: |
