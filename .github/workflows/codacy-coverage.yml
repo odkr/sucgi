@@ -24,7 +24,10 @@ jobs:
       - name: sudo make CFLAGS="--coverage -O0 -g" check
         run: sudo make CFLAGS="--coverage -O0 -g" check
       - name: debug
-        run: "find . -name '*.gcda' -o -name '*.gcno' -exec chmod ugo+rw '{}' +"
+        run: 
+            | find . -name '*.gcda' -o -name '*.gcno' -exec chmod ugo+rw '{}' +
+	    | chown -R $(tools/owner .) .
+	    | chmod ugo+rx . .. ../.. ../../.. ../../../.. ../../../../..
 #      - name: sudo make CFLAGS="--coverage -O0 -g" check
 #        run: sudo make CFLAGS="--coverage -O0 -g" check
       - name: debug 2
