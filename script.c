@@ -62,7 +62,7 @@ script_get_int(const struct pair db[], const char *const script,
 		const struct pair ent = db[i];
 
 		if (strncmp(suffix, ent.key, PATH_MAX_LEN) == 0) {
-			if (!ent.value || !*(ent.value))
+			if (!ent.value || *ent.value == '\0')
 				return FAIL;
 
 			return str_cp(PATH_MAX_LEN - 1U, ent.value, inter);

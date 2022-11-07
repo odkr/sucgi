@@ -64,7 +64,7 @@ main (int argc, char **argv)
 	argv += optind;
 
 	if (argc != 1) {
-		(void) fputs("usage: gidsget [-n NUM] LOGNAME\n", stderr);
+		(void) fputs("usage: grpsget [-n NUM] LOGNAME\n", stderr);
 		return EXIT_FAILURE;
 	}
 

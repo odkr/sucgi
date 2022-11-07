@@ -54,9 +54,9 @@ file_is_exe(const struct stat fstatus)
 	mode_t perm = fstatus.st_mode;		/* Permissions. */
 
 	if (fstatus.st_uid == geteuid())
-		return perm & S_IXUSR;
+		return (perm & S_IXUSR) != 0;
 	if (fstatus.st_gid == getegid())
-		return perm & S_IXGRP;
+		return (perm & S_IXGRP) != 0;
 	return perm & S_IXOTH;
 }
 
@@ -66,9 +66,9 @@ file_is_wexcl(const uid_t uid, const struct stat fstatus)
 {
 	mode_t perm = fstatus.st_mode;		/* Permissions. */
 
-	return  (fstatus.st_uid == uid)	&&
-	       !(perm & S_IWGRP)	&&
-	       !(perm & S_IWOTH);
+	return fstatus.st_uid == uid &&
+	       (perm & S_IWGRP)	== 0 &&
+	       (perm & S_IWOTH) == 0;
 }
 
 /*
@@ -91,12 +91,10 @@ file_sopen(const char *const fname, const int flags, int *const fd)
 	long rc;		/* Return code. */
 
 	assert(*fname != '\0');
+	assert(flags >= 0);
 
 	(void) memset(&how, 0, sizeof(how));
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-	how.flags = (uint64_t) (flags | O_CLOEXEC);
-#pragma GCC diagnostic pop
+	how.flags = ((uint64_t) flags | O_CLOEXEC);
 	how.resolve = RESOLVE_NO_SYMLINKS | RESOLVE_NO_MAGICLINKS;
 
 	errno = 0;

@@ -41,19 +41,50 @@ tmpdir chk
 # Prelude 
 #
 
+# Load the build configuration
+eval "$(main -C | grep -E '^PATH_MAX_LEN=')"
+
+# Get the systems maximum path length in $TMPDIR.
 path_max="$(getconf PATH_MAX "$TMPDIR")"
 [ "$path_max" -lt 0 ] && path_max=255
 
+# Get user data.
 user="$(id -un)"
 eval home="~$user"
 # shellcheck disable=2154
 homebase="$(dirname "$home")"
 
-long_path="$(mklongpath "$TMPDIR" "$((path_max - 1))")"
-long_format="$(mklongpath "$TMPDIR/%s" "$((path_max - 1))")"
+# Create a path that is as long as the system and suCGI permit.
+if [ "$path_max" -lt 0 ]
+	then max="$PATH_MAX_LEN"
+	else max="$path_max"
+fi
+long_path="$(mklongpath "$TMPDIR" "$((max - 1))")"
+long_format="$(mklongpath "$TMPDIR/%s" "$((max - 1))")"
 
 ln -s '<no file!>' "$TMPDIR/$user"
 
+# Create a path that is longer than the system permits.
+huge_path="$(mklongpath "$TMPDIR" "$path_max")"
+# shellcheck disable=2016
+dirwalk "$TMPDIR" "$huge_path" 'mkdir "$fname"'
+
+# Create a shortcut to the path that is longer than the system permits.
+# shellcheck disable=2016
+huge_path_link="$TMPDIR/$(dirwalk "$TMPDIR" "$huge_path" \
+	'ln -s "$fname" p.d && printf p.d/' \
+	'ln -s "$fname" p.f && printf p.f\\n')"
+
+# Create a path that is longer than the suCGI permits.
+huge_str="$(mklongpath "$TMPDIR" "$PATH_MAX_LEN")"
+# shellcheck disable=2016
+dirwalk "$TMPDIR" "$huge_str" 'mkdir "$fname"'
+
+# Create a shortcut to the path that is longer than suCGI permits.
+# shellcheck disable=2016
+huge_str_link="$TMPDIR/$(dirwalk "$TMPDIR" "$huge_str" \
+	'ln -s "$fname" p.d && printf p.d/' \
+	'ln -s "$fname" p.f && printf p.f\\n')"
 
 
 #
@@ -75,10 +106,17 @@ check -s1 -e"realpath $TMPDIR/$user: No such file or directory" \
 check -s1 -e"realpath $TMPDIR/$user: No such file or directory" \
 	userdirres "$TMPDIR/%s" "$user"
 
-# FIXME
-# resolved thingy is too long
-# once for /foo/%s and once for /foo
+check -s1 -e"too long" \
+	userdirres "$huge_path_link" "$user"
 
+check -s1 -e"too long" \
+	userdirres "$huge_path_link/%s" "$user"
+
+check -s1 -e"too long" \
+	userdirres "$huge_str_link" "$user"
+
+check -s1 -e"too long" \
+	userdirres "$huge_str_link/%s" "$user"
 
 check -o"$home" userdirres . "$user"
 

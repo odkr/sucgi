@@ -103,7 +103,7 @@ env_fopen(const char *const jail, const char *const var,
 	errno = 0;
 	/* RATS: ignore; value is sanitised below. */
 	value = getenv(var);
-	if (!value || !*value) {
+	if (!value || *value == '\0') {
 		if (errno == 0)
 			return ERR_NIL;
 		else
