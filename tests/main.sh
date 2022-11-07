@@ -40,7 +40,7 @@ init || exit
 #
 
 # Load build configuration.
-eval "$(main -C)"
+eval "$(main -C | grep -vE '^PATH=')"
 
 # Get the effective UID.
 uid="$(id -u)"
@@ -204,7 +204,14 @@ check -o 'suCGI' main -V
 # Check the usage message.
 #
 
-check -s 1 -e 'usage: sucgi' main --no-long-opts 
+for arg in '' -X -XX -x --x - --
+do
+	check -s 1 -e 'usage: sucgi' main "$arg"
+done
+
+check -s1 -e'usage: sucgi' main -h -C
+
+check -s1 -e'usage: sucgi' main -hV
 
 
 #

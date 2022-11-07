@@ -31,7 +31,7 @@
 #include <grp.h>
 #include <string.h>
 
-#include "gids.h"
+#include "groups.h"
 #include "str.h"
 #include "types.h"
 
@@ -43,21 +43,21 @@
  * the wheel seemed the most straightforward course of action.
  */
 enum retval
-gids_get(const char *const logname, const gid_t basegid,
-         gid_t *const gids, int *const ngids)
+groups_get(const char *const logname, const gid_t basegid,
+           gid_t *const groups, int *const n)
 {
-	struct group *grp;	/* Group. */
+	struct group *grp;	/* Current group. */
 	int max;		/* Maximum numer of groups. */
 	int err;		/* Copy of errno. */
 
 	assert(*logname != '\0');
-	assert(*ngids > -1);
+	assert(*n > -1);
 
-	max = *ngids;
-	*ngids = 1;
+	max = *n;
+	*n = 1;
 
 	if (max > 0)
-		gids[0] = basegid;
+		groups[0] = basegid;
 
 	setgrent();
 	while ((errno = 0, grp = getgrent())) {
@@ -72,9 +72,9 @@ gids_get(const char *const logname, const gid_t basegid,
 			const char *mem = grp->gr_mem[i];
 
 			if (gid != basegid && strcmp(mem, logname) == 0) {
-				if (*ngids < max)
-					gids[*ngids] = gid;
-				(*ngids)++;
+				if (*n < max)
+					groups[*n] = gid;
+				(*n)++;
 				break;
 			}
 		}
@@ -84,7 +84,7 @@ gids_get(const char *const logname, const gid_t basegid,
 
 	if (err != 0)
 		return ERR_GETGR;
-	if (*ngids > max)
+	if (*n > max)
 		return ERR_LEN;
 
 	return OK;

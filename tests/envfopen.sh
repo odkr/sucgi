@@ -41,7 +41,7 @@ tmpdir chk
 #
 
 # Load the build configuration
-eval "$(main -C)"
+eval "$(main -C | grep -E '^PATH_MAX_LEN=')"
 
 # Create the jail.
 readonly jail="$TMPDIR/jail"

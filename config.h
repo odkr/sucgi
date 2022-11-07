@@ -88,7 +88,7 @@
  *
  * The filename suffix must be given including the leading dot (e.g., ".php").
  * The interpreter is looked up in $PATH if its name is relative (e.g., "php"),
- * but keep in mind that $PATH is set to SEC_PATH (see below).
+ * but keep in mind that $PATH is set to PATH (see below).
  *
  * The array must be terminated with a pair of NULLs.
  */
@@ -100,7 +100,7 @@
 /*
  * A secure $PATH. Colon-separated list of directories.
  */
-#define SEC_PATH "/usr/bin:/bin"
+#define PATH "/usr/bin:/bin"
 
 /*
  * A secure file permission mask. Unsigned integer.

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Test gidsget_list.
+# Test grpsget.
 #
 # Copyright 2022 Odin Kroeger
 #
@@ -43,12 +43,12 @@ tmpdir chk
 
 logname="$(id -un)"
 check -s1 -e "user $logname belongs to too many groups" \
-	gidsget -n0 "$logname"
+	grpsget -n0 "$logname"
 
 ents | 
 while IFS=: read -r _ logname
 do
-	cmd="gidsget $logname"
+	cmd="grpsget $logname"
 
 	warn "checking ${bld-}$cmd${rst-} ..."
 

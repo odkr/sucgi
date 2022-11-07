@@ -30,24 +30,25 @@
 #include <syslog.h>
 
 #include "error.h"
+#include "priv.h"
 #include "types.h"
 
 
 #if defined(LOG_PERROR) && LOG_PERROR
-#define ERROR_LOG_OPTS LOG_CONS | LOG_NDELAY | LOG_PERROR
+#define ERROR_LOG_OPTIONS LOG_CONS | LOG_NDELAY | LOG_PERROR
 #else
-#define ERROR_LOG_OPTS LOG_CONS | LOG_NDELAY
+#define ERROR_LOG_OPTIONS LOG_CONS | LOG_NDELAY
 #endif
 
 
 void
 error(const char *const message, ...)
 {
-	va_list ap;
+	va_list ap;	/* Argument pointer. */
 
 	assert(*message != '\0');
 
-	openlog("sucgi", ERROR_LOG_OPTS, LOG_AUTH);
+	openlog("sucgi", ERROR_LOG_OPTIONS, LOG_AUTH);
 
 	va_start(ap, message);
 #pragma GCC diagnostic push

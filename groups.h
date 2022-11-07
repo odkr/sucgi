@@ -26,9 +26,9 @@
 
 
 /*
- * Fetch NGIDS groups that the user named LOGNAME is a member of and store
- * the group ID GID as well the group IDs of those groups in GIDS and the
- * total number of group IDs, including GID, in NGIDS.
+ * Fetch N groups that the user named LOGNAME is a member of and store
+ * the group ID GID as well the group IDs of those groups in GROUPS and
+ * the total number of group IDs, including GID, in N.
  *
  * GIDS must be large enough to hold NGIDS supplementary groups.
  *
@@ -38,7 +38,7 @@
  *      ERR_GETGR  getgrent(3) failed.
  */
 __attribute__((no_sanitize("alignment"), nonnull(1, 3, 4), warn_unused_result))
-enum retval gids_get(const char *const logname, const gid_t basegid,
-                     gid_t *const gids, int *const ngids);
+enum retval groups_get(const char *const logname, const gid_t basegid,
+                       gid_t *const groups, int *const n);
 
 #endif /* !defined(GIDS_H) */

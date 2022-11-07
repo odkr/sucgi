@@ -40,7 +40,7 @@ tmpdir chk
 # Prelude
 #
 
-eval "$(main -C)"
+eval "$(main -C | grep -E '^(MIN|MAX)_(UID|GID)=')"
 : "${MIN_UID:?}" "${MAX_UID:?}" "${MIN_GID:?}" "${MAX_GID:?}"
 
 export PATH

@@ -1,5 +1,5 @@
 /*
- * Test gids_get.
+ * Test groups_get.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "../gids.h"
+#include "../groups.h"
 
 #define GIDS_SIZE 4096
 
@@ -77,7 +77,7 @@ main (int argc, char **argv)
 			err(EXIT_FAILURE, "getpwnam");
 	}
 
-	rc = gids_get(pwd->pw_name, pwd->pw_gid, gids, &ngids);
+	rc = groups_get(pwd->pw_name, pwd->pw_gid, gids, &ngids);
 	switch (rc) {
 	case OK:
 		break;

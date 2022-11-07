@@ -111,9 +111,16 @@ env_fopen(const char *const jail, const char *const var,
 			return ERR_ENV;
 	}
 
-	rc = str_dup(PATH_MAX_LEN, value, &unresolved);
-	if (rc != OK)
+	errno = 0;
+	unresolved = (char *) calloc(PATH_MAX_LEN, sizeof(*unresolved));
+	if (!unresolved)
+		return ERR_MEM;
+
+	rc = str_cp(PATH_MAX_LEN - 1U, value, unresolved);
+	if (rc != OK) {
+		free(unresolved);
 		return rc;
+	}
 	*fname = unresolved;
 	
 	errno = 0;

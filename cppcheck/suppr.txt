@@ -6,12 +6,11 @@
 misra-c2012-8.2:env.h:61
 misra-c2012-8.2:priv.h:45
 misra-c2012-8.2:str.h:40
-misra-c2012-8.2:str.h:59
-misra-c2012-8.2:str.h:70
+misra-c2012-8.2:str.h:58
 misra-c2012-22.10:env.c:108
-misra-c2012-22.10:sucgi.c:593
+misra-c2012-22.10:sucgi.c:644
 
-// Rules that are followed, but should not be checked by Cppcheck:
+// Rules that are followed but that should not be checked by Cppcheck:
 misra-c2012-2.5		// Too many false positives.
 misra-c2012-16.6	// -- " --.
 misra-c2012-21.1	// -- " --.
@@ -23,33 +22,33 @@ misra-c2012-15.5	// Most functions perform no cleanup.
 misra-c2012-15.6	// Violates K & R, noisy.
 
 // `env_is_name` must be public for the test suite.
-misra-c2012-8.7:env.c:137
+misra-c2012-8.7:env.c:144
 
 // `sec_env_vars` is, effectively, a configuration value.
 // Placing it on top makes it easier to find.
-misra-c2012-8.9:sucgi.c:107
+misra-c2012-8.9:sucgi.c:210
 
 // BUILD_BUG_ON cannot help but violate rule 10.4.
-misra-c2012-10.4:sucgi.c:345
-misra-c2012-10.4:sucgi.c:346
-misra-c2012-10.4:sucgi.c:347
-misra-c2012-10.4:sucgi.c:348
-misra-c2012-10.4:sucgi.c:349
-misra-c2012-10.4:sucgi.c:350
+misra-c2012-10.4:sucgi.c:444
+misra-c2012-10.4:sucgi.c:445
+misra-c2012-10.4:sucgi.c:446
+misra-c2012-10.4:sucgi.c:447
+misra-c2012-10.4:sucgi.c:448
+misra-c2012-10.4:sucgi.c:449
 
 // Casts to size_t; information cannot be lost.
-misra-c2012-10.8:path.c:85
+misra-c2012-10.8:path.c:87
 misra-c2012-10.8:str.c:47
-misra-c2012-10.8:str.c:86
+misra-c2012-10.8:str.c:65
 
 // Testing for NULL with `var == NULL` is unidiomatic.
-misra-c2012-14.4:gids.c:60
-misra-c2012-14.4:str.c:83
-misra-c2012-14.4:sucgi.c:763
+misra-c2012-14.4:groups.c:63
+misra-c2012-14.4:str.c:62
+misra-c2012-14.4:sucgi.c:806
 misra-c2012-14.4:userdir.c:58
 
-// Conditional falls through to a `default` clause.
-misra-c2012-15.7:sucgi.c:446
+// There is a catch-all statement after the conditional.
+misra-c2012-15.7:sucgi.c:364
 
 // `switch`-clauses in sucgi.c that are not terminated
 // with `break` are terminated with `error`.
@@ -59,32 +58,25 @@ misra-c2012-16.3:sucgi.c
 misra-c2012-17.1:error.c
 
 // `path_check_wexcl` would be more complex without pointer arithmetics.
-misra-c2012-18.4:path.c:75
-misra-c2012-18.4:path.c:76
-misra-c2012-18.4:path.c:85
-misra-c2012-18.4:path.c:103
-misra-c2012-18.4:path.c:106
+misra-c2012-18.4:path.c:77
+misra-c2012-18.4:path.c:78
+misra-c2012-18.4:path.c:87
+misra-c2012-18.4:path.c:105
+misra-c2012-18.4:path.c:108
 
 // `str_cp` only substracts pointers, which doesn't violate rule 18.4.
 misra-c2012-18.4:str.c:47
-misra-c2012-18.4:str.c:86
+misra-c2012-18.4:str.c:65
 
 // sucgi.c only uses `#undef` for testing and when TESTING is set.
 misra-c2012-20.5:sucgi.c
 
-// sucgi.c needs to allocate space for the list of groups the user is a
-// member of, and the number of those groups can only be known at run-time.
-misra-c2012-21.3:sucgi.c:608
-misra-c2012-21.3:sucgi.c:626
-
-// `str_dup` is a safer version of `strndup` and must allocate memory.
-misra-c2012-21.3:str.c:64
-misra-c2012-21.3:str.c:72
-
 // `env_fopen` and `userdir_resolve` use a pointer to return the current
 // filename, but those filenames are resolved with `realpath`, so memory
 // has to be allocated at run-time.
-misra-c2012-21.3:env.c:126
+misra-c2012-21.3:env.c:115
+misra-c2012-21.3:env.c:121
+misra-c2012-21.3:env.c:133
 misra-c2012-21.3:userdir.c:50
 misra-c2012-21.3:userdir.c:66
 misra-c2012-21.3:userdir.c:70
@@ -96,11 +88,17 @@ misra-c2012-21.6:sucgi.c
 // `userdir_resolve` needs `snprintf` to expand strings.
 misra-c2012-21.6:userdir.c
 
+// The function for -h, -C, and -V exit suCGI.
+misra-c2012-21.8:sucgi.c:382
+misra-c2012-21.8:sucgi.c:411
+misra-c2012-21.8:sucgi.c:423
+misra-c2012-21.8:sucgi.c:430
+
 // `getenv` cannot be avoided in CGI scripting.
 misra-c2012-21.8:env.c
 
 // `error` must call `exit` to abort the programme.
-misra-c2012-21.8:error.c:61
+misra-c2012-21.8:error.c:62
 
 
 //

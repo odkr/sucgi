@@ -44,7 +44,7 @@
 #include "env.h"
 #include "error.h"
 #include "file.h"
-#include "gids.h"
+#include "groups.h"
 #include "path.h"
 #include "priv.h"
 #include "script.h"
@@ -54,6 +54,108 @@
 #include "userdir.h"
 
 
+/*
+ * Configuration for test builds
+ */
+
+#if !defined(NDEBUG) && defined(TESTING) && TESTING
+
+#undef JAIL_DIR
+#define JAIL_DIR "/"
+
+#undef USER_DIR 
+#define USER_DIR "/tmp/check-sucgi/%s"
+
+#undef MIN_UID
+#define MIN_UID 500
+
+#undef MAX_UID
+#define MAX_UID 30000
+
+#undef MIN_GID
+#define MIN_GID 1
+
+#undef MAX_GID
+#define MAX_GID 30000
+
+#undef HANDLERS
+#define HANDLERS {{".sh", "sh"}, {NULL, NULL}}
+
+#endif /* !defined(NDEBUG) && defined(TESTING) && TESTING */
+
+
+/*
+ * Verification of configuration
+ */
+
+#if !defined(JAIL_DIR)
+#error JAIL_DIR is undefined.
+#endif
+
+#if !defined(USER_DIR)
+#error USER_DIR is undefined.
+#endif
+
+#if !defined(MIN_UID)
+#error MIN_UID is undefined.
+#endif
+
+#if !defined(MAX_UID)
+#error MIN_UID is undefined.
+#endif
+
+#if MIN_UID <= 0 
+#error MIN_UID must be greater than 0.
+#endif
+
+#if MAX_UID < MIN_UID
+#error MAX_UID is smaller than MIN_UID.
+#endif
+
+#if defined(UID_MAX)
+#if MAX_UID > UID_MAX
+#error MAX_UID is greater than UID_MAX.
+#endif
+#else /* !defined(MAX_UID) */
+#if MAX_UID > UINT_MAX
+#error MAX_UID is greater than UINT_MAX.
+#endif
+#endif /* defined(MAX_UID) */
+
+#if !defined(MIN_GID)
+#error MIN_GID is undefined.
+#endif
+
+#if !defined(MAX_GID)
+#error MIN_GID is undefined.
+#endif
+
+#if MIN_GID <= 0
+#error MIN_GID must be greater than 0.
+#endif
+
+#if MAX_GID < MIN_GID
+#error MAX_GID is smaller than MIN_GID.
+#endif
+
+#if defined(GID_MAX)
+#if MAX_GID > GID_MAX
+#error MAX_GID is greater than GID_MAX.
+#endif
+#else /* !defined(MAX_GID) */
+#if MAX_GID > UINT_MAX
+#error MAX_GID is greater than UINT_MAX.
+#endif
+#endif /* defined(MAX_GID) */
+
+#if !defined(HANDLERS)
+#error HANDLERS is undefined.
+#endif
+
+#if !defined(PATH)
+#error PATH is undefined.
+#endif
+
 
 /*
  * Constants
@@ -62,11 +164,12 @@
 /* suCGI version. */
 #define VERSION "0"
 
-/* Preliminary maximum number of groups users are likely to be members of. */
-#define PRELIM_NGROUPS 64
+/* Maximum number of groups a user may be a member of. */
+#define MAX_NGROUPS 4096
 
 /* Maximum number of environment variables. */
 #define MAX_NVARS 256U
+
 
 
 /*
@@ -224,112 +327,108 @@ static const char *const sec_env_vars[] = {
 
 
 /*
- * Configuration for test builds
+ * Functions
  */
 
-#if !defined(NDEBUG) && defined(TESTING) && TESTING
+/* Parse arguments and exit unless ARGC equals 1. */
+static void parse_args(int argc, char **argv);
 
-#undef JAIL_DIR
-#define JAIL_DIR "/"
+/* Print help and exit. */
+__attribute__((noreturn))
+static void print_help(void);
 
-#undef USER_DIR 
-#define USER_DIR "/tmp/check-sucgi/%s"
+/* Print build configuration and exit. */
+__attribute__((noreturn))
+static void print_config(void);
 
-#undef FORCE_HOME
-#define FORCE_HOME false
+/* Print version and exit. */
+__attribute__((noreturn))
+static void print_version(void);
 
-#undef MIN_UID
-#define MIN_UID 500
+/* Print usage information to stderr and error out. */
+__attribute__((noreturn))
+static void usage_error(void);
 
-#undef MAX_UID
-#define MAX_UID 30000
+static void
+parse_args(int argc, char **argv)
+{
+	if (argc == 1)
+		return;
 
-#undef MIN_GID
-#define MIN_GID 1
+	if (argc == 2) {
+		if      (strncmp(argv[1], "-h", 3) == 0)
+			print_help();
+		else if (strncmp(argv[1], "-C", 3) == 0)
+			print_config();
+		else if (strncmp(argv[1], "-V", 3) == 0)
+			print_version();
+	}
 
-#undef MAX_GID
-#define MAX_GID 30000
+	usage_error();
+}
 
-#undef HANDLERS
-#define HANDLERS {{".sh", "sh"}, {NULL, NULL}}
+static void
+print_help(void)
+{
+	(void) puts(
+"suCGI - run CGI scripts with the permissions of their owner\n\n"
+"Usage:  sucgi\n"
+"        sucgi [-C|-V|-h]\n\n"
+"Options:\n"
+"    -C  Print build configuration.\n"
+"    -V  Print version and license.\n"
+"    -h  Print this help screen."
+	       );
+	exit(EXIT_SUCCESS);
+}
 
-#undef PRELIM_NGROUPS
-#define PRELIM_NGROUPS 0
+static void
+print_config(void)
+{
+	struct pair hdb[] = HANDLERS;
 
-#endif /* !defined(NDEBUG) && defined(TESTING) && TESTING */
+	(void) printf("JAIL_DIR=%s\n", JAIL_DIR);
+	(void) printf("USER_DIR=%s\n", USER_DIR);
 
+	(void) printf("MIN_UID=%d\n", MIN_UID);
+	(void) printf("MAX_UID=%d\n", MAX_UID);
+	(void) printf("MIN_GID=%d\n", MIN_GID);
+	(void) printf("MAX_GID=%d\n", MAX_GID);
 
-/*
- * Verification of configuration
- */
+	(void) printf("HANDLERS=");
+	for (const struct pair *h = hdb; h->key; h++) {
+		if (h != hdb) (void) printf(",");
+		(void) printf("%s:%s", h->key, h->value);
+	}
+	(void) printf("\n");
 
-#if !defined(JAIL_DIR)
-#error JAIL_DIR is undefined.
-#endif
+	(void) printf("PATH=%s\n", PATH);
+	(void) printf("UMASK=0%o\n", UMASK);
 
-#if !defined(USER_DIR)
-#error USER_DIR is undefined.
-#endif
+	(void) printf("MAX_NVARS=%u\n", MAX_NVARS);
+	(void) printf("PATH_MAX_LEN=%zu\n", PATH_MAX_LEN);
 
-#if !defined(MIN_UID)
-#error MIN_UID is undefined.
-#endif
+	exit(EXIT_SUCCESS);
+}
 
-#if !defined(MAX_UID)
-#error MIN_UID is undefined.
-#endif
+static void
+print_version(void)
+{
+	(void) puts(
+"suCGI v" VERSION "\n"
+"Copyright 2022 Odin Kroeger.\n"
+"Released under the GNU General Public License.\n"
+"This programme comes with ABSOLUTELY NO WARRANTY."
+	       );
+	exit(EXIT_SUCCESS);
+}
 
-#if MIN_UID <= 0 
-#error MIN_UID must be greater than 0.
-#endif
-
-#if MAX_UID < MIN_UID
-#error MAX_UID is smaller than MIN_UID.
-#endif
-
-#if defined(UID_MAX)
-#if MAX_UID > UID_MAX
-#error MAX_UID is greater than UID_MAX.
-#endif
-#else /* !defined(MAX_UID) */
-#if MAX_UID > UINT_MAX
-#error MAX_UID is greater than UINT_MAX.
-#endif
-#endif /* defined(MAX_UID) */
-
-#if !defined(MIN_GID)
-#error MIN_GID is undefined.
-#endif
-
-#if !defined(MAX_GID)
-#error MIN_GID is undefined.
-#endif
-
-#if MIN_GID <= 0
-#error MIN_GID must be greater than 0.
-#endif
-
-#if MAX_GID < MIN_GID
-#error MAX_GID is smaller than MIN_GID.
-#endif
-
-#if defined(GID_MAX)
-#if MAX_GID > GID_MAX
-#error MAX_GID is greater than GID_MAX.
-#endif
-#else /* !defined(MAX_GID) */
-#if MAX_GID > UINT_MAX
-#error MAX_GID is greater than UINT_MAX.
-#endif
-#endif /* defined(MAX_GID) */
-
-#if !defined(HANDLERS)
-#error HANDLERS is undefined.
-#endif
-
-#if !defined(SEC_PATH)
-#error SEC_PATH is undefined.
-#endif
+static void
+usage_error(void)
+{
+	(void) fputs("usage: sucgi [-c|-V|-h]\n", stderr);
+	exit(EXIT_FAILURE);
+}
 
 
 /*
@@ -346,8 +445,8 @@ main(int argc, char **argv) {
 	BUILD_BUG_ON(sizeof(JAIL_DIR) >= PATH_MAX_LEN);
 	BUILD_BUG_ON(sizeof(USER_DIR) <= 1);
 	BUILD_BUG_ON(sizeof(USER_DIR) >= PATH_MAX_LEN);
-	BUILD_BUG_ON(sizeof(SEC_PATH) <= 1);
-	BUILD_BUG_ON(sizeof(SEC_PATH) >= PATH_MAX_LEN);
+	BUILD_BUG_ON(sizeof(PATH) <= 1);
+	BUILD_BUG_ON(sizeof(PATH) >= PATH_MAX_LEN);
 
 	
 	/*
@@ -359,10 +458,10 @@ main(int argc, char **argv) {
 	 */
 
 	/* RATS: ignore; writes to env respect MAX_NVARS. */
-	const char *env[MAX_NVARS];	/* Backup of environment. */
+	const char *vars[MAX_NVARS];	/* Backup of environment. */
 	enum retval rc;			/* Return code. */
 
-	rc = env_clear(MAX_NVARS, env);
+	rc = env_clear(MAX_NVARS, vars);
 	switch (rc) {
 	case OK:
 		break;
@@ -394,62 +493,8 @@ main(int argc, char **argv) {
 	 * Process arguments.
 	 */
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wimplicit-fallthrough"
-	switch (argc) {
-	case 1:
-		break;
-	case 2:
-		if (strncmp(argv[1], "-h", 3) == 0) {
-			(void) puts(
-"suCGI - run CGI scripts with the permissions of their owner\n\n"
-"Usage:  sucgi\n"
-"        sucgi [-C|-V|-h]\n\n"
-"Options:\n"
-"    -C  Print build configuration.\n"
-"    -V  Print version and license.\n"
-"    -h  Print this help screen."
-			);
-			return EXIT_SUCCESS;
-		} else if (strncmp(argv[1], "-C", 3) == 0) {
-			struct pair hdb[] = HANDLERS;
-
-			(void) printf("JAIL_DIR=%s\n", JAIL_DIR);
-			(void) printf("USER_DIR=%s\n", USER_DIR);
-
-			(void) printf("MIN_UID=%d\n", MIN_UID);
-			(void) printf("MAX_UID=%d\n", MAX_UID);
-			(void) printf("MIN_GID=%d\n", MIN_GID);
-			(void) printf("MAX_GID=%d\n", MAX_GID);
-
-			(void) printf("HANDLERS=");
-			for (struct pair *h = hdb; h->key; h++)
-				(void) printf("%s:%s%s", h->key, h->value,
-				              (h == hdb) ? "" : ",");
-			(void) printf("\n");
-
-			(void) printf("SEC_PATH=%s\n", SEC_PATH);
-			(void) printf("UMASK=0%o\n", UMASK);
-
-			(void) printf("MAX_NVARS=%u\n", MAX_NVARS);
-			(void) printf("PATH_MAX_LEN=%zu\n", PATH_MAX_LEN);
-
-			return EXIT_SUCCESS;
-		} else if (strncmp(argv[1], "-V", 3) == 0) {
-			(void) puts(
-"suCGI v" VERSION "\n"
-"Copyright 2022 Odin Kroeger.\n"
-"Released under the GNU General Public License.\n"
-"This programme comes with ABSOLUTELY NO WARRANTY."
-			       );
-			return EXIT_SUCCESS;
-		}
-		/* Fall-through intended. */
-	default:
-		(void) fputs("usage: sucgi [-c|-V|-h]\n", stderr);
-		return EXIT_FAILURE;		
-	}
-#pragma GCC diagnostic pop
+	/* Parse options only returns if argc == 1. */
+	(void) parse_args(argc, argv);
 
 
 	/*
@@ -457,9 +502,9 @@ main(int argc, char **argv) {
 	 */
 
 	/* RATS: ignore; env_restore respects ENV_MAX_NAME. */
-	char env_name[ENV_MAX_NAME];	/* Name of last variable. */
+	char var_name[ENV_MAX_NAME];	/* Name of last variable. */
 
-	rc = env_restore(env, sec_env_vars, env_name);
+	rc = env_restore(vars, sec_env_vars, var_name);
 	switch (rc) {
 	case OK:
 		break;
@@ -468,9 +513,9 @@ main(int argc, char **argv) {
 	case ERR_CNV:
 		error("encountered malformed environment variable.");
 	case ERR_ILL:
-		error("bad characters in variable name %s.", env_name);
+		error("bad characters in variable name %s.", var_name);
 	case ERR_LEN:
-		error("$%s is too long.", env_name);
+		error("$%s is too long.", var_name);
 	default:
 		/* Should be unreachable. */
 		error("%d: env_restore returned %u.", __LINE__, rc);
@@ -478,12 +523,10 @@ main(int argc, char **argv) {
 
 
 	/*
-	 * Get the document root.
+	 * Verify the jail directory.
 	 */
 
 	const char *jail_dir;		/* Jail directory. */
-	const char *doc_root;		/* Document root. */
-	int doc_fd;			/* -- " -- file descriptor. */
 
 	errno = 0;
 	/* RATS: ignore; the length of JAIL_DIR is checked above. */
@@ -495,6 +538,14 @@ main(int argc, char **argv) {
 	assert(*jail_dir != '\0');
         assert(strnlen(jail_dir, PATH_MAX_LEN) < PATH_MAX_LEN);
 
+
+	/*
+	 * Get the document root.
+	 */
+
+	const char *doc_root;		/* Document root. */
+	int doc_fd;			/* -- " -- file descriptor. */
+
 	rc = env_fopen(jail_dir, "DOCUMENT_ROOT", O_RDONLY | O_DIRECTORY,
 	               &doc_root, &doc_fd);
 	switch (rc) {
@@ -503,7 +554,7 @@ main(int argc, char **argv) {
 	case ERR_ENV:
 		error("getenv: %m.");
 	case ERR_MEM:
-		error("strndup: %m.");
+		error("calloc: %m.");
 	case ERR_RES:
 		error("realpath %s: %m.", doc_root);
 	case ERR_OPEN:
@@ -519,9 +570,6 @@ main(int argc, char **argv) {
 		error("%d: env_fopen returned %u.", __LINE__, rc);
 	}
 
-	if (close(doc_fd) != 0)
-		error("close %s: %m.", doc_root);
-
 	assert(doc_root);
 	assert(*doc_root != '\0');
 	assert(doc_fd > -1);
@@ -530,6 +578,10 @@ main(int argc, char **argv) {
 	assert(access(doc_root, F_OK) == 0);
 	/* RATS: ignore; the length of doc_root is checked above. */
 	assert(strncmp(realpath(doc_root, NULL), doc_root, PATH_MAX_LEN) == 0);
+	assert(doc_fd > -1);
+
+	if (close(doc_fd) != 0)
+		error("close %s: %m.", doc_root);
 
 
 	/*
@@ -571,6 +623,7 @@ main(int argc, char **argv) {
 	assert(access(script, F_OK) == 0);
 	/* RATS: ignore; the length of script is checked above. */
 	assert(strncmp(realpath(script, NULL), script, PATH_MAX_LEN) == 0);
+	assert(script_fd > -1);
 
 	errno = 0;
 	if (fstat(script_fd, &script_stat) != 0)
@@ -584,8 +637,6 @@ main(int argc, char **argv) {
 	 */
 
 	struct passwd *owner;		/* Script owner. */
-	gid_t *groups;			/* Groups they are a member of. */
-	int ngroups;			/* Number of groups. */
 
 	errno = 0;
 	owner = getpwuid(script_stat.st_uid);
@@ -604,40 +655,27 @@ main(int argc, char **argv) {
 		error("script %s is owned by privileged user %s.",
 		      script, owner->pw_name);
 
-	ngroups = PRELIM_NGROUPS;
-	groups = (gid_t *) malloc((size_t) ngroups * sizeof(*groups));
 
-	if (!groups)
-		error("malloc: %m.");
+	/*
+	 * Check if the owner is a member of a privileged group.
+	 */
 
-	rc = gids_get(owner->pw_name, owner->pw_gid, groups, &ngroups);
+	gid_t groups[MAX_NGROUPS];	/* Groups they are a member of. */
+	int ngroups;			/* Number of groups. */
 
-	assert(ngroups > 0);
-	
-	if (rc == ERR_LEN) {
-		size_t gid_size = sizeof(*groups);
-
-		/* Check for overflow. */
-		if ((size_t) ngroups > SIZE_MAX/gid_size)
-			error("user %s belongs to too many groups.",
-		              owner->pw_name);
-
-		/* RATS: ignore; garbage irrelevant, alignment correct. */
-		groups = (gid_t *) realloc(groups, (size_t) ngroups * gid_size);
-		if (!groups)
-			error("realloc: %m");
-		
-		rc = gids_get(owner->pw_name, owner->pw_gid, groups, &ngroups);
-	}
+	ngroups = MAX_NGROUPS;
+	rc = groups_get(owner->pw_name, owner->pw_gid, groups, &ngroups);
 
 	switch (rc) {
 	case OK:
 		break;
 	case ERR_GETGR:
 		error("getgrent: %m.");
+	case ERR_LEN:
+		error("user %s belongs to too many groups.", owner->pw_name);
 	default:
 		/* Should be unreachable. */
-		error("%d: gids_get returned %u.", __LINE__, rc);
+		error("%d: groups_get returned %u.", __LINE__, rc);
 	}
 
 	assert(ngroups > 0);
@@ -650,9 +688,6 @@ main(int argc, char **argv) {
 			error("user %s belongs to privileged group %llu.",
 			      owner->pw_name, (long long unsigned) gid);
 	}
-
-	assert(owner->pw_gid >= MIN_GID);
-	assert(owner->pw_gid <= MAX_GID);	
 
 
 	/*
@@ -699,7 +734,7 @@ main(int argc, char **argv) {
 		error("setenv: %m.");
 
 	errno = 0;
-	if (setenv("PATH", SEC_PATH, true) != 0)
+	if (setenv("PATH", PATH, true) != 0)
 		error("setenv: %m.");
 
 	errno = 0;
@@ -740,13 +775,21 @@ main(int argc, char **argv) {
 	case ERR_RES:
 		error("realpath %s: %m.", user_dir);
 	case ERR_PRN:
-		error("vsnprintf: %m.");
+		error("snprintf: %m.");
 	case ERR_LEN:
 		error("expanded user directory is too long.");
 	default:
 		/* Should be unreachable. */
 		error("%d: path_check_format returned %u.", __LINE__, rc);
 	}
+
+	assert(user_dir);
+	assert(*user_dir != '\0');
+	assert(strnlen(user_dir, PATH_MAX_LEN) < PATH_MAX_LEN);
+	/* RATS: ignore; not a permission check. */
+	assert(access(user_dir, F_OK) == 0);
+	/* RATS: ignore; the length of script is checked above. */
+	assert(strncmp(realpath(user_dir, NULL), user_dir, PATH_MAX_LEN) == 0);
 
 	if (strncmp(doc_root, user_dir, PATH_MAX_LEN) != 0)
 		error("document root %s is not %s's user directory.",
@@ -821,7 +864,7 @@ main(int argc, char **argv) {
 
 	if (!file_is_exe(script_stat)) {
 		/* RATS: ignore; script_get_int respects PATH_MAX_LEN. */
-		char inter[PATH_MAX_LEN];			/* Interpreter. */
+		char inter[PATH_MAX_LEN];		/* Interpreter. */
 		const struct pair db[] = HANDLERS;	/* Database. */
 
 		rc = script_get_int(db, script, inter);

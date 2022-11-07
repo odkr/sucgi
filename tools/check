@@ -73,8 +73,7 @@ while [ $# -gt 0 ]
 do
 	name="$(basename "$1")"
 
-	"$1" >/dev/null 2>&1 &
-	pids="$pids $!"
+	"$1" >/dev/null 2>&1 & pids="$pids $!"
 	eval "test_$!"='$name'
 	shift
 
@@ -89,7 +88,7 @@ do
 		# shellcheck disable=2154
 		case $? in
 			(0)  passc=$((passc + 1)) ;;
-			(70) warn -rq "${bld-}$name${rst_r-} failed!"
+			(70) warn -rq "${bld-}$name${rst_r-} failed."
 			     failc=$((failc + 1)) ;;
 			(75) warn -yq "${bld-}$name${rst_y-} skipped tests."
 			     skipc=$((skipc + 1)) ;;

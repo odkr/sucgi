@@ -54,27 +54,6 @@ str_cp(const size_t n, const char *const src, char dest[n + 1U])
 }
 
 enum retval
-str_dup(const size_t n, const char *const src, char **const dest)
-{
-	enum retval rc;		/* Return code. */
-
-	assert(n > 0U);
-
-	errno = 0;
-	*dest = (char *) malloc(n * sizeof(**dest));
-	if (!*dest)
-		return ERR_MEM;
-
-	rc = str_cp(n - 1U, src, *dest);
-	if (rc == OK)
-		return rc;
-
-	free(*dest);
-	return ERR_LEN;
-}
-
-
-enum retval
 str_split(size_t max, const char *const s, const char *const sep,
           char head[max], char **const tail)
 {
