@@ -47,15 +47,15 @@ jobs:
 
       - name: Build
         run: |
-          ./configure -f
+          ./configure
           make
           make check
           sudo make check
 
       - name: Generate coverage reports
         run: |
+          ./configure
           sudo make gcov
-          sudo make clean
 
       - name: Run build-wrapper
         run: |
