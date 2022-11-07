@@ -9,12 +9,12 @@ jobs:
     permissions:
       contents: read
       security-events: read
-    runs-on: macos-latest
+    runs-on: ubuntu-22.04
     name: Codacy Coverage Reporter
     steps:
       - uses: actions/checkout@v3
-      - name: brew install lcov
-        run: brew install lcov
+      - name: apt-get install lcov
+        run: apt-get install lcov
       - name: configure
         run: CFLAGS= ./configure
       - name: make check
