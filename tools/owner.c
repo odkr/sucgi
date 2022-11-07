@@ -76,7 +76,7 @@ main (int argc, char **argv)
 			errx(EXIT_FAILURE, "owned by unallocated UID %llu",
 			     (long long unsigned) fstatus.st_uid);
 		else
-			err(EXIT_FAILURE, "getpwuid %llu", 
+			err(EXIT_FAILURE, "getpwuid %llu",
 			    (long long unsigned) fstatus.st_uid);
 	}
 

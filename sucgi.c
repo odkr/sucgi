@@ -63,7 +63,7 @@
 #undef JAIL_DIR
 #define JAIL_DIR "/"
 
-#undef USER_DIR 
+#undef USER_DIR
 #define USER_DIR "/tmp/check-sucgi/%s"
 
 #undef MIN_UID
@@ -104,7 +104,7 @@
 #error MIN_UID is undefined.
 #endif
 
-#if MIN_UID <= 0 
+#if MIN_UID <= 0
 #error MIN_UID must be greater than 0.
 #endif
 

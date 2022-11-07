@@ -46,7 +46,7 @@ enum retval str_cp(const size_t n, const char *const src, char dest[n + 1U]);
  *
  * If the substring up to SEP is longer than MAX - 1 characters, an error is
  * returned. HEAD must be large enough to hold MAX characters, including the
- * terminating NUL. 
+ * terminating NUL.
  *
  * HEAD and TAIL are meaningless if an error occurs.
  *

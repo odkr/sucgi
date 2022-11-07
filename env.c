@@ -53,7 +53,7 @@
                        "abcdefghijklmnopqrstuvwxyz"
 
 
-/* 
+/*
  * Functions
  */
 
@@ -163,7 +163,7 @@ env_restore(const char **vars, const char *const *patterns,
 
 		for (const char *const *pat = patterns; *pat; pat++) {
 			if (fnmatch(*pat, name, 0) == 0) {
-				/* 
+				/*
 				 * patterns may contain wildcards,
 				 * so the name has to be checked.
 				 */

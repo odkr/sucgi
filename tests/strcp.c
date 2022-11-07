@@ -66,7 +66,7 @@ main (void) {
 	for (int i = 0; tests[i].src; i++) {
 		struct args t = tests[i];
 		char dest[PATH_MAX_LEN];	/* RATS: ignore */
-		enum retval rc; 
+		enum retval rc;
 		
 		*dest = '\0';
 
