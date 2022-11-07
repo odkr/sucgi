@@ -13,27 +13,15 @@ jobs:
     name: Codacy Coverage Reporter
     steps:
       - uses: actions/checkout@v3
-      - name: sudo apt-get install lcov
+      - name: Install LCOV
         run: sudo apt-get install lcov
-      - name: configure
-        run: ./configure
-      - name: make tools/badenv tools/ents tools/owner tools/runas
-        run: make tools/badenv tools/ents tools/owner tools/runas
-      - name: make CFLAGS="--coverage -O0 -g" check
-        run: make CFLAGS="--coverage -O0 -g" check
-      - name: sudo make CFLAGS="--coverage -O0 -g" check
-        run: sudo make CFLAGS="--coverage -O0 -g" check
-      - name: debug
+      - name: Build 
         run: |
-            sudo find . -name '*.gcda' -o -name '*.gcno' -exec chmod ugo+rw '{}' +
-            sudo chown -R $(tools/owner .) .
-            sudo chmod ugo+rx . .. ../.. ../../.. ../../../.. ../../../../..
-#      - name: sudo make CFLAGS="--coverage -O0 -g" check
-#        run: sudo make CFLAGS="--coverage -O0 -g" check
-      - name: debug 2
-        run: "find tests -type f ! -name '*.c' ! -name '*.h' -exec '{}' ';'"
-      - name: "lcov -c -d . -o lcov.info --exclude '*/tests/*' --exclude '*/tools/*'"
-        run: "lcov -c -d . -o lcov.info --exclude '*/tests/*' --exclude '*/tools/*'"
+            ./configure
+            make check
+            sudo make check
+      - name: Generate coverage report
+        run: sudo make lcov.info
       - name: Run codacy-coverage-reporter
         uses: codacy/codacy-coverage-reporter-action@v1
         with:
