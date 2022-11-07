@@ -21,6 +21,8 @@ jobs:
         run: make check
       - name: sudo make check
         run: sudo make check
+      - name: lots of output
+        run: "sudo find tests -type f ! -name '*.c' -exec '{}' ';' || :"
       - name: sudo make lcov.info
         run: sudo make lcov.info
       - name: Run codacy-coverage-reporter
