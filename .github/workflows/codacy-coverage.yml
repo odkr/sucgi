@@ -24,7 +24,7 @@ jobs:
       - name: sudo make CFLAGS="--coverage -O0 -g" check
         run: sudo make CFLAGS="--coverage -O0 -g" check
       - name: debug
-        run: "find . -name '*.gcda' -o -name '*.gcno' chmod ugo+rw '{}' +"
+        run: "find . -name '*.gcda' -o -name '*.gcno' -exec chmod ugo+rw '{}' +"
       - name: sudo make CFLAGS="--coverage -O0 -g" check
         run: sudo make CFLAGS="--coverage -O0 -g" check
       - name: "lcov -c -d . -o lcov.info --exclude '*/tests/*' --exclude '*/tools/*'"
