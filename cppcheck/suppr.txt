@@ -8,7 +8,7 @@ misra-c2012-8.2:priv.h:45
 misra-c2012-8.2:str.h:40
 misra-c2012-8.2:str.h:58
 misra-c2012-22.10:env.c:108
-misra-c2012-22.10:sucgi.c:644
+misra-c2012-22.10:sucgi.c:635
 
 // Rules that are followed but that should not be checked by Cppcheck:
 misra-c2012-2.5		// Too many false positives.
@@ -29,12 +29,12 @@ misra-c2012-8.7:env.c:144
 misra-c2012-8.9:sucgi.c:210
 
 // BUILD_BUG_ON cannot help but violate rule 10.4.
-misra-c2012-10.4:sucgi.c:444
-misra-c2012-10.4:sucgi.c:445
-misra-c2012-10.4:sucgi.c:446
-misra-c2012-10.4:sucgi.c:447
-misra-c2012-10.4:sucgi.c:448
-misra-c2012-10.4:sucgi.c:449
+misra-c2012-10.4:sucgi.c:423
+misra-c2012-10.4:sucgi.c:424
+misra-c2012-10.4:sucgi.c:425
+misra-c2012-10.4:sucgi.c:426
+misra-c2012-10.4:sucgi.c:427
+misra-c2012-10.4:sucgi.c:428
 
 // Casts to size_t; information cannot be lost.
 misra-c2012-10.8:path.c:87
@@ -44,11 +44,11 @@ misra-c2012-10.8:str.c:65
 // Testing for NULL with `var == NULL` is unidiomatic.
 misra-c2012-14.4:groups.c:63
 misra-c2012-14.4:str.c:62
-misra-c2012-14.4:sucgi.c:806
+misra-c2012-14.4:sucgi.c:797
 misra-c2012-14.4:userdir.c:58
 
-// There is a catch-all statement after the conditional.
-misra-c2012-15.7:sucgi.c:364
+// Falls through to a default.
+misra-c2012-15.7:sucgi.c:484
 
 // `switch`-clauses in sucgi.c that are not terminated
 // with `break` are terminated with `error`.
@@ -89,10 +89,11 @@ misra-c2012-21.6:sucgi.c
 misra-c2012-21.6:userdir.c
 
 // The function for -h, -C, and -V exit suCGI.
-misra-c2012-21.8:sucgi.c:382
-misra-c2012-21.8:sucgi.c:411
-misra-c2012-21.8:sucgi.c:423
-misra-c2012-21.8:sucgi.c:430
+misra-c2012-21.8:sucgi.c:361
+misra-c2012-21.8:sucgi.c:390
+misra-c2012-21.8:sucgi.c:439
+misra-c2012-21.8:sucgi.c:402
+misra-c2012-21.8:sucgi.c:409
 
 // `getenv` cannot be avoided in CGI scripting.
 misra-c2012-21.8:env.c

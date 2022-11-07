@@ -330,45 +330,24 @@ static const char *const sec_env_vars[] = {
  * Functions
  */
 
-/* Parse arguments and exit unless ARGC equals 1. */
-static void parse_args(int argc, char **argv);
-
 /* Print help and exit. */
 __attribute__((noreturn))
-static void print_help(void);
+static void help(void);
 
 /* Print build configuration and exit. */
 __attribute__((noreturn))
-static void print_config(void);
+static void config(void);
 
 /* Print version and exit. */
 __attribute__((noreturn))
-static void print_version(void);
+static void version(void);
 
 /* Print usage information to stderr and error out. */
 __attribute__((noreturn))
-static void usage_error(void);
+static void usage(void);
 
 static void
-parse_args(int argc, char **argv)
-{
-	if (argc == 1)
-		return;
-
-	if (argc == 2) {
-		if      (strncmp(argv[1], "-h", 3) == 0)
-			print_help();
-		else if (strncmp(argv[1], "-C", 3) == 0)
-			print_config();
-		else if (strncmp(argv[1], "-V", 3) == 0)
-			print_version();
-	}
-
-	usage_error();
-}
-
-static void
-print_help(void)
+help(void)
 {
 	(void) puts(
 "suCGI - run CGI scripts with the permissions of their owner\n\n"
@@ -378,12 +357,12 @@ print_help(void)
 "    -C  Print build configuration.\n"
 "    -V  Print version and license.\n"
 "    -h  Print this help screen."
-	       );
+	);
 	exit(EXIT_SUCCESS);
 }
 
 static void
-print_config(void)
+config(void)
 {
 	struct pair hdb[] = HANDLERS;
 
@@ -412,19 +391,19 @@ print_config(void)
 }
 
 static void
-print_version(void)
+version(void)
 {
 	(void) puts(
 "suCGI v" VERSION "\n"
 "Copyright 2022 Odin Kroeger.\n"
 "Released under the GNU General Public License.\n"
 "This programme comes with ABSOLUTELY NO WARRANTY."
-	       );
+	);
 	exit(EXIT_SUCCESS);
 }
 
 static void
-usage_error(void)
+usage(void)
 {
 	(void) fputs("usage: sucgi [-c|-V|-h]\n", stderr);
 	exit(EXIT_FAILURE);
@@ -490,11 +469,23 @@ main(int argc, char **argv) {
 
 
 	/*
-	 * Process arguments.
+	 * Parse arguments.
 	 */
 
-	/* Parse options only returns if argc == 1. */
-	(void) parse_args(argc, argv);
+	switch (argc) {
+	case 1:
+		break;
+	case 2:
+		if      (strncmp(argv[1], "-h", 3) == 0)
+			help();
+		else if (strncmp(argv[1], "-C", 3) == 0)
+			config();
+		else if (strncmp(argv[1], "-V", 3) == 0)
+			version();
+		__attribute__((fallthrough));
+	default:
+		usage();
+	}
 
 
 	/*
