@@ -81,7 +81,8 @@ main (int argc, char **argv)
 
 	/* RATS: ignore */
 	while ((n = read(fd, &buf, BUFSIZ)) > 0)
-		(void) write(1, buf, (size_t) n);
+		if (write(1, buf, (size_t) n) == -1)
+			err(EXIT_FAILURE, "write");
 
 	if (n < 0)
 		err(EXIT_FAILURE, "read");

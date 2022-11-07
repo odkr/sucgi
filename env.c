@@ -139,7 +139,7 @@ env_fopen(const char *const jail, const char *const var,
 bool
 env_is_name(const char *const name)
 {
-	return *name && !isdigit(*name) &&
+	return *name != '\0' && !isdigit(*name) &&
 	       name[strspn(name, ENV_NAME_CHARS)] == '\0';
 }
 
