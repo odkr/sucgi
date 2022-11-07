@@ -17,8 +17,8 @@ jobs:
         run: sudo apt-get install lcov
       - name: configure
         run: ./configure
-      - name: make tools/badenv tools/ents tools/owners tools/runas
-        run: make tools/badenv tools/ents tools/owners tools/runas
+      - name: make tools/badenv tools/ents tools/owner tools/runas
+        run: make tools/badenv tools/ents tools/owner tools/runas
       - name: make CFLAGS="--coverage -O0 -g" check
         run: make CFLAGS="--coverage -O0 -g" check
       - name: sudo make CFLAGS="--coverage -O0 -g" check
