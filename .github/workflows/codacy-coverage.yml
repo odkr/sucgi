@@ -16,13 +16,13 @@ jobs:
       - name: sudo apt-get install lcov
         run: sudo apt-get install lcov
       - name: configure
-        run: CFLAGS= ./configure
+        run: CFLAGS="--coverage -O2" ./configure
       - name: make check
-        run: make check
+        run: "make check || :"
       - name: sudo make check
-        run: sudo make check
-      - name: lots of output
-        run: "sudo find tests -type f ! -name '*.c' -exec '{}' ';' || :"
+        run: "sudo make check || :"
+      - name: debug
+        run: "find tests -type f ! -name '*.c' ! -name '*.h' -exec '{}' ';' || :"
       - name: sudo make lcov.info
         run: sudo make lcov.info
       - name: Run codacy-coverage-reporter
