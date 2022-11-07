@@ -25,8 +25,10 @@ jobs:
         run: sudo make CFLAGS="--coverage -O0 -g" check
       - name: debug
         run: "find . -name '*.gcda' -o -name '*.gcno' -exec chmod ugo+rw '{}' +"
-      - name: sudo make CFLAGS="--coverage -O0 -g" check
-        run: sudo make CFLAGS="--coverage -O0 -g" check
+#      - name: sudo make CFLAGS="--coverage -O0 -g" check
+#        run: sudo make CFLAGS="--coverage -O0 -g" check
+      - name: debug 2
+        run: "find tests -type f ! -name '*.c' ! -name '*.h' -exec '{}' ';'"
       - name: "lcov -c -d . -o lcov.info --exclude '*/tests/*' --exclude '*/tools/*'"
         run: "lcov -c -d . -o lcov.info --exclude '*/tests/*' --exclude '*/tools/*'"
       - name: Run codacy-coverage-reporter
