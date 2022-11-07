@@ -396,7 +396,7 @@ print_config(void)
 	(void) printf("MAX_GID=%d\n", MAX_GID);
 
 	(void) printf("HANDLERS=");
-	for (const struct pair *h = hdb; h->key; h++) {
+	for (const struct pair *h = hdb; h->key; ++h) {
 		if (h != hdb) (void) printf(",");
 		(void) printf("%s:%s", h->key, h->value);
 	}
@@ -448,7 +448,7 @@ main(int argc, char **argv) {
 	BUILD_BUG_ON(sizeof(PATH) <= 1);
 	BUILD_BUG_ON(sizeof(PATH) >= PATH_MAX_LEN);
 
-	
+
 	/*
 	 * Words of wisdom from the authors of suEXEC:
 	 *
@@ -471,7 +471,7 @@ main(int argc, char **argv) {
 		/* Should be unreachable. */
 		error("%d: env_clear returned %u.", __LINE__, rc);
 	}
-	
+
 	assert(!*environ);
 
 
@@ -643,10 +643,10 @@ main(int argc, char **argv) {
 	if (!owner) {
 		if (errno == 0)
 			error("script %s is owned by unallocated UID %llu.",
-			      script, (long long unsigned) script_stat.st_uid);
+			      script, (unsigned long long) script_stat.st_uid);
 		else
 			error("getpwuid %llu: %m.",
-			      (long long unsigned) script_stat.st_uid);
+			      (unsigned long long) script_stat.st_uid);
 	}
 
 	assert(owner->pw_uid == script_stat.st_uid);
@@ -681,12 +681,12 @@ main(int argc, char **argv) {
 	assert(ngroups > 0);
 	assert(groups[0] > 0);
 
-	for (int i = 0; i < ngroups; i++) {
+	for (int i = 0; i < ngroups; ++i) {
 		gid_t gid = groups[i];
 
 		if (gid < MIN_GID || gid > MAX_GID)
 			error("user %s belongs to privileged group %llu.",
-			      owner->pw_name, (long long unsigned) gid);
+			      owner->pw_name, (unsigned long long) gid);
 	}
 
 

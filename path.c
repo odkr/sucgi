@@ -71,7 +71,7 @@ path_check_wexcl(const uid_t uid, const char *const fname,
 	 */
 	pos = fname;
 	if (strncmp(parent, "/", 2) == 0) {
-		pos++;
+		++pos;
 	} else {
 		/* RATS: ignore; parent should be NUL-terminated. */
 		pos += strlen(parent);

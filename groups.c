@@ -68,13 +68,13 @@ groups_get(const char *const logname, const gid_t basegid,
 		 * I don't know why. Apple's Libc and musl use similar code.
 		 * TODO: Check if it's misaligned on Linux, too.
 		 */
-		for (int i = 0; i <= INT_MAX && grp->gr_mem[i]; i++) {
+		for (int i = 0; i <= INT_MAX && grp->gr_mem[i]; ++i) {
 			const char *mem = grp->gr_mem[i];
 
 			if (gid != basegid && strcmp(mem, logname) == 0) {
 				if (*n < max)
 					groups[*n] = gid;
-				(*n)++;
+				++(*n);
 				break;
 			}
 		}

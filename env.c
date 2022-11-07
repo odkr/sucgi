@@ -70,7 +70,7 @@ env_clear(size_t max, const char *vars[max])
 	if (!vars)
 		return OK;
 
-	for (size_t n = 0; n < max; n++) {
+	for (size_t n = 0; n < max; ++n) {
 		vars[n] = env[n];
 		if (!env[n])
 			return OK;
@@ -153,7 +153,7 @@ env_restore(const char **vars, const char *const *patterns,
 {
 	assert(*vars);
 
-	for (const char **var = vars; *var; var++) {
+	for (const char **var = vars; *var; ++var) {
 		char *value;
 
 		if (str_split(ENV_MAX_NAME, *var, "=", name, &value) != OK)
@@ -161,7 +161,7 @@ env_restore(const char **vars, const char *const *patterns,
 		if (!value || *name == '\0')
 			return ERR_CNV;
 
-		for (const char *const *pat = patterns; *pat; pat++) {
+		for (const char *const *pat = patterns; *pat; ++pat) {
 			if (fnmatch(*pat, name, 0) == 0) {
 				/*
 				 * patterns may contain wildcards,
