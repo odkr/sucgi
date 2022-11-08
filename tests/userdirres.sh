@@ -42,7 +42,7 @@ tmpdir chk
 #
 
 # Load the build configuration
-eval "$(main -C | grep -E '^PATH_MAX_LEN=')"
+eval "$(main -C | grep -E '^MAX_FNAME=')"
 
 # Get the systems maximum path length in $TMPDIR.
 path_max="$(getconf PATH_MAX "$TMPDIR")"
@@ -56,7 +56,7 @@ homebase="$(dirname "$home")"
 
 # Create a path that is as long as the system and suCGI permit.
 if [ "$path_max" -lt 0 ]
-	then max="$PATH_MAX_LEN"
+	then max="$MAX_FNAME"
 	else max="$path_max"
 fi
 long_path="$(mklongpath "$TMPDIR" "$((max - 1))")"
@@ -76,7 +76,7 @@ huge_path_link="$TMPDIR/$(dirwalk "$TMPDIR" "$huge_path" \
 	'ln -s "$fname" p.f && printf p.f\\n')"
 
 # Create a path that is longer than the suCGI permits.
-huge_str="$(mklongpath "$TMPDIR" "$PATH_MAX_LEN")"
+huge_str="$(mklongpath "$TMPDIR" "$MAX_FNAME")"
 # shellcheck disable=2016
 dirwalk "$TMPDIR" "$huge_str" 'mkdir "$fname"'
 

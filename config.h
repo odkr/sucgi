@@ -9,7 +9,7 @@
 
 /*
  * Jail directory. Filename.
- * CGI scripts are only run if they are with the jail.
+ * CGI scripts are only run if they are within the jail.
  *
  * Should correspond to the UserDir directive of your Apache configuation
  * (or the equivalent directive of the webserver you use).
@@ -26,11 +26,13 @@
 
 /*
  * The document root of user websites. Filename pattern.
- * CGI scripts are only run if they are with the user's document root.
+ * CGI scripts are only run if they are within the user's document root.
  *
- * Mirrors Apache's *UserDir* directive, save for that suCGI uses a "%s"
- * printf(3) string conversion specifier as placeholder for the user's
- * login name, not at "*". That is:
+ * This directive mirrors Apache's *UserDir* directive, save for that a
+ * "%s" printf(3) conversion specifier is used as placeholder for the
+ * user's login name, not at "*".
+ *
+ * That is:
  *
  * (1) If USER_DIR is an absolute filename and contains a "%s", the "%s" is
  *     replaced with the user's login name; for example, "/srv/web/%s/html"
@@ -38,8 +40,8 @@
  *     conversion specifier. printf's escaping rules apply.
  *
  * (2) If USER_DIR is an absolute filename but does *not* contain a "%s",
- *     a path separator and the user's login name are appended to the given
- *     directory; for example, "/srv/web" becomes "/srv/web/jdoe".
+ *     then a path separator and the user's login name are appended to the
+ *     given directory; for example, "/srv/web" becomes "/srv/web/jdoe".
  *
  * (3) If USER_DIR is a relative filename, it is prefixed with the user's
  *     home directory and a path separator; for example, "public_html"
@@ -92,7 +94,7 @@
  *
  * The array must be terminated with a pair of NULLs.
  */
-#define HANDLERS	{					\
+#define HANDLERS {						\
 	{".php", "php"},					\
 	{NULL, NULL}	/* Array terminator. DO NOT REMOVE. */	\
 }

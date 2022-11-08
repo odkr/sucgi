@@ -24,7 +24,7 @@
 
 #include <stdbool.h>
 
-#include "sysconf.h"
+#include "attr.h"
 #include "types.h"
 
 
@@ -40,19 +40,19 @@ __attribute((nonnull(2, 3)))
 enum retval str_cp(const size_t n, const char *const src, char dest[n + 1U]);
 
 /*
- * Split S at the first occurence of any character in SEP and store a copy of
- * the substring up to, but not including, that character in HEAD and a
- * pointer to the substring starting after that character in TAIL.
+ * Split S at the first occurence of any byte in SEP and store a copy of
+ * the substring up to, but not including, that byte in HEAD and a
+ * pointer to the substring starting after that byte in TAIL.
  *
- * If the substring up to SEP is longer than MAX - 1 characters, an error is
- * returned. HEAD must be large enough to hold MAX characters, including the
+ * If the substring up to SEP is longer than MAX - 1 bytes, an error is
+ * returned. HEAD must be large enough to hold MAX bytes, including the
  * terminating NUL.
  *
  * HEAD and TAIL are meaningless if an error occurs.
  *
  * Return value:
  *      OK       Success.
- *      ERR_LEN  HEAD is longer than MAX.
+ *      ERR_LEN  HEAD is longer than MAX - 1 bytes.
  */
 __attribute__((nonnull(2, 3, 4, 5), warn_unused_result))
 enum retval str_split(size_t max, const char *const s, const char *const sep,

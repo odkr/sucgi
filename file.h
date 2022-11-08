@@ -25,8 +25,8 @@
 #include <sys/stat.h>
 #include <stdbool.h>
 
+#include "attr.h"
 #include "error.h"
-#include "sysconf.h"
 #include "types.h"
 
 

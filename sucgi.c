@@ -45,11 +45,11 @@
 #include "error.h"
 #include "file.h"
 #include "groups.h"
+#include "max.h"
 #include "path.h"
 #include "priv.h"
 #include "script.h"
 #include "str.h"
-#include "sysconf.h"
 #include "types.h"
 #include "userdir.h"
 
@@ -164,13 +164,6 @@
 /* suCGI version. */
 #define VERSION "0"
 
-/* Maximum number of groups a user may be a member of. */
-#define MAX_NGROUPS 4096
-
-/* Maximum number of environment variables. */
-#define MAX_NVARS 256U
-
-
 
 /*
  * Macros
@@ -207,7 +200,7 @@
  *
  * There should be no need to adapt this list.
  */
-static const char *const sec_env_vars[] = {
+static const char *const sec_vars[] = {
 	"AUTH_TYPE",
 	"CONTENT_LENGTH",
 	"CONTENT_TYPE",
@@ -384,8 +377,9 @@ config(void)
 	(void) printf("PATH=%s\n", PATH);
 	(void) printf("UMASK=0%o\n", UMASK);
 
+	(void) printf("MAX_NGROUPS=%u\n", MAX_NVARS);
 	(void) printf("MAX_NVARS=%u\n", MAX_NVARS);
-	(void) printf("PATH_MAX_LEN=%zu\n", PATH_MAX_LEN);
+	(void) printf("MAX_FNAME=%zu\n", MAX_FNAME);
 
 	exit(EXIT_SUCCESS);
 }
@@ -421,11 +415,11 @@ main(int argc, char **argv) {
 	 */
 
 	BUILD_BUG_ON(sizeof(JAIL_DIR) <= 1);
-	BUILD_BUG_ON(sizeof(JAIL_DIR) >= PATH_MAX_LEN);
+	BUILD_BUG_ON(sizeof(JAIL_DIR) >= MAX_FNAME);
 	BUILD_BUG_ON(sizeof(USER_DIR) <= 1);
-	BUILD_BUG_ON(sizeof(USER_DIR) >= PATH_MAX_LEN);
+	BUILD_BUG_ON(sizeof(USER_DIR) >= MAX_FNAME);
 	BUILD_BUG_ON(sizeof(PATH) <= 1);
-	BUILD_BUG_ON(sizeof(PATH) >= PATH_MAX_LEN);
+	BUILD_BUG_ON(sizeof(PATH) >= MAX_FNAME);
 
 
 	/*
@@ -436,11 +430,11 @@ main(int argc, char **argv) {
 	 * > info. Bad news if MALLOC_DEBUG_FILE is set to /etc/passwd.)
 	 */
 
-	/* RATS: ignore; writes to env respect MAX_NVARS. */
+	/* RATS: ignore; env_clear respects MAX_NVARS. */
 	const char *vars[MAX_NVARS];	/* Backup of environment. */
 	enum retval rc;			/* Return code. */
 
-	rc = env_clear(MAX_NVARS, vars);
+	rc = env_clear(vars);
 	switch (rc) {
 	case OK:
 		break;
@@ -492,10 +486,10 @@ main(int argc, char **argv) {
 	 * Restore the environment variables needed by CGI scripts.
 	 */
 
-	/* RATS: ignore; env_restore respects ENV_MAX_NAME. */
-	char var_name[ENV_MAX_NAME];	/* Name of last variable. */
+	/* RATS: ignore; env_restore respects MAX_VARNAME. */
+	char var_name[MAX_VARNAME];	/* Name of last variable. */
 
-	rc = env_restore(vars, sec_env_vars, var_name);
+	rc = env_restore(vars, sec_vars, var_name);
 	switch (rc) {
 	case OK:
 		break;
@@ -527,7 +521,7 @@ main(int argc, char **argv) {
 
 	assert(jail_dir);
 	assert(*jail_dir != '\0');
-        assert(strnlen(jail_dir, PATH_MAX_LEN) < PATH_MAX_LEN);
+        assert(strnlen(jail_dir, MAX_FNAME) < MAX_FNAME);
 
 
 	/*
@@ -544,8 +538,6 @@ main(int argc, char **argv) {
 		break;
 	case ERR_ENV:
 		error("getenv: %m.");
-	case ERR_MEM:
-		error("calloc: %m.");
 	case ERR_RES:
 		error("realpath %s: %m.", doc_root);
 	case ERR_OPEN:
@@ -564,11 +556,11 @@ main(int argc, char **argv) {
 	assert(doc_root);
 	assert(*doc_root != '\0');
 	assert(doc_fd > -1);
-	assert(strnlen(doc_root, PATH_MAX_LEN) < PATH_MAX_LEN);
+	assert(strnlen(doc_root, MAX_FNAME) < MAX_FNAME);
 	/* RATS: ignore; not a permission check. */
 	assert(access(doc_root, F_OK) == 0);
 	/* RATS: ignore; the length of doc_root is checked above. */
-	assert(strncmp(realpath(doc_root, NULL), doc_root, PATH_MAX_LEN) == 0);
+	assert(strncmp(realpath(doc_root, NULL), doc_root, MAX_FNAME) == 0);
 	assert(doc_fd > -1);
 
 	if (close(doc_fd) != 0)
@@ -590,8 +582,6 @@ main(int argc, char **argv) {
 		break;
 	case ERR_ENV:
 		error("getenv: %m.");
-	case ERR_MEM:
-		error("calloc: %m.");
 	case ERR_RES:
 		error("realpath %s: %m.", script);
 	case ERR_OPEN:
@@ -609,16 +599,16 @@ main(int argc, char **argv) {
 
 	assert(script);
 	assert(*script != '\0');
-	assert(strnlen(script, PATH_MAX_LEN) < PATH_MAX_LEN);
+	assert(strnlen(script, MAX_FNAME) < MAX_FNAME);
 	/* RATS: ignore; not a permission check. */
 	assert(access(script, F_OK) == 0);
 	/* RATS: ignore; the length of script is checked above. */
-	assert(strncmp(realpath(script, NULL), script, PATH_MAX_LEN) == 0);
+	assert(strncmp(realpath(script, NULL), script, MAX_FNAME) == 0);
 	assert(script_fd > -1);
 
 	errno = 0;
 	if (fstat(script_fd, &script_stat) != 0)
-		error("stat %s: %m.", script);
+		error("fstat %s: %m.", script);
 	if ((script_stat.st_mode & S_IFREG) == 0)
 		error("script %s is not a regular file.", script);
 
@@ -776,13 +766,13 @@ main(int argc, char **argv) {
 
 	assert(user_dir);
 	assert(*user_dir != '\0');
-	assert(strnlen(user_dir, PATH_MAX_LEN) < PATH_MAX_LEN);
+	assert(strnlen(user_dir, MAX_FNAME) < MAX_FNAME);
 	/* RATS: ignore; not a permission check. */
 	assert(access(user_dir, F_OK) == 0);
 	/* RATS: ignore; the length of script is checked above. */
-	assert(strncmp(realpath(user_dir, NULL), user_dir, PATH_MAX_LEN) == 0);
+	assert(strncmp(realpath(user_dir, NULL), user_dir, MAX_FNAME) == 0);
 
-	if (strncmp(doc_root, user_dir, PATH_MAX_LEN) != 0)
+	if (strncmp(doc_root, user_dir, MAX_FNAME) != 0)
 		error("document root %s is not %s's user directory.",
 		      doc_root, owner->pw_name);
 
@@ -794,7 +784,7 @@ main(int argc, char **argv) {
 	 */
 
 	/* script is guaranteed to be canonical. */
-	if (strstr(script, "/."))
+	if (strstr(script, "/.") != NULL)
 		error("path %s contains hidden files.", script);
 
 
@@ -821,8 +811,8 @@ main(int argc, char **argv) {
 	 * owned by the same UID, namely, owner->pw_uid.
 	 */
 
-	/* RATS: ignore; path_check_wexcl respects PATH_MAX_LEN. */
-	char script_cur[PATH_MAX_LEN];	/* Sub-path of script path. */
+	/* RATS: ignore; path_check_wexcl respects MAX_FNAME. */
+	char script_cur[MAX_FNAME];	/* Sub-path of script path. */
 	const char *base_dir;		/* Base directory. */
 
 	if (*USER_DIR == '/')
@@ -839,7 +829,7 @@ main(int argc, char **argv) {
 	case ERR_CLOSE:
 		error("close %s: %m.", script_cur);
 	case ERR_STAT:
-		error("stat %s: %m.", script_cur);
+		error("fstat %s: %m.", script_cur);
 	case FAIL:
 	        error("%s is writable by users other than %s.",
 		      script_cur, owner->pw_name);
@@ -853,38 +843,38 @@ main(int argc, char **argv) {
 	 * Run the script.
 	 */
 
-	if (!file_is_exe(script_stat)) {
-		/* RATS: ignore; script_get_int respects PATH_MAX_LEN. */
-		char inter[PATH_MAX_LEN];		/* Interpreter. */
-		const struct pair db[] = HANDLERS;	/* Database. */
+	/* RATS: ignore; script_get_handler respects MAX_FNAME. */
+	char handler[MAX_FNAME];		/* Interpreter. */
+	const struct pair db[] = HANDLERS;	/* Database. */
 
-		rc = script_get_int(db, script, inter);
-		switch (rc) {
-		case OK:
-			break;
-		case ERR_ILL:
-			error("%s has no filename suffix.", script);
-		case FAIL:
-			error("no interpreter registered for %s.", script);
-		default:
-			/* Should be unreachable. */
-			error("%d: script_get_int returned %u.", __LINE__, rc);
-		}
-
-		assert(*inter != '\0');
-
+	if (file_is_exe(script_stat)) {
 		errno = 0;
-		/* RATS: ignore; suCGI's whole point is to do this securely. */
-		(void) execlp(inter, inter, script, NULL);
+		/* RATS: ignore; suCGI's whole point is to do this right. */
+		(void) execl(script, script, NULL);
 
 		/* If this point is reached, execution has failed. */
-		error("execlp %s %s: %m.", inter, script);
+		error("execl %s: %m.", script);
 	}
 
+	rc = script_get_handler(db, script, handler);
+	switch (rc) {
+	case OK:
+		break;
+	case ERR_ILL:
+		error("script %s has no filename suffix.", script);
+	case FAIL:
+		error("no handler for %s's filename suffix.", script);
+	default:
+		/* Should be unreachable. */
+		error("%d: script_get_handler returned %u.", __LINE__, rc);
+	}
+
+	assert(*handler != '\0');
+
 	errno = 0;
-	/* RATS: ignore; suCGI's whole point is to do this securely. */
-	(void) execl(script, script, NULL);
+	/* RATS: ignore; suCGI's whole point is to do this right. */
+	(void) execlp(handler, handler, script, NULL);
 
 	/* If this point is reached, execution has failed. */
-	error("execl %s: %m.", script);
+	error("execlp %s %s: %m.", handler, script);
 }

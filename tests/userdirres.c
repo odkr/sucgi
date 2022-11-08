@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "../sysconf.h"
+#include "../max.h"
 #include "../userdir.h"
 
 

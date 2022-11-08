@@ -26,6 +26,7 @@
 
 #include "types.h"
 
+
 /*
  * Take S to be a user directory pattern (see config.h) for the given USER,
  * resolve the pattern, and store the result in USER_DIR.
@@ -33,11 +34,15 @@
  * The expanded string is stored in USER_DIR before it is resolved with
  * realpath(3) and can be used in error messages.
  *
+ * Caveats:
+ *     The address that USER_DIR points to if an error occurs is static.
+ *     Its content is updated on every invocation of userdir_resolve.
+ *
  * Return value:
- *      OK       Success.
- *      ERR_PRN  snprintf(3) failed.
- *      ERR_LEN  The expanded string is longer than PATH_MAX_LEN - 1 bytes.
- *      ERR_RES  realpath(3) failed.
+ *     OK       Success.
+ *     ERR_PRN  snprintf(3) failed.
+ *     ERR_LEN  The expanded string is longer than MAX_FNAME - 1 bytes.
+ *     ERR_RES  realpath(3) failed.
  */
 __attribute__((nonnull(1, 2, 3), format(printf, 1, 0), warn_unused_result))
 enum retval userdir_resolve(const char *const s, const struct passwd *user,

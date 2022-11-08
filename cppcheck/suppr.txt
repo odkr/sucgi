@@ -7,79 +7,61 @@ misra-c2012-8.2:env.h:61
 misra-c2012-8.2:priv.h:45
 misra-c2012-8.2:str.h:40
 misra-c2012-8.2:str.h:58
-misra-c2012-22.10:env.c:107
-misra-c2012-22.10:sucgi.c:635
+misra-c2012-22.10:env.c:109
+misra-c2012-22.10:sucgi.c:625
 
-// Rules that are followed but that should not be checked by Cppcheck:
+// Rules I follow but which should not be checked by Cppcheck:
 misra-c2012-2.5		// Too many false positives.
 misra-c2012-16.6	// -- " --.
 misra-c2012-21.1	// -- " --.
 
-// Rules that are *not* followed, out of principle:
+// Rules I ignore.
 misra-c2012-3.1		// Adhered to, save for URLs.
 misra-c2012-12.1	// Advised against by most style guides.
 misra-c2012-15.5	// Most functions perform no cleanup.
-misra-c2012-15.6	// Violates K & R, noisy.
+misra-c2012-15.6	// Violates K & R-style, noisy.
 
 // `env_is_name` must be public for the test suite.
-misra-c2012-8.7:env.c:140
+misra-c2012-8.7:env.c:137
 
-// `sec_env_vars` is, effectively, a configuration value.
+// `sec_vars` is, effectively, a configuration value.
 // Placing it on top makes it easier to find.
-misra-c2012-8.9:sucgi.c:210
+misra-c2012-8.9:sucgi.c:203
 
 // BUILD_BUG_ON cannot help but violate rule 10.4.
-misra-c2012-10.4:sucgi.c:423
-misra-c2012-10.4:sucgi.c:424
-misra-c2012-10.4:sucgi.c:425
-misra-c2012-10.4:sucgi.c:426
-misra-c2012-10.4:sucgi.c:427
-misra-c2012-10.4:sucgi.c:428
+misra-c2012-10.4:sucgi.c:417
+misra-c2012-10.4:sucgi.c:418
+misra-c2012-10.4:sucgi.c:419
+misra-c2012-10.4:sucgi.c:420
+misra-c2012-10.4:sucgi.c:421
+misra-c2012-10.4:sucgi.c:422
 
-// Casts to size_t; information cannot be lost.
-misra-c2012-10.8:path.c:87
+// Casts to size_t. No information can be lost.
+misra-c2012-10.8:path.c:74
 misra-c2012-10.8:str.c:47
-misra-c2012-10.8:str.c:65
-
-// Testing for NULL with `var == NULL` is unidiomatic.
-misra-c2012-14.4:groups.c:63
-misra-c2012-14.4:str.c:62
-misra-c2012-14.4:sucgi.c:797
-misra-c2012-14.4:userdir.c:58
+misra-c2012-10.8:str.c:67
 
 // Falls through to a default.
-misra-c2012-15.7:sucgi.c:484
+misra-c2012-15.7:sucgi.c:478
 
-// `switch`-clauses in sucgi.c that are not terminated
-// with `break` are terminated with `error`.
+// `switch` cases that do not terminate with `break` terminate with `error`.
 misra-c2012-16.3:sucgi.c
 
 // `error` supports format strings and ergo must use variadic arguments.
 misra-c2012-17.1:error.c
 
 // `path_check_wexcl` would be more complex without pointer arithmetics.
-misra-c2012-18.4:path.c:77
-misra-c2012-18.4:path.c:78
-misra-c2012-18.4:path.c:87
-misra-c2012-18.4:path.c:105
-misra-c2012-18.4:path.c:108
+misra-c2012-18.4:path.c:67
+misra-c2012-18.4:path.c:74
+misra-c2012-18.4:path.c:91
+misra-c2012-18.4:path.c:96
 
 // `str_cp` only substracts pointers, which doesn't violate rule 18.4.
 misra-c2012-18.4:str.c:47
-misra-c2012-18.4:str.c:65
+misra-c2012-18.4:str.c:67
 
 // sucgi.c only uses `#undef` for testing and when TESTING is set.
 misra-c2012-20.5:sucgi.c
-
-// `env_fopen` and `userdir_resolve` use a pointer to return the current
-// filename, but those filenames are resolved with `realpath`, so memory
-// has to be allocated at run-time.
-misra-c2012-21.3:env.c:114
-misra-c2012-21.3:env.c:128
-misra-c2012-21.3:userdir.c:50
-misra-c2012-21.3:userdir.c:66
-misra-c2012-21.3:userdir.c:70
-misra-c2012-21.3:userdir.c:82
 
 // suCGI must talk to the user when -h, -C, or -V is given.
 misra-c2012-21.6:sucgi.c
@@ -87,17 +69,16 @@ misra-c2012-21.6:sucgi.c
 // `userdir_resolve` needs `snprintf` to expand strings.
 misra-c2012-21.6:userdir.c
 
-// The function for -h, -C, and -V exit suCGI.
-misra-c2012-21.8:sucgi.c:361
-misra-c2012-21.8:sucgi.c:390
-misra-c2012-21.8:sucgi.c:439
-misra-c2012-21.8:sucgi.c:402
-misra-c2012-21.8:sucgi.c:409
+// suCGI must `exit` on -h, -C, and -V.
+misra-c2012-21.8:sucgi.c:354
+misra-c2012-21.8:sucgi.c:384
+misra-c2012-21.8:sucgi.c:396
+misra-c2012-21.8:sucgi.c:403
 
-// `getenv` cannot be avoided in CGI scripting.
+// `getenv` cannot be avoided when dealing with CGI scripts.
 misra-c2012-21.8:env.c
 
-// `error` must call `exit` to abort the programme.
+// `error` must `exit` the programme.
 misra-c2012-21.8:error.c:62
 
 

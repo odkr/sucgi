@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "max.h"
 #include "str.h"
 #include "types.h"
 #include "userdir.h"
@@ -41,45 +42,37 @@ enum retval
 userdir_resolve(const char *const s, const struct passwd *user,
                 char **user_dir)
 {
-	char *expan;		/* Expanded string. */
-	char *resolved;		/* Resolved path. */
-	int len;		/* Length of expanded string. */
+	/* RATS: ignore; writes to expan are bounded to MAX_FNAME. */
+	static char expan[MAX_FNAME];	/* Expanded string. */
+	char *resolved;			/* Resolved filename. */
+	int len;			/* Length of expanded string. */
 
 	assert(*s != '\0');
-
-	expan = (char *) malloc(PATH_MAX_LEN * sizeof(char *)) ;
-	if (!expan)
-		return ERR_MEM;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 	if (*s != '/')
-		len = snprintf(expan, PATH_MAX_LEN, "%s/%s", user->pw_dir, s);
-	else if (strstr(s, "%s"))
-		/* RATS: ignore; format is controlled by the administrator. */
-		len = snprintf(expan, PATH_MAX_LEN, s, user->pw_name);
+		len = snprintf(expan, MAX_FNAME, "%s/%s", user->pw_dir, s);
+	else if (strstr(s, "%s") == NULL)
+		len = snprintf(expan, MAX_FNAME, "%s/%s", s, user->pw_name);
 	else
-		len = snprintf(expan, PATH_MAX_LEN, "%s/%s", s, user->pw_name);
+		/* RATS: ignore; format is controlled by the administrator. */
+		len = snprintf(expan, MAX_FNAME, s, user->pw_name);
 #pragma GCC diagnostic pop
 
-	if (len < 0) {
-		free(expan);
+	if (len < 0)
 		return ERR_PRN;
-	}
-	if ((size_t) len >= PATH_MAX_LEN) {
-		free(expan);
+	if ((size_t) len >= MAX_FNAME)
 		return ERR_LEN;
-	}
 
 	*user_dir = expan;
 
 	/* RATS: ignore; the length of expan is checked above. */
 	resolved = realpath(expan, NULL);
-	if (!resolved)
+	if (resolved == NULL)
 		return ERR_RES;
 
 	*user_dir = resolved;
-	free(expan);
 
 	return OK;
 }

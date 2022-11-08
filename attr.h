@@ -19,8 +19,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(SYSDEFS_H)
-#define SYSDEFS_H
+#if !defined(ATTR_H)
+#define ATTR_H
 
 #include <limits.h>
 
@@ -30,11 +30,4 @@
 #define __attribute__(attr)
 #endif
 
-/* Size for arrays that hold filenames. */
-#if defined(PATH_MAX) && PATH_MAX > _POSIX_PATH_MAX
-#define PATH_MAX_LEN ((size_t) PATH_MAX)
-#else
-#define PATH_MAX_LEN ((size_t) 4096)
-#endif
-
-#endif /* !defined(SYSDEFS_H) */
+#endif /* !defined(ATTR_H) */

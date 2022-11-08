@@ -60,7 +60,7 @@ groups_get(const char *const logname, const gid_t basegid,
 		groups[0] = basegid;
 
 	setgrent();
-	while ((errno = 0, grp = getgrent())) {
+	while ((errno = 0, grp = getgrent()) != NULL) {
 		const gid_t gid = grp->gr_gid;
 
 		/*

@@ -118,9 +118,9 @@ path_max="$(getconf PATH_MAX "$TMPDIR")"
 [ "$path_max" -lt 0 ] && path_max=255
 
 # Create a path that is as long as the system and suCGI permit.
-if [ "$path_max" -lt 0 ]
-	then max=4096
-	else max="$path_max"
+if [ "$path_max" -lt "$MAX_FNAME" ] && [ "$path_max" -gt -1 ]
+	then max="$path_max"
+	else max="$MAX_FNAME"
 fi
 long_path="$(mklongpath "$doc_root" "$((max - 1))")"
 mkdir -p "$(dirname "$long_path")"
@@ -131,7 +131,7 @@ huge_path="$(mklongpath "$doc_root" "$path_max")"
 dirwalk "$doc_root" "$huge_path" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
 # Create a path that is longer than suCGI permits.
-huge_str="$(mklongpath "$doc_root" "$PATH_MAX_LEN")"
+huge_str="$(mklongpath "$doc_root" "$MAX_FNAME")"
 dirwalk "$doc_root" "$huge_str" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
 # Create a shortcut to the path that is longer than the system permits.
@@ -623,7 +623,7 @@ done
 check -s1 -e"$suffix_none has no filename suffix." \
 	PATH_TRANSLATED="$suffix_none" main
 
-check -s1 -e"no interpreter registered for $suffix_unknown." \
+check -s1 -e"no handler for $suffix_unknown's filename suffix." \
 	PATH_TRANSLATED="$suffix_unknown" main
 
 

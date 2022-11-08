@@ -24,7 +24,7 @@
 
 #include <pwd.h>
 
-#include "sysconf.h"
+#include "attr.h"
 #include "types.h"
 
 

@@ -23,9 +23,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../max.h"
 #include "../str.h"
-#include "../sysconf.h"
-#include "testdefs.h"
 #include "testdefs.h"
 
 
@@ -40,7 +39,7 @@ struct args {
 /* Tests. */
 static const struct args tests[] = {
 	/* Simple test. */
-	{PATH_MAX_LEN - 1U, "foo", "foo", OK},
+	{MAX_FNAME - 1U, "foo", "foo", OK},
 
 	/* Almost out of bounds. */
 	{1, "x", "x", OK},
@@ -52,7 +51,7 @@ static const struct args tests[] = {
 	{0, "foo", "", ERR_LEN},
 
 	/* Empty strings. */
-	{PATH_MAX_LEN - 1U, "", "", OK},
+	{MAX_FNAME - 1U, "", "", OK},
 	{1, "", "", OK},
 	{0, "", "", OK},
 
@@ -65,7 +64,7 @@ int
 main (void) {
 	for (int i = 0; tests[i].src; i++) {
 		struct args t = tests[i];
-		char dest[PATH_MAX_LEN];	/* RATS: ignore */
+		char dest[MAX_FNAME];	/* RATS: ignore */
 		enum retval rc;
 		
 		*dest = '\0';

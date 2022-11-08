@@ -1,5 +1,5 @@
 /*
- * Test script_get_int.
+ * Test script_get_handler.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -24,25 +24,24 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../max.h"
 #include "../script.h"
 #include "../str.h"
-#include "../sysconf.h"
-#include "testdefs.h"
 #include "testdefs.h"
 
 
 /* Test case. */
 struct args {
 	const char *script;
-	const char *inter;
+	const char *handler;
 	const enum retval rc;
 };
 
 /* A string just within limits. */
-static char long_str[PATH_MAX_LEN] = {0};
+static char long_str[MAX_FNAME] = {0};
 
-/* A string that exceeds PATH_MAX_LEN. */
-static char huge_str[PATH_MAX_LEN + 1U] = {0};
+/* A string that exceeds MAX_FNAME. */
+static char huge_str[MAX_FNAME + 1U] = {0};
 
 /* Tests. */
 static const struct args tests[] = {
@@ -77,7 +76,7 @@ static const struct args tests[] = {
 	{NULL, NULL, OK}
 };
 
-/* Script inter database for testing. */
+/* Script handler database for testing. */
 static const struct pair db[] = {
 	{"", "unreachable"},
 	{".", "dot"},
@@ -100,22 +99,22 @@ main (void)
 
 	for (int i = 0; tests[i].script; i++) {
 		const struct args t = tests[i];
-		char inter[PATH_MAX_LEN];	/* RATS: ignore */
-		char script[PATH_MAX_LEN];	/* RATS: ignore */
+		char handler[MAX_FNAME];	/* RATS: ignore */
+		char script[MAX_FNAME];		/* RATS: ignore */
 		enum retval rc;	
 
 		*script = '\0';
-		(void) memset(inter, 0, PATH_MAX_LEN);
+		(void) memset(handler, 0, MAX_FNAME);
 
 		warnx("checking (db, %s, -> %s) -> %u ...",
-		      t.script, t.inter, t.rc);
+		      t.script, t.handler, t.rc);
 
-		rc = script_get_int(db, t.script, inter);
+		rc = script_get_handler(db, t.script, handler);
 
 		if (t.rc != rc)
 			errx(T_FAIL, "returned %u", rc);
-		if (t.inter && strcmp(t.inter, inter) != 0)
-			errx(T_FAIL, "got interpreter %s", inter);
+		if (t.handler && strcmp(t.handler, handler) != 0)
+			errx(T_FAIL, "got handler %s", handler);
 	}
 
 	warnx("all tests passed");

@@ -1,5 +1,5 @@
 /*
- * Header for error.c.
+ * Limits for suCGI.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -19,14 +19,26 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(ERROR_H)
-#define ERROR_H
+#if !defined(MAX_H)
+#define MAX_H
 
-#include "attr.h"
-
-/* Log MESSAGE as an error and exit with status EXIT_FAILURE. */
-__attribute__((nonnull(1), noreturn))
-void error(const char *const message, ...);
+#include <limits.h>
 
 
-#endif /* !defined(ERROR_H) */
+/* Maximum size for filenames. */
+#if defined(PATH_MAX) && PATH_MAX > _POSIX_PATH_MAX
+#define MAX_FNAME ((size_t) PATH_MAX)
+#else
+#define MAX_FNAME ((size_t) 4096)
+#endif
+
+/* Maximum number of groups a user may be a member of. */
+#define MAX_NGROUPS 4096
+
+/* Maximum number of environment variables. */
+#define MAX_NVARS 256U
+
+/* Maximum length of an environment variable name. */
+#define MAX_VARNAME 64U
+
+#endif /* !defined(MAX_H) */

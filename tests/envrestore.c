@@ -26,18 +26,14 @@
 #include <string.h>
 
 #include "../env.h"
+#include "../max.h"
 #include "../str.h"
-#include "../sysconf.h"
-#include "testdefs.h"
 #include "testdefs.h"
 
 
 /*
  * Constants
  */
-
-/* Maximum number of environment variables. */
-#define MAX_NVARS 256U
 
 /* Shorthand for an empty list. */
 #define EMPTY {NULL}
@@ -55,7 +51,7 @@ struct args {
 	char *env[MAX_NVARS];			/* RATS: ignore */
 	const char *patterns[MAX_NVARS];	/* RATS: ignore */
 	const char *clean[MAX_NVARS];		/* RATS: ignore */
-	const char name[PATH_MAX_LEN];		/* RATS: ignore */
+	const char name[MAX_FNAME];		/* RATS: ignore */
 	const enum retval rc;
 };
 
@@ -64,11 +60,11 @@ struct args {
  * Globals
  */
 
-/* String that is as long as PATH_MAX_LEN. */
-static char long_var[PATH_MAX_LEN] = {0};
+/* String that is as long as MAX_FNAME. */
+static char long_var[MAX_FNAME] = {0};
 
-/* String that is longer than PATH_MAX_LEN. */
-static char huge_var[PATH_MAX_LEN + 1U] = {0};
+/* String that is longer than MAX_FNAME. */
+static char huge_var[MAX_FNAME + 1U] = {0};
 
 /* Tests. */
 struct args tests[] = {
@@ -135,28 +131,28 @@ env_init(char *const vars[MAX_NVARS])
 
 int
 main (void) {
-	(void) memset((void *) long_var, 'x', PATH_MAX_LEN - 1U);
+	(void) memset((void *) long_var, 'x', MAX_FNAME - 1U);
 	(void) str_cp(4, "foo=", long_var);
-	(void) memset((void *) huge_var, 'x', PATH_MAX_LEN);
+	(void) memset((void *) huge_var, 'x', MAX_FNAME);
 
 	for (int i = 0; tests[i].env[0]; i++) {
 		const struct args t = tests[i];
 		const char *vars[MAX_NVARS];		/* RATS: ignore */
-		char name[PATH_MAX_LEN];			/* RATS: ignore */
+		char name[MAX_VARNAME];			/* RATS: ignore */
 		enum retval rc;
 
 		warnx("performing test # %d ...", i + 1);
 
 		if (env_init(t.env) != OK)
 			errx(T_FAIL, "env_init failed");
-		if (env_clear(MAX_NVARS, vars) != OK)
+		if (env_clear(vars) != OK)
 			errx(T_FAIL, "env_clear failed");
 
 		rc = env_restore(vars, t.patterns, name);
 
 		if (rc != t.rc)
 			errx(T_FAIL, "returned %u, not %u", rc, t.rc);
-		if (*t.name != '\0' && strncmp(t.name, name, PATH_MAX_LEN) != 0)
+		if (*t.name != '\0' && strncmp(t.name, name, MAX_FNAME) != 0)
 			errx(T_FAIL, "returned variable name %s", name);
 
 		for (int j = 0; t.clean[j]; j++) {
@@ -164,7 +160,7 @@ main (void) {
 			const char *val;
 			char *exp;
 
-			if (str_split(PATH_MAX_LEN, var, "=", name, &exp) != OK)
+			if (str_split(MAX_VARNAME, var, "=", name, &exp) != OK)
 				errx(T_ERR, "str_split %s failed", var);
 
 			/* RATS: ignore */

@@ -31,7 +31,6 @@
 #include "../file.h"
 #include "../str.h"
 #include "testdefs.h"
-#include "testdefs.h"
 
 
 int

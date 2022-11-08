@@ -38,73 +38,61 @@
 #include <unistd.h>
 
 #include "file.h"
+#include "max.h"
 #include "path.h"
 #include "str.h"
-#include "sysconf.h"
 #include "types.h"
-
 
 enum retval
 path_check_wexcl(const uid_t uid, const char *const fname,
-                 const char *const parent, char cur[PATH_MAX_LEN])
+                 const char *const parent, char cur[MAX_FNAME])
 {
 	const char *pos;	/* Current position in filename. */
 
 	assert(*parent != '\0');
 	assert(*fname != '\0');
-	assert(strnlen(parent, PATH_MAX_LEN) < PATH_MAX_LEN);
-	assert(strnlen(fname, PATH_MAX_LEN) < PATH_MAX_LEN);
+	assert(strnlen(parent, MAX_FNAME) < MAX_FNAME);
+	assert(strnlen(fname, MAX_FNAME) < MAX_FNAME);
 	/* RATS: ignore; not a permission check. */
 	assert(access(parent, F_OK) == 0);
 	/* RATS: ignore; not a permission check. */
 	assert(access(fname, F_OK) == 0);
 	/* RATS: ignore; the length of parent is checked above. */
-	assert(strncmp(realpath(parent, NULL), parent, PATH_MAX_LEN) == 0);
+	assert(strncmp(realpath(parent, NULL), parent, MAX_FNAME) == 0);
 	/* RATS: ignore; the length of fname is checked avove. */
-	assert(strncmp(realpath(fname, NULL), fname, PATH_MAX_LEN) == 0);
+	assert(strncmp(realpath(fname, NULL), fname, MAX_FNAME) == 0);
 	assert(path_is_subdir(fname, parent));
 
-
-	/*
-	 * Start parsing after the parent-directory portion,
-	 * unless the parent directory is the root directory.
-	 */
-	pos = fname;
-	if (strncmp(parent, "/", 2) == 0) {
-		++pos;
-	} else {
-		/* RATS: ignore; parent should be NUL-terminated. */
-		pos += strlen(parent);
-		pos += strcspn(pos, "/");
-	}
-
+	/* RATS: ignore; parent should be NUL-terminated. */
+	pos = fname + strlen(parent);
 	do {
-		struct stat buf;	/* Current file's status. */
+		struct stat fstatus;	/* Current file's status. */
 		int fd;			/* Current file. */
-		int err;		/* stat err. */
+		int err;		/* stat error. */
 		enum retval rc;		/* file_sopen return code. */
 
 		(void) str_cp((size_t) (pos - fname), fname, cur);
-
 
 		rc = file_sopen(cur, O_RDONLY, &fd);
 		if (rc != OK)
 			return rc;
 
 		errno = 0;
-		err = fstat(fd, &buf);
+		err = fstat(fd, &fstatus);
 		
 		if (close(fd) != 0)
 			return ERR_CLOSE;
 		if (err != 0)
 			return ERR_STAT;
-		if (!file_is_wexcl(uid, buf))
+		if (!file_is_wexcl(uid, fstatus))
 			return FAIL;
 
-		/* Move forward to the start of the next path segment. */
+		/* Move past the current path separator ... */
 		pos += strspn(pos, "/");
 		if (!*pos)
 			break;
+
+		/* ... and to the next one/the end of fname. */
 		pos += strcspn(pos, "/");
 	} while (true);
 
@@ -118,22 +106,15 @@ path_is_subdir(const char *const fname, const char *const parent)
 
 	assert(*parent != '\0');
 	assert(*fname != '\0');
-	assert(strnlen(parent, PATH_MAX_LEN) < PATH_MAX_LEN);
-	assert(strnlen(fname, PATH_MAX_LEN) < PATH_MAX_LEN);
+	assert(strnlen(parent, MAX_FNAME) < MAX_FNAME);
+	assert(strnlen(fname, MAX_FNAME) < MAX_FNAME);
 
-	/* The root directory cannot be contained by any path. */
 	if (strncmp(fname, "/", 2) == 0)
 		return false;
-
-	/* The root directory contains any other absolute path. */
 	if (strncmp(parent, "/", 2) == 0 && *fname == '/')
 		return true;
-
-	/* By fiat, the working directory cannot be contained by any path. */
 	if (strncmp(fname, ".", 2) == 0)
 		return false;
-
-	/* The working directory contains any relative path. */
 	if (strncmp(parent, ".", 2) == 0 && *fname != '/')
 		return true;
 

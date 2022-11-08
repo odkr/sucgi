@@ -57,7 +57,7 @@ file_is_exe(const struct stat fstatus)
 		return (perm & S_IXUSR) != 0;
 	if (fstatus.st_gid == getegid())
 		return (perm & S_IXGRP) != 0;
-	return perm & S_IXOTH;
+	return (perm & S_IXOTH) != 0;
 }
 
 

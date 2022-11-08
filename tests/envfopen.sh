@@ -41,7 +41,7 @@ tmpdir chk
 #
 
 # Load the build configuration
-eval "$(main -C | grep -E '^PATH_MAX_LEN=')"
+eval "$(main -C | grep -E '^MAX_FNAME=')"
 
 # Create the jail.
 readonly jail="$TMPDIR/jail"
@@ -52,9 +52,9 @@ path_max="$(getconf PATH_MAX "$jail")"
 [ "$path_max" -lt 0 ] && path_max=255
 
 # Create a path that is as long as the system and suCGI permit.
-if [ "$path_max" -lt 0 ]
-	then max="$PATH_MAX_LEN"
-	else max="$path_max"
+if [ "$path_max" -lt "$MAX_FNAME" ] && [ "$path_max" -gt -1 ]
+	then max="$path_max"
+	else max="$MAX_FNAME"
 fi
 long_path="$(mklongpath "$jail" "$((max - 1))")"
 mkdir -p "$(dirname "$long_path")"
@@ -66,7 +66,7 @@ huge_path="$(mklongpath "$jail" "$path_max")"
 dirwalk "$jail" "$huge_path" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
 # Create a path that is longer than suCGI permits.
-huge_str="$(mklongpath "$jail" "$PATH_MAX_LEN")"
+huge_str="$(mklongpath "$jail" "$MAX_FNAME")"
 # shellcheck disable=2016
 dirwalk "$jail" "$huge_str" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
@@ -111,8 +111,8 @@ check -s134 -e'*jail' \
 check -s134 -e'*var' \
 	var="$jail/file" envfopen "$jail" "" f
 
-# Path to jail directory is longer than PATH_MAX_LEN.
-check -s134 -e'strnlen(jail, PATH_MAX_LEN) < PATH_MAX_LEN' \
+# Path to jail directory is longer than .
+check -s134 -e'strnlen(jail, MAX_FNAME) < MAX_FNAME' \
 	var="$jail" envfopen "$huge_str" var f
 
 # Jail directory does not exist.
@@ -120,7 +120,7 @@ check -s134 -e'access(jail, F_OK) == 0' \
 	var="<no file!>/foo" envfopen '<no file!>' var f
 
 # Path to jail directory is not canonical.
-check -s134 -e'strncmp(jail, realpath(jail, NULL), PATH_MAX_LEN) == 0' \
+check -s134 -e'strncmp(jail, realpath(jail, NULL), MAX_FNAME) == 0' \
 	var="$jail/foo" envfopen "$in_link" var f
 
 # shellcheck disable=2016

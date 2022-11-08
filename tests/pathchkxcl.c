@@ -26,15 +26,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "../max.h"
 #include "../path.h"
-#include "../sysconf.h"
 
 
 int
 main (int argc, char **argv)
 {
 	/* RATS: ignore */
-	char cur[PATH_MAX_LEN];	/* Current directory. */
+	char cur[MAX_FNAME];	/* Current directory. */
 	struct passwd *pwd;	/* User. */
 	enum retval rc;		/* Return code. */
 

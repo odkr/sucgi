@@ -26,7 +26,6 @@
 
 #include "../path.h"
 #include "testdefs.h"
-#include "testdefs.h"
 
 
 /* Test case. */

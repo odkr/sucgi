@@ -24,9 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "../max.h"
 #include "../str.h"
-#include "../sysconf.h"
-#include "testdefs.h"
 #include "testdefs.h"
 
 
@@ -40,13 +39,13 @@ struct args {
 };
 
 /* A string just within limits. */
-static char long_str[PATH_MAX_LEN] = {0};
+static char long_str[MAX_FNAME] = {0};
 
-/* A string w/o a delimiter that exceeds PATH_MAX_LEN. */
-static char huge_str[PATH_MAX_LEN + 1U] = {0};
+/* A string w/o a delimiter that exceeds MAX_FNAME. */
+static char huge_str[MAX_FNAME + 1U] = {0};
 
-/* A pair w/ a head that exceeds PATH_MAX_LEN. */
-static char huge_head[PATH_MAX_LEN + 32U] = {0};
+/* A pair w/ a head that exceeds MAX_FNAME. */
+static char huge_head[MAX_FNAME + 32U] = {0};
 
 /* Tests. */
 static const struct args tests[] = {
@@ -86,11 +85,11 @@ main(void)
 	(void) memset(huge_str, 'x', sizeof(huge_str) - 1);
 	(void) memset(huge_head, 'x', sizeof(huge_head) - 1);
 	/* RATS: ignore; there is enough space for NUL-termination. */
-	(void) strncpy(&huge_head[PATH_MAX_LEN], ",foo", 5);
+	(void) strncpy(&huge_head[MAX_FNAME], ",foo", 5);
 
 	for (int i = 0; tests[i].s; i++) {
 		const struct args t = tests[i];
-		char head[PATH_MAX_LEN];	/* RATS: ignore */
+		char head[MAX_FNAME];	/* RATS: ignore */
 		char *tail;
 		enum retval rc;
 
@@ -99,7 +98,7 @@ main(void)
 		warnx("checking (%s, %s, -> %s, -> %s) -> %u ...",
 		      t.s, t.sep, t.head, t.tail, t.rc);
 
-		rc = str_split(PATH_MAX_LEN, t.s, t.sep, head, &tail);
+		rc = str_split(MAX_FNAME, t.s, t.sep, head, &tail);
 
 		if (rc != t.rc)
 			errx(T_FAIL, "returned %u", rc);

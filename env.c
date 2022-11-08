@@ -38,9 +38,9 @@
 
 #include "env.h"
 #include "file.h"
+#include "max.h"
 #include "path.h"
 #include "str.h"
-#include "sysconf.h"
 #include "types.h"
 
 
@@ -58,7 +58,7 @@
  */
 
 enum retval
-env_clear(size_t max, const char *vars[max])
+env_clear(const char *vars[MAX_NVARS])
 {
 	static char *var;	/* First environment variable. */
 	char **env;		/* Copy of the environ pointer. */
@@ -70,7 +70,7 @@ env_clear(size_t max, const char *vars[max])
 	if (!vars)
 		return OK;
 
-	for (size_t n = 0; n < max; ++n) {
+	for (size_t n = 0; n < MAX_NVARS; ++n) {
 		vars[n] = env[n];
 		if (!env[n])
 			return OK;
@@ -83,17 +83,19 @@ enum retval
 env_fopen(const char *const jail, const char *const var,
 	  const int flags, char **const fname, int *const fd)
 {
-	const char *value;	/* Unchecked variable value. */
-	char *resolved;		/* Resolved filename. */
-	enum retval rc;		/* Return code. */
+	/* RATS: ignore; writes to unresolved are bounded to MAX_FNAME. */
+	static char unresolved[MAX_FNAME];	/* Unresolved filename. */
+	char *resolved;				/* Resolved filename. */
+	const char *value;			/* Variable value. */
+	enum retval rc;				/* Return code. */
 
 	assert(*jail != '\0');
 	assert(*var != '\0');
-	assert(strnlen(jail, PATH_MAX_LEN) < PATH_MAX_LEN);
+	assert(strnlen(jail, MAX_FNAME) < MAX_FNAME);
 	/* RATS: ignore; not a permission check. */
 	assert(access(jail, F_OK) == 0);
 	/* RATS: ignore; length of jail is checked above. */
-	assert(strncmp(jail, realpath(jail, NULL), PATH_MAX_LEN) == 0);
+	assert(strncmp(jail, realpath(jail, NULL), MAX_FNAME) == 0);
 	assert(fname);
 	assert(fd);
 
@@ -110,25 +112,20 @@ env_fopen(const char *const jail, const char *const var,
 			return ERR_ENV;
 	}
 
-	errno = 0;
-	*fname = (char *) calloc(PATH_MAX_LEN, sizeof(**fname));
-	if (!*fname)
-		return ERR_MEM;
-
-	rc = str_cp(PATH_MAX_LEN - 1U, value, *fname);
+	rc = str_cp(MAX_FNAME - 1U, value, unresolved);
 	if (rc != OK)
 		return rc;
-	
+	*fname = unresolved;
+
 	errno = 0;
 	/* RATS: ignore; length of fname is checked above. */
 	resolved = realpath(*fname, NULL);
-	if (!resolved)
+	if (resolved == NULL)
 		return ERR_RES;
 	
-	free(*fname);
 	*fname = resolved;
 
-	if (strnlen(*fname, PATH_MAX_LEN) >= PATH_MAX_LEN)
+	if (strnlen(*fname, MAX_FNAME) >= MAX_FNAME)
 		return ERR_LEN;
 	if (!path_is_subdir(*fname, jail))
 		return ERR_ILL;
@@ -145,14 +142,16 @@ env_is_name(const char *const name)
 
 enum retval
 env_restore(const char **vars, const char *const *patterns,
-            char name[ENV_MAX_NAME])
+            char name[MAX_VARNAME])
 {
 	assert(*vars);
+
+	(void) memset(name, '\0', MAX_VARNAME);
 
 	for (const char **var = vars; *var; ++var) {
 		char *value;
 
-		if (str_split(ENV_MAX_NAME, *var, "=", name, &value) != OK)
+		if (str_split(MAX_VARNAME, *var, "=", name, &value) != OK)
 			return ERR_CNV;
 		if (!value || *name == '\0')
 			return ERR_CNV;
@@ -165,7 +164,7 @@ env_restore(const char **vars, const char *const *patterns,
 				 */
 				if (!env_is_name(name))
 					return ERR_ILL;
-				if (strnlen(value, PATH_MAX_LEN) >= PATH_MAX_LEN)
+				if (strnlen(value, MAX_FNAME) >= MAX_FNAME)
 					return ERR_LEN;
 
 				errno = 0;

@@ -40,8 +40,8 @@ objs = 	lib.a(env.o)  lib.a(error.o) lib.a(file.o)   lib.a(groups.o)	\
 # Headers
 #
 
-def_hdrs = sysconf.h types.h
-test_hdrs = sysconf.h types.h tests/testdefs.h
+def_hdrs = max.h attr.h types.h
+test_hdrs = $(def_hdrs) tests/testdefs.h
 
 
 #

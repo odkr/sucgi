@@ -24,14 +24,15 @@
 
 #include <stdbool.h>
 
-#include "sysconf.h"
+#include "attr.h"
+#include "max.h"
 #include "types.h"
 
 
 /*
  * Check if the user with ID UID has exclusive write access to the file
- * named FNAME and each parent directory of FNAME up to PARENT and store
- * a copy of the last path checked in CUR.
+ * named FNAME and each parent directory of FNAME up to, and including,
+ * PARENT and store a copy of the last path checked in CUR.
  *
  * PARENT and FNAME must be sanitised and canonical.
  *
@@ -48,7 +49,7 @@
  */
 __attribute__((nonnull(2, 3, 4), warn_unused_result))
 enum retval path_check_wexcl(const uid_t uid, const char *const fname,
-                             const char *const parent, char cur[PATH_MAX_LEN]);
+                             const char *const parent, char cur[MAX_FNAME]);
 
 /*
  * Check if FNAME is a sub-directory of PARENT.

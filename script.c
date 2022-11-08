@@ -30,18 +30,18 @@
 #include <libgen.h>
 #include <string.h>
 
+#include "max.h"
 #include "script.h"
 #include "str.h"
-#include "sysconf.h"
 #include "types.h"
 
 
 enum retval
-script_get_int(const struct pair db[], const char *const script,
-               char inter[PATH_MAX_LEN])
+script_get_handler(const struct pair db[], const char *const script,
+                   char handler[MAX_FNAME])
 {
 	/* RATS: ignore; writes to path are bounds-checked. */
-	char path[PATH_MAX_LEN];	/* Copy of script for basename(3). */
+	char path[MAX_FNAME];		/* Copy of script for basename(3). */
 	const char *fname;		/* Filename portion of scpt. */
 	const char *suffix;		/* Filename suffix. */
 	enum retval rc;			/* Return code. */
@@ -49,7 +49,7 @@ script_get_int(const struct pair db[], const char *const script,
 	assert(*script != '\0');
 
 	/* basename may alter the path it is given. */
-	rc = str_cp(PATH_MAX_LEN - 1U, script, path);
+	rc = str_cp(MAX_FNAME - 1U, script, path);
 	if (rc != OK)
 		return rc;
 	fname = basename(path);
@@ -61,11 +61,11 @@ script_get_int(const struct pair db[], const char *const script,
 	for (int i = 0; db[i].key; i++) {
 		const struct pair ent = db[i];
 
-		if (strncmp(suffix, ent.key, PATH_MAX_LEN) == 0) {
+		if (strncmp(suffix, ent.key, MAX_FNAME) == 0) {
 			if (!ent.value || *ent.value == '\0')
 				return FAIL;
 
-			return str_cp(PATH_MAX_LEN - 1U, ent.value, inter);
+			return str_cp(MAX_FNAME - 1U, ent.value, handler);
 		}
 	}
 

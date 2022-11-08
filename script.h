@@ -22,8 +22,9 @@
 #if !defined(SCRIPT_H)
 #define SCRIPT_H
 
+#include "attr.h"
+#include "max.h"
 #include "str.h"
-#include "sysconf.h"
 #include "types.h"
 
 
@@ -32,8 +33,8 @@
  */
 
 /*
- * Find a script interpreter matching the filename suffix of SCRIPT in the
- * array of filename suffix-interpreter pairs DB and store it in INTER.
+ * Find a script handler matching the filename suffix of SCRIPT in the
+ * array of filename suffix-handler pairs DB and store it in HANDLER.
  *
  * Return value:
  *      OK        Success.
@@ -42,8 +43,8 @@
  *      FAIL      No handler has been registered for FNAME's suffix.
  */
 __attribute__((nonnull(1, 2, 3), pure, warn_unused_result))
-enum retval script_get_int(const struct pair db[], const char *const script,
-                           char inter[PATH_MAX_LEN]);
+enum retval script_get_handler(const struct pair db[], const char *const script,
+                               char handler[MAX_FNAME]);
 
 
 #endif /* !defined(SCRIPT_H) */
