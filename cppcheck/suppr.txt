@@ -7,7 +7,7 @@ misra-c2012-8.2:env.h:61
 misra-c2012-8.2:priv.h:45
 misra-c2012-8.2:str.h:40
 misra-c2012-8.2:str.h:58
-misra-c2012-22.10:env.c:109
+misra-c2012-22.10:env.c:103
 misra-c2012-22.10:sucgi.c:625
 
 // Rules I follow but which should not be checked by Cppcheck:
@@ -22,7 +22,7 @@ misra-c2012-15.5	// Most functions perform no cleanup.
 misra-c2012-15.6	// Violates K & R-style, noisy.
 
 // `env_is_name` must be public for the test suite.
-misra-c2012-8.7:env.c:137
+misra-c2012-8.7:env.c:129
 
 // `sec_vars` is, effectively, a configuration value.
 // Placing it on top makes it easier to find.
@@ -99,5 +99,5 @@ strtokCalled
 // Don't worry about missing include files.
 missingIncludeSystem
 
-// _file_sec_open_posix is used, but only on some systems.
-unusedFunction:file.c:117
+// file_sec_open__posix__ is used, but only on some systems.
+unusedFunction:file.c:119
