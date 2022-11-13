@@ -64,7 +64,7 @@ enum retval env_clear(const char *vars[MAX_NVARS]);
  *
  * FNAME is allocated enough memory to hold the canonicalised filename and
  * should be freed by the caller. It also contains the last filename passed
- * to file-related system calls and can be used in error messages. 
+ * to file-related system calls and can be used in error messages.
  *
  * FD is closed on exit.
  *
