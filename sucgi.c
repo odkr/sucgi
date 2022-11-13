@@ -58,7 +58,7 @@
  * Configuration for test builds
  */
 
-#if !defined(NDEBUG) && defined(TESTING) && TESTING
+#if defined(TESTING) && TESTING
 
 #undef JAIL_DIR
 #define JAIL_DIR "/"
@@ -81,7 +81,7 @@
 #undef HANDLERS
 #define HANDLERS {{".sh", "sh"}, {NULL, NULL}}
 
-#endif /* !defined(NDEBUG) && defined(TESTING) && TESTING */
+#endif /* defined(TESTING) && TESTING */
 
 
 /*
