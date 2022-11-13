@@ -70,10 +70,14 @@
  *
  * FD is closed on exit.
  *
+ * Use the file_sec_open macro to call the appropriate implementation.
+ *
  * Return value:
- *      OK        Success.
- *      ERR_CNV*  File descriptor is too large (Linux only).
- *      ERR_OPEN  open(2)/openat2(2) failed.
+ *      OK         Success.
+ *      ERR_CNV*   File descriptor is too large (Linux only).
+ *      ERR_LEN    The filename is longer than MAX_FNAME - 1 bytes.
+ *      ERR_OPEN   FNAME could not be opened.
+ *      ERR_CLOSE  A directory file descriptor could not be closed.
  *
  *      Errors marked with an asterisk should be impossible.
  */
