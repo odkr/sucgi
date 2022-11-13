@@ -68,7 +68,8 @@
 #if HAVE_OPENAT2
 
 enum retval
-_file_sec_open_linux(const char *const fname, const int flags, int *const fd)
+file_sec_open__linux__(const char *const fname, const int flags,
+                       int *const fd)
 {
 	struct open_how how;	/* Flags to openat2(2). */
 	long rc;		/* Return code. */
@@ -97,7 +98,8 @@ _file_sec_open_linux(const char *const fname, const int flags, int *const fd)
 #elif HAVE_NOFOLLOW_ANY /* ... && !HAVE_OPENAT2 */
 
 enum retval
-_file_sec_open_macos(const char *const fname, const int flags, int *const fd)
+file_sec_open__macos__(const char *const fname, const int flags,
+                       int *const fd)
 {
 	assert(*fname != '\0');
 
@@ -112,9 +114,10 @@ _file_sec_open_macos(const char *const fname, const int flags, int *const fd)
 
 #endif
 
-/* POSIX.1-2018 implementation of file_sec_open */
+/* POSIX.1-2008 implementation of file_sec_open */
 enum retval
-_file_sec_open_posix(const char *const fname, const int flags, int *const fd)
+file_sec_open__posix__(const char *const fname, const int flags,
+                       int *const fd)
 {
 	/* RATS: ignore; writes to tokens respect MAX_FNAME. */
 	char tokens[MAX_FNAME];		/* Copy of fname for strtok. */
@@ -206,7 +209,9 @@ file_is_wexcl(const uid_t uid, const struct stat fstatus)
 
 void file_vclose(int fd)
 {
-	int err = errno;
+	int err;				/* Backup of errno. */
+	
+	err = errno;
 	(void) close(fd);
 	errno = err;
 }

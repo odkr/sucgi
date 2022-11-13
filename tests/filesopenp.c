@@ -1,5 +1,5 @@
 /*
- * Test _file_sec_open_posix.
+ * Test file_sec_open_posix_.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -59,7 +59,7 @@ main (int argc, char **argv)
 	else
 		errx(EXIT_FAILURE, "filetype must be 'f' or 'd'.");
 
-	rc = _file_sec_open_posix(fname, flags, &fd);
+	rc = file_sec_open__posix__(fname, flags, &fd);
 	switch (rc) {
 	case OK:
 		break;

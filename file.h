@@ -48,15 +48,15 @@
 #if defined(__NR_openat2)
 #define HAVE_OPENAT2 1
 #define HAVE_NOFOLLOW_ANY 0
-#define file_sec_open _file_sec_open_linux
+#define file_sec_open file_sec_open__linux__
 #elif defined(O_NOFOLLOW_ANY)
 #define HAVE_OPENAT2 0
 #define HAVE_NOFOLLOW_ANY 1
-#define file_sec_open _file_sec_open_macos
+#define file_sec_open file_sec_open__macos__
 #else
 #define HAVE_OPENAT2 0
 #define HAVE_NOFOLLOW_ANY 0
-#define file_sec_open _file_sec_open_posix
+#define file_sec_open file_sec_open__posix__
 #endif
 
 
@@ -78,16 +78,16 @@
  *      Errors marked with an asterisk should be impossible.
  */
 __attribute__((nonnull(1, 3), warn_unused_result))
-enum retval _file_sec_open_linux(const char *const fname, const int flags,
-                                 int *const fd);
+enum retval file_sec_open__linux__(const char *const fname, const int flags,
+                                   int *const fd);
 
 __attribute__((nonnull(1, 3), warn_unused_result))
-enum retval _file_sec_open_macos(const char *const fname, const int flags,
-                                 int *const fd);
+enum retval file_sec_open__macos__(const char *const fname, const int flags,
+                                   int *const fd);
 
 __attribute__((nonnull(1, 3), warn_unused_result))
-enum retval _file_sec_open_posix(const char *const fname, const int flags,
-                                 int *const fd);
+enum retval file_sec_open__posix__(const char *const fname, const int flags,
+                                   int *const fd);
 
 
 /*
