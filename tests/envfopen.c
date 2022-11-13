@@ -1,5 +1,5 @@
 /*
- * Test env_fopen.
+ * Test env_file_open.
  *
  * Copyright 2022 Odin Kroeger
  *
@@ -37,7 +37,7 @@ main (int argc, char **argv)
 	char buf[BUFSIZ];	/* Buffer. */
 	char *jail;		/* Jail directory. */
 	char *var;		/* Variable name. */
-	char *fname;		/* Filename. */
+	const char *fname;		/* Filename. */
 	int flags;		/* Open flags. */
 	int fd;			/* File descriptor. */
 	ssize_t n;		/* Bytes read. */
@@ -59,7 +59,7 @@ main (int argc, char **argv)
 	else
 		errx(EXIT_FAILURE, "filetype must be 'f' or 'd'.");
 
-	rc = env_fopen(jail, var, flags, &fname, &fd);
+	rc = env_file_open(jail, var, flags, &fname, &fd);
 	switch (rc) {
 	case OK:
 		break;

@@ -528,10 +528,10 @@ main(int argc, char **argv) {
 	 * Get the document root.
 	 */
 
-	char *doc_root;			/* Document root. */
+	const char *doc_root;		/* Document root. */
 	int doc_fd;			/* -- " -- file descriptor. */
 
-	rc = env_fopen(jail_dir, "DOCUMENT_ROOT", O_RDONLY | O_DIRECTORY,
+	rc = env_file_open(jail_dir, "DOCUMENT_ROOT", O_RDONLY | O_DIRECTORY,
 	               &doc_root, &doc_fd);
 	switch (rc) {
 	case OK:
@@ -550,7 +550,7 @@ main(int argc, char **argv) {
 		error("$DOCUMENT_ROOT unset or empty.");
 	default:
 		/* Should be unreachable. */
-		error("%d: env_fopen returned %u.", __LINE__, rc);
+		error("%d: env_file_open returned %u.", __LINE__, rc);
 	}
 
 	assert(doc_root);
@@ -571,11 +571,11 @@ main(int argc, char **argv) {
 	 * Get the script.
 	 */
 
-	char *script;			/* Path to script. */
+	const char *script;		/* Path to script. */
 	int script_fd;			/* Script file descriptor. */
 	struct stat script_stat;	/* -- " -- filesystem metadata. */
 
-	rc = env_fopen(doc_root, "PATH_TRANSLATED", O_RDONLY,
+	rc = env_file_open(doc_root, "PATH_TRANSLATED", O_RDONLY,
 	               &script, &script_fd);
    	switch (rc) {
 	case OK:
@@ -594,7 +594,7 @@ main(int argc, char **argv) {
 		error("$PATH_TRANSLATED unset or empty.");
 	default:
 		/* Should be unreachable. */
-		error("%d: env_fopen returned %u.", __LINE__, rc);
+		error("%d: env_file_open returned %u.", __LINE__, rc);
    	}
 
 	assert(script);

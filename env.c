@@ -80,14 +80,11 @@ env_clear(const char *vars[MAX_NVARS])
 }
 
 enum retval
-env_fopen(const char *const jail, const char *const var,
-	  const int flags, char **const fname, int *const fd)
+env_file_open(const char *const jail, const char *const var, const int flags,
+              const char **const fname, int *const fd)
 {
-	/* RATS: ignore; writes to unresolved are bounded to MAX_FNAME. */
-	static char unresolved[MAX_FNAME];	/* Unresolved filename. */
-	char *resolved;				/* Resolved filename. */
+	const char *resolved;			/* Resolved filename. */
 	const char *value;			/* Variable value. */
-	enum retval rc;				/* Return code. */
 
 	assert(*jail != '\0');
 	assert(*var != '\0');
@@ -96,10 +93,7 @@ env_fopen(const char *const jail, const char *const var,
 	assert(access(jail, F_OK) == 0);
 	/* RATS: ignore; length of jail is checked above. */
 	assert(strncmp(jail, realpath(jail, NULL), MAX_FNAME) == 0);
-	assert(fname);
-	assert(fd);
 
-	errno = 0;
 	*fname = NULL;
 
 	errno = 0;
@@ -112,25 +106,23 @@ env_fopen(const char *const jail, const char *const var,
 			return ERR_ENV;
 	}
 
-	rc = str_cp(MAX_FNAME - 1U, value, unresolved);
-	if (rc != OK)
-		return rc;
-	*fname = unresolved;
+	if (strnlen(value, MAX_FNAME) >= MAX_FNAME)
+		return ERR_LEN;
+	*fname = value;
 
 	errno = 0;
-	/* RATS: ignore; length of fname is checked above. */
-	resolved = realpath(*fname, NULL);
+	/* RATS: ignore; length of value is checked above. */
+	resolved = realpath(value, NULL);
 	if (resolved == NULL)
 		return ERR_RES;
-	
+	if (strnlen(resolved, MAX_FNAME) >= MAX_FNAME)
+		return ERR_LEN;
 	*fname = resolved;
 
-	if (strnlen(*fname, MAX_FNAME) >= MAX_FNAME)
-		return ERR_LEN;
-	if (!path_is_subdir(*fname, jail))
+	if (!path_is_subdir(resolved, jail))
 		return ERR_ILL;
 	
-	return file_sec_open(*fname, flags, fd);
+	return file_sec_open(resolved, flags, fd);
 }
 
 bool

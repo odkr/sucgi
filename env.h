@@ -68,10 +68,6 @@ enum retval env_clear(const char *vars[MAX_NVARS]);
  *
  * FD is closed on exit.
  *
- * Caveats:
- * 	The address that FNAME points to if an error occurs is static.
- *      Its content is updated on every invocation of env_fopen.
- *
  * Return value:
  *     OK        Success.
  *     ERR_CNV*  A file descriptor is too large (Linux only).
@@ -85,8 +81,9 @@ enum retval env_clear(const char *vars[MAX_NVARS]);
  *     Errors marked with an asterisk should be impossible.
  */
 __attribute__((nonnull(1, 2, 4, 5), warn_unused_result))
-enum retval env_fopen(const char *const jail, const char *const var,
-                      const int flags, char **const fname, int *const fd);
+enum retval env_file_open(const char *const jail, const char *const var,
+                          const int flags, const char **const fname,
+                          int *const fd);
 
 
 /*
