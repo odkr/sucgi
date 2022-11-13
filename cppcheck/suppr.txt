@@ -87,13 +87,17 @@ misra-c2012-21.8:error.c:62
 //
 
 // False positives.
-unusedStructMember:types.h:27
-unusedStructMember:types.h:28
+unusedStructMember:types.h:48
+unusedStructMember:types.h:49
 
 // suCGI neither handles signals nor does it have multiple threads,
 // so there is no need to use reentrant functions.
 getpwuidCalled
 getgrentCalled
+strtokCalled
 
 // Don't worry about missing include files.
 missingIncludeSystem
+
+// _file_sec_open_posix is used, but only on some systems.
+unusedFunction:file.c:117

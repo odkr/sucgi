@@ -130,7 +130,7 @@ env_fopen(const char *const jail, const char *const var,
 	if (!path_is_subdir(*fname, jail))
 		return ERR_ILL;
 	
-	return file_sopen(*fname, flags, fd);
+	return file_sec_open(*fname, flags, fd);
 }
 
 bool

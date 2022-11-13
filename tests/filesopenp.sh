@@ -45,28 +45,14 @@ echo $$ >"$file"
 symlink="$TMPDIR/symlink"
 ln -s "$TMPDIR" "$symlink"
 
-tmpfile="$TMPDIR/filesopen.err"
-
 
 #
 # Main
 #
 
-check -s0 -o$$					filesopen "$file" f
-check -s1 -e'Not a directory'			filesopen "$file" d
-
-warn "checking ${bld-}filesopen $symlink d${rst-} ..."
-
-filesopen "$symlink" d 2>"$tmpfile" &&
-	err "exited with status ${bld-}$?${rst_r-}."
-
-grep -q 'Too many levels of symbolic links'	"$tmpfile" ||
-grep -q 'Not a directory'			"$tmpfile" || {
-	warn -lr "${bld-}wrong error message${rst_r-}:"
-	cat "$tmpfile"
-	exit 70
-}
-
-check -s1 -e'No such file or directory'		filesopen '<no file!>' f
+check -s0 -o$$					filesopenp "$file" f
+check -s1 -e'Not a directory'			filesopenp "$file" d
+check -s1 -e'Not a directory'			filesopenp "$symlink" d
+check -s1 -e'No such file or directory'		filesopenp '<no file!>' f
 
 warn -g "all tests passed."

@@ -20,21 +20,25 @@ user, cleans up the environment, and then runs the script.
 Requirements
 ============
 
-A GNU/Linux system running a kernel ≥ v5.6 or macOS ≥ v11.
+A system that complies with `POSIX.1-2008`_, including its X/Open system
+interface extension, and is compatible with 4.4BSD_.
 
-More precisely:
+However, though any post-2020 Unix-like operating system should meet those
+requirements, you should review whether your system implements the system
+calls and functions that suCGI uses securely; known offenders are realpath_,
+which is broken in many standard library implementations, and `getgrent`,
+which appears to be broken on macOS.
 
-* Linux ≥ v5.6 or Apple XNU_ ≥ v7195.50.7.100.1.
-* A C99 compiler that complies with `POSIX.1-2008`_;
-  e.g., GCC_ ≥ v5.1, Clang_ ≥ v3.5.
-* A C standard library that complies with POSIX.1-2008, is compatible with
-  4.4BSD_, and provides a secure implementation of realpath_;
-  e.g., glibc_ ≥ v2.28 or Apple's Libc.
-* The standard utilities that POSIX.1-2008, including
-  its X/Open system interface extension, mandates.
 
-Any post-2021 GNU/Linux or macOS system should meet those requirements.
-You may need to install the standard build tools, however.
+Installation 
+============
+
+**Do NOT use suCGI at this point!** This project is work in progess and
+has *not* been reviewed, let alone audited.
+
+----
+
+You may need to install the standard build tools.
 
 Arch-based GNU/Linux systems::
 
@@ -52,15 +56,6 @@ RedHat-based GNU/Linux systems::
 macOS::
 
     xcode-select --install
-
-
-Installation 
-============
-
-**Do NOT use suCGI at this point!** This project is work in progess and
-the repository exists only to facilitate continuous integration with static
-code checkers as well as in-house testing, *not* to distribute code to
-the public.
 
 ----
 

@@ -73,7 +73,7 @@ path_check_wexcl(const uid_t uid, const char *const fname,
 
 		(void) str_cp((size_t) (pos - fname), fname, cur);
 
-		rc = file_sopen(cur, O_RDONLY, &fd);
+		rc = file_sec_open(cur, O_RDONLY, &fd);
 		if (rc != OK)
 			return rc;
 

@@ -22,20 +22,14 @@
 #if !defined(TYPES_H)
 #define TYPES_H
 
-/* A simple key-value store. */
-struct pair {
-	const char *const key;
-	const char *const value;
-};
-
 /* Return code for functions. */
 enum retval {
 	OK = 0,		/* Success. */
 	FAIL,		/* Generic failure. */
 	ERR_CNV,	/* Conversion error. */
 	ERR_NIL,	/* No input. */
-	ERR_LEN,	/* Value is out-of-bounds. */
-	ERR_ILL,	/* Value is ill-formed. */
+	ERR_LEN,	/* Input is out-of-bounds. */
+	ERR_ILL,	/* Bad input. */
 	ERR_MEM,	/* calloc(3) failed. */
 	ERR_OPEN,	/* open(2)/openat2(2) failed. */
 	ERR_CLOSE,	/* close(2) failed. */
@@ -47,6 +41,12 @@ enum retval {
 	ERR_SETUID,	/* setuid(2) failed. */
 	ERR_SETGID,	/* setgid(2) failed. */
 	ERR_SETGRPS	/* setgroups(2) failed. */
+};
+
+/* A simple key-value store. */
+struct pair {
+	const char *const key;
+	const char *const value;
 };
 
 

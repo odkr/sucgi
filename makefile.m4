@@ -52,16 +52,16 @@ tool_bins =	tools/badenv tools/ents tools/owner tools/runas
 
 check_bins =	tests/error tests/envclear tests/envfopen tests/envisname \
 		tests/envrestore tests/main tests/fileisexe tests/fileiswex \
-		tests/filesopen tests/grpsget tests/privdrop tests/pathchkxcl \
-		tests/pathissub tests/scptgetint tests/strcp \
-		tests/strsplit tests/userdirres
+		tests/filesopen tests/filesopenp tests/grpsget \
+		tests/privdrop tests/pathchkxcl tests/pathissub \
+		tests/scptgetint tests/strcp tests/strsplit tests/userdirres
 
 checks =	tests/error.sh tests/envclear tests/envfopen.sh \
 		tests/envisname tests/envrestore tests/main.sh \
 		tests/fileisexe.sh tests/fileiswex.sh tests/filesopen.sh \
-		tests/grpsget.sh tests/privdrop.sh tests/pathchkxcl.sh \
-		tests/pathissub tests/scptgetint tests/strcp \
-		tests/strsplit tests/userdirres.sh
+		tests/filesopenp.sh tests/grpsget.sh tests/privdrop.sh \
+		tests/pathchkxcl.sh tests/pathissub tests/scptgetint \
+		tests/strcp tests/strsplit tests/userdirres.sh
 
 bins =		$(tool_bins) $(check_bins)
 
@@ -137,13 +137,13 @@ lib.a(env.o): env.c env.h lib.a(file.o) lib.a(path.o)
 
 lib.a(error.o): error.c error.h
 
-lib.a(file.o): file.c file.h lib.a(path.o) lib.a(str.o)
+lib.a(file.o): file.c file.h lib.a(str.o)
 
 lib.a(groups.o): groups.c groups.h
 
 lib.a(script.o): script.c script.h lib.a(str.o)
 
-lib.a(path.o): path.c path.h lib.a(str.o)
+lib.a(path.o): path.c path.h lib.a(file.o) lib.a(str.o)
 
 lib.a(priv.o): priv.o priv.h
 
@@ -166,6 +166,8 @@ tests/fileisexe: tests/fileisexe.c $(test_hdrs) lib.a(file.o)
 tests/fileiswex: tests/fileiswex.c $(test_hdrs) lib.a(file.o)
 
 tests/filesopen: tests/filesopen.c $(test_hdrs) lib.a(file.o)
+
+tests/filesopenp: tests/filesopenp.c $(test_hdrs) lib.a(file.o)
 
 tests/grpsget: tests/grpsget.c $(test_hdrs) lib.a(groups.o)
 

@@ -35,9 +35,9 @@
 
 
 #if defined(LOG_PERROR) && LOG_PERROR
-#define ERROR_LOG_OPTIONS LOG_CONS | LOG_NDELAY | LOG_PERROR
+#define LOGGING_OPTS ( LOG_CONS | LOG_NDELAY | LOG_PERROR )
 #else
-#define ERROR_LOG_OPTIONS LOG_CONS | LOG_NDELAY
+#define LOGGING_OPTS ( LOG_CONS | LOG_NDELAY )
 #endif
 
 
@@ -48,7 +48,7 @@ error(const char *const message, ...)
 
 	assert(*message != '\0');
 
-	openlog("sucgi", ERROR_LOG_OPTIONS, LOG_AUTH);
+	openlog("sucgi", LOGGING_OPTS, LOG_AUTH);
 
 	va_start(ap, message);
 #pragma GCC diagnostic push
