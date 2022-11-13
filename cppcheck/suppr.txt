@@ -69,6 +69,14 @@ misra-c2012-21.6:sucgi.c
 // `userdir_resolve` needs `snprintf` to expand strings.
 misra-c2012-21.6:userdir.c
 
+// `userdir_resolve` must either use a static variable-length array
+// or allocate memory manully to allow for meaningful error messages
+// further up the stack.
+misra-c2012-21.3:userdir.c:51
+misra-c2012-21.3:userdir.c:67
+misra-c2012-21.3:userdir.c:71
+misra-c2012-21.3:userdir.c:83
+
 // suCGI must `exit` on -h, -C, and -V.
 misra-c2012-21.8:sucgi.c:354
 misra-c2012-21.8:sucgi.c:384

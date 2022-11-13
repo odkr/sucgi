@@ -42,12 +42,15 @@ enum retval
 userdir_resolve(const char *const s, const struct passwd *user,
                 char **user_dir)
 {
-	/* RATS: ignore; writes to expan are bounded to MAX_FNAME. */
-	static char expan[MAX_FNAME];	/* Expanded string. */
+	char *expan;			/* Expanded string. */
 	char *resolved;			/* Resolved filename. */
 	int len;			/* Length of expanded string. */
 
 	assert(*s != '\0');
+
+	expan = (char *) calloc(MAX_FNAME, sizeof(*expan));
+	if (!expan)
+		return ERR_MEM;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
@@ -60,10 +63,14 @@ userdir_resolve(const char *const s, const struct passwd *user,
 		len = snprintf(expan, MAX_FNAME, s, user->pw_name);
 #pragma GCC diagnostic pop
 
-	if (len < 0)
+	if (len < 0) {
+		free(expan);
 		return ERR_PRN;
-	if ((size_t) len >= MAX_FNAME)
+	}
+	if ((size_t) len >= MAX_FNAME) {
+		free(expan);
 		return ERR_LEN;
+	}
 
 	*user_dir = expan;
 
@@ -73,6 +80,7 @@ userdir_resolve(const char *const s, const struct passwd *user,
 		return ERR_RES;
 
 	*user_dir = resolved;
+	free(expan);
 
 	return OK;
 }
