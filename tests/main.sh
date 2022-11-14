@@ -215,15 +215,6 @@ check -s1 -e'usage: sucgi' main -hV
 
 
 #
-# Too many environment variables.
-#
-
-# shellcheck disable=2086
-check -s 1 -e'too many environment variables.' \
-	$vars main
-
-
-#
 # Malformed environment variables.
 #
 

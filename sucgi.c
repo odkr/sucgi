@@ -35,6 +35,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <syslog.h>
 #include <unistd.h>
 
 #include "config.h"
@@ -147,6 +148,13 @@
 
 /* suCGI version. */
 #define VERSION "0"
+
+/* Logging options. */
+#if defined(LOG_PERROR) && LOG_PERROR
+#define LOGGING_OPTS ( LOG_CONS | LOG_PERROR )
+#else
+#define LOGGING_OPTS ( LOG_CONS )
+#endif
 
 
 /*
@@ -367,8 +375,7 @@ config(void)
 	(void) printf("PATH=%s\n", PATH);
 	(void) printf("UMASK=0%o\n", UMASK);
 
-	(void) printf("MAX_NGROUPS=%u\n", MAX_NVARS);
-	(void) printf("MAX_NVARS=%u\n", MAX_NVARS);
+	(void) printf("MAX_NGROUPS=%u\n", MAX_NGROUPS);
 	(void) printf("MAX_FNAME=%zu\n", MAX_FNAME);
 
 	exit(EXIT_SUCCESS);
@@ -420,22 +427,22 @@ main(int argc, char **argv) {
 	 * > info. Bad news if MALLOC_DEBUG_FILE is set to /etc/passwd.)
 	 */
 
-	/* RATS: ignore; env_clear respects MAX_NVARS. */
-	const char *vars[MAX_NVARS];	/* Backup of environment. */
-	enum retval rc;			/* Return code. */
+	char *const *vars;		/* Backup of the environment. */
+	char *null;			/* NULL pointer. */
 
-	rc = env_clear(vars);
-	switch (rc) {
-	case OK:
-		break;
-	case ERR_LEN:
-		error("too many environment variables.");
-	default:
-		/* Should be unreachable. */
-		error("%d: env_clear returned %u.", __LINE__, rc);
-	}
+	vars = environ;
+	null = NULL;
+	environ = &null;
 
-	assert(!*environ);
+	assert(*environ == NULL);
+
+
+	/*
+	 * Set up logging.
+	 */
+
+	openlog("sucgi", LOGGING_OPTS, LOG_USER);
+	atexit(closelog);
 
 
 	/*
@@ -460,6 +467,7 @@ main(int argc, char **argv) {
 	case 1:
 		break;
 	case 2:
+		/* Some getopt implementations are insecure. */
 		if      (strncmp(argv[1], "-h", 3) == 0)
 			help();
 		else if (strncmp(argv[1], "-C", 3) == 0)
@@ -478,6 +486,7 @@ main(int argc, char **argv) {
 
 	/* RATS: ignore; env_restore respects MAX_VARNAME. */
 	char var_name[MAX_VARNAME];	/* Name of last variable. */
+	enum retval rc;			/* Return value. */
 
 	rc = env_restore(vars, sec_vars, var_name);
 	switch (rc) {
@@ -522,7 +531,7 @@ main(int argc, char **argv) {
 	int doc_fd;			/* -- " -- file descriptor. */
 
 	rc = env_file_open(jail_dir, "DOCUMENT_ROOT", O_RDONLY | O_DIRECTORY,
-	               &doc_root, &doc_fd);
+	                   &doc_root, &doc_fd);
 	switch (rc) {
 	case OK:
 		break;
@@ -566,7 +575,7 @@ main(int argc, char **argv) {
 	struct stat script_stat;	/* -- " -- filesystem metadata. */
 
 	rc = env_file_open(doc_root, "PATH_TRANSLATED", O_RDONLY,
-	               &script, &script_fd);
+	                   &script, &script_fd);
    	switch (rc) {
 	case OK:
 		break;
@@ -661,8 +670,13 @@ main(int argc, char **argv) {
 	}
 
 	maxgroups = sysconf(_SC_NGROUPS_MAX);
-	if (-1L < maxgroups && maxgroups < ngroups)
+	if (-1L < maxgroups && maxgroups < ngroups) {
+		syslog(LOG_INFO, "user %s belongs to %d groups.",
+		       owner->pw_name, ngroups);
+		syslog(LOG_NOTICE, "can only set %ld groups for user %s.",
+		       maxgroups, owner->pw_name);
 		ngroups = (int) maxgroups;
+	}
 
 
 	/*

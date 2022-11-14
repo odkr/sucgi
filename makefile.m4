@@ -49,17 +49,17 @@ test_hdrs = $(def_hdrs) tests/testdefs.h
 
 tool_bins =	tools/badenv tools/ents tools/owner tools/runas
 
-check_bins =	tests/error tests/envclear tests/envfopen tests/envisname \
-		tests/envrestore tests/main tests/fileisexe tests/fileiswex \
-		tests/filesopen tests/filesopenp tests/privdrop \
-		tests/pathchkxcl tests/pathissub tests/scptgetint tests/strcp \
-		tests/strsplit tests/userdirres
-
-checks =	tests/error.sh tests/envclear tests/envfopen.sh \
-		tests/envisname tests/envrestore tests/main.sh \
-		tests/fileisexe.sh tests/fileiswex.sh tests/filesopen.sh \
-		tests/filesopenp.sh tests/privdrop.sh tests/pathchkxcl.sh \
+check_bins =	tests/error tests/envfopen tests/envisname tests/envrestore \
+		tests/main tests/fileisexe tests/fileiswex tests/filesopen \
+		tests/filesopenp tests/privdrop tests/pathchkxcl \
 		tests/pathissub tests/scptgetint tests/strcp tests/strsplit \
+		tests/userdirres
+
+checks =	tests/error.sh tests/envfopen.sh tests/envisname \
+		tests/envrestore tests/main.sh tests/fileisexe.sh \
+		tests/fileiswex.sh tests/filesopen.sh tests/filesopenp.sh \
+		tests/privdrop.sh tests/pathchkxcl.sh tests/pathissub \
+		tests/scptgetint tests/strcp tests/strsplit \
 		tests/userdirres.sh
 
 bins =		$(tool_bins) $(check_bins)
@@ -149,8 +149,6 @@ lib.a(str.o): str.c str.h
 lib.a(userdir.o): userdir.c userdir.h
 
 tests/error: tests/error.c $(test_hdrs) lib.a(error.o) 
-
-tests/envclear: tests/envclear.c $(test_hdrs) lib.a(env.o)
 
 tests/envfopen: tests/envfopen.c $(test_hdrs) lib.a(env.o)
 

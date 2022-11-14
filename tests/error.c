@@ -32,6 +32,8 @@ main (int argc, char **argv) {
 		return EXIT_FAILURE;
 	}
 
+	openlog("error", LOG_CONS | LOG_NDELAY | LOG_PERROR, LOG_AUTH);
+
 	(void) error(argv[1], argv[2]);
 
 	/* This point should not be reached. */

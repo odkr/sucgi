@@ -42,18 +42,6 @@ extern char **environ;
  */
 
 /*
- * Clear the environment and store a copy of at most MAX - 1 variables in
- * VARS. If VARS is NULL, the old environment is discarded. VARS must point
- * to a memory area that is large enough to hold MAX_NVARS pointers.
- *
- * Return value:
- *     OK       Success.
- *     ERR_LEN  There are more than MAX_NVARS environment variables.
- */
-__attribute__((warn_unused_result))
-enum retval env_clear(const char *vars[MAX_NVARS]);
-
-/*
  * Read a filename from the environment variable VAR, check whether the file
  * resides within the given JAIL directory, and, if it does, open the file
  * with the given FLAGS and store its canonicalised filename in FNAME
@@ -87,7 +75,7 @@ enum retval env_file_open(const char *const jail, const char *const var,
 
 
 /*
- * Check if the string NAME is a valid environment variable name.
+ * Check if NAME is a valid environment variable name.
  */
 __attribute__((nonnull(1), pure, warn_unused_result))
 bool env_is_name(const char *const name);
@@ -135,8 +123,8 @@ bool env_is_name(const char *const name);
  *     ERR_ENV  setenv(3) failed.
  */
 __attribute__((nonnull(1, 2, 3), warn_unused_result))
-enum retval env_restore (const char **env, const char *const *patterns,
-                         char name[MAX_VARNAME]);
+enum retval env_restore(char *const *env, const char *const *patterns,
+                        char name[MAX_VARNAME]);
 
 
 #endif /* !defined(ENV_H) */

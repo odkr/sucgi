@@ -41,6 +41,9 @@
 /* Shorthad for a list of patterns that matches any variable. */
 #define ANY {"*", NULL}
 
+/* Maximum number of environment variables. */
+#define MAX_NVARS 256
+
 
 /*
  * Data types
@@ -117,7 +120,7 @@ env_init(char *const vars[MAX_NVARS])
 	environ = calloc(n + 1U, sizeof(char *));
 	if (!environ)
 		return ERR_MEM;
-	
+
 	for (size_t i = 0; i < n; i++)
 		environ[i] = vars[i];
 
@@ -131,13 +134,14 @@ env_init(char *const vars[MAX_NVARS])
 
 int
 main (void) {
+	(void) memset((void *) huge_var, 'x', MAX_FNAME);
 	(void) memset((void *) long_var, 'x', MAX_FNAME - 1U);
 	(void) str_cp(4, "foo=", long_var);
-	(void) memset((void *) huge_var, 'x', MAX_FNAME);
 
 	for (int i = 0; tests[i].env[0]; i++) {
 		const struct args t = tests[i];
-		const char *vars[MAX_NVARS];		/* RATS: ignore */
+		char *const *vars;
+		char *null;
 		char name[MAX_VARNAME];			/* RATS: ignore */
 		enum retval rc;
 
@@ -145,8 +149,10 @@ main (void) {
 
 		if (env_init(t.env) != OK)
 			errx(T_FAIL, "env_init failed");
-		if (env_clear(vars) != OK)
-			errx(T_FAIL, "env_clear failed");
+
+		vars = environ;
+		null = NULL;
+		environ = &null;
 
 		rc = env_restore(vars, t.patterns, name);
 
@@ -165,7 +171,7 @@ main (void) {
 
 			/* RATS: ignore */
 			val = getenv(name);
-			
+
 			if (val && !exp)
 				errx(T_FAIL, "$%s is set", name);
 			if (!val && exp)

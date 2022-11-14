@@ -33,10 +33,7 @@
 #endif
 
 /* Maximum number of groups a user may be a member of. */
-#define MAX_NGROUPS 4096
-
-/* Maximum number of environment variables. */
-#define MAX_NVARS 256U
+#define MAX_NGROUPS 1024U
 
 /* Maximum length of an environment variable name. */
 #define MAX_VARNAME 64U

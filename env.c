@@ -58,28 +58,6 @@
  */
 
 enum retval
-env_clear(const char *vars[MAX_NVARS])
-{
-	static char *var;	/* First environment variable. */
-	char **env;		/* Copy of the environ pointer. */
-
-	env = environ;
-	var = NULL;
-	environ = &var;
-
-	if (!vars)
-		return OK;
-
-	for (size_t n = 0; n < MAX_NVARS; ++n) {
-		vars[n] = env[n];
-		if (!env[n])
-			return OK;
-	}
-
-	return ERR_LEN;
-}
-
-enum retval
 env_file_open(const char *const jail, const char *const var, const int flags,
               const char **const fname, int *const fd)
 {
@@ -121,7 +99,7 @@ env_file_open(const char *const jail, const char *const var, const int flags,
 
 	if (!path_is_subdir(resolved, jail))
 		return ERR_ILL;
-	
+
 	return file_sec_open(resolved, flags, fd);
 }
 
@@ -133,14 +111,14 @@ env_is_name(const char *const name)
 }
 
 enum retval
-env_restore(const char **vars, const char *const *patterns,
+env_restore(char *const *vars, const char *const *patterns,
             char name[MAX_VARNAME])
 {
 	assert(*vars);
 
 	(void) memset(name, '\0', MAX_VARNAME);
 
-	for (const char **var = vars; *var; ++var) {
+	for (char *const *var = vars; *var; ++var) {
 		char *value;
 
 		if (str_split(MAX_VARNAME, *var, "=", name, &value) != OK)

@@ -34,11 +34,7 @@
 #include "types.h"
 
 
-#if defined(LOG_PERROR) && LOG_PERROR
-#define LOGGING_OPTS ( LOG_CONS | LOG_NDELAY | LOG_PERROR )
-#else
-#define LOGGING_OPTS ( LOG_CONS | LOG_NDELAY )
-#endif
+
 
 
 void
@@ -48,16 +44,12 @@ error(const char *const message, ...)
 
 	assert(*message != '\0');
 
-	openlog("sucgi", LOGGING_OPTS, LOG_AUTH);
-
 	va_start(ap, message);
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 	vsyslog(LOG_ERR, message, ap);
 #pragma GCC diagnostic pop
 	va_end(ap);
-
-	closelog();
 
 	exit(EXIT_FAILURE);
 }
