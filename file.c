@@ -53,11 +53,17 @@
  * Constants
  */
 
-/* Flags to pass to every call to an open(2) function. */
+/* Flags to pass to every call to open. */
 #define BASE_OFLAGS ( O_NOFOLLOW | O_CLOEXEC )
 
-/* Flags to pass to every pass to open(2) when opening a directory. */
+/* Flags to pass to open when opening a directory. */
+#if defined(O_EXEC)
+#define DIR_OFLAGS ( O_DIRECTORY | O_EXEC )
+#elif defined(O_PATH)
+#define DIR_OFLAGS ( O_DIRECTORY | O_PATH )
+#else
 #define DIR_OFLAGS ( O_DIRECTORY | O_RDONLY )
+#endif
 
 
 /*
