@@ -29,6 +29,7 @@
 #include <fcntl.h>
 #include <fnmatch.h>
 #include <limits.h>
+#include <grp.h>
 #include <pwd.h>
 #include <stdbool.h>
 #include <stdlib.h>
