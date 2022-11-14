@@ -4,6 +4,9 @@
 		<dir name="."/>
 	</paths>
 	<defines>
+		<!-- C99 -->
+		<define name="INT_MAX=2147483647"/>
+
 		<!-- GNU C -->
 		<define name="__GNUC__"/>
 
@@ -11,10 +14,8 @@
 		<define name="__linux__"/>
 		<define name="__NR_openat2=437"/>
 		<define name="PATH_MAX=4096"/>
-		
-		<!-- Apple XNU >= v7195.50.7.100.1 -->
-		<define name="UID_MAX=2147483647U"/>
-		<define name="GID_MAX=2147483647U"/>
+
+		<!-- Apple XNU -->
 		<define name="O_NOFOLLOW_ANY=0x20000000"/>
 
 		<!-- Apple Libc and glibc -->

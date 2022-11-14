@@ -169,15 +169,15 @@
  *
  * The list below has been adopted from:
  *      - RFC 3876
- *	  <https://datatracker.ietf.org/doc/html/rfc3875>
+ *        <https://datatracker.ietf.org/doc/html/rfc3875>
  *      - Kira Matrejek, CGI Programming 101, chap. 3
- *	  <http://www.cgi101.com/book/ch3/text.html>
+ *        <http://www.cgi101.com/book/ch3/text.html>
  *      - Apache's suEXEC
- *	  <https://github.com/apache/httpd/blob/trunk/support/suexec.c>
+ *        <https://github.com/apache/httpd/blob/trunk/support/suexec.c>
  *      - the Apache v2.4 documentation
- *	  <https://httpd.apache.org/docs/2.4/expr.html>
+ *        <https://httpd.apache.org/docs/2.4/expr.html>
  *      - the mod_ssl documentation
- *	  <https://httpd.apache.org/docs/2.4/mod/mod_ssl.html>
+ *        <https://httpd.apache.org/docs/2.4/mod/mod_ssl.html>
  *
  * The list must include DOCUMENT_ROOT and PATH_TRANSLATED.
  * HOME, PATH, and USER_NAME are set regardless.
@@ -304,7 +304,7 @@ static const char *const sec_vars[] = {
 
 
 /*
- * Functions
+ * Prototypes
  */
 
 /* Print help and exit. */
@@ -322,6 +322,11 @@ static void version(void);
 /* Print usage information to stderr and error out. */
 __attribute__((noreturn))
 static void usage(void);
+
+
+/*
+ * Functions
+ */
 
 static void
 help(void)
@@ -353,7 +358,8 @@ config(void)
 
 	(void) printf("HANDLERS=");
 	for (const struct pair *h = hdb; h->key; ++h) {
-		if (h != hdb) (void) printf(",");
+		if (h != hdb)
+			(void) printf(",");
 		(void) printf("%s:%s", h->key, h->value);
 	}
 	(void) printf("\n");
@@ -391,7 +397,7 @@ usage(void)
 /*
  * Main
  */
-#include <err.h>
+
 int
 main(int argc, char **argv) {
 	/*

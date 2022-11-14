@@ -8,16 +8,16 @@ misra-c2012-8.2:priv.h:45
 misra-c2012-8.2:str.h:40
 misra-c2012-8.2:str.h:58
 misra-c2012-22.10:env.c:103
-misra-c2012-22.10:sucgi.c:625
+misra-c2012-22.10:sucgi.c:615
 
-// Rules I follow but which should not be checked by Cppcheck:
+// Rules I follow but which are not be checked by Cppcheck.
 misra-c2012-2.5		// Too many false positives.
 misra-c2012-16.6	// -- " --.
 misra-c2012-21.1	// -- " --.
 
 // Rules I ignore.
 misra-c2012-3.1		// Adhered to, save for URLs.
-misra-c2012-12.1	// Advised against by most style guides.
+misra-c2012-12.1	// Advised against, rightly, by most style guides.
 misra-c2012-15.5	// Most functions perform no cleanup.
 misra-c2012-15.6	// Violates K & R-style, noisy.
 
@@ -26,23 +26,23 @@ misra-c2012-8.7:env.c:129
 
 // `sec_vars` is, effectively, a configuration value.
 // Placing it on top makes it easier to find.
-misra-c2012-8.9:sucgi.c:203
+misra-c2012-8.9:sucgi.c:187
 
 // BUILD_BUG_ON cannot help but violate rule 10.4.
-misra-c2012-10.4:sucgi.c:417
-misra-c2012-10.4:sucgi.c:418
-misra-c2012-10.4:sucgi.c:419
-misra-c2012-10.4:sucgi.c:420
-misra-c2012-10.4:sucgi.c:421
-misra-c2012-10.4:sucgi.c:422
+misra-c2012-10.4:sucgi.c:407
+misra-c2012-10.4:sucgi.c:408
+misra-c2012-10.4:sucgi.c:409
+misra-c2012-10.4:sucgi.c:410
+misra-c2012-10.4:sucgi.c:411
+misra-c2012-10.4:sucgi.c:412
 
-// Casts to size_t. No information can be lost.
+// Casts from positive integers to size_t. No information can be lost.
 misra-c2012-10.8:path.c:74
 misra-c2012-10.8:str.c:47
 misra-c2012-10.8:str.c:67
 
 // Falls through to a default.
-misra-c2012-15.7:sucgi.c:478
+misra-c2012-15.7:sucgi.c:468
 
 // `switch` cases that do not terminate with `break` terminate with `error`.
 misra-c2012-16.3:sucgi.c
@@ -78,10 +78,10 @@ misra-c2012-21.3:userdir.c:71
 misra-c2012-21.3:userdir.c:83
 
 // suCGI must `exit` on -h, -C, and -V.
-misra-c2012-21.8:sucgi.c:354
-misra-c2012-21.8:sucgi.c:384
-misra-c2012-21.8:sucgi.c:396
-misra-c2012-21.8:sucgi.c:403
+misra-c2012-21.8:sucgi.c:343
+misra-c2012-21.8:sucgi.c:374
+misra-c2012-21.8:sucgi.c:386
+misra-c2012-21.8:sucgi.c:393
 
 // `getenv` cannot be avoided when dealing with CGI scripts.
 misra-c2012-21.8:env.c
@@ -101,7 +101,6 @@ unusedStructMember:types.h:49
 // suCGI neither handles signals nor does it have multiple threads,
 // so there is no need to use reentrant functions.
 getpwuidCalled
-getgrentCalled
 strtokCalled
 
 // Don't worry about missing include files.
