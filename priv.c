@@ -35,18 +35,6 @@
 
 
 /*
- * Constants
- */
-
-/* The type of the first argument to setgroups(3). */
-#if defined(__linux__) && __linux__
-#define NGROUPS_T size_t
-#else
-#define NGROUPS_T int
-#endif
-
-
-/*
  * Functions
  */
 
@@ -55,17 +43,30 @@ priv_drop(const uid_t uid, const gid_t gid,
           const int ngids, const gid_t gids[ngids])
 {
 	assert(ngids > - 1);
-
+/*
+ * Some older setgroups implementations assume that GIDs are of the type
+ * int, rather than type gid_t. However, gid_t is typically an alias for
+ * unsigned int, so that both types are of the same size. Moreover, suCGI
+ * requires that GIDs are smaller than INT_MAX. So this is a distinction
+ * without a difference. The most straightforward way to deal with older
+ * setgroups implementations is, therefore, to tell the compiler to
+ * ignore the signedness incongruency.
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wpointer-sign"
 	errno = 0;
-	if (setgroups((NGROUPS_T) ngids, gids) != 0)
+	if (setgroups(ngids, gids) != 0)
 		return ERR_SETGRPS;
+#pragma GCC diagnostic pop
+
 	errno = 0;
 	if (setgid(gid) != 0)
 		return ERR_SETGID;
 	errno = 0;
 	if (setuid(uid) != 0)
 		return ERR_SETUID;
-	
+
 	if (setgroups(1, (gid_t [1]) {0}) != -1)
 		return FAIL;
 	if (setgid(0) != -1)

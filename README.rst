@@ -21,16 +21,21 @@ Requirements
 ============
 
 A system that complies with `POSIX.1-2008`_, including its X/Open system
-interface extension, and is compatible with 4.4BSD_.
+interface extension, and is compatible with `4.4BSD`_. Any post-2020
+Unix-like operating system should meet those requirements.
 
-However, though any post-2020 Unix-like operating system should meet those
-requirements, you should review whether your system implements the system
-calls and functions that suCGI uses securely; known offenders are realpath_,
-which is broken in many standard library implementations, and `getgrent`,
-which appears to be broken on macOS.
+That said, if suCGI were fit for use, I'd warn you that you need to do
+your due diligence, because a few kernels and quite some standard libraries
+deviate from POSIX.1-2008 and 4.4BSD, and some of those deviations are
+too insignificant for the compiler to catch but significant enough to
+compromise the assumptions of suCGI's threat model. And while we're at it,
+suCGI's threat model has, well, been modelled for Debian/GNU Linux; it
+may or may not work for other systems. Luckily, you need not care about
+any of this; suCGI is work-in-progress and *not* fit for use. Don't use
+it, even if you are running Debian/GNU Linux.
 
 
-Installation 
+Installation
 ============
 
 **Do NOT use suCGI at this point!** This project is work in progess and
@@ -144,7 +149,7 @@ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
 A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with suCGI. If not, see <https://www.gnu.org/licenses/>. 
+along with suCGI. If not, see <https://www.gnu.org/licenses/>.
 
 
 Further Information

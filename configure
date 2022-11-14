@@ -31,6 +31,8 @@ readonly makevars='
 	cov_cc cgi_dir www_grp
 '
 
+readonly confsave=config.status
+
 
 #
 # Functions
@@ -50,16 +52,21 @@ add_macros() {
 	done
 }
 
+# Run test builds
+test_cc() {
+	"${CC:?}" -xc -Werror "$@" -o/dev/null -
+}
+
 
 #
 # Options
 #
 
 OPTIND=1 OPTARG='' opt=''
-args="$*" conf=./prod.env force='' status=x quiet=''
+args="$*" conf=./prod.env force='' updatestatus='' quiet=''
 while getopts Cc:dfqh opt; do
 	case $opt in
-		(C) status= ;;
+		(C) updatestatus=X ;;
 		(c) conf="$OPTARG" ;;
 		(d) conf=./devel.env ;;
 		(f) force=x ;;
@@ -71,7 +78,7 @@ Usage:       configure [-C] [-c FILE|-d] [-f] [-q]
              configure -h
 
 Options:
-    -C       Do not update config.status.
+    -C       Overwrite $confsave.
     -c FILE  Read build configuration from FILE (default: $conf).
     -d       Short for -c devel.env.
     -f       Overwrite existing files.
@@ -174,8 +181,7 @@ then
 			continue
 		esac
 
-		"$CC" -xc -Werror "$flag" -o/dev/null - \
-		      <<-EOF >/dev/null 2>&1 &
+		test_cc "$flag" <<-'EOF' >/dev/null 2>&1 &
 			int main (void) { return 0; }
 		EOF
 		pids="$pids $!"
@@ -219,9 +225,14 @@ done
 # Save configuration
 #
 
-if [ "$status" ] || ! [ -e config.status ]
+if [ -e "$confsave" ]
+	then exists=x
+	else exists=
+fi
+
+if ! [ "$exists" ] || [ "$updatestatus" ]
 then
-	swap="$TMPDIR/config.status"
+	swap="$TMPDIR/$confsave"
 
 	cat <<-'EOF' >"$swap"
 	#!/bin/sh
@@ -242,14 +253,20 @@ then
 	cat <<-EOF >>"$swap"
 
 	export ${vars# }
-	./configure -Cf $args
+	./configure -f $args
 	EOF
 
 	chmod +x "$swap"
 
-	mv "$swap" config.status
+	mv "$swap" "$confsave"
 
-	warn -q "saved configuration in ${bld-}config.status${rst-}."
+	if [ "$exists" ]
+		then warn -qy "replaced ${bld-}$confsave${rst_y-}."
+		else warn -q "saved configuration in ${bld-}$confsave${rst-}."
+	fi
+else
+	warn -qy "${bld-}config.status${rst_y-} exists;${rst-}" \
+	         "give ${bld-}-C${rst-} to overwrite."
 fi
 
 
@@ -261,17 +278,11 @@ filec=0 errc=0 genc=0
 for input in *.m4
 do
 	[ "$input" = "*.m4" ] && break
+	[ "$input" = macros.m4 ] && continue
+
 	name="$(basename "$input")" || 
 		err "basename $input: exited with status $?."
 	output="${name%.m4}"
-
-	if	[ "$output" = config.status ]	&& 
-		[ -e "$output" ]		&&
-		! [ "$status" ]
-	then
-		warn -q "keeping current ${bld-}config.status${rst-}."
-		continue
-	fi
 
 	filec=$((filec + 1))
 
@@ -301,7 +312,7 @@ do
 	else
 		rm -f "$swap" || :
 		errc=$((errc + 1))
-		warn -r "failed to generate${bld-}$output${rst_r-}."
+		warn -r "could not generate${bld-}$output${rst_r-}."
 	fi
 	unset swap
 done

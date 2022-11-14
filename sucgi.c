@@ -19,9 +19,6 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#define _ISOC99_SOURCE
-#define _XOPEN_SOURCE 700
-
 #if !defined(_FORTIFY_SOURCE)
 #define _FORTIFY_SOURCE 3
 #endif
@@ -44,7 +41,6 @@
 #include "env.h"
 #include "error.h"
 #include "file.h"
-#include "groups.h"
 #include "max.h"
 #include "path.h"
 #include "priv.h"
@@ -112,15 +108,9 @@
 #error MAX_UID is smaller than MIN_UID.
 #endif
 
-#if defined(UID_MAX)
-#if MAX_UID > UID_MAX
-#error MAX_UID is greater than UID_MAX.
+#if MAX_UID > INT_MAX
+#error MAX_UID is greater than INT_MAX.
 #endif
-#else /* !defined(MAX_UID) */
-#if MAX_UID > UINT_MAX
-#error MAX_UID is greater than UINT_MAX.
-#endif
-#endif /* defined(MAX_UID) */
 
 #if !defined(MIN_GID)
 #error MIN_GID is undefined.
@@ -138,15 +128,9 @@
 #error MAX_GID is smaller than MIN_GID.
 #endif
 
-#if defined(GID_MAX)
-#if MAX_GID > GID_MAX
-#error MAX_GID is greater than GID_MAX.
+#if MAX_GID > INT_MAX
+#error MAX_GID is greater than INT_MAX.
 #endif
-#else /* !defined(MAX_GID) */
-#if MAX_GID > UINT_MAX
-#error MAX_GID is greater than UINT_MAX.
-#endif
-#endif /* defined(MAX_GID) */
 
 #if !defined(HANDLERS)
 #error HANDLERS is undefined.
@@ -407,7 +391,7 @@ usage(void)
 /*
  * Main
  */
-
+#include <err.h>
 int
 main(int argc, char **argv) {
 	/*
@@ -641,26 +625,26 @@ main(int argc, char **argv) {
 	 * Check if the owner is a member of a privileged group.
 	 */
 
-	gid_t groups[MAX_NGROUPS];	/* Groups they are a member of. */
-	int ngroups;			/* Number of groups. */
+	gid_t groups[MAX_NGROUPS];	/* Groups the owner is a member of. */
+	int ngroups;			/* Number of those groups. */
+	long maxgroups;			/* Maximum number of groups. */
 
+/*
+ * Some older getgrouplist implementations assume that GIDs are of the type
+ * int, rather than type gid_t. However, gid_t is typically an alias for
+ * unsigned int, so that both types are of the same size. Moreover, suCGI
+ * requires that GIDs are smaller than INT_MAX. So this is a distinction
+ * without a difference. The most straightforward way to deal with older
+ * getgrouplist implementations is, therefore, to tell the compiler to
+ * ignore the signedness incongruency.
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+#pragma GCC diagnostic ignored "-Wpointer-sign"
 	ngroups = MAX_NGROUPS;
-	rc = groups_get(owner->pw_name, owner->pw_gid, groups, &ngroups);
-
-	switch (rc) {
-	case OK:
-		break;
-	case ERR_GETGR:
-		error("getgrent: %m.");
-	case ERR_LEN:
+	if (getgrouplist(owner->pw_name, owner->pw_gid, groups, &ngroups) < 0)
 		error("user %s belongs to too many groups.", owner->pw_name);
-	default:
-		/* Should be unreachable. */
-		error("%d: groups_get returned %u.", __LINE__, rc);
-	}
-
-	assert(ngroups > 0);
-	assert(groups[0] > 0);
+#pragma GCC diagnostic pop
 
 	for (int i = 0; i < ngroups; ++i) {
 		gid_t gid = groups[i];
@@ -669,6 +653,10 @@ main(int argc, char **argv) {
 			error("user %s belongs to privileged group %llu.",
 			      owner->pw_name, (unsigned long long) gid);
 	}
+
+	maxgroups = sysconf(_SC_NGROUPS_MAX);
+	if (-1L < maxgroups && maxgroups < ngroups)
+		ngroups = (int) maxgroups;
 
 
 	/*
