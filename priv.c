@@ -42,7 +42,8 @@ enum retval
 priv_drop(const uid_t uid, const gid_t gid,
           const int ngids, const gid_t gids[ngids])
 {
-	assert(ngids > - 1);
+	assert(ngids > -1);
+
 /*
  * Some older setgroups implementations assume that GIDs are of the type
  * int, rather than type gid_t. However, gid_t is typically an alias for
