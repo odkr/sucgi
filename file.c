@@ -19,6 +19,10 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#define _DARWIN_C_SOURCE
+#define _BSD_SOURCE
+#define _GNU_SOURCE
+
 #if !defined(_FORTIFY_SOURCE)
 #define _FORTIFY_SOURCE 3
 #endif
