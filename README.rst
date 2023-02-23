@@ -69,10 +69,10 @@ See `docs/build.rst`_ for details.
 
 ----
 
-suCGI is configured at compile-time. Adapt *config.h* to your needs.
+suCGI is configured at compile-time. Adapt *config.h* to your needs::
 
-    cp config.h.sample config.h
-    vi config.h
+   cp config.h.sample config.h
+   vi config.h
 
 ----
 
@@ -103,7 +103,7 @@ and then add the following lines to your Apache configuration::
         Action application/x-httpd-php /cgi-bin/sucgi
     </Directory>
 
-The directory should correspond to *JAIL_DIR* in *config.h*.
+The directory should correspond to *USER_DIR* in *config.h*.
 
 Restart Apache::
 
