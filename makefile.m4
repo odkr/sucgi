@@ -337,21 +337,21 @@ $(flawfinder_hitlist): $(inspect)
            $(flawfinder_flags) $(inspect)
 
 flawfinder:
-	[ -e $(flawfinder_hitlist) ] && \
-	flawfinder --diffhitlist=$(flawfinder_hitlist) \
-	           $(flawfinder_flags) $(inspect) || \
-	flawfinder $(flawfinder_flags) $(inspect)
+	[ -e $(flawfinder_hitlist) ] \
+	&& flawfinder --diffhitlist=$(flawfinder_hitlist) \
+	              $(flawfinder_flags) $(inspect) \
+	|| flawfinder $(flawfinder_flags) $(inspect)
 
 $(rats_hitlist): $(inspect)
-	rats $(rats_flags) $(inspect) | \
-	sed -n '/^.*\.c:[1-9][0-9]*:/p' >$(rats_hitlist)
+	rats $(rats_flags) $(inspect) \
+	| sed -n '/^.*\.c:[1-9][0-9]*:/p' >$(rats_hitlist)
 
 rats:
-	[ -e $(rats_hitlist) ] && \
-	rats $(rats_flags) $(inspect) | \
-	sed -n '/^.*\.c:[1-9][0-9]*:/p'	| \
-	diff $(rats_hitlist) - || \
-	rats $(rats_flags) $(inspect)
+	[ -e $(rats_hitlist) ] \
+	&& rats $(rats_flags) $(inspect) \
+	   | sed -n '/^.*\.c:[1-9][0-9]*:/p' \
+	   | diff $(rats_hitlist) - \
+	|| rats $(rats_flags) $(inspect)
 
 shellcheck:
 	shellcheck -x $(scripts)
