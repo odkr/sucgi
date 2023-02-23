@@ -49,4 +49,4 @@ do
 	check -s1 -e"$message" error %s "$message"
 done
 
-warn -g "all tests passed."
+warn "all tests passed."

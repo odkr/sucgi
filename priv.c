@@ -1,7 +1,7 @@
 /*
- * Privilege handling for suCGI.
+ * Drop privileges.
  *
- * Copyright 2022 Odin Kroeger
+ * Copyright 2022 and 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
@@ -19,6 +19,10 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#define _BSD_SOURCE
+#define _DARWIN_C_SOURCE
+#define _GNU_SOURCE
+
 #if !defined(_FORTIFY_SOURCE)
 #define _FORTIFY_SOURCE 3
 #endif
@@ -27,53 +31,61 @@
 #include <assert.h>
 #include <errno.h>
 #include <grp.h>
-#include <limits.h>
 #include <unistd.h>
 
 #include "priv.h"
 #include "types.h"
 
-
-/*
- * Functions
- */
-
-enum retval
+Error
 priv_drop(const uid_t uid, const gid_t gid,
-          const int ngids, const gid_t gids[ngids])
+          const int n, const gid_t groups[n])
 {
-	assert(ngids > -1);
+    assert(uid > 0);
+    assert(gid > 0);
+    assert(n > 0);
 
-/*
- * Some older setgroups implementations assume that GIDs are of the type
- * int, rather than type gid_t. However, gid_t is typically an alias for
- * unsigned int, so that both types are of the same size. Moreover, suCGI
- * requires that GIDs are smaller than INT_MAX. So this is a distinction
- * without a difference. The most straightforward way to deal with older
- * setgroups implementations is, therefore, to tell the compiler to
- * ignore the signedness incongruency.
- */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-#pragma GCC diagnostic ignored "-Wpointer-sign"
-	errno = 0;
-	if (setgroups(ngids, gids) != 0)
-		return ERR_SETGRPS;
-#pragma GCC diagnostic pop
+    errno = 0;
+    if (setgroups(n, groups) != 0) {
+        return ERR_SYS_SETGROUPS;
+    }
 
-	errno = 0;
-	if (setgid(gid) != 0)
-		return ERR_SETGID;
-	errno = 0;
-	if (setuid(uid) != 0)
-		return ERR_SETUID;
+    errno = 0;
+    if (setgid(gid) != 0) {
+        /* Should be unreachable. */
+        return ERR_SYS_SETGID;
+    }
 
-	if (setgroups(1, (gid_t [1]) {0}) != -1)
-		return FAIL;
-	if (setgid(0) != -1)
-		return FAIL;
-	if (setuid(0) != -1)
-		return FAIL;
+    errno = 0;
+    if (setuid(uid) != 0) {
+        /* Should be unreachable. */
+        return ERR_SYS_SETUID;
+    }
 
-	return OK;
+    if (setgroups(1, (gid_t [1]) {0}) != -1 ||
+        setgid(0) != -1                     ||
+        setuid(0) != -1)
+    {
+        /* Should be unreachable. */
+        return ERR_PRIV_RESUME;
+    }
+
+    return OK;
+}
+
+Error
+priv_suspend(void)
+{
+    errno = 0;
+    if (setegid(getgid()) != 0) {
+        /* Should be unreachable. */
+        return ERR_SYS_SETEGID;
+    }
+
+    errno = 0;
+    if (seteuid(getuid()) != 0) {
+        /* Should be unreachable. */
+        return ERR_SYS_SETEUID;
+    }
+
+    return OK;
 }

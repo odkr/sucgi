@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<project version="1">
+	<paths>
+		<dir name="."/>
+	</paths>
+	<defines>
+		<!-- C99 -->
+		<define name="CHAR_BIT=8"/> -->
+		<define name="SHRT_MAX=32767"/>
+		<define name="INT_MAX=2147483647"/>
+
+		<!-- POSIX -->
+		<define name="LOGIN_NAME_MAX=16"/>
+		<define name="PATH_MAX=1024"/>
+
+		<!-- GNU C -->
+		<define name="__GNUC__"/>
+
+		<!-- Apple Libc and glibc -->
+		<define name="LOG_PERROR=32"/>
+
+		<!-- suCGI -->
+		<define name="TESTING=0"/>
+		<define name="MAX_ERRMSG_LEN=128U"/>
+		<define name="MAX_FNAME_LEN=1024"/>
+		<define name="MAX_GRPNAME_LEN=16U"/>
+		<define name="MAX_SUFFIX_LEN=8U"/>
+		<define name="MAX_VAR_LEN=1024"/>
+		<define name="MAX_VARNAME_LEN=64U"/>
+		<define name="MAX_NVARS=512U"/>
+	</defines>
+	<platform>unix64</platform>
+	<analyze-all-vs-configs>true</analyze-all-vs-configs>
+	<check-headers>true</check-headers>
+</project>

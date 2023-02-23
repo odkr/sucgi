@@ -1,7 +1,7 @@
 /*
  * Run a programme with a given environment, any environment.
  *
- * Copyright 2022 Odin Kroeger
+ * Copyright 2022 and 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
@@ -19,6 +19,10 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#define _BSD_SOURCE
+#define _DARWIN_C_SOURCE
+#define _GNU_SOURCE
+
 #include <err.h>
 #include <errno.h>
 #include <limits.h>
@@ -29,30 +33,40 @@
 #include <unistd.h>
 
 
-/* The environment. See environ(7) */
+/*
+ * Global variables
+ */
+
+/* The environment. */
 extern char **environ;
 
+
+/*
+ * Main
+ */
 
 int
 main (int argc, char **argv)
 {
-	char **vars;		/* The new environment variables. */
-	long n;			/* Number of those variables. */
-	long ncur;		/* Number of current variables. */
-	bool copy;		/* Copy current environment? */
-	int ch;			/* An option character. */
+    char **cmd;         /* Command to run. */
+    char **vars;        /* New environment variables. */
+    long nenv;          /* Number of variables in the current environment. */
+    long nvars;         /* Number of variables given. */
+    bool inherit;       /* Copy current environment? */
+    bool count;         /* Count new variables? */
+    int ch;             /* Option character. */
 
-	n = -1;
-	ncur = 0;
-	copy = true;
+    nenv = 0;
+    nvars = 0;
+    inherit = true;
+    count = true;
 
-	/* RATS: ignore */
-	while ((ch = getopt(argc, argv, "in:h")) != -1)
-		switch (ch) {
-		case 'h':
-			(void) puts(
+    while ((ch = getopt(argc, argv, "in:h")) != -1) {
+        switch (ch) {
+        case 'h':
+            (void) puts(
 "badenv - run a programme with a given environment, any environment\n\n"
-"Usage:    badenv [-i] [-n N] [VAR ...] [CMD [ARG ...]]\n"
+"Usage:    badenv [-i] [-nN] [VAR ...] [CMD [ARG ...]]\n"
 "          badenv -h\n\n"
 "Operands:\n"
 "    VAR   An environment variable. Use -n if VAR contains no '='.\n"
@@ -62,56 +76,90 @@ main (int argc, char **argv)
 "    -i    Do not inherit the current environment.\n"
 "    -n N  Treat the first N arguments as environment variables.\n"
 "    -h    Print this help screen.\n\n"
-"Copyright 2022 Odin Kroeger.\n"
+"Copyright 2022 and 2023 Odin Kroeger.\n"
 "Released under the GNU General Public License.\n"
 "This programme comes with ABSOLUTELY NO WARRANTY."
-			);
-			return EXIT_SUCCESS;
-		case 'i':
-			copy = false;
-			break;
-		case 'n':
-			n = strtol(optarg, NULL, 10);
-			if (errno != 0)
-				err(EXIT_FAILURE, "-n");
-			if (n < 0)
-				errx(EXIT_FAILURE, "-n: is negative");
-			if (n > INT_MAX)
-				errx(EXIT_FAILURE, "-n: is too large");
-			break;
-		default:
-			return EXIT_FAILURE;
-		}
-	argv += optind;
-	argc -= optind;
+            );
+            return EXIT_SUCCESS;
+        case 'i':
+            inherit = false;
+            break;
+        case 'n':
+            errno = 0;
+            nvars = strtol(optarg, NULL, 10);
+            if (nvars == 0 && errno != 0) {
+                err(EXIT_FAILURE, "-n");
+            }
+            if (nvars < 0) {
+                errx(EXIT_FAILURE, "-n: %ld is negative", nvars);
+            }
+            if (nvars > SHRT_MAX) {
+                errx(EXIT_FAILURE, "-n: %ld is too large", nvars);
+            }
+            count = false;
+            break;
+        default:
+            return EXIT_FAILURE;
+        }
+    }
 
-	if ((int) n > argc)
-		errx(EXIT_FAILURE, "-n: not that many arguments");
+    argc -= optind;
+    argv += optind;
 
-	if (n < 0)
-		for (n = 0; n < argc && strstr(argv[n], "="); n++)
-			; /* Empty on purpose. */
-	if (copy)
-		for (; environ[ncur]; ncur++)
-			; /* Empty on purpose. */
+    if (nvars > (long) argc) {
+        errx(EXIT_FAILURE, "-n: only %d arguments given", argc);
+    }
 
-	vars = calloc((size_t) (ncur + n + 1), sizeof(char *));
-	if (!vars)
-		err(EXIT_FAILURE, "calloc");
+    if (inherit) {
+        while (environ[nenv] != NULL) {
+            ++nenv;
+        }
+    }
 
-	for (long i = 0; i < ncur; i++)
-		vars[i] = environ[i];
-	for (long i = 0; i < n; i++)
-		vars[ncur + i] = argv[i];
+    if (nenv > SHRT_MAX) {
+        errx(EXIT_FAILURE, "too many variables in current environment");
+    }
 
-	argv += n;
-	if (*argv) {
-		(void) execve(*argv, argv, vars);
-		err(EXIT_FAILURE, "exec %s", *argv);
-	}
+    if (count) {
+        while (nvars < argc && strstr(argv[nvars], "=")) {
+            ++nvars;
+        }
+    }
 
-	for (; *vars; vars++)
-		(void) puts(*vars);
+    errno = 0;
+    vars = calloc((size_t) (nenv + nvars + 1), sizeof(*vars));
+    if (vars == NULL) {
+        err(EXIT_FAILURE, "calloc");
+    }
 
-	return EXIT_SUCCESS;
+    if (nenv > 0) {
+        if ((size_t) nenv > SIZE_MAX / sizeof(*environ)) {
+            /* Should be unreachable. */
+            errx(EXIT_FAILURE, "too many variables in environment");
+        }
+
+        (void) memcpy(vars, environ, (size_t) nenv * sizeof(*environ));
+    }
+
+    if (nvars > 0) {
+        if ((size_t) nvars > SIZE_MAX / sizeof(*argv)) {
+            /* Should be unreachable. */
+            errx(EXIT_FAILURE, "too many variables given");
+        }
+
+        (void) memcpy(&vars[nenv], argv, (size_t) nvars * sizeof(*argv));
+    }
+
+    cmd = &argv[nvars];
+    if (*cmd != NULL) {
+        errno = 0;
+        (void) execve(*cmd, cmd, vars);
+        err(EXIT_FAILURE, "exec %s", *cmd);
+    }
+
+    for (; *vars; vars++) {
+        (void) puts(*vars);
+    }
+
+    return EXIT_SUCCESS;
 }

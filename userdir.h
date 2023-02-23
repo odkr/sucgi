@@ -1,7 +1,7 @@
 /*
- * Headers for userdir.c.
+ * Header file for userdir.c.
  *
- * Copyright 2022 Odin Kroeger
+ * Copyright 2022 and 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
@@ -24,29 +24,24 @@
 
 #include <pwd.h>
 
+#include "cattr.h"
+#include "max.h"
 #include "types.h"
 
 
 /*
- * Take S to be a user directory pattern (see config.h) for the given USER,
- * resolve the pattern, and store the result in USER_DIR.
- *
- * The expanded string is stored in USER_DIR before it is resolved with
- * realpath(3) and can be used in error messages.
- *
- * Caveats:
- *     The address that USER_DIR points to if an error occurs is static.
- *     Its content is updated on every invocation of userdir_resolve.
+ * Resolve the user directory pattern S for the given USER and return the
+ * resolved user directory in USERDIR, which must be large enough to hold
+ * MAX_FNAME_LEN bytes, including the terminating NUL.
  *
  * Return value:
- *     OK       Success.
- *     ERR_PRN  snprintf(3) failed.
- *     ERR_LEN  The expanded string is longer than MAX_FNAME - 1 bytes.
- *     ERR_RES  realpath(3) failed.
+ *     OK                Success.
+ *     ERR_LEN   The expanded user directory is too long.
+ *     ERR_SYS_SNPRINTF  snprintf failed.
  */
 __attribute__((nonnull(1, 2, 3), format(printf, 1, 0), warn_unused_result))
-enum retval userdir_resolve(const char *const s, const struct passwd *user,
-                            char **user_dir);
+Error userdir_resolve(const char *s, const struct passwd *user,
+                      char userdir[MAX_FNAME_LEN]);
 
 
 #endif /* !defined(USERDIR_H) */

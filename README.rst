@@ -14,36 +14,25 @@ Run CGI scripts with the permissions of their owner.
 suCGI checks whether a CGI script is owned by a regular user, sets the real
 and the effective UID, the real and the effective GID, and the supplementary
 groups of the current process to the UID, the GID, and the groups of that
-user, cleans up the environment, and then runs the script.
+user, cleans the environment, and then runs the script.
 
 
 Requirements
 ============
 
-A system that complies with `POSIX.1-2008`_, including its X/Open system
-interface extension, and is compatible with `4.4BSD`_. Any post-2020
-Unix-like operating system should meet those requirements.
-
-That said, if suCGI were fit for use, I'd warn you that you need to do
-your due diligence, because a few kernels and quite some standard libraries
-deviate from POSIX.1-2008 and 4.4BSD, and some of those deviations are
-too insignificant for the compiler to catch but significant enough to
-compromise the assumptions of suCGI's threat model. And while we're at it,
-suCGI's threat model has, well, been modelled for Debian/GNU Linux; it
-may or may not work for other systems. Luckily, you need not care about
-any of this; suCGI is work-in-progress and *not* fit for use. Don't use
-it, even if you are running Debian/GNU Linux.
+suCGI requires a system that is compatible with `4.4BSD`_ and compliant with
+`POSIX.1-2008`_, including its X/Open system interface extension.
 
 
 Installation
 ============
 
-**Do NOT use suCGI at this point!** This project is work in progess and
-has *not* been reviewed, let alone audited.
+**Do NOT use suCGI at this point!**
+suCGI is work in progess and has *not* been reviewed, let alone audited.
 
 ----
 
-You may need to install the standard build tools.
+You may need to install the standard build tools and M4.
 
 Arch-based GNU/Linux systems::
 
@@ -76,11 +65,14 @@ Generate the *makefile* by::
 
 If ``configure`` succeeded, move on to the next step.
 
-See `docs/BUILDING.rst`_ for troubleshooting or details.
+See `docs/build.rst`_ for details.
 
 ----
 
 suCGI is configured at compile-time. Adapt *config.h* to your needs.
+
+    cp config.h.sample config.h
+    vi config.h
 
 ----
 
@@ -161,7 +153,7 @@ GitHub: https://github.com/odkr/sucgi
 
 .. _Apache: https://httpd.apache.org/
 
-.. _`docs/BUILDING.rst`: docs/BUILDING.rst
+.. _`docs/build.rst`: docs/build.rst
 
 .. _Clang: https://clang.llvm.org/
 

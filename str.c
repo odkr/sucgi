@@ -1,7 +1,7 @@
 /*
- * String handling for suCGI.
+ * Manipulate strings safely.
  *
- * Copyright 2022 Odin Kroeger
+ * Copyright 2022 and 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
@@ -19,7 +19,6 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#define _ISOC99_SOURCE
 #define _XOPEN_SOURCE 700
 
 #if !defined(_FORTIFY_SOURCE)
@@ -27,49 +26,66 @@
 #endif
 
 #include <assert.h>
-#include <errno.h>
-#include <fnmatch.h>
-#include <stdarg.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
 
+#include "max.h"
 #include "str.h"
 #include "types.h"
 
-enum retval
+
+Error
 str_cp(const size_t n, const char *const src, char dest[n + 1U])
 {
-	char *end;	/* Position of last byte of src. */
-	size_t len;	/* Bytes copied. */
+    char *end;      /* Position of last byte of src. */
+    size_t len;     /* Bytes copied. */
 
-	end = stpncpy(dest, src, n);
-	len = (size_t) (end - dest);
-	dest[len] = '\0';
+    assert(src);
+    assert(strnlen(src, MAX_STR_LEN) < MAX_STR_LEN);
+    assert(dest);
 
-	if (src[len] != '\0')
-		return ERR_LEN;
+    end = stpncpy(dest, src, n);
+    /* cppcheck-suppress [misra-c2012-10.8, misra-c2012-18.4];
+       cast is safe and portable, end must be greater than dest */
+    len = (size_t) (end - dest);
+    dest[len] = '\0';
 
-	return OK;
+    /* dest[len] could be '\0' only because dest was zeroed out. */
+    if (src[len] != '\0') {
+        return ERR_LEN;
+    }
+
+    return OK;
 }
 
-enum retval
-str_split(size_t max, const char *const s, const char *const sep,
-          char head[max], char **const tail)
+Error
+str_split(const char *const str, const char *const sep,
+          const size_t n, char head[n], const char **const tail)
 {
-	size_t len;	/* Length of head. */
+    size_t len;     /* Length of head. */
 
-	*tail = strpbrk(s, sep);
+    assert(str);
+    assert(strnlen(str, MAX_STR_LEN) < MAX_STR_LEN);
+    assert(sep);
+    assert(strnlen(sep, MAX_STR_LEN) < MAX_STR_LEN);
+    assert(n > 0U);
+    assert(head);
+    assert(tail);
 
-	if (*tail == NULL)
-		return str_cp(max - 1U, s, head);
+    *tail = strpbrk(str, sep);
+    if (*tail == NULL) {
+        return str_cp(n - 1U, str, head);
+    }
 
-	len = (size_t) (*tail - s);
-	if (len >= max)
-		return ERR_LEN;
+    /* cppcheck-suppress [misra-c2012-10.8, misra-c2012-18.4];
+       cast is safe and portable, *tail must be greater than str. */
+    len = (size_t) (*tail - str);
+    if (len >= n) {
+        return ERR_LEN;
+    }
 
-	(void) str_cp(len, s, head);
-	++(*tail);
+    (void) str_cp(len, str, head);
+    ++(*tail);
 
-	return OK;
+    return OK;
 }

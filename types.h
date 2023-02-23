@@ -1,7 +1,7 @@
 /*
- * Data types for suCGI
+ * Data types.
  *
- * Copyright 2022 Odin Kroeger
+ * Copyright 2022 and 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
@@ -22,33 +22,35 @@
 #if !defined(TYPES_H)
 #define TYPES_H
 
-/* Return code for functions. */
-enum retval {
-	OK = 0,		/* Success. */
-	FAIL,		/* Generic failure. */
-	ERR_CNV,	/* Conversion error. */
-	ERR_NIL,	/* No input. */
-	ERR_LEN,	/* Input is out-of-bounds. */
-	ERR_ILL,	/* Bad input. */
-	ERR_MEM,	/* calloc(3) failed. */
-	ERR_OPEN,	/* open(2)/openat2(2) failed. */
-	ERR_CLOSE,	/* close(2) failed. */
-	ERR_RES,	/* realpath(3) failed. */
-	ERR_STAT,	/* stat(2) failed. */
-	ERR_PRN,	/* printf(3) failed. */
-	ERR_ENV,	/* getenv(3) or setenv(3) failed. */
-	ERR_GETGR,	/* getgrent(3) failed. */
-	ERR_SETUID,	/* setuid(2) failed. */
-	ERR_SETGID,	/* setgid(2) failed. */
-	ERR_SETGRPS	/* setgroups(2) failed. */
-};
 
-/* A simple key-value store. */
-struct pair {
-	const char *const key;
-	const char *const value;
-};
+/* Return codes. */
+typedef enum {
+    OK = 0,             /* Success. */
+    ERR_BAD,            /* Generic error. */
+    ERR_LEN,            /* An array or a string is too long. */
+    ERR_NO_MATCH,       /* A value does not match a specification. */
+    ERR_NO_SUFFIX,      /* Filename has no suffix. */
+    ERR_PRIV_RESUME,    /* Privileges could be resumed. */
+
+    /* System and standard library errors. */
+    ERR_SYS_STAT,
+    ERR_SYS_SETENV,
+    ERR_SYS_SETUID,
+    ERR_SYS_SETGID,
+    ERR_SYS_SETGROUPS,
+    ERR_SYS_SETEUID,
+    ERR_SYS_SETEGID,
+    ERR_SYS_SNPRINTF
+} Error;
+
+
+/* Simple key-value store. */
+typedef struct {
+    /* cppcheck-suppress unusedStructMember; false positive. */
+    const char *const key;
+    /* cppcheck-suppress unusedStructMember; false positive. */
+    const char *const value;
+} Pair;
 
 
 #endif /* !defined(TYPES_H) */
-

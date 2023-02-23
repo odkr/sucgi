@@ -1,0 +1,58 @@
+#!/bin/sh
+# shellcheck disable=1091,2015
+
+#
+# Initialisation
+#
+
+set -Cefu
+
+
+#
+# Options
+#
+
+OPTIND=1 OPTARG='' opt=''
+while getopts h opt; do
+	case $opt in
+	(h) exec cat <<EOF ;;
+prepare - Prepare the system for building suCGI
+
+Usage:       prepare
+             prepare -h
+
+Options:
+    -h       Show this help screen.
+
+Copyright 2023 Odin Kroeger.
+Released under the GNU General Public License.
+This programme comes with ABSOLUTELY NO WARRANTY.
+EOF
+	(*) exit 1
+	esac
+done
+shift $((OPTIND - 1))
+unset opt
+
+if [ $# -gt 0 ]
+then
+	printf 'usage: prepare\n' >&2
+	exit 2
+fi
+
+
+#
+# Main
+#
+
+case $(uname) in
+(Darwin)
+	exec xcode-select --install
+	;;
+(*)
+	cat <<-EOF >&2
+	prepare does not support your operating system.
+	Please install the standard build tools and M4 manually.
+	EOF
+	exit 8
+esac

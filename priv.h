@@ -1,7 +1,7 @@
 /*
- * Headers for priv.c.
+ * Header file for priv.c.
  *
- * Copyright 2022 Odin Kroeger
+ * Copyright 2022 and 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
@@ -24,26 +24,38 @@
 
 #include <pwd.h>
 
-#include "attr.h"
+#include "cattr.h"
 #include "types.h"
 
 
 /*
- * Set the process' real and effective UID and GID to UID and GID
- * and the supplementary groups to GIDS respectively, where NGIDS
- * is the number of group IDs in GIDS.
+ * Set the real and effective user and group IDs to the given UID and GID and
+ * the supplementary groups to the first N group IDs in GROUPS respectively.
  *
  * Return value:
- *      OK           Success.
- *      ERR_CNV      NGIDS is smaller than 0.
- *      ERR_SETUID   setuid(2) failed.
- *      ERR_SETGID   setgid(2) failed.
- *      ERR_SETGRPS  setgroups(2) failed.
- *      FAIL         Superuser privileges could be resumed.
+ *     OK                 Success.
+ *     ERR_SYS_SETUID     setuid failed.
+ *     ERR_SYS_SETGID     setgid failed.
+ *     ERR_SYS_SETGROUPS  setgroups failed.
+ *     ERR_PRIV_RESUME    Superuser privileges could be resumed.
  */
 __attribute__((nonnull(4), warn_unused_result))
-enum retval priv_drop(const uid_t uid, const gid_t gid,
-                      const int ngids, const gid_t gids[ngids]);
+/* cppcheck-suppress misra-c2012-8.2; declaration is in prototype form. */
+Error priv_drop(uid_t uid, gid_t gid, int n, const gid_t groups[n]);
+
+/*
+ * Set the effective user, group, and supplementary groups IDs
+ * to the real user and group IDs respectively.
+ *
+ * Return value:
+ *     OK                Success.
+ *     ERR_SYS_SETEUID*  seteuid failed.
+ *     ERR_SYS_SETEGID*  setegid failed.
+ *
+ *     * These errors should be unreachable.
+ */
+__attribute__((warn_unused_result))
+Error priv_suspend(void);
 
 
 #endif /* !defined(PRIV_H) */

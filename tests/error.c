@@ -1,7 +1,7 @@
 /*
  * Test error.
  *
- * Copyright 2022 Odin Kroeger
+ * Copyright 2022 and 2023 Odin Kroeger
  *
  * This file is part of suCGI.
  *
@@ -28,10 +28,11 @@
 int
 main (int argc, char **argv) {
 	if (argc < 2 || argc > 3) {
-		(void) fputs("usage: error FORMAT [ARG]\n", stderr);
+		fputs("usage: error FORMAT [ARG]\n", stderr);
 		return EXIT_FAILURE;
 	}
 
+	atexit(closelog);
 	openlog("error", LOG_CONS | LOG_NDELAY | LOG_PERROR, LOG_AUTH);
 
 	(void) error(argv[1], argv[2]);

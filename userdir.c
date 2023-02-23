@@ -1,7 +1,7 @@
 /*
  * User directory handling for suCGI.
  *
- * Copyright 2022 Odin Kroeger
+ * Copyright 2022 and 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
@@ -19,7 +19,6 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#define _ISOC99_SOURCE
 #define _XOPEN_SOURCE 700
 
 #if !defined(_FORTIFY_SOURCE)
@@ -28,59 +27,49 @@
 
 #include <assert.h>
 #include <pwd.h>
+/* cppcheck-suppress misra-c2012-21.6; needed for snprintf. */
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "max.h"
-#include "str.h"
-#include "types.h"
 #include "userdir.h"
+#include "types.h"
 
 
-enum retval
-userdir_resolve(const char *const s, const struct passwd *user,
-                char **user_dir)
+Error
+userdir_resolve(const char *const s, const struct passwd *const user,
+                char userdir[MAX_FNAME_LEN])
 {
-	char *expan;			/* Expanded string. */
-	char *resolved;			/* Resolved filename. */
-	int len;			/* Length of expanded string. */
+    int n;        /* Length of expanded user directory. */
 
-	assert(*s != '\0');
+    assert(s);
+    assert(*s != '\0');
+    assert(strnlen(s, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
+    assert(user);
+    assert(userdir);
 
-	expan = (char *) calloc(MAX_FNAME, sizeof(*expan));
-	if (!expan)
-		return ERR_MEM;
+    /* Some versions of snprintf fail to NUL-terminate strings. */
+    (void) memset(userdir, '\0', MAX_FNAME_LEN);
 
+    if (*s != '/') {
+        n = snprintf(userdir, MAX_FNAME_LEN, "%s/%s", user->pw_dir, s);
+    } else if (strstr(s, "%s") == NULL) {
+        n = snprintf(userdir, MAX_FNAME_LEN, "%s/%s", s, user->pw_name);
+    } else {
+/* s is not a literal, but can only set by the system administrator. */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
-	if (*s != '/')
-		len = snprintf(expan, MAX_FNAME, "%s/%s", user->pw_dir, s);
-	else if (strstr(s, "%s") == NULL)
-		len = snprintf(expan, MAX_FNAME, "%s/%s", s, user->pw_name);
-	else
-		/* RATS: ignore; format is controlled by the administrator. */
-		len = snprintf(expan, MAX_FNAME, s, user->pw_name);
+        /* RATS: ignore; format is controlled by the administrator. */
+        n = snprintf(userdir, MAX_FNAME_LEN, s, user->pw_name);
 #pragma GCC diagnostic pop
+    }
 
-	if (len < 0) {
-		free(expan);
-		return ERR_PRN;
-	}
-	if ((size_t) len >= MAX_FNAME) {
-		free(expan);
-		return ERR_LEN;
-	}
+    if (n < 0) {
+        return ERR_SYS_SNPRINTF;
+    }
+    if ((size_t) n >= (size_t) MAX_FNAME_LEN) {
+        return ERR_LEN;
+    }
 
-	*user_dir = expan;
-
-	/* RATS: ignore; the length of expan is checked above. */
-	resolved = realpath(expan, NULL);
-	if (resolved == NULL)
-		return ERR_RES;
-
-	*user_dir = resolved;
-	free(expan);
-
-	return OK;
+    return OK;
 }

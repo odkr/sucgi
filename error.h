@@ -1,7 +1,7 @@
 /*
- * Header for error.c.
+ * Header file for error.c.
  *
- * Copyright 2022 Odin Kroeger
+ * Copyright 2022 and 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
@@ -22,11 +22,10 @@
 #if !defined(ERROR_H)
 #define ERROR_H
 
-#include "attr.h"
+#include "cattr.h"
 
 /* Log MESSAGE as an error and exit with status EXIT_FAILURE. */
-__attribute__((nonnull(1), noreturn))
-void error(const char *const message, ...);
-
+__attribute__((cold, nonnull(1), noreturn))
+void error(const char *message, ...);
 
 #endif /* !defined(ERROR_H) */

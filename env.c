@@ -1,7 +1,7 @@
 /*
- * Environment handling for suCGI.
+ * Access the environment.
  *
- * Copyright 2022 Odin Kroeger
+ * Copyright 2022 and 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
@@ -19,7 +19,6 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#define _ISOC99_SOURCE
 #define _XOPEN_SOURCE 700
 
 #if !defined(_FORTIFY_SOURCE)
@@ -30,121 +29,84 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fnmatch.h>
-#include <limits.h>
+#include <regex.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+#include <syslog.h>
 
 #include "env.h"
-#include "file.h"
 #include "max.h"
-#include "path.h"
 #include "str.h"
 #include "types.h"
 
-
-/*
- * Constants
- */
-
-/* Characters allowed in environment variable names. */
-#define ENV_NAME_CHARS "ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789" \
-                       "abcdefghijklmnopqrstuvwxyz"
-
-
-/*
- * Functions
- */
-
-enum retval
-env_file_open(const char *const jail, const char *const var, const int flags,
-              const char **const fname, int *const fd)
-{
-	const char *resolved;			/* Resolved filename. */
-	const char *value;			/* Variable value. */
-
-	assert(*jail != '\0');
-	assert(*var != '\0');
-	assert(strnlen(jail, MAX_FNAME) < MAX_FNAME);
-	/* RATS: ignore; not a permission check. */
-	assert(access(jail, F_OK) == 0);
-	/* RATS: ignore; length of jail is checked above. */
-	assert(strncmp(jail, realpath(jail, NULL), MAX_FNAME) == 0);
-
-	*fname = NULL;
-
-	errno = 0;
-	/* RATS: ignore; value is sanitised below. */
-	value = getenv(var);
-	if (!value || *value == '\0') {
-		if (errno == 0)
-			return ERR_NIL;
-		else
-			return ERR_ENV;
-	}
-
-	if (strnlen(value, MAX_FNAME) >= MAX_FNAME)
-		return ERR_LEN;
-	*fname = value;
-
-	errno = 0;
-	/* RATS: ignore; length of value is checked above. */
-	resolved = realpath(value, NULL);
-	if (resolved == NULL)
-		return ERR_RES;
-	if (strnlen(resolved, MAX_FNAME) >= MAX_FNAME)
-		return ERR_LEN;
-	*fname = resolved;
-
-	if (!path_is_subdir(resolved, jail))
-		return ERR_ILL;
-
-	return file_sec_open(resolved, flags, fd);
-}
-
 bool
-env_is_name(const char *const name)
+/* cppcheck-suppress misra-c2012-8.7; external linkage needed for testing. */
+env_is_name(const char *s)
 {
-	return *name != '\0' && !isdigit(*name) &&
-	       name[strspn(name, ENV_NAME_CHARS)] == '\0';
+    assert(s);
+    assert(strnlen(s, MAX_VARNAME_LEN) < MAX_VARNAME_LEN);
+
+    if (isdigit(*s) || *s == '\0') {
+        return false;
+    }
+
+    for (const char *ch = s; *ch != '\0'; ++ch) {
+        if (!(isalpha(*ch) || isdigit(*ch) || ('_' == *ch))) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
-enum retval
-env_restore(char *const *vars, const char *const *patterns,
-            char name[MAX_VARNAME])
+Error
+env_restore(char *const *vars, const size_t n, regex_t pregs[n])
 {
-	assert(*vars);
+    size_t i;		/* Index. */
 
-	(void) memset(name, '\0', MAX_VARNAME);
+    assert(vars);
+    assert(pregs);
 
-	for (char *const *var = vars; *var; ++var) {
-		char *value;
+    for (i = 0; i < MAX_NVARS && vars[i]; ++i) {
+        char name[MAX_VARNAME_LEN];     /* Variable name. */
+        const char *val;                /* Variable value. */
+        const char *var;                /* Variable as a whole. */
 
-		if (str_split(MAX_VARNAME, *var, "=", name, &value) != OK)
-			return ERR_CNV;
-		if (!value || *name == '\0')
-			return ERR_CNV;
+        var = vars[i];
 
-		for (const char *const *pat = patterns; *pat; ++pat) {
-			if (fnmatch(*pat, name, 0) == 0) {
-				/*
-				 * patterns may contain wildcards,
-				 * so the name has to be checked.
-				 */
-				if (!env_is_name(name))
-					return ERR_ILL;
-				if (strnlen(value, MAX_FNAME) >= MAX_FNAME)
-					return ERR_LEN;
+        if (strnlen(vars[i], MAX_VAR_LEN) >= (size_t) MAX_VAR_LEN) {
+            syslog(LOG_INFO, "variable $%s: too long.", var);
+        } else if (str_split(var, "=", MAX_VARNAME_LEN, name, &val) != OK) {
+            syslog(LOG_INFO, "variable $%s: name is too long.", var);
+        } else if (val == NULL) {
+            syslog(LOG_INFO, "variable $%s: malformed.", var);
+        } else if (!env_is_name(name)) {
+            syslog(LOG_INFO, "variable $%s: bad name.", var);
+        } else {
+            size_t j;   /* Index. */
 
-				errno = 0;
-				if (setenv(name, value, true) != 0)
-					return ERR_ENV;
+            for (j = 0; j < n; ++j) {
+                if (regexec(&pregs[j], name, 0, NULL, 0) == 0) {
+                    errno = 0;
+                    if (setenv(name, val, true) != 0) {
+                        return ERR_SYS_SETENV;
+                    }
 
-				break;
-			}
-		}
-	}
+                    syslog(LOG_INFO, "keeping $%s.", name);
+                    break;
+                }
+            }
 
-	return OK;
+            if (j == n) {
+                syslog(LOG_INFO, "discarding $%s.", name);
+            }
+        }
+    }
+
+    if (i == MAX_NVARS) {
+        return ERR_LEN;
+    }
+
+    return OK;
 }

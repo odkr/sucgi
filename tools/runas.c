@@ -1,7 +1,7 @@
 /*
- * Run a programme under the given UID and GID.
+ * Run a command as a given user.
  *
- * Copyright 2022 Odin Kroeger
+ * Copyright 2022 and 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
@@ -19,11 +19,14 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#include <sys/types.h>
+#define _BSD_SOURCE
+#define _DARWIN_C_SOURCE
+#define _GNU_SOURCE
+
 #include <err.h>
 #include <errno.h>
-#include <grp.h>
 #include <pwd.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -32,62 +35,80 @@
 int
 main (int argc, char **argv)
 {
-	struct passwd *pwd;	/* The user. */
-	int ch;			/* An option character. */
+    struct passwd *pwd;     /* The user. */
+    char **comm;            /* The command. */
+    bool real;              /* Set only the real user and group IDs? */
+    int ch;                 /* An option character. */
 
-	/* RATS: ignore */
-	while ((ch = getopt(argc, argv, "h")) != -1)
-		switch (ch) {
-			case 'h':
-				(void) puts(
-"runas - run a command as a user\n\n"
-"Usage:   runas LOGNAME CMD [ARG ...]\n"
-"         runas -h\n\n"
+    real = false;
+
+    while ((ch = getopt(argc, argv, "hr")) != -1) {
+        switch (ch) {
+        case 'h':
+            (void) puts(
+"runas - run a command as a given user\n\n"
+"Usage:       runas [-r] LOGNAME COMM [ARG ...]\n"
+"             runas -h\n\n"
 "Operands:\n"
-"    LOGNAME  A login name.\n"
-"    CMD      A command.\n"
-"    ARG      An argument to CMD.\n\n"
+"    LOGNAME  Login name.\n"
+"    COMM     Command to run.\n"
+"    ARG      Argument to COMM.\n\n"
 "Options:\n"
-"    -h   Print this help screen.\n\n"
-"Copyright 2022 Odin Kroeger.\n"
+"    -r       Only set the real user and group IDs.\n"
+"    -h       Print this help screen.\n\n"
+"Copyright 2022 and 2023 Odin Kroeger.\n"
 "Released under the GNU General Public License.\n"
 "This programme comes with ABSOLUTELY NO WARRANTY."
-				);
-				return EXIT_SUCCESS;
-			default:
-				return EXIT_FAILURE;
-		}
-	argc -= optind;
-	argv += optind;
+            );
+            return EXIT_SUCCESS;
+        case 'r':
+            real = true;
+            break;
+        default:
+            return EXIT_FAILURE;
+        }
+    }
 
-	if (argc < 2) {
-		(void) fputs("usage: runas LOGNAME CMD [ARG ...]\n", stderr);
-		return EXIT_FAILURE;
-	}
+    argc -= optind;
+    argv += optind;
 
-	errno = 0;
-	pwd = getpwnam(argv[0]);
-	if (!pwd) {
-		if (errno == 0)
-			errx(EXIT_FAILURE, "no such user");
-		else
-			err(EXIT_FAILURE, "getpwnam");
-	}
+    if (argc < 2) {
+        (void) fputs("usage: runas LOGNAME CMD [ARG ...]\n", stderr);
+        return EXIT_FAILURE;
+    }
 
-	if (setgroups(1, (gid_t[1]) {(gid_t) pwd->pw_gid}) != 0)
-		err(EXIT_FAILURE, "setgroups %llu",
-		    (unsigned long long) pwd->pw_gid);
-	if (setgid(pwd->pw_gid) != 0)
-		err(EXIT_FAILURE, "setgid %llu",
-		    (unsigned long long) pwd->pw_gid);
-	if (setuid(pwd->pw_uid) != 0)
-		err(EXIT_FAILURE, "setuid %llu",
-		    (unsigned long long) pwd->pw_uid);
+    errno = 0;
+    pwd = getpwnam(argv[0]);
+    if (!pwd) {
+        if (errno == 0) {
+            errx(EXIT_FAILURE, "no such user");
+        } else {
+            err(EXIT_FAILURE, "getpwnam");
+        }
+    }
 
-	argv++;
-	/* RATS: ignore */
-	(void) execvp(*argv, argv);
+    if (real) {
+        if (setreuid(pwd->pw_uid, geteuid()) != 0) {
+            err(EXIT_FAILURE, "setreuid");
+        }
+        if (setregid(pwd->pw_gid, getegid()) != 0) {
+            err(EXIT_FAILURE, "setregid");
+        }
+    } else {
+        if (setgroups(1, (gid_t[1]) {(gid_t) pwd->pw_gid}) != 0) {
+            err(EXIT_FAILURE, "setgroups");
+        }
+        if (setgid(pwd->pw_gid) != 0) {
+            err(EXIT_FAILURE, "setgid");
+        }
+        if (setuid(pwd->pw_uid) != 0) {
+            err(EXIT_FAILURE, "setuid");
+        }
+    }
 
-	/* This point should not be reached. */
-	err(EXIT_FAILURE, "exec %s", *argv);
+    comm = &argv[1];
+    (void) execvp(*comm, comm);
+
+    /* This point should not be reached. */
+    err(EXIT_FAILURE, "exec %s", *comm);
 }

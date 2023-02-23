@@ -36,6 +36,17 @@ init || exit
 
 
 #
+# Functions
+#
+
+# This is hack to make coverage reports more accurate.
+covown() {
+	find "$src_dir" '(' -name '*.gcda' -o -name '*.gcno' ')' \
+	                -exec chown "${1:?}" '{}' +
+}
+
+
+#
 # Prelude
 #
 
@@ -50,15 +61,9 @@ if [ "$uid" -eq 0 ]
 then
 	if user="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")"
 	then
-		# This is a hack to make coverage reports accurate.
-		covown() {
-			find "$src_dir" \
-				'(' -name '*.gcda' -o -name '*.gcno' ')' \
-				-exec chown "${1:?}" '{}' +
-		}
-
-		owner="$(tools/owner "$src_dir")"
-		readonly onwner
+		# This is a hack to make coverage reports more accurate.
+		owner="$(owner "$src_dir")"
+		readonly owner
 		cleanup="covown \"\$owner\"; ${cleanup-}"
 		covown "$user"
 	else
@@ -105,42 +110,17 @@ readonly doc_root
 # Get the canonical location of main.
 tests_dir=$(cd -P "$script_dir" && pwd)
 
-# Create a list of more environment variables than suCGI permits.
-env_max=256
-for i in $(seq $((env_max + 1)))
-do
-	vars="${vars-} v$i="
-done
-unset i
-
-# Get the system's maximum path length in $TMPDIR.
-path_max="$(getconf PATH_MAX "$TMPDIR")"
-[ "$path_max" -lt 0 ] && path_max=255
-
-# Create a path that is as long as the system and suCGI permit.
-if [ "$path_max" -lt "$MAX_FNAME" ] && [ "$path_max" -gt -1 ]
-	then max="$path_max"
-	else max="$MAX_FNAME"
-fi
-long_path="$(mklongpath "$doc_root" "$((max - 1))")"
-mkdir -p "$(dirname "$long_path")"
+# Get the maximum path length that suCGI permits.
+long_path="$(mklongpath "$doc_root" "$((MAX_FNAME_LEN - 1))")"
+mkdir -p "$(dirname -- "$long_path")"
 echo $$ >"$long_path"
 
-# Create a path that is longer than the system permits.
-huge_path="$(mklongpath "$doc_root" "$path_max")"
+# Create a path that is longer than suCGI permits.
+huge_path="$(mklongpath "$doc_root" "$MAX_FNAME_LEN")"
 dirwalk "$doc_root" "$huge_path" 'mkdir "$fname"' 'echo $$ >"$fname"'
 
-# Create a path that is longer than suCGI permits.
-huge_str="$(mklongpath "$doc_root" "$MAX_FNAME")"
-dirwalk "$doc_root" "$huge_str" 'mkdir "$fname"' 'echo $$ >"$fname"'
-
-# Create a shortcut to the path that is longer than the system permits.
+# Create a shortcut to that path.
 huge_path_link="$doc_root/$(dirwalk "$doc_root" "$huge_path" \
-	'ln -s "$fname" p.d && printf p.d/' \
-	'ln -s "$fname" p.f && printf p.f\\n')"
-
-# Create a shortcut to the path that is longer than suCGI permits.
-huge_str_link="$doc_root/$(dirwalk "$doc_root" "$huge_str" \
 	'ln -s "$fname" s.d && printf s.d/' \
 	'ln -s "$fname" s.f && printf s.f\\n')"
 
@@ -170,7 +150,7 @@ ln -s "$inside" "$in_link"
 
 # Locate env
 env_bin="$(command -v env)"
-env_dir="$(dirname "$env_bin")"
+env_dir="$(dirname -- "$env_bin")"
 
 # Make sure the files are owned by the right user.
 [ "$uid" -eq 0 ] && chown -R "$user:$group" "$TMPDIR"
@@ -190,7 +170,7 @@ check -o 'Print this help screen.' main -h
 # Check the configuration dump.
 #
 
-check -o 'JAIL_DIR' main -C
+check -o 'USER_DIR' main -C
 
 
 #
@@ -218,148 +198,58 @@ check -s1 -e'usage: sucgi' main -hV
 # Malformed environment variables.
 #
 
-tests_dir=$(cd -P "$script_dir" && pwd) ||
-	err 'failed to get working directory.'
-
-check -s1 -e'encountered malformed environment variable.' \
-	badenv -n3 foo=foo '' bar=bar "$tests_dir/main"
-
-check -s1 -e'encountered malformed environment variable.' \
-	badenv -n3 bar=bar baz=baz foo "$tests_dir/main"
-
-check -s1 -e"bad characters in variable name SSL_CLIENT_S_DN_ ." \
-	badenv 'SSL_CLIENT_S_DN_ =bar' foo=foo baz=baz "$tests_dir/main"
-
+# FIXME: instead test whether they survive to the child process.
+#check -s1 -e'malformed environment variable.' \
+#	badenv -n3 foo=foo '' bar=bar "$tests_dir/main"
 #
-# Verification of $DOCUMENT_ROOT (pre-privilege drop).
+#check -s1 -e'malformed environment variable.' \
+#	badenv -n3 bar=bar baz=baz foo "$tests_dir/main"
 #
-
-# No DOCUMENT_ROOT given.
-check -s1 -e'$DOCUMENT_ROOT unset or empty.' \
-	main
-
-# $DOCUMENT_ROOT is empty.
-check -s1 -e'$DOCUMENT_ROOT unset or empty.' \
-	DOCUMENT_ROOT= main
-
-# $DOCUMENT_ROOT is too long (suCGI).
-check -s1 -e'$DOCUMENT_ROOT is too long.' \
-	DOCUMENT_ROOT="$huge_str" main
-
-# $DOCUMENT_ROOT is too long (system).
-check -s1 -e'long' \
-	DOCUMENT_ROOT="$huge_path" main
-
-# Path to document root is too long after having been resolved (system).
-check -s1 -e'long' \
-	DOCUMENT_ROOT="$huge_path_link" main
-
-# Path to document root is too long after having been resolved (suCGI).
-check -s1 -e'long' \
-	DOCUMENT_ROOT="$huge_str_link" main
-
-# Path to document root points to outside of jail.
-check -s1 -e"document root / not within jail." \
-	DOCUMENT_ROOT=/ main
-
-# Resolved document root points to outside of jail (dots).
-check -s1 -e"document root / not within jail." \
-	DOCUMENT_ROOT="$doc_root/../../../../../../../../../../../../.." main
-
-# Resolved path to document roots to outside of document root (symlink).
-check -s1 -e"document root / not within jail." \
-	DOCUMENT_ROOT="$root_link" main
-
-# Document root is of the wrong type.
-check -s1 -e"open $outside: Not a directory." \
-	DOCUMENT_ROOT="$outside" main
-
-# Document root does not exist.
-check -s1 -e"realpath <no file!>: No such file or directory." \
-	DOCUMENT_ROOT="<no file!>" main
-
-# Simple test. Should fail but regard DOCUMENT_ROOT as valid.
-check -s1 -e'$PATH_TRANSLATED unset or empty.' \
-	DOCUMENT_ROOT="$doc_root" main
-
-# Long filename. Should fail but not because the name is too long.
-long_doc_root="${long_path%??????????????}"
-check -s1 -e"realpath $long_doc_root: No such file or directory" \
-	DOCUMENT_ROOT="$long_doc_root" main
-
-# DOCUMENT_ROOT remains mostly the same for the remainder of this script.
-export DOCUMENT_ROOT="$doc_root"
+#check -s1 -e"bad characters in variable name." \
+#	badenv 'SSL_CLIENT_S_DN_ =bar' foo=foo baz=baz "$tests_dir/main"
 
 
 #
-# Verification of $PATH_TRANSLATED.
+# Verification of $PATH_TRANSLATED (pre-privilege drop).
 #
 
 # PATH_TRANSLATED is undefined.
-check -s1 -e'$PATH_TRANSLATED unset or empty.' \
+check -s1 -e'$PATH_TRANSLATED not set.' \
 	main
 
 # $PATH_TRANSLATED is empty.
-check -s1 -e'$PATH_TRANSLATED unset or empty.' \
+check -s1 -e'$PATH_TRANSLATED is empty.' \
 	PATH_TRANSLATED= main
 
-# $PATH_TRANSLATED is too long (system).
+# $PATH_TRANSLATED is too long.
 check -s1 -e'long' \
 	PATH_TRANSLATED="$huge_path" main
 
-# $PATH_TRANSLATED is too long (suCGI).
-check -s1 -e'long' \
-	PATH_TRANSLATED="$huge_str" main
-
-# Path to script is too long after having been resolved (system).
+# Path to script is too long after having been resolved.
 check -s1 -e'long' \
 	PATH_TRANSLATED="$huge_path_link" main
 
-# Path to script is too long after having been resolved (suCGI).
-check -s1 -e'long' \
-	PATH_TRANSLATED="$huge_str_link" main
-
-# Path to script points to outside of document root.
-check -s1 -e"script $outside not within document root." \
-	PATH_TRANSLATED="$outside" main
-
-# Resolved path to script points to outside of document root (dots).
-check -s1 -e"script $(dirname "$doc_root") not within document root." \
-	PATH_TRANSLATED="$doc_root/../." main
-
-# Resolved path to script points to outside of document root (symlink).
-check -s1 -e"script $outside not within document root." \
-	PATH_TRANSLATED="$out_link" main
-
 # Script is of the wrong type.
-check -s1 -e"script $dir is not a regular file." \
+check -s1 -e"$dir is not a regular file." \
 	PATH_TRANSLATED="$dir" main
 
 # Script does not exist.
 check -s1 -e"realpath $doc_root/<no file!>: No such file or directory." \
 	PATH_TRANSLATED="$doc_root/<no file!>" main
 
-# Simple test. Should fail but regard PATH_TRANSLANTED as valid.
-# shellcheck disable=2046
-if [ "$user" = "$(id -un 0)" ]
-then
-	err="script $inside is owned by privileged user $user."
-elif [ "$uid" -eq 0 ]
-then
-	err="$inside has no filename suffix."
-elif inlist -eq 0 $(id -G "$user")
-then
-	err="user $user belongs to privileged group 0."
-else
-	err='seteuid: Operation not permitted.'
-fi
 
-check -s1 -e"$err" \
-	PATH_TRANSLATED="$inside" main
+#
+# $PATH_TRANSLATED is valid.
+#
+
+err='seteuid: Operation not permitted.'
+[ "$uid" -eq 0 ] && err="has no filename suffix."
+
+# Simple test. Should fail but regard PATH_TRANSLANTED as valid.
+check -s1 -e"$err" PATH_TRANSLATED="$inside" main
 
 # Symlink into jail. Should fail but regard PATH_TRANSLATED as valid.
-check -s1 -e"$err" \
-	PATH_TRANSLATED="$in_link" main
+check -s1 -e"$err" PATH_TRANSLATED="$in_link" main
 
 # Long filename. Should fail but not because the name is too long.
 long_path_trans="${long_path%????????????????}"
@@ -371,8 +261,8 @@ check -s1 -e"realpath $long_path_trans: No such file or directory." \
 # Simple tests for script ownership.
 #
 
-check -s1 -e"script $env_bin is owned by privileged user root" \
-	DOCUMENT_ROOT="$env_dir" PATH_TRANSLATED="$env_bin" main
+check -s1 -e"$env_bin is owned by privileged user root" \
+	PATH_TRANSLATED="$env_bin" main
 
 
 #
@@ -381,7 +271,7 @@ check -s1 -e"script $env_bin is owned by privileged user root" \
 
 if [ "$uid" -ne 0 ]
 then
-	warn -y 'all non-root tests passed.'
+	warn 'all non-root tests passed.'
 	exit
 fi
 
@@ -394,35 +284,37 @@ fi
 uid="$(id -u "$user")"
 gid="$(id -g "$user")"
 
-# Create a file without an owner.
-unalloc_uid="$(unallocid -u 1000 30000)"
+# Create a directory without an owner.
+unalloc_uid="$(unallocid 1000 30000)"
 noowner="$doc_root/noowner"
 touch "$noowner"
 chown "$unalloc_uid" "$noowner"
 
-# Create a file owned by root.
+# Create a directory owned by root.
 root_owned="$doc_root/priv-root"
 touch "$root_owned"
 
 # Create a file owned by a non-root privileged user with a low UID.
-if low_uid="$(ents -f1 -c500 -n1)"
+# FIXME use variables
+if low_uid="$(tools/ids | awk '0 < $1 && $1 < 500 {print $2; exit}')"
 then
 	low_uid_owned="$doc_root/priv-low-uid"
 	touch "$low_uid_owned"
 	chown "${low_uid#*:}" "$low_uid_owned"
 else
-	warn -y "no user with an ID < 500."
+	warn "no user with an ID < 500."
 	skipped=x
 fi
 
 # Create a file owned by a non-root privileged user with a high UID.
-if high_uid="$(ents -f60000 -n1 2>/dev/null)"
+# FIXME: use a variable
+if high_uid="$(tools/ids | awk '$1 > 30000 {print $2; exit}')"
 then
 	high_uid_owned="$doc_root/priv-high-uid"
 	touch "$high_uid_owned"
 	chown "${high_uid#*:}" "$high_uid_owned"
 else
-	warn -y "no user with an ID > 60,000."
+	warn "no user with an ID > 60,000."
 	skipped=x
 fi
 
@@ -496,9 +388,9 @@ cp -p "$script_sh" "$suffix_unknown"
 script="${script_sh%.sh}"
 cp -p "$script_sh" "$script"
 chmod +x "$script"
-if ! [ -x "$script" ] || ! "$script" >/dev/null 2>&1 
+if ! [ -x "$script" ] || ! "$script" >/dev/null 2>&1
 then
-	warn -y "cannot execute test script."
+	warn "cannot execute test script."
 	skipped=x script=
 fi
 
@@ -516,34 +408,34 @@ cp -p "$env_sh" "$env"
 chmod +x "$env"
 if ! [ -x "$env" ] || ! "$env" >/dev/null 2>&1
 then
-	warn -y "cannot execute environment wrapper."
+	warn "cannot execute environment wrapper."
 	skipped=x env=
 fi
 
 
 #
-# Verification of owner 
+# Verification of owner
 #
 
 # Owned by non-existing user.
-check -s1 -e"script $noowner is owned by unallocated UID $unalloc_uid." \
+check -s1 -e"$noowner has no owner." \
 	PATH_TRANSLATED="$noowner" main
 
 # Owned by root.
-check -s1 -e"script $root_owned is owned by privileged user" \
+check -s1 -e"$root_owned is owned by privileged user" \
 	PATH_TRANSLATED="$root_owned" main
 
 # Owned by a non-root privileged user with a low UID.
 if [ "$low_uid" ]
 then
-	check -s1 -e"script $low_uid_owned is owned by privileged user" \
+	check -s1 -e"$low_uid_owned is owned by privileged user" \
 		PATH_TRANSLATED="$low_uid_owned" main
 fi
 
 # Owned by a non-root privileged user with a high UID.
 if [ "$high_uid" ]
 then
-	check -s1 -e"script $high_uid_owned is owned by privileged user" \
+	check -s1 -e"$high_uid_owned is owned by privileged user" \
 		PATH_TRANSLATED="$high_uid_owned" main
 fi
 
@@ -552,41 +444,14 @@ fi
 # Bail out if there is no unprivileged user.
 #
 
-if [ "$user" = "$(id -un 0)" ]
-then
-	warn -y "skipping post-privilege drop tests."
-	exit 75
-fi
+[ "$user" = "$(id -un 0)" ] && err -s75 "skipping post-privilege drop tests."
 
 
 #
-# Verification of DOCUMENT_ROOT (post-privilege drop)
+# Verification of PATH_TRANSLATED (post-privilege drop)
 #
 
-# DOCUMENT_ROOT is not USER_DIR.
-check -s1 -e"document root $TMPDIR is not $user's user directory." \
-	DOCUMENT_ROOT="$TMPDIR" PATH_TRANSLATED="$script_sh" main
-
-
-#
-# Not a hidden file.
-#
-
-for hidden in "$hidden_file" "$hidden_dir"
-do
-	check -s1 -e"path $hidden contains hidden files." \
-		PATH_TRANSLATED="$hidden" main
-done
-
-#
-# Neither set-UID nor set-GID bit set.
-#
-
-check -s1 -e"script $setuid's set-user-ID bit is set." \
-	PATH_TRANSLATED="$setuid" main
-
-check -s1 -e"script $setgid's set-group-ID bit is set." \
-	PATH_TRANSLATED="$setgid" main
+# FIXME
 
 
 #
@@ -601,9 +466,31 @@ done
 
 for file in "$groupw_dir" "$otherw_dir"
 do
-	dir="$(dirname "$file")"
-	check -s1 -e"$dir is writable by users other than $user." \
+	dir="$(dirname -- "$file")"
+	check -s1 -e"$file is writable by users other than $user." \
 		PATH_TRANSLATED="$file" main
+done
+
+
+#
+# Set-UID or set-GID bit set.
+#
+
+check -s1 -e"$setuid's set-user-ID bit is set." \
+	PATH_TRANSLATED="$setuid" main
+
+check -s1 -e"$setgid's set-group-ID bit is set." \
+	PATH_TRANSLATED="$setgid" main
+
+
+#
+# Hidden file.
+#
+
+for hidden in "$hidden_file" "$hidden_dir"
+do
+	check -s1 -e"path $hidden contains hidden files." \
+		PATH_TRANSLATED="$hidden" main
 done
 
 
@@ -622,10 +509,11 @@ check -s1 -e"no handler for $suffix_unknown's filename suffix." \
 # Check whether privileges have been dropped.
 #
 
+
 for path in "$script" "$script_sh"
 do
 	[ "$path" ] || continue
-	check -s0 -o "uid=$uid egid=$gid ruid=$uid rgid=$gid" \
+	check -s0 -o"uid=$uid egid=$gid ruid=$uid rgid=$gid" \
 		PATH_TRANSLATED="$path" main
 done
 
@@ -637,7 +525,7 @@ done
 for path in "$env" "$env_sh"
 do
 	[ "$path" ] || continue
-	warn "checking ${bld-}PATH_TRANSLATED=$env_sh foo=foo main${rst-} ..."
+	warn "checking PATH_TRANSLATED=$env_sh foo=foo main ..."
 
 	PATH_TRANSLATED="$path" foo=foo main |
 	grep -Fq foo= && err -l "environment was not cleared."
@@ -650,8 +538,7 @@ done
 
 if [ "$skipped" ]
 then
-	warn -y "some tests were skipped."
-	exit 75
+	err -s75 "some tests were skipped."
 else
-	warn -g 'all tests passed.'
+	warn 'all tests passed.'
 fi

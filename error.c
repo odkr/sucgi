@@ -1,7 +1,7 @@
 /*
- * Error handling for suCGI.
+ * Error handling.
  *
- * Copyright 2022 Odin Kroeger
+ * Copyright 2022 and 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
@@ -19,6 +19,10 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#define _BSD_SOURCE
+#define _DARWIN_C_SOURCE
+#define _GNU_SOURCE
+
 #if !defined(_FORTIFY_SOURCE)
 #define _FORTIFY_SOURCE 3
 #endif
@@ -30,26 +34,27 @@
 #include <syslog.h>
 
 #include "error.h"
-#include "priv.h"
-#include "types.h"
+#include "max.h"
 
-
-
-
+/* The message cannot be a literal. */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
 
 void
 error(const char *const message, ...)
 {
-	va_list ap;	/* Argument pointer. */
+    va_list ap;
 
-	assert(*message != '\0');
+    assert(message);
+    assert(strnlen(message, MAX_STR_LEN) < MAX_STR_LEN);
+    assert(*message != '\0');
 
-	va_start(ap, message);
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-	vsyslog(LOG_ERR, message, ap);
-#pragma GCC diagnostic pop
-	va_end(ap);
+    va_start(ap, message);
+    vsyslog(LOG_ERR, message, ap);
+    va_end(ap);
 
-	exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
 }
+
+#pragma GCC diagnostic pop
+

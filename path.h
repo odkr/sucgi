@@ -1,7 +1,7 @@
 /*
- * Headers for path.c.
+ * Header file for for path.c.
  *
- * Copyright 2022 Odin Kroeger
+ * Copyright 2022 and 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
@@ -22,42 +22,45 @@
 #if !defined(PATH_H)
 #define PATH_H
 
-#include <stdbool.h>
+#include <sys/types.h>
 
-#include "attr.h"
-#include "max.h"
+#include "cattr.h"
 #include "types.h"
 
-
 /*
- * Check if the user with ID UID has exclusive write access to the file
- * named FNAME and each parent directory of FNAME up to, and including,
- * PARENT and store a copy of the last path checked in CUR.
- *
- * PARENT and FNAME must be sanitised and canonical.
+ * Check if the file naemd FNAME is within BASEDIR.
+ * FNAME and BASEDIR must be canonical.
  *
  * Return value:
- *      OK          Success.
- *      ERR_CNV*    File descriptor is too large (Linux only).
- *      ERR_LEN     FNAME is too long.
- *      ERR_OPEN    open(2) or openat2(2) failed.
- *      ERR_CLOSE   close(2) failed.
- *      ERR_STAT    stat(2) failed.
- *      FAIL        UID does not have exclusive write access to FNAME.
- *
- *      Errors marked with an asterisk should be impossible.
+ *     OK            FNAME is within BASEDIR.
+ *     ERR_NO_MATCH  FNAME is NOT within of BASEDIR.
+ *     ERR_LEN       BASEDIR is longer than MAX_FNAME_LEN - 1 bytes.
  */
-__attribute__((nonnull(2, 3, 4), warn_unused_result))
-enum retval path_check_wexcl(const uid_t uid, const char *const fname,
-                             const char *const parent, char cur[MAX_FNAME]);
+__attribute__((nonnull(1, 2), warn_unused_result))
+Error path_check_in(const char *basedir, const char *fname);
 
 /*
- * Check if FNAME is a sub-directory of PARENT.
+ * Return a pointer to the filename suffix of FNAME in SUFFIX.
  *
- * FNAME and PARENT must be sanitisied and canonical.
+ * Return value:
+ *     OK             Success.
+ *     ERR_NO_SUFFIX  FNAME has no filename suffix.
  */
-__attribute__((nonnull(1, 2), pure, warn_unused_result))
-bool path_is_subdir(const char *const fname, const char *const parent);
+__attribute__((nonnull(1, 2), warn_unused_result))
+Error path_suffix(const char *fname, const char **suffix);
+
+/*
+ * Check whether the user with the user ID UID has exclusive write access
+ * to the file named FNAME and each parent directory of FNAME up to, and
+ * including, BASEDIR.
+ *
+ * Return value:
+ *     OK            UID has exclusive write access to FNAME.
+ *     ERR_BAD       UID does NOT have exclusive write access to FNAME.
+ *     ERR_SYS_STAT  stat failed.
+ */
+__attribute__((nonnull(2, 3), warn_unused_result))
+Error path_check_wexcl(uid_t uid, const char *basedir, const char *fname);
 
 
 #endif /* !defined(PATH_H) */

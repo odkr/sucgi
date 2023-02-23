@@ -1,7 +1,7 @@
 /*
- * Path handling for suCGI.
+ * Path handling.
  *
- * Copyright 2022 Odin Kroeger
+ * Copyright 2022 and 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
@@ -19,7 +19,6 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#define _ISOC99_SOURCE
 #define _XOPEN_SOURCE 700
 
 #if !defined(_FORTIFY_SOURCE)
@@ -29,13 +28,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <assert.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <stdarg.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include "file.h"
 #include "max.h"
@@ -43,82 +38,122 @@
 #include "str.h"
 #include "types.h"
 
-enum retval
-path_check_wexcl(const uid_t uid, const char *const fname,
-                 const char *const parent, char cur[MAX_FNAME])
+
+Error
+path_check_in(const char *const basedir, const char *const fname)
 {
-	const char *pos;	/* Current position in filename. */
+    assert(basedir);
+    assert(*basedir != '\0');
+    assert(fname);
+    assert(*fname != '\0');
 
-	assert(*parent != '\0');
-	assert(*fname != '\0');
-	assert(strnlen(parent, MAX_FNAME) < MAX_FNAME);
-	assert(strnlen(fname, MAX_FNAME) < MAX_FNAME);
-	/* RATS: ignore; not a permission check. */
-	assert(access(parent, F_OK) == 0);
-	/* RATS: ignore; not a permission check. */
-	assert(access(fname, F_OK) == 0);
-	/* RATS: ignore; the length of parent is checked above. */
-	assert(strncmp(realpath(parent, NULL), parent, MAX_FNAME) == 0);
-	/* RATS: ignore; the length of fname is checked avove. */
-	assert(strncmp(realpath(fname, NULL), fname, MAX_FNAME) == 0);
-	assert(path_is_subdir(fname, parent));
+    if (strncmp(fname, "/", 2) != 0 && strncmp(fname, ".", 2) != 0) {
+        size_t basedir_len;		/* Length of basedir. */
+        size_t fname_len;       /* Length of fname. */
 
-	/* RATS: ignore; parent should be NUL-terminated. */
-	pos = fname + strlen(parent);
-	do {
-		struct stat fstatus;	/* Current file's status. */
-		int fd;			/* Current file. */
-		int err;		/* stat error. */
-		enum retval rc;		/* file_sopen return code. */
+        if (*fname == '/') {
+            if (strncmp(basedir, "/", 2) == 0) {
+                return OK;
+            }
+        } else {
+            if (strncmp(basedir, ".", 2) == 0) {
+                return OK;
+            }
+        }
 
-		(void) str_cp((size_t) (pos - fname), fname, cur);
+        basedir_len = strnlen(basedir, MAX_FNAME_LEN);
+        if (basedir_len >= (size_t) MAX_FNAME_LEN) {
+            return ERR_LEN;
+        }
 
-		rc = file_sec_open(cur, O_RDONLY, &fd);
-		if (rc != OK)
-			return rc;
+        fname_len = strnlen(fname, MAX_FNAME_LEN);
+        if (fname_len >= (size_t) MAX_FNAME_LEN) {
+            return ERR_LEN;
+        }
 
-		errno = 0;
-		err = fstat(fd, &fstatus);
-		
-		if (close(fd) != 0)
-			return ERR_CLOSE;
-		if (err != 0)
-			return ERR_STAT;
-		if (!file_is_wexcl(uid, fstatus))
-			return FAIL;
+        if (fname_len > basedir_len                     &&
+            fname[basedir_len] == '/'                   &&
+            strncmp(basedir, fname, basedir_len) == 0
+        ) {
+            return OK;
+        }
+    }
 
-		/* Move past the current path separator ... */
-		pos += strspn(pos, "/");
-		if (!*pos)
-			break;
-
-		/* ... and to the next one/the end of fname. */
-		pos += strcspn(pos, "/");
-	} while (true);
-
-	return OK;
+    return ERR_NO_MATCH;
 }
 
-bool
-path_is_subdir(const char *const fname, const char *const parent)
+Error
+path_suffix(const char *const fname, const char **const suffix)
 {
-	size_t len;		/* Parent-directory length. */
+    assert(fname);
+    assert(*fname != '\0');
+    assert(strnlen(fname, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
+    assert(suffix);
 
-	assert(*parent != '\0');
-	assert(*fname != '\0');
-	assert(strnlen(parent, MAX_FNAME) < MAX_FNAME);
-	assert(strnlen(fname, MAX_FNAME) < MAX_FNAME);
+    *suffix = strrchr(fname, '.');
+    /* cppcheck-suppress misra-c2012-18.4;
+       *suffix - 1 can only be reached if *suffix > fname. */
+    if (*suffix != NULL && *suffix > fname && *(*suffix - 1) != '/') {
+        char *sep;		/* Position of path separator after suffix. */
 
-	if (strncmp(fname, "/", 2) == 0)
-		return false;
-	if (strncmp(parent, "/", 2) == 0 && *fname == '/')
-		return true;
-	if (strncmp(fname, ".", 2) == 0)
-		return false;
-	if (strncmp(parent, ".", 2) == 0 && *fname != '/')
-		return true;
+        sep = strchr(*suffix, '/');
+        if (sep == NULL) {
+            return OK;
+        }
 
-	/* RATS: ignore; parent should be NUL-terminated. */
-	len = strlen(parent);
-	return (fname[len] == '/') && strncmp(parent, fname, len) == 0;
+        do {
+            ++sep;
+        } while (*sep == '/');
+
+        if (*sep == '\0') {
+            return OK;
+        }
+    }
+
+    return ERR_NO_SUFFIX;
+}
+
+Error
+path_check_wexcl(const uid_t uid, const char *const basedir,
+                 const char *const fname)
+{
+    const char *pos;    /* Current position in filename. */
+
+    assert(basedir);
+    assert(strnlen(basedir, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
+    assert(*basedir == '/');
+    assert(fname);
+    assert(strnlen(fname, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
+    assert(*fname == '/');
+    assert(path_check_in(basedir, fname) == OK);
+
+    /* cppcheck-suppress misra-c2012-18.4; basedir is shorter than fname. */
+    pos = fname + strnlen(basedir, MAX_FNAME_LEN);
+    do {
+        char cur[MAX_FNAME_LEN];    /* Current filename. */
+        struct stat fstatus;        /* Current file's status. */
+
+        /* cppcheck-suppress [misra-c2012-10.8, misra-c2012-18.4];
+           cast is safe and portable, pos always points to a char in fname. */
+        (void) str_cp((size_t) (pos - fname), fname, cur);
+
+        if (stat(cur, &fstatus) != 0) {
+            return ERR_SYS_STAT;
+        }
+
+        if (!file_is_wexcl(uid, fstatus)) {
+            return ERR_BAD;
+        }
+
+        /* cppcheck-suppress misra-c2012-18.4; only moves past '/'s. */
+        pos += strspn(pos, "/");
+        if (*pos == '\0') {
+            break;
+        }
+
+        /* cppcheck-suppress misra-c2012-18.4; only moves to the next '/'. */
+        pos += strcspn(pos, "/");
+    } while (true);
+
+    return OK;
 }

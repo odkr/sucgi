@@ -1,0 +1,60 @@
+//
+// Cppcheck rules
+//
+
+// Using the system includes causes Cppcheck to wrongly trigger suCGI's
+// pre-processor bound checks. So the system includes cannot be used.
+missingIncludeSystem
+
+
+//
+// MISRA C:2012
+//
+
+// Rule 2.5 advises that there should be no unused macros. However,
+// Cppcheck treats include guards and feature test macros as "unused".
+// Consequently, Cppcheck reports too many false positives.
+misra-c2012-2.5
+
+// Rule 3.1 requires that comments do not contain "/*" or "//".
+// However, license statements contain URLs.
+misra-c2012-3.1:*.c:1
+misra-c2012-3.1:*.h:1
+
+// Rule 12.1 advises that operator precedence should be made explicit.
+// But Cppcheck's interpretation of this rule goes too far;
+// adhering to it would render conditionals less readable.
+misra-c2012-12.1
+
+// Rule 15.5 advises that functions should have a single point of exit.
+// This is to ensure that cleanup routines are not skipped inadvertently.
+// However, none of suCGI's function need to perform cleanup.
+misra-c2012-15.5
+
+// Rule 16.3 requires that every switch clause is terminated by a break.
+// However, switch clauses in main.c are often terminated by error.
+// error does not return. GCC checks that no clause falls through.
+misra-c2012-16.3:main.c
+
+// Rule 16.6 requires that every switch statement has at least two clauses.
+// However, Cppcheck appears to count breaks, not cases.
+// Consequently, it reports a lot of false positives.
+misra-c2012-16.6:main.c
+
+// Rule 17.1 requires that variadic arguments not be used.
+// variadic arguments are used in error to pass arguments to syslog.
+misra-c2012-17.1:error.c
+
+// Rule 20.5 advises that #undef not be used.
+// #undef is used in main.c to override the build configuration for tests.
+// It is not used for anything else.
+misra-c2012-20.5:main.c
+
+// Rule 21.1 requires that reserved identifies not be used as macro names.
+// But Cppcheck applies this rule to feature test macros.
+// Consequently, it reports too many false positives.
+misra-c2012-21.1
+
+// Rule 21.8 requires that, among others, exit not be used.
+// But error must be be able to exit suCGI.
+misra-c2012-21.8:error.c

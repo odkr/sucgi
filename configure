@@ -1,4 +1,23 @@
 #!/bin/sh
+# Generate a build configuration.
+#
+# Copyright 2022 and 2023 Odin Kroeger.
+#
+# This file is part of suCGI.
+#
+# suCGI is free software: you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation, either version 3 of the License, or (at your option)
+# any later version.
+#
+# suCGI is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+# for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with suCGI. If not, see <https://www.gnu.org/licenses>.
+
 # shellcheck disable=1091,2015
 
 #
@@ -7,10 +26,7 @@
 
 set -Ceu
 
-src_dir="$(dirname "$0")" || {
-	printf '%s\n' "dirname $0: exited with status $?." >&2
-	exit 1
-}
+src_dir="$(dirname "$0")" || exit
 readonly src_dir
 cd "$src_dir" || exit
 . ./tools/lib.sh || exit
@@ -23,38 +39,58 @@ tmpdir tmp .
 #
 
 # Number of child processes to spawn.
-readonly nchildren=4
+readonly max_njobs=4
 
-# Supported Makefile variables
-readonly makevars='
+# Variables to set as M4 Macros.
+readonly macros='
 	CC CFLAGS ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
-	cov_cc cgi_dir www_grp
+	SC_GETGRPLST_T SC_COV_CC SC_CGI_DIR SC_WWW_GRP
 '
 
 readonly confsave=config.status
 
 
 #
+# Defaults
+#
+
+# Default build configuration.
+conf=prod.env
+
+# Overwrite existing files?
+force=
+
+# Be quiet?
+quiet=
+
+
+#
 # Functions
 #
 
-# Add flags to cflags.
-add_cflags() {
-	cflags="${cflags-} $*"
+# Check if the compiler supports the given flags.
+# If $1 does not start with a dash, assume it's the basename of a compiler
+# and only check if the compiler's basename matches.
+addflags() {
+	case ${1:?} in
+	(-*) cflags="${cflags-} $*" ;;
+	(*)  eval "cflags_$1"="\"\${cflags_$1-} \${*#* }\"" ;;
+	esac
 }
 
-# Add macro definitions to cflags.
-add_macros() {
-	while [ $# -gt 0 ]
-	do
-		cflags="${cflags-} -D$1"
-		shift
-	done
-}
-
-# Run test builds
-test_cc() {
-	"${CC:?}" -xc -Werror "$@" -o/dev/null -
+# Test compiler features.
+testcc() {
+	case "$(basename "${CC:?}")" in
+	(clang|clang[!a-z]*|gcc|gcc[!a-z]*|tcc|tcc[!a-z]*)
+		"$CC" -xc -Wall -Werror -pedantic -o/dev/null "$@"
+		;;
+	(icc|icc[!a-z]*)
+		"$CC" -xc -w3 -Wcheck -Werror-all -o/dev/null "$@"
+		;;
+	(*)
+		return 1
+		;;
+	esac
 }
 
 
@@ -63,62 +99,82 @@ test_cc() {
 #
 
 OPTIND=1 OPTARG='' opt=''
-args="$*" conf=./prod.env force='' updatestatus='' quiet=''
-while getopts Cc:dfqh opt; do
+while getopts Dc:dfqh opt; do
 	case $opt in
-		(C) updatestatus=X ;;
-		(c) conf="$OPTARG" ;;
-		(d) conf=./devel.env ;;
-		(f) force=x ;;
-		(q) quiet=x ;;
-		(h) exec cat <<EOF >&2 ;;
-configure - generate a build configuration
+	(h) exec cat <<EOF >&2
+$prog_name - generate a build configuration
 
-Usage:       configure [-C] [-c FILE|-d] [-f] [-q]
-             configure -h
+Usage:       $prog_name [-cFILE|-d] [-f] [-q] [TEMP ...]
+             $prog_name -h
+
+Operands:
+    TEMP     M4 template (default: ./*.m4).
 
 Options:
-    -C       Overwrite $confsave.
     -c FILE  Read build configuration from FILE (default: $conf).
     -d       Short for -c devel.env.
-    -f       Overwrite existing files.
-    -h       Show this help screen.
+    -f       Overwrite existing files. config.h is never overwritten.
     -q       Be quiet.
+    -h       Show this help screen.
 
-Environment:
-    CC       The C compiler.
-    CFLAGS   Flags to give to the C compiler.
-    ARFLAGS  Flags to give to the archiver.
-    LDFLAGS  Flags to give to the linker.
-    LDLIBS   Flags or names to give to the linker. 
+See docs/build.rst for details.
 
-See README.rst and docs/BUILDING.rst for details.
-
-Copyright 2022 Odin Kroeger.
+Copyright 2022 and 2023 Odin Kroeger.
 Released under the GNU General Public License.
 This programme comes with ABSOLUTELY NO WARRANTY.
 EOF
-		(*) exit 1
+		;;
+	(D) set -x ;;
+	(c) conf="$OPTARG" ;;
+	(d) conf=devel.env ;;
+	(f) force=x ;;
+	(q) quiet=x ;;
+	(*) exit 1
 	esac
 done
 shift $((OPTIND - 1))
 unset opt
 
-if [ $# -gt 0 ]
-then
-	printf 'usage: configure [-C] [-c FILE|-d] [-f] [-q]\n' >&2
-	exit 2
-fi
-
-[ "$conf" ]    || err "${bld-}-c${rst_r-}: no filename given."
-[ -e "$conf" ] || err "${bld-}$conf${rst_r-}: no such file." 
+[ "$conf" ]	|| err '-c: no filename given.'
+[ -e "$conf" ]	|| err '%s: no such file.' "$conf"
 
 # shellcheck disable=1090
+case $conf in ([!/.]*)
+	conf="./$conf"
+esac
+
 . "$conf" || exit
+
+if [ $# -eq 0 ]
+then
+	set -- *.m4
+	[ "$*" == "*.m4" ] && shift $#
+fi
+
+nfiles=0
+for file
+do
+	case $file in
+	(*.m4)	: ;;
+	(*)	err '%s: not an M4 template.' "$file" ;;
+	esac
+
+	eval "file_$nfiles"='"$file"'
+	nfiles=$((nfiles + 1))
+done
+shift $#
+
+if [ "$prog_name" = "$confsave" ]
+then
+	exec >/dev/null
+	force=x
+fi
+
+readonly conf force quiet nfiles
 
 
 #
-# Check if gcc, clang, or tcc are available.
+# Check if gcc, clang, or icc are available.
 #
 
 printf 'C compiler: '
@@ -126,10 +182,9 @@ printf 'C compiler: '
 : "${CC:=}"
 if ! [ "$CC" ]
 then
-	for cc in gcc clang tcc
+	for cc in gcc clang icc
 	do
-		if
-			command -v "$cc" >/dev/null &&
+		if	command -v "$cc" >/dev/null &&
 			"$cc" -v 2>&1 | grep -q "$cc"
 		then
 			CC="$cc"
@@ -156,7 +211,14 @@ if [ "$CC" ]
 then
 	printf '%s\n' "$CC"
 else
-	printf 'none found!\a\n'
+	printf 'none found.\a\n'
+	exit 2
+fi
+
+ccname="$(basename "$CC")"
+if [ "$ccname" = c99 ]
+	then cctype="$ccname"
+	else cctype="${ccname%%[!a-z]*}"
 fi
 
 
@@ -166,63 +228,215 @@ fi
 
 printf 'Compiler flags:'
 
-if [ "$CC" ] && [ "${CFLAGS-x}" = x ] && ! [ "${CFLAGS-}" = x ]
+if [ "${CFLAGS-x}" = x ] && ! [ "${CFLAGS-}" = x ]
 then
-	# shellcheck disable=2086
-	set -- $cflags
-	pids=''
-	while [ $# -gt 0 ]
-	do
-		flag="$1"
-		shift
+	if [ "$ccname" = c99 ]
+	then
+		CFLAGS="-O2 -s"
+		printf ' %s\n' "$CFLAGS"
+	else
+		eval specflags="\${cflags_$cctype-}"
 
-		case $flag in (-D*)
-			CFLAGS="${CFLAGS-} $flag"
-			continue
-		esac
-
-		test_cc "$flag" <<-'EOF' >/dev/null 2>&1 &
-			int main (void) { return 0; }
-		EOF
-		pids="$pids $!"
-		eval "flag_$!"='$flag'
-
-		if [ $(($# % nchildren)) -eq 0 ]
-		then
-			for pid in $pids
+		# shellcheck disable=2086
+		set -- $cflags $specflags
+		njobs=0 jobs=''
+		while [ "$njobs" -gt 0 ] || [ $# -gt 0 ]
+		do
+			# Start jobs.
+			while [ "$njobs" -lt "$max_njobs" ] && [ $# -gt 0 ]
 			do
-				wait "$pid" || continue
-				eval flag="\"\${flag_$pid-}\""
-				unset "flag_$pid"
-				CFLAGS="${CFLAGS-} $flag"
-				printf ' %s' "$flag"
-			done
-			pids=
-		fi
-	done
+				flag="$1"
+				shift
 
-	[ "${CFLAGS-}" ] || printf ' none supported.\a'
-	echo
+				case $flag in (-D*)
+					CFLAGS="${CFLAGS-} $flag"
+					continue
+				esac
+				printf 'int main(void) { return 0; }\n' |
+					testcc "$flag" - >/dev/null 2>&1 &
+				njobs=$((njobs + 1)) jobs="$jobs$! "
+				eval "flag_$!"='$flag'
+			done
+
+			# Collect the job on top of the pile.
+			job="${jobs%% *}"
+			if wait $job
+			then
+				eval flag="\"\${flag_$job-}\""
+				unset "flag_$job"
+				CFLAGS="${CFLAGS-} $flag"
+				printf -- ' %s' "$flag"
+			fi
+			njobs=$((njobs - 1)) jobs="${jobs#* }"
+			unset job
+		done
+
+		[ "${CFLAGS-}" ] || printf ' none supported.\a'
+		echo
+	fi
 else
-	printf ' %s\n' "${CFLAGS:-none given}"
+	printf -- ' %s\a\n' "${CFLAGS:-none given.}"
 fi
-unset cflags flag pid
+unset cflags flag jobs job
 
 
 #
-# Create M4 command line
+# Check what data type getgrouplist returns GIDs as.
+#
+
+printf 'getgrouplist group ID type: '
+
+: "${SC_GETGRPLST_T=}"
+if ! [ "$SC_GETGRPLST_T" ]
+then
+	types=gid_t
+	for base in 'int' 'short' 'long' 'long long'
+	do
+		for prefix in '' 'unsigned '
+		do
+			types="$types:$prefix$base"
+		done
+	done
+
+	src="$TMPDIR/getgrouplist.c"
+	cat <<-'EOF' >"$src"
+		#define _BSD_SOURCE
+		#define _DARWIN_C_SOURCE
+		#define _DEFAULT_SOURCE
+		#define _GNU_SOURCE
+
+		#include <grp.h>
+		#include <unistd.h>
+
+		int
+		main(void) {
+			GETGRPLST_T basegid = 0;
+			GETGRPLST_T groups[1] = {0};
+			int n = 1;
+
+			getgrouplist("dummy", basegid, groups, &n);
+
+			return 0;
+		}
+	EOF
+
+	IFS=:
+	for type in $types
+	do
+		if testcc -DGETGRPLST_T="$type" "$src" >/dev/null 2>&1
+		then
+			SC_GETGRPLST_T="$type"
+			break
+		fi
+	done
+	unset IFS src
+
+	if	! [ "${SC_GETGRPLST_T-}" ]	&&
+		command -v man >/dev/null 2>&1	&&
+		command -v col >/dev/null 2>&1
+	then
+		type="$(
+			man 3 getgrouplist	|
+			col -b			|
+			sed -n '/[a-z_ ]\{1,\} \*groups/ {
+				s/ *\*groups.*//;
+				s/.*,//;
+				s/^[ \t]*//;
+				p;
+			}'
+		)"
+
+		inlist = "$type" $types && SC_GETGRPLST_T="$type"
+	fi
+
+
+	if [ "${SC_GETGRPLST_T-}" ]
+	then
+		printf '%s\n' "$SC_GETGRPLST_T"
+	else
+		printf 'detection failed.\a\n'
+		exit 2
+	fi
+else
+	printf '%s\n' "$SC_GETGRPLST_T"
+fi
+
+
+##
+## Check whether the system supports POSIX ACLs.
+## TODO: Currently unused.
+##
+#
+# printf 'POSIX ACLs: '
+#
+# # FIXME: test for undefined, not for empty.
+# if ! [ "${HAVE_POSIX_ACLS-}" ]
+# then
+#	src="$TMPDIR/acl.c"
+# 	cat <<-EOF >"$src"
+# 		/* FIXME: Add feature test macros. */
+#		#include <sys/types.h>
+# 		#include <sys/acl.h>
+#
+# 		int
+# 		main(void)
+# 		{
+# 			acl_t acls;
+#
+# 			acls = acl_init(1);
+# 			return 0;
+# 		}
+# 	EOF
+#
+# 	if "$CC" -o/dev/null "$src"
+# 	then
+# 		inlist = -DHAVE_POSIX_ACLS ${CFLAGS-} ||
+# 			CFLAGS="${CFLAGS-} -DHAVE_POSIX_ACLS"
+#		# FIXME: Check for that value! and modify LDLIBS accordingly!
+#		HAVE_POSIX_ACLS=libc
+#
+# 		printf 'libc\n'
+# 	elif "$CC" -o/dev/null "$src" -lacl
+# 	then
+# 		inlist = -DHAVE_POSIX_ACLS ${CFLAGS-} ||
+# 			CFLAGS="${CFLAGS-} -DHAVE_POSIX_ACLS"
+# 		inlist = -lacl ${LDLIBS-} ||
+# 			LDLIBS="${LDLIBS-} -lacl"
+#		HAVE_POSIX_ACLS=libacl
+#
+# 		printf 'libacl\n'
+# 	else
+# 		printf 'unsupported\n'
+# 	fi
+#	unset src
+# fi
+
+
+#
+# Check who owns the repository.
+#
+
+# TODO: If the repository is owned by root,
+#       coverage reports will either fail or be inaccurate.
+#       Think of a better solution.
+sc_repo_owner=$(owner "$src_dir") || sc_repo_owner="$(id -un)"
+
+
+#
+# Generate M4 command line.
 #
 
 set --
-for var in $makevars
+for key in $macros
 do
-	eval "val=\"\${$var-}\""
-	[ "$val" ] && set -- "$@" -D"__${var}__=${val# }"
+	eval "value=\"\${$key-}\""
+	[ "$value" ] && set -- "$@" "-D__${key}__=${value# }"
 done
+unset key value
 
 
 #
-# Save configuration
+# Save configuration.
 #
 
 if [ -e "$confsave" ]
@@ -230,61 +444,53 @@ if [ -e "$confsave" ]
 	else exists=
 fi
 
-if ! [ "$exists" ] || [ "$updatestatus" ]
+if [ "$prog_name" != "$confsave" ]
 then
-	swap="$TMPDIR/$confsave"
+	if [ "$exists" ] && ! [ "$force" ]
+	then
+		warn -q '%s exists.' "$confsave"
+	else
+		swap="$TMPDIR/$confsave"
 
-	cat <<-'EOF' >"$swap"
-	#!/bin/sh
-	# Last configuration detected by ./configure.
-	# Run this script to regenerate the makefile using that configuration.
+		cat <<-'EOF' >"$swap"
+		#!/bin/sh
+		# Last configuration detected by ./configure.
 
-	EOF
+		EOF
 
-	vars=
-	for var in $makevars
-	do
-		eval "val=\"\${$var- }\""
-		[ "$val" = ' ' ] && continue
-		printf -- '%s="%s"\n' "$var" "${val# }" >>"$swap"
-		vars="${vars-} $var"
-	done
+		for key in $macros
+		do
+			eval "value=\"\${$key--}\""
+			[ "$value" = - ] && continue
+			printf ': "${%s="%s"}"\n' "$key" "${value# }" >>"$swap"
+		done
+		unset key value
 
-	cat <<-EOF >>"$swap"
+		printf '\n. ./configure\n' >>"$swap"
 
-	export ${vars# }
-	./configure -f $args
-	EOF
+		chmod +x "$swap"
 
-	chmod +x "$swap"
+		mv "$swap" "$confsave"
 
-	mv "$swap" "$confsave"
-
-	if [ "$exists" ]
-		then warn -qy "replaced ${bld-}$confsave${rst_y-}."
-		else warn -q "saved configuration in ${bld-}$confsave${rst-}."
+		if [ "$exists" ]
+			then warn -q 'updated %s.' "$confsave"
+			else warn -q 'saved configuration in %s.' "$confsave"
+		fi
 	fi
-else
-	warn -qy "${bld-}config.status${rst_y-} exists;${rst-}" \
-	         "give ${bld-}-C${rst-} to overwrite."
 fi
 
-
 #
-# Create files
+# Create files.
 #
 
-filec=0 errc=0 genc=0
-for input in *.m4
+i=0
+while [ "$i" -lt "$nfiles" ]
 do
-	[ "$input" = "*.m4" ] && break
-	[ "$input" = macros.m4 ] && continue
+	eval input="\${file_$i}"
+	i=$((i + 1))
 
-	name="$(basename "$input")" || 
-		err "basename $input: exited with status $?."
-	output="${name%.m4}"
-
-	filec=$((filec + 1))
+	name="$(basename "$input")"
+	output="${input%.m4}"
 
 	exists=
 	# shellcheck disable=2154
@@ -293,45 +499,23 @@ do
 		exists=x
 		if ! [ "$force" ]
 		then
-			warn -y "${bld-}$output${rst_y-} exists;${rst-}" \
-			        "give ${bld-}-f${rst-} to overwrite."
+			warn '%s exists.' "$output"
 			continue
 		fi
 	fi
 
 	swap="$TMPDIR/$output"
-	if m4 -D__args__="$args" "$@" "$input" >"$swap"
+	if m4 -D__sc_repo_owner__="$sc_repo_owner" "$@" "$input" >"$swap"
 	then
-		
 		mv "$swap" "$output"
-		genc=$((genc + 1))
 		if [ "$exists" ]
-			then warn -qy "replaced ${bld-}$output${rst_y-}."
-			else warn -q "generated ${bld-}$output${rst-}."
+			then warn -q 'updated %s.' "$output"
+			else warn -q 'generated %s.' "$output"
 		fi
 	else
 		rm -f "$swap" || :
-		errc=$((errc + 1))
-		warn -r "could not generate${bld-}$output${rst_r-}."
+		err 'could not generate %s.' "$output"
 	fi
 	unset swap
 done
 
-# shellcheck disable=2154
-if ! [ "$quiet" ]
-then
-	if [ $errc -gt 0 ]
-	then
-		warn -r "${bld-}$errc${rst_r-} of ${bld-}$filec${rst_r-}" \
-		        "file(s) could not be generated."
-	elif [ $genc -lt $filec ]
-	then
-		warn -y "${bld-}$genc${rst_y-} of ${bld-}$filec${rst_y-}" \
-		        "file(s) generated."
-	else
-		warn -g "${bld-}$genc${rst_g-} of ${bld-}$filec${rst_g-}" \
-		        "file(s) generated."
-	fi
-fi
-
-exit $errc

@@ -1,7 +1,7 @@
 /*
- * Headers for file.c.
+ * Header file for file.c.
  *
- * Copyright 2022 Odin Kroeger
+ * Copyright 2022 and 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
@@ -22,95 +22,25 @@
 #if !defined(FILE_H)
 #define FILE_H
 
-#if defined(__linux__) && __linux__
-#include <linux/version.h>
-#if defined(LINUX_VERSION_CODE) && defined(KERNEL_VERSION)
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,0)
-#include <linux/openat2.h>
-#include <sys/syscall.h>
-#include <sys/types.h>
-#endif
-#endif
-#endif /* defined(__linux__) && __linux__ */
-
 #include <sys/stat.h>
 #include <stdbool.h>
 
-#include "attr.h"
-#include "error.h"
-#include "types.h"
+#include "cattr.h"
 
 
 /*
- * Costants
+ * Check whether FSTATUS indicates that the user with the user ID UID
+ * and the primary group ID GID can execute the corresponding file.
  */
-
-#if defined(__NR_openat2)
-#define HAVE_OPENAT2 1
-#define HAVE_NOFOLLOW_ANY 0
-#define file_sec_open file_sec_open__linux__
-#elif defined(O_NOFOLLOW_ANY)
-#define HAVE_OPENAT2 0
-#define HAVE_NOFOLLOW_ANY 1
-#define file_sec_open file_sec_open__macos__
-#else
-#define HAVE_OPENAT2 0
-#define HAVE_NOFOLLOW_ANY 0
-#define file_sec_open file_sec_open__posix__
-#endif
-
+__attribute__((const, warn_unused_result))
+bool file_is_exe(uid_t uid, gid_t gid, struct stat fstatus);
 
 /*
- * Functions
+ * Check whether FSTATUS indicates that only the user with the
+ * user ID UID has write access to the corresponding file.
  */
-
-/*
- * Open FNAME with FLAGS and store its file descriptor in FD.
- * FNAME must not contain symbolic links.
- *
- * FD is closed on exit.
- *
- * Use the file_sec_open macro to call the appropriate implementation.
- *
- * Return value:
- *      OK         Success.
- *      ERR_CNV*   File descriptor is too large (Linux only).
- *      ERR_LEN    The filename is longer than MAX_FNAME - 1 bytes.
- *      ERR_OPEN   FNAME could not be opened.
- *      ERR_CLOSE  A directory file descriptor could not be closed.
- *
- *      Errors marked with an asterisk should be impossible.
- */
-__attribute__((nonnull(1, 3), warn_unused_result))
-enum retval file_sec_open__linux__(const char *const fname, const int flags,
-                                   int *const fd);
-
-__attribute__((nonnull(1, 3), warn_unused_result))
-enum retval file_sec_open__macos__(const char *const fname, const int flags,
-                                   int *const fd);
-
-__attribute__((nonnull(1, 3), warn_unused_result))
-enum retval file_sec_open__posix__(const char *const fname, const int flags,
-                                   int *const fd);
-
-
-/*
- * Check if FSTATUS indicates that the current user has execute permissions.
- */
-__attribute__((pure, warn_unused_result))
-bool file_is_exe(const struct stat fstatus);
-
-/*
- * Check if FSTATUS indicates that only UID has write permissions.
- */
-__attribute__((pure, warn_unused_result))
-bool file_is_wexcl(const uid_t uid, const struct stat fstatus);
-
-/*
- * Close FD, but do not set errno on failures.
- */
-void file_vclose(int fd);
-
+__attribute__((const, warn_unused_result))
+bool file_is_wexcl(uid_t uid, struct stat fstatus);
 
 
 #endif /* !defined(FILE_H) */
