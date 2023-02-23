@@ -353,6 +353,7 @@ main(int argc, char **argv) {
 
     assert(getuid() == geteuid());
     assert(getgid() == getegid());
+    /* TODO check groups unless NDEBUG is set. */
 
 
     /*
@@ -395,15 +396,15 @@ main(int argc, char **argv) {
 
         rc = regcomp(&pregs[i], patterns[i], REG_EXTENDED | REG_NOSUB);
         if (rc != 0) {
-            char message[MAX_ERRMSG_LEN];   /* Buffer for error message. */
-            size_t len;                     /* Length of error message. */
+            char errmsg[MAX_ERRMSG_LEN];
+            size_t errmsglen;
 
-            len = regerror(rc, &pregs[i], message, sizeof(message));
-            if (len > sizeof(message)) {
+            errmsglen = regerror(rc, &pregs[i], errmsg, sizeof(errmsg));
+            if (errmsglen > sizeof(errmsg)) {
                 syslog(LOG_NOTICE, "regular expression error truncated.");
             }
 
-            error("regcomp: %s", message);
+            error("regcomp: %s", errmsg);
         }
     }
 
@@ -422,7 +423,7 @@ main(int argc, char **argv) {
 
 
     /*
-     * Get the script filename and its filesystem metadata.
+     * Get the script's filename and filesystem metadata.
      */
 
     const char *script_log;
@@ -433,7 +434,7 @@ main(int argc, char **argv) {
     /* cppcheck-suppress misra-c2012-21.8; PATH_TRANSLATED is sanitised. */
     script_log = getenv("PATH_TRANSLATED");
     if (script_log == NULL) {
-        /* cppcheck-suppress misra-c2012-22.10; getent may set errno. */
+        /* cppcheck-suppress misra-c2012-22.10; getenv may set errno. */
         if (errno == 0) {
             error("$PATH_TRANSLATED not set.");
         } else {
@@ -675,51 +676,7 @@ main(int argc, char **argv) {
 
 
     /*
-     * Set up a safer environment.
-     */
-
-    errno = 0;
-    if (setenv("DOCUMENT_ROOT", userdir_phys, true) != 0) {
-        error("setenv: %m.");
-    }
-
-    errno = 0;
-    if (setenv("HOME", owner->pw_dir, true) != 0) {
-        error("setenv: %m.");
-    }
-
-    errno = 0;
-    if (setenv("PATH", PATH, true) != 0) {
-        error("setenv: %m.");
-    }
-
-    errno = 0;
-    if (setenv("PATH_TRANSLATED", script_phys, true) != 0) {
-        error("setenv: %m.");
-    }
-
-    errno = 0;
-    if (setenv("SCRIPT_FILENAME", script_phys, true) != 0) {
-        error("setenv: %m.");
-    }
-
-    errno = 0;
-    if (setenv("USER_NAME", logname, true) != 0) {
-        error("setenv: %m.");
-    }
-
-    errno = 0;
-    if (chdir(userdir_phys) != 0) {
-        error("chdir %s: %m.", userdir_phys);
-    }
-
-    umask(UMASK);
-
-
-    /*
      * Check whether the CGI script can only be modified by the user.
-     * This requires that the user directory be owned by that user,
-     * so this is checked for, too.
      */
 
     const char *base_dir;
@@ -790,6 +747,48 @@ main(int argc, char **argv) {
     if (strstr(script_phys, "/.") != NULL) {
         error("path %s contains hidden files.", script_log);
     }
+
+
+    /*
+     * Set up a safer environment.
+     */
+
+    errno = 0;
+    if (setenv("DOCUMENT_ROOT", userdir_phys, true) != 0) {
+        error("setenv: %m.");
+    }
+
+    errno = 0;
+    if (setenv("HOME", owner->pw_dir, true) != 0) {
+        error("setenv: %m.");
+    }
+
+    errno = 0;
+    if (setenv("PATH", PATH, true) != 0) {
+        error("setenv: %m.");
+    }
+
+    errno = 0;
+    if (setenv("PATH_TRANSLATED", script_phys, true) != 0) {
+        error("setenv: %m.");
+    }
+
+    errno = 0;
+    if (setenv("SCRIPT_FILENAME", script_phys, true) != 0) {
+        error("setenv: %m.");
+    }
+
+    errno = 0;
+    if (setenv("USER_NAME", logname, true) != 0) {
+        error("setenv: %m.");
+    }
+
+    errno = 0;
+    if (chdir(userdir_phys) != 0) {
+        error("chdir %s: %m.", userdir_phys);
+    }
+
+    umask(UMASK);
 
 
     /*
