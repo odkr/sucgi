@@ -61,7 +61,7 @@
  * Macros
  */
 
-/*  Calculate the number of elements in a given ARRAY. */
+/* Calculate the number of elements in ARRAY. */
 #define NELEMS(array) (sizeof(array) / sizeof(*(array)))
 
 
@@ -69,7 +69,7 @@
  * Data types
  */
 
-/* A job. */
+/* A record for recently started jobs. */
 typedef struct {
     pid_t pid;                      /* Process ID. */
     char *comm;                     /* Command line. */
@@ -102,8 +102,10 @@ typedef struct {
 static void cleanup(void);
 
 /*
- * Collect all finished jobs and store that they have exited
- * as well as the status that they have exited with in JOBS.
+ * Collect all finished jobs and store that they have exited and the
+ * status that they have exited with in JOBS; if waitpid raises an error
+ * other than ECHILD, store that error in WAITPIDERR, if a process ID
+ * cannot be found, store that process ID in UNKNOWNPID.
  */
 static void collect(int signo);
 
@@ -161,6 +163,12 @@ static volatile sig_atomic_t caught = 0;
 
 /* Number of jobs currently running. */
 static volatile sig_atomic_t nrun = 0;
+
+/* Most recent unexpected waitpid error. */
+static volatile sig_atomic_t waitpiderr = 0;
+
+/* Most recent unknown process ID. */
+static volatile sig_atomic_t unknownpid = 0;
 
 /* Maximum number of jobs to run in parallel. */
 static long max_nrun = 4;
@@ -230,6 +238,7 @@ collect(const int signo __attribute__((unused)))
     do {
         pid_t pid;      /* Process ID of job that has just finished. */
         int status;     /* That job's exit status. */
+        int i;          /* Index. */
 
         do {
             errno = 0;
@@ -237,11 +246,13 @@ collect(const int signo __attribute__((unused)))
         } while (pid < 0 && errno == EINTR);
 
         if (pid <= 0) {
-            errno = olderr;
-            return;
+            if (pid < 0 && errno != ECHILD) {
+                waitpiderr = errno;
+            }
+            break;
         }
 
-        for (int i = 0; i < max_nrun; ++i) {
+        for (i = 0; i < max_nrun; ++i) {
             Job *job = &jobs[i];  /* Shorthand. */
 
             if (job->exited == 0 && pid == job->pid) {
@@ -251,7 +262,15 @@ collect(const int signo __attribute__((unused)))
                 break;
             }
         }
+
+        if (i == max_nrun) {
+            /* Should be unreachable. */
+            unknownpid = pid;
+            break;
+        }
     } while (true);
+
+    errno = olderr;
 }
 
 static void
@@ -506,9 +525,7 @@ PROGNAME " - run jobs in parallel\n\n"
                     clearln(stderr);
                     warnx("%s[%d]: %s", job->comm, job->pid, strsignal(signo));
                     return EXIT_FAILURE;
-                }
-
-                if (WIFEXITED(job->status)) {
+                } else if (WIFEXITED(job->status)) {
                     int status; /* Lower 8 bits of exit status. */
 
                     status = WEXITSTATUS(job->status);
@@ -595,9 +612,19 @@ PROGNAME " - run jobs in parallel\n\n"
 
             (void) sigsuspend(&nosigs);
         }
-    } while (argc > nrep && caught == 0);
+    } while (argc > nrep && caught == 0 && waitpiderr == 0 && unknownpid == 0);
 
     (void) alarm(0);
+
+    if (waitpiderr > 0) {
+        /* Should be unreachable. */
+        errx(EXIT_FAILURE, "waitpid: %s", strerror(waitpiderr));
+    }
+
+    if (unknownpid > 0) {
+        /* Should be unreachable. */
+        errx(EXIT_FAILURE, "forgot about process %d", unknownpid);
+    }
 
     if (caught > 0) {
         clearln(stderr);
