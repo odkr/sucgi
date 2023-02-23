@@ -122,16 +122,16 @@ all: sucgi
 #
 
 .m4:
-	$(SHELL) ./config.status $<
+	$(SHELL) ./config.status $@
 
 sucgi:
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ main.c lib.a $(LDLIBS)
 
 $(macro_checks):
-	$(CC) -DTESTING=1 $(LDFLAGS) $(CFLAGS) -o $@ $< tests/tests.o $(LDLIBS)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/lib.o $(LDLIBS)
 
 $(check_bins):
-	$(CC) -DTESTING=1 $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/tests.o $(LDLIBS)
+	$(CC) -DTESTING $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/lib.o $(LDLIBS)
 
 
 #
@@ -167,9 +167,9 @@ lib.a(userdir.o): userdir.c userdir.h $(stdhdrs)
 
 sucgi: main.c build.h compat.h $(stdhdrs) lib.a
 
-$(macro_checks) $(check_bins): $(stdhdrs) tests/tests.o
+$(macro_checks) $(check_bins): $(stdhdrs) tests/lib.o
 
-tests/tests.o: tests/tests.c tests/tests.h $(stdhdrs)
+tests/lib.o: tests/lib.c tests/lib.h $(stdhdrs)
 
 tests/ISSIGNED: tests/ISSIGNED.c
 
@@ -229,7 +229,7 @@ tests/main.sh: tests/main
 #
 
 clean:
-	rm -f *.c.* *.o a--.* lib.a sucgi tests/tests.o $(bins) $(dist_name).*
+	rm -f *.c.* *.o a--.* lib.a sucgi tests/lib.o $(bins) $(dist_name).*
 	rm -rf tmp-* $(dist_name)
 	find . '(' \
            -name '*.ctu-info'  -o -name '*.dump'			\
