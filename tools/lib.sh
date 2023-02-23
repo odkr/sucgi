@@ -134,6 +134,7 @@ cleanup() {
 	rc=$?
 	set +e
 	trap '' EXIT HUP INT TERM
+	# shellcheck disable=2046
 	kill -- $(jobs -p) -$$ >/dev/null 2>&1
 	wait
 	eval "${cleanup-}"
@@ -332,6 +333,7 @@ tmpdir() {
 	[ "${__tmpdir_tmpdir-}" ] && return
 	# shellcheck disable=2031
 	__tmpdir_prefix="${1:-tmp}" __tmpdir_dir="${2:-"${TMPDIR:-/tmp}"}"
+	# shellcheck disable=SC2016
 	__tmpdir_real="$(cd -P "$__tmpdir_dir" && pwd)" ||
 		err 'cd -P $__tmpdir_dir && pwd: exited with status %d.' $?
 	readonly __tmpdir_tmpdir="$__tmpdir_real/$__tmpdir_prefix-$$"
@@ -399,9 +401,10 @@ _warn() (
 	shift $((OPTIND - 1))
 
 	exec >&2
-	               printf '%s: ' "${prog_name:-$0}"
+	printf '%s: ' "${prog_name:-$0}"
 	[ "$line" ] && printf 'line %d: ' "$line"
-	               printf -- "$@"
+	# shellcheck disable=SC2059
+	printf -- "$@"
 	echo
 
 	return 0
