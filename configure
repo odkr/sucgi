@@ -148,7 +148,7 @@ esac
 if [ $# -eq 0 ]
 then
 	set -- *.m4
-	[ "$*" == "*.m4" ] && shift $#
+	[ "$*" = "*.m4" ] && shift $#
 fi
 
 nfiles=0
