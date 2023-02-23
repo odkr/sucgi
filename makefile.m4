@@ -94,7 +94,7 @@ version = 0
 dist_name = $(package)-$(version)
 dist_ar = $(dist_name).tgz
 dnl FIXME: This copies config.h, but it should not!
-dist_files = *.c *.h *.env *.excl *.m4 *.rst *.sample *.txt \
+dist_files = *.c *.h *.env *.excl *.m4 *.sample README.rst LICENSE.txt \
              configure stat docs m4 tests tools
 
 
