@@ -45,6 +45,7 @@ readonly max_njobs=4
 readonly macros='
 	CC CFLAGS ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
 	SC_GETGRPLST_T SC_COV_CC SC_CGI_DIR SC_WWW_GRP
+	sc_repo_owner
 '
 
 readonly confsave=config.status
@@ -100,15 +101,16 @@ testcc() {
 
 OPTIND=1 OPTARG='' opt=''
 while getopts Dc:dfqh opt; do
+	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF >&2
 $prog_name - generate a build configuration
 
-Usage:       $prog_name [-cFILE|-d] [-f] [-q] [TEMP ...]
+Usage:       $prog_name [-cFILE|-d] [-f] [-q] [FILE ...]
              $prog_name -h
 
 Operands:
-    TEMP     M4 template (default: ./*.m4).
+    FILE     A file to generate (default: all files). 
 
 Options:
     -c FILE  Read build configuration from FILE (default: $conf).
@@ -143,6 +145,7 @@ case $conf in ([!/.]*)
 	conf="./$conf"
 esac
 
+# shellcheck source=devel.conf
 . "$conf" || exit
 
 if [ $# -eq 0 ]
@@ -154,9 +157,8 @@ fi
 nfiles=0
 for file
 do
-	case $file in
-	(*.m4)	: ;;
-	(*)	err '%s: not an M4 template.' "$file" ;;
+	case $file in (*.m4)	
+		file="${file%.m4}"
 	esac
 
 	eval "file_$nfiles"='"$file"'
@@ -170,6 +172,7 @@ then
 	force=x
 fi
 
+# shellcheck disable=2034
 readonly conf force quiet nfiles
 
 
@@ -237,7 +240,7 @@ then
 	else
 		eval specflags="\${cflags_$cctype-}"
 
-		# shellcheck disable=2086
+		# shellcheck disable=2086,SC2154
 		set -- $cflags $specflags
 		njobs=0 jobs=''
 		while [ "$njobs" -gt 0 ] || [ $# -gt 0 ]
@@ -260,7 +263,7 @@ then
 
 			# Collect the job on top of the pile.
 			job="${jobs%% *}"
-			if wait $job
+			if wait "$job"
 			then
 				eval flag="\"\${flag_$job-}\""
 				unset "flag_$job"
@@ -346,7 +349,8 @@ then
 			}'
 		)"
 
-		inlist = "$type" $types && SC_GETGRPLST_T="$type"
+		# shellcheck disable=2086
+		inlist '=' "$type" $types && SC_GETGRPLST_T="$type"
 	fi
 
 
@@ -419,6 +423,7 @@ fi
 # TODO: If the repository is owned by root,
 #       coverage reports will either fail or be inaccurate.
 #       Think of a better solution.
+# shellcheck disable=2034
 sc_repo_owner=$(owner "$src_dir") || sc_repo_owner="$(id -un)"
 
 
@@ -462,6 +467,7 @@ then
 		do
 			eval "value=\"\${$key--}\""
 			[ "$value" = - ] && continue
+			# shellcheck disable=2016
 			printf ': "${%s="%s"}"\n' "$key" "${value# }" >>"$swap"
 		done
 		unset key value
@@ -486,35 +492,32 @@ fi
 i=0
 while [ "$i" -lt "$nfiles" ]
 do
-	eval input="\${file_$i}"
-	i=$((i + 1))
-
-	name="$(basename "$input")"
-	output="${input%.m4}"
+	eval file="\${file_$i}"
+	template="$file.m4" i=$((i + 1))
 
 	exists=
 	# shellcheck disable=2154
-	if [ -e "$output" ]
+	if [ -e "$file" ]
 	then
 		exists=x
 		if ! [ "$force" ]
 		then
-			warn '%s exists.' "$output"
+			warn '%s exists.' "$file"
 			continue
 		fi
 	fi
 
-	swap="$TMPDIR/$output"
-	if m4 -D__sc_repo_owner__="$sc_repo_owner" "$@" "$input" >"$swap"
+	swap="$TMPDIR/$file"
+	if m4 "$@" "$template" >"$swap"
 	then
-		mv "$swap" "$output"
+		mv "$swap" "$file"
 		if [ "$exists" ]
-			then warn -q 'updated %s.' "$output"
-			else warn -q 'generated %s.' "$output"
+			then warn -q 'updated %s.' "$file"
+			else warn -q 'generated %s.' "$file"
 		fi
 	else
 		rm -f "$swap" || :
-		err 'could not generate %s.' "$output"
+		err 'could not generate %s.' "$file"
 	fi
 	unset swap
 done
