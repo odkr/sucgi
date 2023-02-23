@@ -74,15 +74,19 @@ bins = $(tool_bins) $(macro_checks) $(check_bins)
 
 inspect = *.h *.c
 
-flawfinder_hitlist = stat/saved.hits
-
-flawfinder_flags = --dataonly --quiet
-
 cppcheck_flags = --quiet --language=c --std=c99 \
                  --project=stat/sucgi.cppcheck \
                  --library=posix --library=stat/library.cfg \
                  --suppressions-list=stat/suppr.txt --inline-suppr \
                  --enable=all --force --addon=stat/cert.py --addon=misra.py
+
+flawfinder_hitlist = stat/flawfinder.hits
+
+flawfinder_flags = --falsepositive --dataonly --quiet
+
+rats_hitlist = stat/rats.hits
+
+rats_flags = --resultsonly --quiet --warning 3
 
 
 #
@@ -325,6 +329,9 @@ covhtml: cov/index.html
 # Analysis
 #
 
+cppcheck:
+	cppcheck $(cppcheck_flags) $(inspect)
+
 $(flawfinder_hitlist): $(inspect)
 	flawfinder --savehitlist=$(flawfinder_hitlist) \
            $(flawfinder_flags) $(inspect)
@@ -335,13 +342,21 @@ flawfinder:
 	           $(flawfinder_flags) $(inspect) || \
 	flawfinder $(flawfinder_flags) $(inspect)
 
-cppcheck:
-	cppcheck $(cppcheck_flags) $(inspect)
+$(rats_hitlist): $(inspect)
+	rats $(rats_flags) $(inspect) | \
+	sed -n '/^.*\.c:[1-9][0-9]*:/p' >$(rats_hitlist)
+
+rats:
+	[ -e $(rats_hitlist) ] && \
+	rats $(rats_flags) $(inspect) | \
+	sed -n '/^.*\.c:[1-9][0-9]*:/p'	| \
+	diff $(rats_hitlist) - || \
+	rats $(rats_flags) $(inspect)
 
 shellcheck:
 	shellcheck -x $(scripts)
 
-analysis: flawfinder cppcheck
+analysis: cppcheck flawfinder rats
 
 
 #

@@ -20,7 +20,7 @@ cov
 local.env
 lcov.info
 makefile
-stat/saved.hits
+stat/*.hits
 tests/*
 !tests/*.c
 !tests/*.h
