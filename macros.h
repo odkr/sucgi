@@ -34,7 +34,7 @@
 /* Return the lesser of two integer values A and B. */
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 
-/* Calculate the number of elements in a given ARRAY. */
+/* Calculate the number of elements in ARRAY. */
 #define NELEMS(array) (sizeof((array)) / sizeof(*(array)))
 
 /* Calculate the maximum signed value that a given integer TYPE can hold. */
