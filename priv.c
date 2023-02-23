@@ -75,14 +75,24 @@ priv_drop(const uid_t uid, const gid_t gid,
 Error
 priv_suspend(void)
 {
+    const uid_t uid = getuid();
+    const gid_t gid = getgid();
+
+    if (geteuid() == 0) {
+        errno = 0;
+        if (setgroups(1, (gid_t [1]) {gid}) != 0) {
+            return ERR_SYS_SETGROUPS;
+        }
+    }
+
     errno = 0;
-    if (setegid(getgid()) != 0) {
+    if (setegid(gid) != 0) {
         /* Should be unreachable. */
         return ERR_SYS_SETEGID;
     }
 
     errno = 0;
-    if (seteuid(getuid()) != 0) {
+    if (seteuid(uid) != 0) {
         /* Should be unreachable. */
         return ERR_SYS_SETEUID;
     }
