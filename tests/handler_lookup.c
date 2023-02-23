@@ -28,7 +28,7 @@
 #include "../handler.h"
 #include "../macros.h"
 #include "../max.h"
-#include "tests.h"
+#include "lib.h"
 
 
 /*

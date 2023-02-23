@@ -23,7 +23,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "tests.h"
+#include "lib.h"
 
 
 int

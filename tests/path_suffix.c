@@ -29,7 +29,7 @@
 #include "../macros.h"
 #include "../max.h"
 #include "../path.h"
-#include "tests.h"
+#include "lib.h"
 
 
 /*

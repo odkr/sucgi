@@ -28,7 +28,7 @@
 
 #include "../env.h"
 #include "../macros.h"
-#include "tests.h"
+#include "lib.h"
 
 
 /*

@@ -36,7 +36,7 @@
 #include "../macros.h"
 #include "../max.h"
 #include "../str.h"
-#include "tests.h"
+#include "lib.h"
 
 
 /*

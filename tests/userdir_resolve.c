@@ -28,7 +28,7 @@
 #include "../max.h"
 #include "../str.h"
 #include "../userdir.h"
-#include "tests.h"
+#include "lib.h"
 
 
 /*
@@ -100,7 +100,7 @@ static const Args cases[] = {
     /* Long filenames. */
     {long_rel_fname, &user, NULL, ERR_LEN},
     {long_abs_fname, &user, NULL, ERR_LEN},
-    {long_pattern, &user, NULL, ERR_LEN}
+    {long_pattern, &user, NULL, ERR_LEN},
 };
 
 
