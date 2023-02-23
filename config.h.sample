@@ -316,8 +316,4 @@
 #endif
 
 
-/* Remove the line below once you have adapted this file to your system. */
-#error You must adapt config.h to your system.
-
-
 #endif /* !defined(CONFIG_H) */
