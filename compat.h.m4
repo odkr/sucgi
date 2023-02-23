@@ -51,7 +51,7 @@ ifnempty(`__SC_GETGRPLST_T__', `dnl
 ')dnl
 
 #if !defined(GETGRPLST_T)
-#error getgrouplist group ID type has not been set.
+#error getgrouplist group ID type has not been defined.
 #endif
 
 #endif /* !defined(COMPAT_H) */
