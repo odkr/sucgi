@@ -18,6 +18,7 @@ jobs:
       - name: Build 
         run: |
             ./configure
+            cp config.h.sample config.h
             make check
             sudo make check
       - name: Generate coverage report

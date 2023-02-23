@@ -33,7 +33,9 @@ jobs:
       with:
         languages: ${{ matrix.language }}
     - name: configure
-      run: CFLAGS= ./configure -f
+      run: CFLAGS="-O2 -s" ./configure -f
+    - name: cp config.h.sample config.h
+      run: cp config.h.sample config.h
     - name: make
       run: make
     - name: Perform CodeQL Analysis
