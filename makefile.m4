@@ -76,7 +76,7 @@ inspect = *.h *.c
 
 flawfinder_hitlist = stat/saved.hits
 
-flawfinder_flags = -DQF
+flawfinder_flags = --dataonly --quiet
 
 cppcheck_flags = --quiet --language=c --std=c99 \
                  --project=stat/sucgi.cppcheck \
@@ -94,8 +94,8 @@ version = 0
 dist_name = $(package)-$(version)
 dist_ar = $(dist_name).tgz
 dnl FIXME: This copies config.h, but it should not!
-dist_files = *.c *.h *.m4 config.h.sample configure stat devel.env docs \
-             m4 prod.env README.rst tests tools
+dist_files = *.c *.h *.env *.excl *.m4 *.rst *.sample *.txt \
+             configure stat docs m4 tests tools
 
 
 #
@@ -259,14 +259,14 @@ distclean: clean
 distcheck: $(dist_ar)
 	tar -xzf $(dist_ar)
 	$(dist_name)/configure
-	cd $(dist_name) && make all check dist
+	cd $(dist_name) && cp config.h.sample config.h && make all check dist
 	rm -rf $(dist_ar)
 
 $(dist_ar): distclean
 	mkdir $(dist_name)
 	cp -r $(dist_files) $(dist_name)
 	chmod -R u+rw,go= $(dist_name)
-	tar -czf $(dist_ar) $(dist_name)
+	tar -X dist.excl -czf $(dist_ar) $(dist_name)
 	rm -rf $(dist_name)
 
 $(dist_ar).asc: $(dist_ar)
@@ -330,11 +330,10 @@ $(flawfinder_hitlist): $(inspect)
            $(flawfinder_flags) $(inspect)
 
 flawfinder:
-	if [ -e $(flawfinder_hitlist) ]; \
-		then flawfinder --diffhitlist=$(flawfinder_hitlist) \
-		                $(flawfinder_flags) $(inspect); \
-		else flawfinder $(flawfinder_flags) $(inspect); \
-	fi
+	[ -e $(flawfinder_hitlist) ] && \
+	flawfinder --diffhitlist=$(flawfinder_hitlist) \
+	           $(flawfinder_flags) $(inspect) || \
+	flawfinder $(flawfinder_flags) $(inspect)
 
 cppcheck:
 	cppcheck $(cppcheck_flags) $(inspect)
