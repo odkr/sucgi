@@ -59,11 +59,9 @@ Please take the time to read and evaluate the source code.
 
 ----
 
-Generate the *makefile* by::
+Generate the *makefile*, *build.h*, and *compat.h* by::
 
     ./configure
-
-If ``configure`` succeeded, move on to the next step.
 
 See `docs/build.rst`_ for details.
 
@@ -76,7 +74,7 @@ suCGI is configured at compile-time. Adapt *config.h* to your needs::
 
 ----
 
-Comipile suCGI by::
+Compile suCGI by::
 
     make
 
