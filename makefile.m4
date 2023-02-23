@@ -97,7 +97,6 @@ package = sucgi
 version = 0
 dist_name = $(package)-$(version)
 dist_ar = $(dist_name).tgz
-dnl FIXME: This copies config.h, but it should not!
 dist_files = *.c *.h *.env *.excl *.m4 *.sample README.rst LICENSE.txt \
              configure stat docs m4 tests tools
 
@@ -245,9 +244,7 @@ clean:
 # Tests
 #
 
-tools: $(tool_bins)
-
-check: tools $(checks)
+check: $(tool_bins) $(checks)
 	tools/runpara -i75 $(check_args) $(checks)
 
 
@@ -300,7 +297,7 @@ uninstall:
 # Coverage reports
 #
 
-cov: clean tools
+cov: clean $(tool_bins) 
 	make CC=$(SC_COV_CC) CFLAGS="--coverage -O2" \
 		$(macro_checks) $(check_bins)
 	tools/runpara -cj1 $(macro_checks) $(check_bins) || :
@@ -366,4 +363,4 @@ analysis: cppcheck flawfinder rats
 .PHONY:	all analysis check clean cov covhtml cppcheck \
         dist distcheck distclean flawfinder install uninstall shellcheck
 
-.IGNORE: analysis shellcheck
+.IGNORE: analysis
