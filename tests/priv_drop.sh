@@ -78,7 +78,7 @@ then
 			priv_drop "$regular"
 	fi
 
-	check -s134 -e'Assertion failed: (uid > 0)' \
+	check -s134 -e'uid > 0' \
 		priv_drop "$user"
 
 	[ $skipc -eq 0 ] && err -s0 'all tests passed.'
