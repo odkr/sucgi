@@ -284,6 +284,8 @@ main(int argc, char **argv) {
        ERRORIF has to ignore type categories. */
     ERRORIF(sizeof(GETGRPLST_T) != sizeof(gid_t));
 
+    /* cppcheck-suppress misra-c2012-10.4; see ERRORIF above. */
+    ERRORIF(SIGNEDMAX(SETGRPNUM_T) < SIGNEDMAX(int));
 
     /*
      * Check whether configuration values are within bounds.
@@ -519,7 +521,7 @@ main(int argc, char **argv) {
 
     const char *const deny_groups[] = DENY_GROUPS;
     gid_t groups[MAX_NGROUPS];
-    SETGRPSZ_T ngroups;
+    int ngroups;
     bool allowed;
 
     ngroups = MAX_NGROUPS;
@@ -615,7 +617,13 @@ main(int argc, char **argv) {
         error("seteuid: %m.");
     }
 
-    ret = priv_drop(uid, gid, ngroups, groups);
+    /*
+     * setgroups may take the number of groups as size_t or int.
+     * SETGRPNUM_T refers to the respective type. A compile-time error
+     * is raised if SETGRPNUM_T is too small to hold INT_MAX.
+     * So coercing ngroups to SETGRPNUM_T is safe.
+     */
+    ret = priv_drop(uid, gid, (SETGRPNUM_T) ngroups, groups);
     switch (ret) {
     case OK:
         break;

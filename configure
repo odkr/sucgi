@@ -44,7 +44,7 @@ readonly max_njobs=4
 # Variables to set as M4 Macros.
 readonly macros='
 	CC CFLAGS ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
-	SC_GETGRPLST_T SC_SETGRPSZ_T SC_COV_CC SC_CGI_DIR SC_WWW_GRP
+	SC_GETGRPLST_T SC_SETGRPNUM_T SC_COV_CC SC_CGI_DIR SC_WWW_GRP
 	sc_repo_owner
 '
 
@@ -372,8 +372,8 @@ fi
 
 printf 'setgroups count type: '
 
-: "${SC_SETGRPSZ_T=}"
-if ! [ "$SC_SETGRPSZ_T" ]
+: "${SC_SETGRPNUM_T=}"
+if ! [ "$SC_SETGRPNUM_T" ]
 then
 	types=size_t
 	for base in 'int' 'short' 'long' 'long long'
@@ -397,7 +397,7 @@ then
 
 		int
 		main(void) {
-			SETGRPSZ_T ngroups = 0;
+			SETGRPNUM_T ngroups = 0;
 			gid_t gidset[1] = {0};
 
 			(void) setgroups(ngroups, gidset);
@@ -410,9 +410,9 @@ then
 	for type in $types
 	do
 		# FIXME: Check if -Wconversion or -Wconversions is supported!
-		if testcc -Wconversion -DSETGRPSZ_T="$type" "$src" >/dev/null 2>&1
+		if testcc -Wconversion -DSETGRPNUM_T="$type" "$src" >/dev/null 2>&1
 		then
-			SC_SETGRPSZ_T="$type"
+			SC_SETGRPNUM_T="$type"
 			break
 		fi
 	done
@@ -437,15 +437,15 @@ then
 # 		inlist '=' "$type" $types && SC_GETGRPLST_T="$type"
 # 	fi
 
-	if [ "${SC_SETGRPSZ_T-}" ]
+	if [ "${SC_SETGRPNUM_T-}" ]
 	then
-		printf '%s\n' "$SC_SETGRPSZ_T"
+		printf '%s\n' "$SC_SETGRPNUM_T"
 	else
 		printf 'detection failed.\a\n'
 		exit 2
 	fi
 else
-	printf '%s\n' "$SC_SETGRPSZ_T"
+	printf '%s\n' "$SC_SETGRPNUM_T"
 fi
 
 
