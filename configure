@@ -375,30 +375,11 @@ then
 	done
 	unset IFS src
 
-	if	! [ "${SC_GETGRPLST_T-}" ]	&&
-		command -v man >/dev/null 2>&1	&&
-		command -v col >/dev/null 2>&1
-	then
-		type="$(
-			man 3 getgrouplist	|
-			col -b			|
-			sed -n '/[a-z_ ]\{1,\} \*groups/ {
-				s/ *\*groups.*//;
-				s/.*,//;
-				s/^[ \t]*//;
-				p;
-			}'
-		)"
-
-		# shellcheck disable=2086
-		inlist '=' "$type" $types && SC_GETGRPLST_T="$type"
-	fi
-
 	if [ "${SC_GETGRPLST_T-}" ]
 	then
 		printf '%s\n' "$SC_GETGRPLST_T"
 	else
-		printf 'detection failed, will guess at compile-time\a\n'
+		printf 'guess at compile-time\a\n'
 	fi
 else
 	printf '%s\n' "$SC_GETGRPLST_T"
@@ -412,7 +393,8 @@ fi
 printf 'setgroups count type: '
 
 : "${SC_SETGRPNUM_T=}"
-if ! [ "$SC_SETGRPNUM_T" ]
+if	! [ "$SC_SETGRPNUM_T" ] &&
+	printf 'int main(void) { return 0; }\n' | testcc -Wconversion -
 then
 	types=size_t
 	for base in 'int' 'short' 'long' 'long long'
@@ -448,42 +430,19 @@ then
 	IFS=:
 	for type in $types
 	do
-		# FIXME: Check if -Wconversion or -Wconversions is supported!
-		if testcc -Wconversion -DSETGRPNUM_T="$type" "$src" >/dev/null 2>&1
+		if testcc -DSETGRPNUM_T="$type" -Wconversion "$src" >/dev/null 2>&1
 		then
 			SC_SETGRPNUM_T="$type"
 			break
 		fi
 	done
+
 	unset IFS src
+fi
 
-# 	if	! [ "${SC_GETGRPLST_T-}" ]	&&
-# 		command -v man >/dev/null 2>&1	&&
-# 		command -v col >/dev/null 2>&1
-# 	then
-# 		type="$(
-# 			man 3 getgrouplist	|
-# 			col -b			|
-# 			sed -n '/[a-z_ ]\{1,\} \*groups/ {
-# 				s/ *\*groups.*//;
-# 				s/.*,//;
-# 				s/^[ \t]*//;
-# 				p;
-# 			}'
-# 		)"
-#
-# 		# shellcheck disable=2086
-# 		inlist '=' "$type" $types && SC_GETGRPLST_T="$type"
-# 	fi
-
-	if [ "${SC_SETGRPNUM_T-}" ]
-	then
-		printf '%s\n' "$SC_SETGRPNUM_T"
-	else
-		printf 'detection failed, will guess at compile-time\a\n'
-	fi
-else
-	printf '%s\n' "$SC_SETGRPNUM_T"
+if [ "${SC_SETGRPNUM_T-}" ]
+	then printf '%s\n' "$SC_SETGRPNUM_T"
+	else printf 'guess at compile-time\a\n'
 fi
 
 
