@@ -65,7 +65,7 @@ checks = $(macro_checks) \
          tests/priv_drop.sh tests/priv_suspend.sh \
          tests/str_cp tests/str_split tests/userdir_resolve
 
-scripts = configure tools/check tools/chkccs tools/*.sh tests/*.sh
+scripts = configure tools/*.sh tests/*.sh
 
 bins = $(tool_bins) $(macro_checks) $(check_bins)
 
