@@ -63,28 +63,33 @@ env_is_name(const char *s)
 Error
 env_restore(char *const *vars, const size_t n, regex_t pregs[n])
 {
-    size_t i;		/* Index. */
+    size_t i;
 
     assert(vars);
     assert(pregs);
 
     for (i = 0; i < MAX_NVARS && vars[i]; ++i) {
-        char name[MAX_VARNAME_LEN];     /* Variable name. */
-        const char *val;                /* Variable value. */
-        const char *var;                /* Variable as a whole. */
+        /* RATS: ignore; str_split respects MAX_VARNAME_LEN. */
+        char name[MAX_VARNAME_LEN];
+        const char *val;
+        const char *var;
 
         var = vars[i];
 
         if (strnlen(vars[i], MAX_VAR_LEN) >= (size_t) MAX_VAR_LEN) {
+            /* RATS: ignore; format is short and a literal. */
             syslog(LOG_INFO, "variable $%s: too long.", var);
         } else if (str_split(var, "=", MAX_VARNAME_LEN, name, &val) != OK) {
+            /* RATS: ignore; format is short and a literal. */
             syslog(LOG_INFO, "variable $%s: name is too long.", var);
         } else if (val == NULL) {
+            /* RATS: ignore; format is short and a literal. */
             syslog(LOG_INFO, "variable $%s: malformed.", var);
         } else if (!env_is_name(name)) {
+            /* RATS: ignore; format is short and a literal. */
             syslog(LOG_INFO, "variable $%s: bad name.", var);
         } else {
-            size_t j;   /* Index. */
+            size_t j;
 
             for (j = 0; j < n; ++j) {
                 if (regexec(&pregs[j], name, 0, NULL, 0) == 0) {
@@ -93,12 +98,14 @@ env_restore(char *const *vars, const size_t n, regex_t pregs[n])
                         return ERR_SYS_SETENV;
                     }
 
+                    /* RATS: ignore; format is short and a literal. */
                     syslog(LOG_INFO, "keeping $%s.", name);
                     break;
                 }
             }
 
             if (j == n) {
+                /* RATS: ignore; format is short and a literal. */
                 syslog(LOG_INFO, "discarding $%s.", name);
             }
         }

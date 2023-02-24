@@ -42,7 +42,7 @@ main (int argc, char **argv)
 "Usage:    badexec COMM [ARG ...]\n"
 "          badexec -h\n\n"
 "Operands:\n"
-"    COMM  A command to run. $PATH is ignored.\n"
+"    COMM  A command to run.\n"
 "    ARG   An argument to COMM, start with the 0th argument\n\n"
 "Options:\n"
 "    -h    Print this help screen.\n\n"
@@ -65,6 +65,6 @@ main (int argc, char **argv)
     }
 
     errno = 0;
-    (void) execv(argv[0], &argv[1]);
+    (void) execvp(argv[0], &argv[1]);
     err(EXIT_FAILURE, "exec %s", argv[0]);
 }

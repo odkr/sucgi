@@ -1,8 +1,8 @@
 #!/bin/sh
 #
-# Test if path_check_wexcl correctly identifies exclusive write access.
+# Test path_check_wexcl.
 #
-# Copyright 2022 Odin Kroeger
+# Copyright 2022 Odin Kroeger.
 #
 # This file is part of suCGI.
 #
@@ -88,7 +88,6 @@ do
 
 	chmod "$mode" "$dir"
 	chmod u+wx,go= "$dir"
-	ls -l "$deeper"
 	check path_check_wexcl "$user" "$TMPDIR" "$deeper"
 
 	chmod g+w,o= "$deeper"

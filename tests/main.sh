@@ -2,7 +2,7 @@
 #
 # Test sucgi via main.
 #
-# Copyright 2022 Odin Kroeger
+# Copyright 2022 Odin Kroeger.
 #
 # This file is part of suCGI.
 #
@@ -159,25 +159,34 @@ env_dir="$(dirname -- "$env_bin")"
 skipped=
 
 
+
+#
+# Check whether suCGI stops if no arguments are given.
+#
+
+# FIXME do more tests.
+check -s1 -e'usage: sucgi [-c|-V|-h]' badexec main
+
+
 #
 # Check the help dialogue.
 #
 
-check -o 'Print this help screen.' main -h
+check -o'Print this help screen.' main -h
 
 
 #
 # Check the configuration dump.
 #
 
-check -o 'USER_DIR' main -C
+check -o'USER_DIR' main -C
 
 
 #
 # Check the version dump.
 #
 
-check -o 'suCGI' main -V
+check -o'suCGI' main -V
 
 
 #
@@ -186,11 +195,10 @@ check -o 'suCGI' main -V
 
 for arg in '' -X -XX -x --x - --
 do
-	check -s 1 -e 'usage: sucgi' main "$arg"
+	check -s1 -e'usage: sucgi' main "$arg"
 done
 
 check -s1 -e'usage: sucgi' main -h -C
-
 check -s1 -e'usage: sucgi' main -hV
 
 
@@ -294,9 +302,12 @@ chown "$unalloc_uid" "$noowner"
 root_owned="$doc_root/priv-root"
 touch "$root_owned"
 
+# Store IDs.
+uids="$TMPDIR/uids.list"
+tools/ids >"$uids"
+
 # Create a file owned by a non-root privileged user with a low UID.
-# FIXME use variables
-if low_uid="$(tools/ids | awk '0 < $1 && $1 < 500 {print $2; exit}')"
+if low_uid="$(awk '0 < $1 && $1 < 500 {print $2; exit}' "$uids")"
 then
 	low_uid_owned="$doc_root/priv-low-uid"
 	touch "$low_uid_owned"
@@ -307,8 +318,7 @@ else
 fi
 
 # Create a file owned by a non-root privileged user with a high UID.
-# FIXME: use a variable
-if high_uid="$(tools/ids | awk '$1 > 30000 {print $2; exit}')"
+if high_uid="$(awk '$1 > 30000 {print $2; exit}' "$uids")"
 then
 	high_uid_owned="$doc_root/priv-high-uid"
 	touch "$high_uid_owned"

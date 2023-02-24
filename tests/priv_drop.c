@@ -1,7 +1,7 @@
 /*
  * Test priv_drop.
  *
- * Copyright 2022 and 2023 Odin Kroeger
+ * Copyright 2022 and 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
@@ -35,44 +35,45 @@
 int
 main (int argc, char **argv)
 {
-	struct passwd *pwd;	/* Passwd entry of the given user. */
-	Error ret;		/* Return code. */
+    struct passwd *pwd;
+    Error ret;
 
-	if (argc != 2) {
-		fputs("usage: priv_drop LOGNAME\n", stderr);
-		return EXIT_FAILURE;
-	}
+    if (argc != 2) {
+        fputs("usage: priv_drop LOGNAME\n", stderr);
+        return EXIT_FAILURE;
+    }
 
-	errno = 0;
-	pwd = getpwnam(argv[1]);
-	if (!pwd) {
-		if (errno == 0)
-			errx(EXIT_FAILURE, "no such user");
-		else
-			err(EXIT_FAILURE, "getpwnam");
-	}
+    errno = 0;
+    pwd = getpwnam(argv[1]);
+    if (!pwd) {
+        if (errno == 0) {
+            errx(EXIT_FAILURE, "no such user");
+        } else {
+            err(EXIT_FAILURE, "getpwnam");
+        }
+    }
 
-	ret = priv_drop(pwd->pw_uid, pwd->pw_gid, 1, (gid_t [1]) {pwd->pw_gid});
-       	switch (ret) {
-	case OK:
-		break;
-	case ERR_SYS_SETGROUPS:
-		err(EXIT_FAILURE, "setgroups");
-	case ERR_SYS_SETGID:
-		err(EXIT_FAILURE, "setgid");
-	case ERR_SYS_SETUID:
-		err(EXIT_FAILURE, "setuid");
-	case ERR_PRIV_RESUME:
-		errx(EXIT_FAILURE, "could resume superuser privileges.");
-	default:
-		errx(EXIT_FAILURE, "returned %u.", ret);
-       	}
+    ret = priv_drop(pwd->pw_uid, pwd->pw_gid, 1, (gid_t [1]) {pwd->pw_gid});
+    switch (ret) {
+    case OK:
+        break;
+    case ERR_SYS_SETGROUPS:
+        err(EXIT_FAILURE, "setgroups");
+    case ERR_SYS_SETGID:
+        err(EXIT_FAILURE, "setgid");
+    case ERR_SYS_SETUID:
+        err(EXIT_FAILURE, "setuid");
+    case ERR_PRIV_RESUME:
+        errx(EXIT_FAILURE, "could resume superuser privileges.");
+    default:
+        errx(EXIT_FAILURE, "returned %u.", ret);
+    }
 
-	printf("euid=%llu egid=%llu ruid=%llu rgid=%llu\n",
-	       (unsigned long long) geteuid(),
-	       (unsigned long long) getegid(),
-	       (unsigned long long) getuid(),
-	       (unsigned long long) getgid());
+    printf("euid=%llu egid=%llu ruid=%llu rgid=%llu\n",
+           (unsigned long long) geteuid(),
+           (unsigned long long) getegid(),
+           (unsigned long long) getuid(),
+           (unsigned long long) getgid());
 
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }

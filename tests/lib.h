@@ -1,7 +1,7 @@
 /*
  * Header for tests.c.
  *
- * Copyright 2022 and 2023 Odin Kroeger
+ * Copyright 2022 and 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *

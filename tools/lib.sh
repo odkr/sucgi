@@ -42,7 +42,7 @@ _err() {
 	while getopts s: opt
 	do
 		case $opt in
-		(s) OPTARG="$rc" ;;
+		(s) rc="$OPTARG" ;;
 		(*) exit 70
 		esac
 	done

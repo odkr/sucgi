@@ -48,9 +48,10 @@ Error priv_drop(uid_t uid, gid_t gid, int n, const gid_t groups[n]);
  * to the real user and group IDs respectively.
  *
  * Return value:
- *     OK                Success.
- *     ERR_SYS_SETEUID*  seteuid failed.
- *     ERR_SYS_SETEGID*  setegid failed.
+ *     OK                  Success.
+ *     ERR_SYS_SETGROUPS*  setgroups failed.
+ *     ERR_SYS_SETEUID*    seteuid failed.
+ *     ERR_SYS_SETEGID*    setegid failed.
  *
  *     * These errors should be unreachable.
  */

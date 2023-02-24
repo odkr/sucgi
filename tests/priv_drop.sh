@@ -2,7 +2,7 @@
 #
 # Test priv_drop.
 #
-# Copyright 2022 Odin Kroeger
+# Copyright 2022 Odin Kroeger.
 #
 # This file is part of suCGI.
 #
@@ -81,12 +81,7 @@ then
 	check -s134 -e'Assertion failed: (uid > 0)' \
 		priv_drop "$user"
 
-	if [ $skipc -eq 0 ]
-	then
-		# FIXME: err -s0 doesn't work somehow.
-		warn 'all tests passed.'
-		exit
-	fi
+	[ $skipc -eq 0 ] && err -s0 'all tests passed.'
 
 	err -s75 '%d tests skipped.' "$skipc"
 else

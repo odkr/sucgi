@@ -1,7 +1,7 @@
 /*
  * Test path_check_wexcl.
  *
- * Copyright 2022 and 2023 Odin Kroeger
+ * Copyright 2022 and 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
@@ -32,22 +32,22 @@
 int
 main (int argc, char **argv)
 {
-    struct passwd *pwd;    /* User. */
-    Error ret;        /* Return code. */
+    struct passwd *pwd;
+    Error ret;
 
     if (argc != 4) {
-        fputs("usage: path_check_wexcl LOGNAME BASEDIR FNAME\n",
-              stderr);
+        fputs("usage: path_check_wexcl LOGNAME BASEDIR FNAME\n", stderr);
         return EXIT_FAILURE;
     }
 
     errno = 0;
     pwd = getpwnam(argv[1]);
     if (!pwd) {
-        if (errno == 0)
+        if (errno == 0) {
             errx(EXIT_FAILURE, "no such user");
-        else
+        } else {
             err(EXIT_FAILURE, "getpwnam");
+	}
     }
 
     ret = path_check_wexcl(pwd->pw_uid, argv[2], argv[3]);

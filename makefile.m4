@@ -210,11 +210,11 @@ tests/path_suffix: tests/path_suffix.c lib.a(path.o)
 
 tests/priv_drop: tests/priv_drop.c lib.a(priv.o)
 
-tests/priv_drop.sh: tests/priv_drop
+tests/priv_drop.sh: tests/priv_drop tests/main tools/runas
 
 tests/priv_suspend: tests/priv_suspend.c lib.a(priv.o)
 
-tests/priv_suspend.sh: tests/priv_suspend
+tests/priv_suspend.sh: tests/priv_suspend tests/main tools/runas
 
 tests/str_cp: tests/str_cp.c lib.a(str.o)
 
@@ -224,7 +224,7 @@ tests/userdir_resolve: tests/userdir_resolve.c lib.a(userdir.o)
 
 tests/main: main.c build.h compat.h lib.a
 
-tests/main.sh: tests/main
+tests/main.sh: tests/main tools/badexec tools/badexec tools/ids
 
 
 #
@@ -326,34 +326,13 @@ covhtml: cov/index.html
 # Analysis
 #
 
-cppcheck:
-	cppcheck $(cppcheck_flags) $(inspect)
-
-$(flawfinder_hitlist): $(inspect)
-	flawfinder --savehitlist=$(flawfinder_hitlist) \
-           $(flawfinder_flags) $(inspect)
-
-flawfinder:
-	[ -e $(flawfinder_hitlist) ] \
-	&& flawfinder --diffhitlist=$(flawfinder_hitlist) \
-	              $(flawfinder_flags) $(inspect) \
-	|| flawfinder $(flawfinder_flags) $(inspect)
-
-$(rats_hitlist): $(inspect)
-	rats $(rats_flags) $(inspect) \
-	| sed -n '/^.*\.c:[1-9][0-9]*:/p' >$(rats_hitlist)
-
-rats:
-	[ -e $(rats_hitlist) ] \
-	&& rats $(rats_flags) $(inspect) \
-	   | sed -n '/^.*\.c:[1-9][0-9]*:/p' \
-	   | diff $(rats_hitlist) - \
-	|| rats $(rats_flags) $(inspect)
-
 shellcheck:
 	shellcheck -x $(scripts)
 
-analysis: cppcheck flawfinder rats
+analysis:
+	cppcheck $(cppcheck_flags) $(inspect)
+	flawfinder $(flawfinder_flags) $(inspect)
+	rats $(rats_flags) $(inspect)
 
 
 #
@@ -361,6 +340,6 @@ analysis: cppcheck flawfinder rats
 #
 
 .PHONY:	all analysis check clean cov covhtml cppcheck \
-        dist distcheck distclean flawfinder install uninstall shellcheck
+        dist distcheck distclean install uninstall shellcheck
 
 .IGNORE: analysis

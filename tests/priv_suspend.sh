@@ -2,7 +2,7 @@
 #
 # Test priv_suspend.
 #
-# Copyright 2022 Odin Kroeger
+# Copyright 2022 Odin Kroeger.
 #
 # This file is part of suCGI.
 #
@@ -70,7 +70,6 @@ else
 	gid="$(id -g)"
 
 	check -s1 -o"euid=$uid egid=$gid ruid=$uid rgid=$gid" priv_suspend
-
 	check -s1 -e"seteuid: Operation not permitted" priv_suspend
 
 	warn 'all non-superuser tests passed.'

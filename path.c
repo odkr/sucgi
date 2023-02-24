@@ -130,8 +130,8 @@ path_check_wexcl(const uid_t uid, const char *const basedir,
     /* cppcheck-suppress misra-c2012-18.4; basedir is shorter than fname. */
     pos = fname + strnlen(basedir, MAX_FNAME_LEN);
     do {
-        char cur[MAX_FNAME_LEN];    /* Current filename. */
-        struct stat fstatus;        /* Current file's status. */
+	char cur[MAX_FNAME_LEN];
+        struct stat fstatus;
 
         /* cppcheck-suppress [misra-c2012-10.8, misra-c2012-18.4];
            cast is safe and portable, pos always points to a char in fname. */

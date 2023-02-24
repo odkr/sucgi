@@ -187,6 +187,9 @@ config(void)
     const char *const deny_groups[] = DENY_GROUPS;
     const Pair handlers[] = HANDLERS;
 
+#if defined(NDEBUG)
+    (void) printf("NDEBUG=set\n");
+#endif
 #if defined(TESTING) && TESTING
     (void) printf("TESTING=%d\n", TESTING);
 #endif
@@ -341,6 +344,9 @@ main(int argc, char **argv) {
     switch (ret) {
     case OK:
         break;
+    case ERR_SYS_SETGROUPS:
+        /* Should be unreachable. */
+	error("setgroups: %m.");
     case ERR_SYS_SETEGID:
         /* Should be unreachable. */
         error("setegid: %m.");
@@ -397,11 +403,13 @@ main(int argc, char **argv) {
 
         rc = regcomp(&pregs[i], patterns[i], REG_EXTENDED | REG_NOSUB);
         if (rc != 0) {
+            /* RATS: ignore; regerror respects the size of errmsg. */
             char errmsg[MAX_ERRMSG_LEN];
             size_t errmsglen;
 
             errmsglen = regerror(rc, &pregs[i], errmsg, sizeof(errmsg));
             if (errmsglen > sizeof(errmsg)) {
+                /* RATS: ignore; message is short and a literal. */
                 syslog(LOG_NOTICE, "regular expression error truncated.");
             }
 
@@ -433,7 +441,7 @@ main(int argc, char **argv) {
 
     errno = 0;
     /* cppcheck-suppress misra-c2012-21.8; PATH_TRANSLATED is sanitised. */
-    script_log = getenv("PATH_TRANSLATED");
+    script_log = getenv("PATH_TRANSLATED");     /* RATS: ignore */
     if (script_log == NULL) {
         /* cppcheck-suppress misra-c2012-22.10; getenv may set errno. */
         if (errno == 0) {
@@ -453,6 +461,7 @@ main(int argc, char **argv) {
     }
 
     errno = 0;
+    /* RATS: ignore; script_log is <= PATH_MAX, script_phys is checked. */
     script_phys = realpath(script_log, NULL);
     if (script_phys == NULL) {
         error("realpath %s: %m.", script_log);
@@ -589,7 +598,8 @@ main(int argc, char **argv) {
 
     ngroups_max = sysconf(_SC_NGROUPS_MAX);
     if (-1L < ngroups_max && ngroups_max < ngroups) {
-        syslog(LOG_NOTICE, "can only set %ld of %d groups for user %s.",
+        /* RATS: ignore; message is short and a literal. */
+	syslog(LOG_NOTICE, "can only set %ld of %d groups for user %s.",
                ngroups_max, ngroups, logname);
 
         /* ngroups_max cannot be larger than INT_MAX. */
@@ -636,6 +646,7 @@ main(int argc, char **argv) {
      * Check whether the script is within the user directory.
      */
 
+    /* RATS: ignore; userdir_resolve repects MAX_FNAME_LEN. */
     char userdir_log[MAX_FNAME_LEN];
     char *userdir_phys;
 
@@ -658,6 +669,7 @@ main(int argc, char **argv) {
     assert(strnlen(userdir_log, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
 
     errno = 0;
+    /* RATS: ignore; userdir_log is <= PATH_MAX, userdir_phys is checked. */
     userdir_phys = realpath(userdir_log, NULL);
     if (userdir_phys == NULL) {
         error("realpath %s: %m.", userdir_log);
@@ -694,6 +706,7 @@ main(int argc, char **argv) {
         }
 
         errno = 0;
+        /* RATS: ignore; owner->pw_dir is <= PATH_MAX, basedir is checked. */
         base_dir = realpath(owner->pw_dir, NULL);
         if (base_dir == NULL) {
             error("realpath %s: %m.", owner->pw_dir);
@@ -789,7 +802,8 @@ main(int argc, char **argv) {
         error("chdir %s: %m.", userdir_phys);
     }
 
-    umask(UMASK);
+    /* RATS: ignore; the permission mask is set by the administrator. */
+    umask(UMASK | umask(S_ISUID | S_ISGID | S_ISVTX | S_IRWXG | S_IRWXO));
 
 
     /*
@@ -823,6 +837,7 @@ main(int argc, char **argv) {
         assert(strnlen(handler, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
 
         errno = 0;
+	/* RATS: ignore; suCGI's whole point is to do this safely. */
         (void) execlp(handler, handler, script_phys, NULL);
 
         /* If this point is reached, execution has failed. */
@@ -830,6 +845,7 @@ main(int argc, char **argv) {
     }
 
     errno = 0;
+    /* RATS: ignore; suCGI's whole point is to do this safely. */
     (void) execl(script_phys, script_phys, NULL);
 
     /* If this point is reached, execution has failed. */

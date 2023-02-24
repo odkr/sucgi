@@ -1,7 +1,7 @@
 /*
  * Test priv_suspend.
  *
- * Copyright 2022 and 2023 Odin Kroeger
+ * Copyright 2022 and 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
@@ -35,10 +35,10 @@
 int
 main (void)
 {
-    Error ret;        /* Return code. */
+    Error ret;
 
     ret = priv_suspend();
-           switch (ret) {
+    switch (ret) {
     case OK:
         break;
     case ERR_SYS_SETGROUPS:
@@ -51,7 +51,7 @@ main (void)
         errx(EXIT_FAILURE, "could resume superuser privileges.");
     default:
         errx(EXIT_FAILURE, "returned %u.", ret);
-           }
+    }
 
     printf("euid=%llu egid=%llu ruid=%llu rgid=%llu\n",
            (unsigned long long) geteuid(),

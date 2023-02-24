@@ -2,7 +2,7 @@
 #
 # Test error.
 #
-# Copyright 2022 Odin Kroeger
+# Copyright 2022 Odin Kroeger.
 #
 # This file is part of suCGI.
 #

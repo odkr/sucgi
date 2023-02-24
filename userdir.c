@@ -52,14 +52,17 @@ userdir_resolve(const char *const s, const struct passwd *const user,
     (void) memset(userdir, '\0', MAX_FNAME_LEN);
 
     if (*s != '/') {
-        n = snprintf(userdir, MAX_FNAME_LEN, "%s/%s", user->pw_dir, s);
+        /* RATS: ignore; format is short and a literal. */
+	n = snprintf(userdir, MAX_FNAME_LEN, "%s/%s", user->pw_dir, s);
     } else if (strstr(s, "%s") == NULL) {
+        /* RATS: ignore; format is short and a literal. */
         n = snprintf(userdir, MAX_FNAME_LEN, "%s/%s", s, user->pw_name);
     } else {
 /* s is not a literal, but can only set by the system administrator. */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
-        /* RATS: ignore; format is controlled by the administrator. */
+        
+	/* RATS: ignore; see above. */
         n = snprintf(userdir, MAX_FNAME_LEN, s, user->pw_name);
 #pragma GCC diagnostic pop
     }
