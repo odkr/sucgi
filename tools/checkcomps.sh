@@ -72,8 +72,9 @@ cd -P "$src_dir" || exit
 # shellcheck disable=2034
 cleanup="[ -e makefile ] && make distclean"
 for cc in							\
-	gcc-12 gcc-11 gcc-10 gcc-9 gcc				\
-	clang-13 clang-12 clang-11 clang-10 clang-9 clang	\
+	gcc-12 gcc-11 gcc-10 gcc-9 gcc musl-gcc			\
+	clang-16 clang-15 clang-14 clang-13 clang-12 		\
+	clang-11 clang-10 clang-9 clang \
 	icc \
 	c99 cc
 do
