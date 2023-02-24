@@ -54,7 +54,7 @@ deeper="$dir/file"
 touch "$deeper"
 chmod 600 "$deeper"
 
-root="$(id -un 0)"
+root="$(ids | awk '$1 == 0 {print $2; exit}')"
 bin="$(cd -P /bin && pwd)"
 
 
