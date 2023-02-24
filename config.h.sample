@@ -23,6 +23,7 @@
 #if !defined(CONFIG_H)
 #define CONFIG_H
 
+#include <sys/stat.h>
 #include <limits.h>
 #include <syslog.h>
 
@@ -285,9 +286,9 @@
 
 /*
  * Secure file permission mask. Unsigned integer.
- * Remember the leading "0", so that the number is interpreted as octal.
+ * The given mask is or-ed with the current mask.
  */
-#define UMASK 07077U
+#define UMASK (S_ISUID | S_ISGID | S_ISVTX | S_IRWXG | S_IRWXO)
 
 /*
  * Facility to log to. syslog constant.
