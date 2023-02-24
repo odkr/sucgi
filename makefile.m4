@@ -202,7 +202,7 @@ tests/path_check_sub: tests/path_check_sub.c lib.a(path.o) $(stdhdrs) tests/lib.
 
 tests/path_check_wexcl: tests/path_check_wexcl.c lib.a(path.o) $(stdhdrs) tests/lib.o
 
-tests/path_check_wexcl.sh: tests/path_check_wexcl
+tests/path_check_wexcl.sh: tests/path_check_wexcl tools/ids
 
 tests/path_check_in: tests/path_check_in.c lib.a(path.o) $(stdhdrs) tests/lib.o
 
