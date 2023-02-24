@@ -635,7 +635,7 @@ PROGNAME " - run jobs in parallel\n\n"
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wsign-conversion"
         psignal((int) caught, PROGNAME);
-#pragma GCC pop
+#pragma GCC diagnostic pop
 
         cleanup();
 
