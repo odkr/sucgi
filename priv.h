@@ -25,6 +25,7 @@
 #include <pwd.h>
 
 #include "cattr.h"
+#include "compat.h"
 #include "types.h"
 
 
@@ -41,7 +42,7 @@
  */
 __attribute__((nonnull(4), warn_unused_result))
 /* cppcheck-suppress misra-c2012-8.2; declaration is in prototype form. */
-Error priv_drop(uid_t uid, gid_t gid, int n, const gid_t groups[n]);
+Error priv_drop(uid_t uid, gid_t gid, SETGRPSZ_T n, const gid_t groups[n]);
 
 /*
  * Set the effective user, group, and supplementary groups IDs

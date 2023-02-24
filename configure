@@ -44,7 +44,7 @@ readonly max_njobs=4
 # Variables to set as M4 Macros.
 readonly macros='
 	CC CFLAGS ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
-	SC_GETGRPLST_T SC_COV_CC SC_CGI_DIR SC_WWW_GRP
+	SC_GETGRPLST_T SC_SETGRPSZ_T SC_COV_CC SC_CGI_DIR SC_WWW_GRP
 	sc_repo_owner
 '
 
@@ -110,7 +110,7 @@ Usage:       $prog_name [-cFILE|-d] [-f] [-q] [FILE ...]
              $prog_name -h
 
 Operands:
-    FILE     A file to generate (default: all files). 
+    FILE     A file to generate (default: all files).
 
 Options:
     -c FILE  Read build configuration from FILE (default: $conf).
@@ -157,7 +157,7 @@ fi
 nfiles=0
 for file
 do
-	case $file in (*.m4)	
+	case $file in (*.m4)
 		file="${file%.m4}"
 	esac
 
@@ -363,6 +363,89 @@ then
 	fi
 else
 	printf '%s\n' "$SC_GETGRPLST_T"
+fi
+
+
+#
+# Check what type setgroups takes the groups size as.
+#
+
+printf 'setgroups count type: '
+
+: "${SC_SETGRPSZ_T=}"
+if ! [ "$SC_SETGRPSZ_T" ]
+then
+	types=size_t
+	for base in 'int' 'short' 'long' 'long long'
+	do
+		for prefix in '' 'unsigned '
+		do
+			types="$types:$prefix$base"
+		done
+	done
+
+	src="$TMPDIR/setgroups.c"
+	cat <<-'EOF' >"$src"
+		#define _BSD_SOURCE
+		#define _DARWIN_C_SOURCE
+		#define _DEFAULT_SOURCE
+		#define _GNU_SOURCE
+
+		#include <sys/types.h>
+		#include <grp.h>
+		#include <unistd.h>
+
+		int
+		main(void) {
+			SETGRPSZ_T ngroups = 0;
+			gid_t gidset[1] = {0};
+
+			(void) setgroups(ngroups, gidset);
+
+			return 0;
+		}
+	EOF
+
+	IFS=:
+	for type in $types
+	do
+		# FIXME: Check if -Wconversion or -Wconversions is supported!
+		if testcc -Wconversion -DSETGRPSZ_T="$type" "$src" >/dev/null 2>&1
+		then
+			SC_SETGRPSZ_T="$type"
+			break
+		fi
+	done
+	unset IFS src
+
+# 	if	! [ "${SC_GETGRPLST_T-}" ]	&&
+# 		command -v man >/dev/null 2>&1	&&
+# 		command -v col >/dev/null 2>&1
+# 	then
+# 		type="$(
+# 			man 3 getgrouplist	|
+# 			col -b			|
+# 			sed -n '/[a-z_ ]\{1,\} \*groups/ {
+# 				s/ *\*groups.*//;
+# 				s/.*,//;
+# 				s/^[ \t]*//;
+# 				p;
+# 			}'
+# 		)"
+#
+# 		# shellcheck disable=2086
+# 		inlist '=' "$type" $types && SC_GETGRPLST_T="$type"
+# 	fi
+
+	if [ "${SC_SETGRPSZ_T-}" ]
+	then
+		printf '%s\n' "$SC_SETGRPSZ_T"
+	else
+		printf 'detection failed.\a\n'
+		exit 2
+	fi
+else
+	printf '%s\n' "$SC_SETGRPSZ_T"
 fi
 
 

@@ -54,4 +54,13 @@ ifnempty(`__SC_GETGRPLST_T__', `dnl
 #error getgrouplist group ID type has not been defined.
 #endif
 
+ifnempty(`__SC_SETGRPSZ_T__', `dnl
+/* Type that setgroups takes the number of groups as. */
+#define SETGRPSZ_T __SC_SETGRPSZ_T__
+')dnl
+
+#if !defined(SETGRPSZ_T)
+#error setgroups number of groups type has not been defined.
+#endif
+
 #endif /* !defined(COMPAT_H) */

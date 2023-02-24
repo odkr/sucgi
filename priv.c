@@ -34,12 +34,13 @@
 #include <grp.h>
 #include <unistd.h>
 
+#include "compat.h"
 #include "priv.h"
 #include "types.h"
 
 Error
 priv_drop(const uid_t uid, const gid_t gid,
-          const int n, const gid_t groups[n])
+          const SETGRPSZ_T n, const gid_t groups[n])
 {
     assert(uid > 0);
     assert(gid > 0);

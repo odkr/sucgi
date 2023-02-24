@@ -519,7 +519,7 @@ main(int argc, char **argv) {
 
     const char *const deny_groups[] = DENY_GROUPS;
     gid_t groups[MAX_NGROUPS];
-    int ngroups;
+    SETGRPSZ_T ngroups;
     bool allowed;
 
     ngroups = MAX_NGROUPS;
