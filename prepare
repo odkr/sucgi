@@ -49,10 +49,14 @@ case $(uname) in
 (Darwin)
 	exec xcode-select --install
 	;;
-(*)
-	cat <<-EOF >&2
-	prepare does not support your operating system.
-	Please install the standard build tools and M4 manually.
-	EOF
-	exit 8
+(Linux)
+	[ -e /etc/debian_version ] &&
+		exec apt-get install build-essential m4
+	;;
 esac
+
+cat <<-EOF >&2
+prepare does not support your operating system.
+Please install the standard build tools and M4 manually.
+EOF
+exit 8
