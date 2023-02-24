@@ -274,7 +274,7 @@ usage(void)
 
 int
 main(int argc, char **argv) {
-    Error ret;          /* Return value. */
+    Error ret;
 
     /*
      * Check whether getgrouplist returns GIDs as a type coercible to gid_t.
@@ -370,7 +370,7 @@ main(int argc, char **argv) {
      */
 
     /* Systems differ on whether argc may be 0. */
-    if (*argv == NULL) {
+    if (*argv == NULL || **argv == '\0') {
         error("empty argument vector.");
     }
 
