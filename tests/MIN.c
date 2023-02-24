@@ -19,6 +19,11 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
+#define _BSD_SOURCE
+#define _DARWIN_C_SOURCE
+#define _DEFAULT_SOURCE
+#define _GNU_SOURCE
+
 #include <assert.h>
 #include <err.h>
 #include <limits.h>
