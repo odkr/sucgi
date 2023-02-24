@@ -287,15 +287,37 @@ unset cflags flag jobs job
 # Check which archiver to use.
 #
 
-# FIXME: This is ugly and probably brittle.
 printf 'Archiver: '
 
 if [ "${AR-x}" = x ] && ! [ "${AR-}" = x ]
 then
-	ccsuffix="${ccname#$cctype-}"
 	[ "$cctype" = clang ] && cctype=llvm
 
-	for ar in $cctype-ar-$ccsuffix $ccname-ar $cctype-ar
+	if ccversion="$(
+		"$CC" --version |
+		awk '{
+			for (i = 1; i <= NF; i++) {
+				if ($i ~ /^v?[0-9]+\.[\.0-9]*$/) {
+					print $i;
+					exit;
+				}
+			}
+		}'
+	)"
+	then
+		ccversion="${ccversion#v}"
+		ccmajor="${ccversion%%.*}"
+	else
+		ccmajor="${ccname#$cctype-}"
+	fi
+
+	archivers="$cctype-ar"
+	[ "$cctype" != "$ccname" ] &&
+		archivers="$ccname-ar $archivers"
+	[ "${ccmajor-}" ] &&
+		archivers="$cctype-ar-$ccmajor $cctype-$ccmajor-ar $archivers"
+
+	for ar in $archivers
 	do
 		if command -v "$ar" >/dev/null 2>&1
 		then
@@ -303,23 +325,6 @@ then
 			break
 		fi
 	done
-
-	if ! [ "${AR-}" ]
-	then
-		IFS=:
-		for dir in $PATH
-		do
-			for ar in "$dir/$cctype-ar-"*
-			do
-				if [ "$ar" != "$dir/$cctype-ar-*" ]
-				then
-					AR="$(basename "$ar")"
-					break
-				fi
-			done
-		done
-		unset IFS
-	fi
 
 	printf '%s\n' "${AR-default}"
 fi
