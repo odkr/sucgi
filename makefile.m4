@@ -23,6 +23,8 @@ ifnempty(`__CC__', `CC = __CC__
 CFLAGS = default(`__CFLAGS__', `-O2 -s')
 ifnempty(`__ARFLAGS__', `ARFLAGS = __ARFLAGS__
 ')dnl
+ifnempty(`__AR__', `AR = __AR__
+')dnl
 ifnempty(`__LDFLAGS__', `LDFLAGS = __LDFLAGS__
 ')dnl
 ifnempty(`__LDLIBS__', `LDLIBS = __LDLIBS__

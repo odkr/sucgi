@@ -43,7 +43,7 @@ readonly max_njobs=4
 
 # Variables to set as M4 Macros.
 readonly macros='
-	CC CFLAGS ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
+	CC CFLAGS AR ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
 	SC_GETGRPLST_T SC_SETGRPNUM_T SC_COV_CC SC_CGI_DIR SC_WWW_GRP
 	sc_repo_owner
 '
@@ -281,6 +281,47 @@ else
 	printf -- ' %s\a\n' "${CFLAGS:-none given.}"
 fi
 unset cflags flag jobs job
+
+
+#
+# Check which archiver to use.
+#
+
+printf 'Archiver: '
+
+if [ "${AR-x}" = x ] && ! [ "${AR-}" = x ]
+then
+	ccsuffix="${ccname#$cctype-}"
+	[ "$cctype" = clang ] && cctype=llvm
+
+	for ar in $cctype-ar-$ccsuffix $ccname-ar $cctype-ar
+	do
+		if command -v "$ar" >/dev/null 2>&1
+		then
+			AR="$ar"
+			break
+		fi
+	done
+
+	if ! [ "${AR-}" ]
+	then
+		IFS=:
+		for dir in $PATH
+		do
+			for ar in "$dir/$cctype-ar-"*
+			do
+				if [ "$ar" != "$dir/$cctype-ar-*" ]
+				then
+					AR="$(basename "$ar")"
+					break
+				fi
+			done
+		done
+		unset IFS
+	fi
+
+	printf '%s\n' "${AR-default}"
+fi
 
 
 #
