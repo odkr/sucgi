@@ -230,12 +230,12 @@ config(void)
     (void) printf("\"\n");
 
     (void) printf("PATH=\"%s\"\n", PATH);
-    (void) printf("UMASK=0%o\n", UMASK);
+    (void) printf("UMASK=0%llu\n", (unsigned long long) UMASK);
 
     (void) printf("MAX_STR_LEN=%u\n", MAX_STR_LEN);
     (void) printf("MAX_ERRMSG_LEN=%u\n", MAX_ERRMSG_LEN);
     (void) printf("MAX_FNAME_LEN=%d\n", MAX_FNAME_LEN);
-    (void) printf("MAX_GRPNAME_LEN=%u\n", MAX_GRPNAME_LEN);
+    (void) printf("MAX_GRPNAME_LEN=%lld\n", (long long) MAX_GRPNAME_LEN);
     (void) printf("MAX_SUFFIX_LEN=%u\n", MAX_SUFFIX_LEN);
     (void) printf("MAX_VAR_LEN=%d\n", MAX_VAR_LEN);
     (void) printf("MAX_VARNAME_LEN=%u\n", MAX_VARNAME_LEN);
