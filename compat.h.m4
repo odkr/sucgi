@@ -45,22 +45,30 @@ include(`m4/macros.m4')dnl
 #if !defined(COMPAT_H)
 #define COMPAT_H
 
-ifnempty(`__SC_GETGRPLST_T__', `dnl
 /* Type that getgrouplist takes and returns group IDs as. */
+ifnempty(`__SC_GETGRPLST_T__', `dnl
 #define GETGRPLST_T __SC_GETGRPLST_T__
 ')dnl
 
 #if !defined(GETGRPLST_T)
-#error getgrouplist group ID type has not been defined.
+#if __APPLE__
+#define GETGRPLST_T int
+#else
+#define GETGRPLST_T gid_t
+#endif
 #endif
 
-ifnempty(`__SC_SETGRPNUM_T__', `dnl
 /* Type that setgroups takes the number of groups as. */
+ifnempty(`__SC_SETGRPNUM_T__', `dnl
 #define SETGRPNUM_T __SC_SETGRPNUM_T__
 ')dnl
 
 #if !defined(SETGRPNUM_T)
-#error setgroups number of groups type has not been defined.
-#endif
+#if __linux__
+#define SETGRPNUM_T size_t
+#else
+#define SETGRPNUM_T int
+#endif /* __linux__ */
+#endif /* !defined(SETGRPNUM_T) */
 
 #endif /* !defined(COMPAT_H) */

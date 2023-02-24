@@ -394,13 +394,11 @@ then
 		inlist '=' "$type" $types && SC_GETGRPLST_T="$type"
 	fi
 
-
 	if [ "${SC_GETGRPLST_T-}" ]
 	then
 		printf '%s\n' "$SC_GETGRPLST_T"
 	else
-		printf 'detection failed.\a\n'
-		exit 2
+		printf 'detection failed, will guess at compile-time\a\n'
 	fi
 else
 	printf '%s\n' "$SC_GETGRPLST_T"
