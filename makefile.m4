@@ -170,59 +170,57 @@ lib.a(userdir.o): userdir.c userdir.h $(stdhdrs)
 
 sucgi: main.c build.h compat.h $(stdhdrs) lib.a
 
-$(macro_checks) $(check_bins): $(stdhdrs) tests/lib.o
-
 tests/lib.o: tests/lib.c tests/lib.h $(stdhdrs)
 
-tests/ISSIGNED: tests/ISSIGNED.c
+tests/ISSIGNED: tests/ISSIGNED.c $(stdhdrs) tests/lib.o
 
-tests/MIN: tests/MIN.c
+tests/MIN: tests/MIN.c $(stdhdrs) tests/lib.o
 
-tests/NELEMS: tests/NELEMS.c
+tests/NELEMS: tests/NELEMS.c $(stdhdrs) tests/lib.o
 
-tests/SIGNEDMAX: tests/SIGNEDMAX.c
+tests/SIGNEDMAX: tests/SIGNEDMAX.c $(stdhdrs) tests/lib.o
 
-tests/env_is_name: tests/env_is_name.c lib.a(env.o)
+tests/env_is_name: tests/env_is_name.c lib.a(env.o) $(stdhdrs) tests/lib.o
 
-tests/env_restore: tests/env_restore.c lib.a(env.o)
+tests/env_restore: tests/env_restore.c lib.a(env.o) $(stdhdrs) tests/lib.o
 
-tests/env_restore: tests/env_restore.c lib.a(env.o)
+tests/env_restore: tests/env_restore.c lib.a(env.o) $(stdhdrs) tests/lib.o
 
-tests/error: tests/error.c lib.a(error.o)
+tests/error: tests/error.c lib.a(error.o) $(stdhdrs) tests/lib.o
 
 tests/error.sh: tests/error
 
-tests/file_is_exe: tests/file_is_exe.c lib.a(file.o)
+tests/file_is_exe: tests/file_is_exe.c lib.a(file.o) $(stdhdrs) tests/lib.o
 
-tests/file_is_wexcl: tests/file_is_wexcl.c lib.a(file.o)
+tests/file_is_wexcl: tests/file_is_wexcl.c lib.a(file.o) $(stdhdrs) tests/lib.o
 
-tests/handler_lookup: tests/handler_lookup.c lib.a(handler.o)
+tests/handler_lookup: tests/handler_lookup.c lib.a(handler.o) $(stdhdrs) tests/lib.o
 
-tests/path_check_sub: tests/path_check_sub.c lib.a(path.o)
+tests/path_check_sub: tests/path_check_sub.c lib.a(path.o) $(stdhdrs) tests/lib.o
 
-tests/path_check_wexcl: tests/path_check_wexcl.c lib.a(path.o)
+tests/path_check_wexcl: tests/path_check_wexcl.c lib.a(path.o) $(stdhdrs) tests/lib.o
 
 tests/path_check_wexcl.sh: tests/path_check_wexcl
 
-tests/path_check_in: tests/path_check_in.c lib.a(path.o)
+tests/path_check_in: tests/path_check_in.c lib.a(path.o) $(stdhdrs) tests/lib.o
 
-tests/path_suffix: tests/path_suffix.c lib.a(path.o)
+tests/path_suffix: tests/path_suffix.c lib.a(path.o) $(stdhdrs) tests/lib.o
 
-tests/priv_drop: tests/priv_drop.c lib.a(priv.o)
+tests/priv_drop: tests/priv_drop.c lib.a(priv.o) $(stdhdrs) tests/lib.o
 
 tests/priv_drop.sh: tests/priv_drop tests/main tools/runas
 
-tests/priv_suspend: tests/priv_suspend.c lib.a(priv.o)
+tests/priv_suspend: tests/priv_suspend.c lib.a(priv.o) $(stdhdrs) tests/lib.o
 
 tests/priv_suspend.sh: tests/priv_suspend tests/main tools/runas
 
-tests/str_cp: tests/str_cp.c lib.a(str.o)
+tests/str_cp: tests/str_cp.c lib.a(str.o) $(stdhdrs) tests/lib.o
 
-tests/str_split: tests/str_split.c lib.a(str.o)
+tests/str_split: tests/str_split.c lib.a(str.o) $(stdhdrs) tests/lib.o
 
-tests/userdir_resolve: tests/userdir_resolve.c lib.a(userdir.o)
+tests/userdir_resolve: tests/userdir_resolve.c lib.a(userdir.o) $(stdhdrs) tests/lib.o
 
-tests/main: main.c build.h compat.h lib.a
+tests/main: main.c build.h compat.h lib.a $(stdhdrs) tests/lib.o
 
 tests/main.sh: tests/main tools/badexec tools/badexec tools/ids
 
@@ -297,7 +295,7 @@ uninstall:
 # Coverage reports
 #
 
-cov: clean $(tool_bins) 
+cov: clean $(tool_bins)
 	make CC=$(SC_COV_CC) CFLAGS="--coverage -O2" \
 		$(macro_checks) $(check_bins)
 	tools/runpara -cj1 $(macro_checks) $(check_bins) || :
