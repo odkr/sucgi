@@ -50,6 +50,8 @@ case $(uname) in
 	exec xcode-select --install
 	;;
 (Linux)
+	[ -e /etc/alpine-release ] &&
+		exec apk add build-base m4
 	[ -e /etc/debian_version ] &&
 		exec apt-get install build-essential m4
 	;;
