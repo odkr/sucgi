@@ -480,8 +480,7 @@ then
 	then
 		printf '%s\n' "$SC_SETGRPNUM_T"
 	else
-		printf 'detection failed.\a\n'
-		exit 2
+		printf 'detection failed, will guess at compile-time\a\n'
 	fi
 else
 	printf '%s\n' "$SC_SETGRPNUM_T"
