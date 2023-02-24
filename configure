@@ -366,56 +366,6 @@ else
 fi
 
 
-##
-## Check whether the system supports POSIX ACLs.
-## TODO: Currently unused.
-##
-#
-# printf 'POSIX ACLs: '
-#
-# # FIXME: test for undefined, not for empty.
-# if ! [ "${HAVE_POSIX_ACLS-}" ]
-# then
-#	src="$TMPDIR/acl.c"
-# 	cat <<-EOF >"$src"
-# 		/* FIXME: Add feature test macros. */
-#		#include <sys/types.h>
-# 		#include <sys/acl.h>
-#
-# 		int
-# 		main(void)
-# 		{
-# 			acl_t acls;
-#
-# 			acls = acl_init(1);
-# 			return 0;
-# 		}
-# 	EOF
-#
-# 	if "$CC" -o/dev/null "$src"
-# 	then
-# 		inlist = -DHAVE_POSIX_ACLS ${CFLAGS-} ||
-# 			CFLAGS="${CFLAGS-} -DHAVE_POSIX_ACLS"
-#		# FIXME: Check for that value! and modify LDLIBS accordingly!
-#		HAVE_POSIX_ACLS=libc
-#
-# 		printf 'libc\n'
-# 	elif "$CC" -o/dev/null "$src" -lacl
-# 	then
-# 		inlist = -DHAVE_POSIX_ACLS ${CFLAGS-} ||
-# 			CFLAGS="${CFLAGS-} -DHAVE_POSIX_ACLS"
-# 		inlist = -lacl ${LDLIBS-} ||
-# 			LDLIBS="${LDLIBS-} -lacl"
-#		HAVE_POSIX_ACLS=libacl
-#
-# 		printf 'libacl\n'
-# 	else
-# 		printf 'unsupported\n'
-# 	fi
-#	unset src
-# fi
-
-
 #
 # Check who owns the repository.
 #
