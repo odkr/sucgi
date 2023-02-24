@@ -294,7 +294,7 @@ then
 	[ "$cctype" = clang ] && cctype=llvm
 
 	if ccversion="$(
-		"$CC" --version |
+		"$CC" --version 2>/dev/null |
 		awk '{
 			for (i = 1; i <= NF; i++) {
 				if ($i ~ /^v?[0-9]+\.[0-9]+\./) {

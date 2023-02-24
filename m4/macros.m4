@@ -18,4 +18,4 @@ dnl You should have received a copy of the GNU General Public License along
 dnl with suCGI. If not, see <https://www.gnu.org/licenses>.
 changecom()dnl
 define(`default', `ifdef(`$1', `ifelse(`$1', `', `$2', `$1')', `$2')')dnl
-define(`ifnempty', `ifdef(`$1', `ifelse(`$1', `', `', `$2')', `')')dnl
+define(`ifnempty', `ifdef(`$1', `ifelse(`$1', `', `$3', `$2')', `$3')')dnl
