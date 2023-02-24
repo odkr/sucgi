@@ -82,7 +82,7 @@ addflags() {
 # Test compiler features.
 testcc() {
 	case "$(basename "${CC:?}")" in
-	(clang|clang[!a-z]*|gcc|gcc[!a-z]*|tcc|tcc[!a-z]*)
+	(clang|clang[!a-z]*|gcc|gcc[!a-z]*|musl-gcc|musl-gcc[!a-z]*)
 		"$CC" -xc -Wall -Werror -pedantic -o/dev/null "$@"
 		;;
 	(icc|icc[!a-z]*)
@@ -287,6 +287,7 @@ unset cflags flag jobs job
 # Check which archiver to use.
 #
 
+# FIXME: This is ugly and probably brittle.
 printf 'Archiver: '
 
 if [ "${AR-x}" = x ] && ! [ "${AR-}" = x ]
