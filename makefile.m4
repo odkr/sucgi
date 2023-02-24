@@ -25,7 +25,7 @@ ifnempty(`__ARFLAGS__', `ARFLAGS = __ARFLAGS__
 ')dnl
 ifnempty(`__LDFLAGS__', `LDFLAGS = __LDFLAGS__
 ')dnl
-ifnempty(`__LDLIBS__', `LDFLAGS = __LDFLAGS__
+ifnempty(`__LDLIBS__', `LDLIBS = __LDLIBS__
 ')dnl
 
 SC_COV_CC = default(`__SC_COV_CC__', `$(CC)')
@@ -131,10 +131,10 @@ sucgi:
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ main.c lib.a $(LDLIBS)
 
 $(macro_checks):
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/lib.o $(LDLIBS)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/lib.o -lm $(LDLIBS)
 
 $(check_bins):
-	$(CC) -DTESTING $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/lib.o $(LDLIBS)
+	$(CC) -DTESTING $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/lib.o -lm $(LDLIBS)
 
 
 #
