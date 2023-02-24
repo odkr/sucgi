@@ -164,8 +164,8 @@ skipped=
 # Check whether suCGI stops if no arguments are given.
 #
 
-# FIXME do more tests.
-check -s1 -e'usage: sucgi [-c|-V|-h]' badexec main
+# FIXME: Do more tests.
+check -s1 -e'empty argument vector' badexec main
 
 
 #

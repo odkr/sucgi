@@ -369,6 +369,11 @@ main(int argc, char **argv) {
      * Parse arguments.
      */
 
+    /* Systems differ on whether argc may be 0. */
+    if (*argv == NULL) {
+        error("empty argument vector.");
+    }
+
     switch (argc) {
     case 1:
         break;
