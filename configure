@@ -297,7 +297,7 @@ then
 		"$CC" --version |
 		awk '{
 			for (i = 1; i <= NF; i++) {
-				if ($i ~ /^v?[0-9]+\.[\.0-9]*$/) {
+				if ($i ~ /^v?[0-9]+\.[0-9]+\./) {
 					print $i;
 					exit;
 				}
