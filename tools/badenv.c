@@ -21,12 +21,14 @@
 
 #define _BSD_SOURCE
 #define _DARWIN_C_SOURCE
+#define _DEFAULT_SERVICE
 #define _GNU_SOURCE
 
 #include <err.h>
 #include <errno.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
