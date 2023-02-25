@@ -230,7 +230,7 @@ config(void)
     (void) printf("\"\n");
 
     (void) printf("PATH=\"%s\"\n", PATH);
-    (void) printf("UMASK=0%llu\n", (unsigned long long) UMASK);
+    (void) printf("UMASK=0%o\n", (unsigned int) UMASK);
 
     (void) printf("MAX_STR_LEN=%u\n", MAX_STR_LEN);
     (void) printf("MAX_ERRMSG_LEN=%u\n", MAX_ERRMSG_LEN);
@@ -362,7 +362,10 @@ main(int argc, char **argv) {
 
     assert(getuid() == geteuid());
     assert(getgid() == getegid());
-    /* TODO check groups unless NDEBUG is set. */
+    /*
+     * getgroups is unreliable on some systems,
+     * so supplementary groups cannot be verified.
+     */
 
 
     /*
@@ -652,7 +655,10 @@ main(int argc, char **argv) {
     assert(getegid() == gid);
     assert(getuid() == uid);
     assert(getgid() == gid);
-    /* TODO: Check if supplementary group IDs are correct. */
+    /*
+     * getgroups is unreliable on some systems,
+     * so supplementary groups cannot be verified.
+     */
 
 
     /*
@@ -816,7 +822,7 @@ main(int argc, char **argv) {
     }
 
     /* RATS: ignore; the permission mask is set by the administrator. */
-    umask(UMASK | umask(S_ISUID | S_ISGID | S_ISVTX | S_IRWXG | S_IRWXO));
+    umask(UMASK);
 
 
     /*
