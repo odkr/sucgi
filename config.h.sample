@@ -129,8 +129,6 @@
  *       <https://httpd.apache.org/docs/2.4/expr.html#vars>
  *     - the Apache v2.4 mod_ssl documentation
  *       <https://httpd.apache.org/docs/2.4/mod/mod_ssl.html>
- *     - The GNU Autoconf manual, sec. 11.12
- *       <https://www.gnu.org/software/autoconf/manual>
  *
  * The array must contain a pattern that matches "PATH_TRANSLATED".
  *
@@ -143,8 +141,6 @@
  *     - USER_NAME
  *
  * There should be no need to adapt this list.
- *
- * TODO: Check whether DATEMSK, LANG, LC_*, NLSPATH, and NPROC are safe.
  */
 #define ENV_PATTERNS {                              \
     "^AUTH_TYPE$",                                  \
@@ -173,7 +169,6 @@
     "^LAST_MODIFIED$",                              \
     "^PATH_INFO$",                                  \
     "^PATH_TRANSLATED$",                            \
-    "^POSIXLY_CORRECT$",                            \
     "^QUERY_STRING$",                               \
     "^QUERY_STRING_UNESCAPED$",                     \
     "^REMOTE_ADDR$",                                \
