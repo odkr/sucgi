@@ -472,11 +472,17 @@ sc_repo_owner=$(owner "$src_dir") || sc_repo_owner="$(id -un)"
 # Generate M4 command line.
 #
 
-set --
+shift $#
 for key in $macros
 do
 	eval "value=\"\${$key-}\""
-	[ "$value" ] && set -- "$@" "-D__${key}__=${value# }"
+	if [ "$value" ]
+	then
+		case $# in
+		(0) set -- "-D__${key}__=${value# }" ;;
+		(*) set -- "$@" "-D__${key}__=${value# }" ;;
+		esac
+	fi
 done
 unset key value
 

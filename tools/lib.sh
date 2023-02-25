@@ -126,7 +126,7 @@ cleanup() {
 	set +e
 	trap '' EXIT HUP INT TERM
 	# shellcheck disable=2046
-	kill -- $(jobs -p) -$$ >/dev/null 2>&1
+	kill -- $(jobs -p 2>/dev/null) -$$ >/dev/null 2>&1
 	wait
 	eval "${cleanup-}"
 	exit "$rc"
