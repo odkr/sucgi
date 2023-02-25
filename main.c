@@ -276,8 +276,9 @@ int
 main(int argc, char **argv) {
     Error ret;
 
+
     /*
-     * Check whether getgrouplist returns GIDs as a type coercible to gid_t.
+     * Check system-dependent types.
      */
 
     /* cppcheck-suppress misra-c2012-10.4;
@@ -286,6 +287,7 @@ main(int argc, char **argv) {
 
     /* cppcheck-suppress misra-c2012-10.4; see ERRORIF above. */
     ERRORIF(SIGNEDMAX(SETGRPNUM_T) < SIGNEDMAX(int));
+
 
     /*
      * Check whether configuration values are within bounds.
@@ -373,7 +375,7 @@ main(int argc, char **argv) {
      */
 
     /* Systems differ on whether argc may be 0. */
-    if (*argv == NULL || **argv == '\0') {
+    if (argc == 0 || *argv == NULL || **argv == '\0') {
         error("empty argument vector.");
     }
 
@@ -756,7 +758,7 @@ main(int argc, char **argv) {
 
 
     /*
-     * It would be odd for the set-user-ID and the set-group-ID on execute
+     * It would be odd for the set-user-ID or the set-group-ID on execute
      * bits to be set for a script that is owned by a regular user. So if
      * one of them is set, this probably indicates a configuration error.
      */
@@ -856,7 +858,7 @@ main(int argc, char **argv) {
         assert(strnlen(handler, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
 
         errno = 0;
-	/* RATS: ignore; suCGI's whole point is to do this safely. */
+        /* RATS: ignore; suCGI's whole point is to do this safely. */
         (void) execlp(handler, handler, script_phys, NULL);
 
         /* If this point is reached, execution has failed. */
