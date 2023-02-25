@@ -124,10 +124,6 @@ huge_path_link="$doc_root/$(dirwalk "$doc_root" "$huge_path" \
 	'ln -s "$fname" s.d && printf s.d/' \
 	'ln -s "$fname" s.f && printf s.f\\n')"
 
-# Create a link to /.
-root_link="$doc_root/root"
-ln -s / "$root_link"
-
 # Create a directory inside the document root.
 dir="$doc_root/dir"
 mkdir "$dir"
@@ -135,14 +131,6 @@ mkdir "$dir"
 # Create a file inside the document root.
 inside="$doc_root/inside"
 echo $$ >"$inside"
-
-# Create a file outside the document root.
-outside="$TMPDIR/outside"
-touch "$outside"
-
-# Create a link to the outside.
-out_link="$doc_root/outside"
-ln -s "$outside" "$out_link"
 
 # Create a link to the inside
 in_link="$TMPDIR/to-inside"
@@ -164,8 +152,8 @@ skipped=
 # Check whether suCGI stops if no arguments are given.
 #
 
-# FIXME: Do more tests.
 check -s1 -e'empty argument vector' badexec main
+check -s1 -e'empty argument vector' badexec main ''
 
 
 #
@@ -200,21 +188,6 @@ done
 
 check -s1 -e'usage: sucgi' main -h -C
 check -s1 -e'usage: sucgi' main -hV
-
-
-#
-# Malformed environment variables.
-#
-
-# FIXME: instead test whether they survive to the child process.
-#check -s1 -e'malformed environment variable.' \
-#	badenv -n3 foo=foo '' bar=bar "$tests_dir/main"
-#
-#check -s1 -e'malformed environment variable.' \
-#	badenv -n3 bar=bar baz=baz foo "$tests_dir/main"
-#
-#check -s1 -e"bad characters in variable name." \
-#	badenv 'SSL_CLIENT_S_DN_ =bar' foo=foo baz=baz "$tests_dir/main"
 
 
 #
@@ -291,6 +264,15 @@ fi
 # Get the user's ID and group.
 uid="$(id -u "$user")"
 gid="$(id -g "$user")"
+
+# Create a file outside the document root.
+outside="$TMPDIR/outside"
+touch "$outside"
+chown "$user" "$outside"
+
+# Create a link to the outside.
+out_link="$doc_root/outside"
+ln -s "$outside" "$out_link"
 
 # Create a directory without an owner.
 unalloc_uid="$(unallocid 1000 30000)"
@@ -461,7 +443,11 @@ fi
 # Verification of PATH_TRANSLATED (post-privilege drop)
 #
 
-# FIXME
+check -s1 -e"$outside is not within $user's user directory." \
+	PATH_TRANSLATED="$outside" main
+
+check -s1 -e"$out_link is not within $user's user directory." \
+	PATH_TRANSLATED="$out_link" main
 
 
 #
