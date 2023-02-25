@@ -37,7 +37,7 @@ SC_COV_CC = default(`__SC_COV_CC__', `$(CC)')
 # Headers
 #
 
-stdhdrs = cattr.h config.h macros.h max.h types.h
+stdhdrs = cattr.h compat.h macros.h max.h types.h
 
 
 #
@@ -170,7 +170,7 @@ lib.a(str.o): str.c str.h $(stdhdrs)
 
 lib.a(userdir.o): userdir.c userdir.h $(stdhdrs)
 
-sucgi: main.c build.h compat.h $(stdhdrs) lib.a
+sucgi: main.c build.h config.h $(stdhdrs) lib.a
 
 tests/lib.o: tests/lib.c tests/lib.h $(stdhdrs)
 
@@ -222,7 +222,7 @@ tests/str_split: tests/str_split.c lib.a(str.o) $(stdhdrs) tests/lib.o
 
 tests/userdir_resolve: tests/userdir_resolve.c lib.a(userdir.o) $(stdhdrs) tests/lib.o
 
-tests/main: main.c build.h compat.h lib.a $(stdhdrs) tests/lib.o
+tests/main: main.c build.h config.h lib.a $(stdhdrs) tests/lib.o
 
 tests/main.sh: tests/main tools/badexec tools/badexec tools/ids
 
@@ -330,6 +330,7 @@ shellcheck:
 	shellcheck -x $(scripts)
 
 analysis:
+	clang-tidy *.c *.h -- -std=c99
 	cppcheck $(cppcheck_flags) $(inspect)
 	flawfinder $(flawfinder_flags) $(inspect)
 	rats $(rats_flags) $(inspect)
