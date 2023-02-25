@@ -38,9 +38,6 @@ tmpdir tmp .
 # Constants
 #
 
-# Number of child processes to spawn.
-readonly max_njobs=4
-
 # Variables to set as M4 Macros.
 readonly macros='
 	CC CFLAGS AR ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
@@ -54,6 +51,11 @@ readonly confsave=config.status
 #
 # Defaults
 #
+
+# Number of child processes to spawn.
+max_njobs=4
+# FIXME: The Almquist shell crashes when using multiple jobs.
+[ "$(basename "${SHELL-}")" = ash ] && max_njobs=1
 
 # Default build configuration.
 conf=prod.env
@@ -100,7 +102,7 @@ testcc() {
 #
 
 OPTIND=1 OPTARG='' opt=''
-while getopts Dc:dfqh opt; do
+while getopts Dc:dfj:qh opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF >&2
@@ -116,6 +118,7 @@ Options:
     -c FILE  Read build configuration from FILE (default: $conf).
     -d       Short for -c devel.env.
     -f       Overwrite existing files. config.h is never overwritten.
+    -j N     Run N configuration tests in parallel (default: $max_njobs).
     -q       Be quiet.
     -h       Show this help screen.
 
@@ -130,6 +133,7 @@ EOF
 	(c) conf="$OPTARG" ;;
 	(d) conf=devel.env ;;
 	(f) force=x ;;
+	(j) max_njobs="$OPTARG" ;;
 	(q) quiet=x ;;
 	(*) exit 1
 	esac
@@ -173,7 +177,7 @@ then
 fi
 
 # shellcheck disable=2034
-readonly conf force quiet nfiles
+readonly conf force quiet max_njobs nfiles
 
 
 #
