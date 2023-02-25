@@ -83,6 +83,7 @@ priv_suspend(void)
     if (geteuid() == 0) {
         errno = 0;
         if (setgroups(1, (gid_t [1]) {gid}) != 0) {
+            /* Should be unreachable. */
             return ERR_SYS_SETGROUPS;
         }
     }
