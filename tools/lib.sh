@@ -22,21 +22,12 @@
 
 
 #
-# Aliases
-#
-
-alias check='_line="${LINENO-}" _check'
-alias err='_line="${LINENO-}" _err'
-alias warn='_line="${LINENO-}" _warn'
-
-
-#
 # Functions
 #
 
 # Print a message to STDERR and exit with a non-zero status.
 # -s sets a different status.
-_err() {
+err() {
 	rc=2
 	OPTIND=1 OPTARG='' opt=''
 	while getopts s: opt
@@ -48,7 +39,7 @@ _err() {
 	done
 	shift $((OPTIND - 1))
 
-	_warn "$@"
+	warn "$@"
 
 	exit "$rc"
 }
@@ -58,7 +49,7 @@ _err() {
 catch() {
 	signo="${1:?}"
 	sig="$(kill -l "$signo")"
-	_warn 'caught %s.' "$sig"
+	warn 'caught %s.' "$sig"
 	[ "${catch-}" ] && exit "$((signo + 128))"
 	# shellcheck disable=2034
 	caught="$signo"
@@ -67,7 +58,7 @@ catch() {
 # Check if calling a programme produces a result.
 # -s checks for an exit status (defaults to 0),
 # -o STR for STR on stdout, -e STR for STR on stderr.
-_check() (
+check() (
 	status=0 stream=''
 	OPTIND=1 OPTARG='' opt=''
 	while getopts 's:o:e:v' opt
@@ -95,7 +86,7 @@ _check() (
 	: "${stdout:=/dev/null}"
 	: "${stderr:=/dev/null}"
 
-	_warn -q 'checking %s ...' "$*"
+	warn -q 'checking %s ...' "$*"
 
 	err=0 rc=0
 
@@ -106,12 +97,12 @@ _check() (
 	then
 		if ! grep -Fq "$pattern" <"$tmpfile"
 		then
-			_warn -l 'expected message on std%s:' "$stream"
-			_warn -l '> %s' "$pattern"
-			_warn -l 'actual message:'
+			warn 'expected output on std%s:' "$stream"
+			warn '> %s' "$pattern"
+			warn 'actual output:'
 			while read -r line
 			do
-				_warn -l '> %s' "$line"
+				warn '> %s' "$line"
 			done <"$tmpfile"
 			rc=70
 		fi
@@ -122,7 +113,7 @@ _check() (
 
 	if [ "$err" -ne "$status" ] && [ "$err" -ne 141 ]
 	then
-		_warn -l '%s exited with status %d.' "$1" "$err"
+		warn '%s exited with status %d.' "$1" "$err"
 		rc=70
 	fi
 
@@ -386,7 +377,7 @@ unallocid() (
 # -l prefixes the messages with the number of the line warn was called from.
 # -q suppresses output if $quiet is set.
 # -v suppresses output unless $verbose is set.
-_warn() (
+warn() (
 	line=''
 	OPTIND=1 OPTARG='' opt=''
 	while getopts 'lqv' opt
