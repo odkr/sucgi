@@ -476,7 +476,7 @@ shift $#
 for key in $macros
 do
 	eval "value=\"\${$key-}\""
-	if [ "$value" ]
+	if [ "$value" ]
 	then
 		case $# in
 		(0) set -- "-D__${key}__=${value# }" ;;
