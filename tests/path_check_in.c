@@ -186,8 +186,8 @@ main(void)
     unsigned int nfnames;
     unsigned int nplain;
 
-    FILL_STR('x', maxlen);
-    FILL_STR('x', errlen);
+    fill_str('x', sizeof(maxlen), maxlen);
+    fill_str('x', sizeof(errlen), errlen);
 
     nfnames = (unsigned int) pow(sizeof(ascii), FNAME_LEN);
     nplain = 0;

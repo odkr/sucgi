@@ -37,28 +37,6 @@ typedef enum {
 
 
 /*
- * Macros
- */
-
-/*
- * Fill ARRAY with CH.
- */
-#define FILL_STR(ch, array)                 \
-    do {                                    \
-        fill_str(ch, sizeof(array), array); \
-    } while (0)
-
-/*
- * Join the first N strings in STRS using the separator SEP and
- * store the result in ARRAY. See join_strs for details.
- */
-#define JOIN_STRS(n, strs, sep, array)                                      \
-    do {                                                                    \
-        assert(join_strs((n), (strs), (sep), sizeof(array), array) == 0);   \
-    } while (0)
-
-
-/*
  * Functions
  */
 

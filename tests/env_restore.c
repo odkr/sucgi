@@ -386,9 +386,12 @@ test(const ConstArgs *args)
 
     assert(args != NULL);
 
-    JOIN_STRS(args->n, args->patterns, ", ", patbuf);
-    JOIN_STRS(NELEMS(args->env), args->env, " ", envbuf);
-    JOIN_STRS(NELEMS(args->rst), args->rst, " ", rstbuf);
+    assert(join_strs(args->n, args->patterns, ", ",
+           sizeof(patbuf), patbuf) == 0);
+    assert(join_strs(NELEMS(args->env), args->env, " ",
+           sizeof(envbuf), envbuf) == 0);
+    assert(join_strs(NELEMS(args->rst), args->rst, " ",
+           sizeof(rstbuf), rstbuf) == 0);
 
     warnx("checking %s => (%zu, {%s}) -> %u => %s ...",
           envbuf, args->n, patbuf, args->ret, rstbuf);
@@ -432,7 +435,8 @@ test(const ConstArgs *args)
     if (ret == OK && !cmp_env(args->rst)) {
         char buf[MAX_TEST_STR_LEN]; /* Buffer for joined environment. */
 
-        JOIN_STRS(MAX_TEST_NVARS, (const char *const *) environ, " ", buf);
+        assert(join_strs(MAX_TEST_NVARS, (const char *const *) environ, " ",
+                         sizeof(buf), buf) == 0);
         errx(TEST_FAILED, "restored environment: %s", buf);
     }
 }

@@ -116,10 +116,10 @@ main(void)
     char **strs;
     size_t nstrs;
 
-    FILL_STR('x', long_str);
-    FILL_STR('x', huge_str);
-    FILL_STR('x', huge_head);
-    FILL_STR('\0', sep);
+    fill_str('x', sizeof(long_str), long_str);
+    fill_str('x', sizeof(huge_str), huge_str);
+    fill_str('x', sizeof(huge_head), huge_head);
+    fill_str('\0', sizeof(sep), sep);
 
     (void) strncpy(&huge_head[MAX_FNAME_LEN], ",foo", 5); /* RATS: ignore. */
 
