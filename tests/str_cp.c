@@ -118,12 +118,14 @@ main (void) {
     for (unsigned int i = 0; i < pow(sizeof(ascii), STR_LEN); ++i) {
         char src[MAX_STR_LEN];
         char dest[MAX_STR_LEN];
+        int rc;
         Error ret;
 
         (void) memset(src, '\0', sizeof(src));
         (void) memset(dest, '\0', sizeof(dest));
 
-        assert(to_str(i, sizeof(ascii), ascii, sizeof(src), src) == 0);
+        rc = to_str(i, sizeof(ascii), ascii, sizeof(src), src);
+        assert(rc == 0);
 
         ret = str_cp(sizeof(dest) - 1, src, dest);
 

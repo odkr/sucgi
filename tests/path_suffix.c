@@ -773,12 +773,16 @@ main (void)
 
     warnx("generating up to %u filenames and suffices ...", maxnfixes);
     for (unsigned int i = 0; i < maxnfixes; ++i) {
-        char *s = calloc(FIX_LEN + 1, sizeof(*s));
+        char *s;
+        int rc;
+
+        s = calloc(FIX_LEN + 1, sizeof(*s));
         if(s == NULL) {
             err(TEST_ERROR, "calloc");
         }
 
-        assert(to_str(i, sizeof(ascii), ascii, FIX_LEN + 1U, s) == 0);
+        rc = to_str(i, sizeof(ascii), ascii, FIX_LEN + 1U, s);
+        assert(rc == 0);
 
         if (strchr(s, '/') == NULL) {
             prefixes[nprefixes++] = s;

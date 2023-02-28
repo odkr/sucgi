@@ -227,12 +227,16 @@ main(void)
     /* Run dynamic tests. */
     warnx("generating %u filenames ...", nfnames);
     for (unsigned int i = 0; i < nfnames; ++i) {
-        char *fname = calloc(FNAME_LEN + 1, sizeof(*fname));
+        char *fname;
+        int rc;
+
+        fname = calloc(FNAME_LEN + 1, sizeof(*fname));
         if(fname == NULL) {
             err(TEST_ERROR, "calloc");
         }
 
-        assert(to_str(i, sizeof(ascii), ascii, FNAME_LEN + 1U, fname) == 0);
+        rc = to_str(i, sizeof(ascii), ascii, FNAME_LEN + 1U, fname);
+        assert(rc == 0);
 
         fnames[i] = fname;
         if (i != DOT && strchr(fname, '/') == NULL) {

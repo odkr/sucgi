@@ -382,16 +382,17 @@ test(const ConstArgs *args)
     char rstbuf[MAX_TEST_STR_LEN];
     regex_t pregs[MAX_TEST_STR_LEN];
     char **vars;
+    int rc;
     Error ret;
 
     assert(args != NULL);
 
-    assert(join_strs(args->n, args->patterns, ", ",
-           sizeof(patbuf), patbuf) == 0);
-    assert(join_strs(NELEMS(args->env), args->env, " ",
-           sizeof(envbuf), envbuf) == 0);
-    assert(join_strs(NELEMS(args->rst), args->rst, " ",
-           sizeof(rstbuf), rstbuf) == 0);
+    rc = join_strs(args->n, args->patterns, ", ", sizeof(patbuf), patbuf);
+    assert(rc == 0);
+    rc = join_strs(NELEMS(args->env), args->env, " ", sizeof(envbuf), envbuf);
+    assert(rc == 0);
+    rc = join_strs(NELEMS(args->rst), args->rst, " ", sizeof(rstbuf), rstbuf);
+    assert(rc == 0);
 
     warnx("checking %s => (%zu, {%s}) -> %u => %s ...",
           envbuf, args->n, patbuf, args->ret, rstbuf);
@@ -433,10 +434,12 @@ test(const ConstArgs *args)
     vars = NULL;
 
     if (ret == OK && !cmp_env(args->rst)) {
-        char buf[MAX_TEST_STR_LEN]; /* Buffer for joined environment. */
+        char buf[MAX_TEST_STR_LEN];
+        int rc;
 
-        assert(join_strs(MAX_TEST_NVARS, (const char *const *) environ, " ",
-                         sizeof(buf), buf) == 0);
+        rc = join_strs(MAX_TEST_NVARS, (const char *const *) environ, " ",
+                       sizeof(buf), buf);
+        assert(rc == 0);
         errx(TEST_FAILED, "restored environment: %s", buf);
     }
 }

@@ -238,7 +238,10 @@ main (void)
 
     warnx("checking dynamically created names ...");
     for (unsigned int i = 0; i < pow(NCHARS, sizeof(varname) - 1); ++i) {
-        assert(to_str(i, NCHARS, CHARS, sizeof(varname), varname) == 0);
+        int rc;
+
+	rc = to_str(i, NCHARS, CHARS, sizeof(varname), varname);
+	assert(rc == 0);
 
         if ('0' <= *varname && *varname <= '9') {
             if (env_is_name(varname)) {

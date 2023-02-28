@@ -162,13 +162,16 @@ main(void)
 
     warnx("generating %zu strings ...", nstrs);
     for (size_t i = 0; i < nstrs; ++i) {
+        int rc;
+
         strs[i] = calloc(SUB_STR_LEN + 1, sizeof(*strs[i]));
         if (strs[i] == NULL) {
             err(TEST_ERROR, "calloc");
         }
 
-        assert(to_str((unsigned int) i, sizeof(ascii), ascii,
-                      SUB_STR_LEN + 1, strs[i]) == 0);
+        rc = to_str((unsigned int) i, sizeof(ascii), ascii,
+                    SUB_STR_LEN + 1, strs[i]);
+        assert(rc == 0);
     }
 
     warnx("checking dynamically created strings ...");
