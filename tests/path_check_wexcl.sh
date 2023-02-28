@@ -29,10 +29,10 @@
 set -Cefu
 script_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
 src_dir="$(cd -P "$script_dir/.." && pwd)"
-tools_dir="$src_dir/tools"
-readonly script_dir src_dir tools_dir
+tests_dir="$src_dir/tests"
+readonly script_dir src_dir tests_dir
 # shellcheck disable=1091
-. "$tools_dir/lib.sh" || exit
+. "$tests_dir/lib.sh" || exit
 init || exit
 tmpdir chk
 
