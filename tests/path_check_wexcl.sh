@@ -38,6 +38,13 @@ tmpdir chk
 
 
 #
+# Configuration
+#
+
+eval $(main -C | grep -E ^NDEBUG=)
+
+
+#
 # Prelude
 #
 
