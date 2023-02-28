@@ -49,16 +49,25 @@ case $(uname) in
 (Darwin)
 	exec xcode-select --install
 	;;
+(FreeBSD)
+	cat <<-EOF
+	FreeBSD ships with C build tools.
+	Nothing to do, nothing done.
+	EOF
+	;;
 (Linux)
 	[ -e /etc/alpine-release ] &&
-		exec apk add build-base m4
+		exec apk add binutils fortify-headers gcc libc-dev make m4
 	[ -e /etc/debian_version ] &&
-		exec apt-get install build-essential m4
+		exec apt-get install binutils gcc libc-dev make m4
 	;;
+(*)	cat <<-EOF >&2
+	$0 does not support your operating system. Please install:
+	    * A C compiler (e.g., gcc or clang).
+	    * The header files of your system's standard library.
+	    * The so-called "binary utilities" (i.e., ar, ld, as).
+	    * GNU Make
+	    * M4
+	EOF
+	exit 8
 esac
-
-cat <<-EOF >&2
-prepare does not support your operating system.
-Please install the standard build tools and M4 manually.
-EOF
-exit 8
