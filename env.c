@@ -42,16 +42,16 @@
 
 bool
 /* cppcheck-suppress misra-c2012-8.7; external linkage needed for testing. */
-env_is_name(const char *s)
+env_is_name(const char *str)
 {
-    assert(s);
-    assert(strnlen(s, MAX_VARNAME_LEN) < MAX_VARNAME_LEN);
+    assert(str);
+    assert(strnlen(str, MAX_VARNAME_LEN) < MAX_VARNAME_LEN);
 
-    if (isdigit(*s) || *s == '\0') {
+    if (isdigit(*str) || *str == '\0') {
         return false;
     }
 
-    for (const char *ch = s; *ch != '\0'; ++ch) {
+    for (const char *ch = str; *ch != '\0'; ++ch) {
         if (!(isalpha(*ch) || isdigit(*ch) || ('_' == *ch))) {
             return false;
         }
@@ -61,7 +61,7 @@ env_is_name(const char *s)
 }
 
 Error
-env_restore(char *const *vars, const size_t n, regex_t pregs[n])
+env_restore(char *const *vars, const size_t npregs, regex_t *const pregs)
 {
     size_t i;
 
@@ -81,7 +81,7 @@ env_restore(char *const *vars, const size_t n, regex_t pregs[n])
             syslog(LOG_INFO, "variable $%s: too long.", var);
         } else if (str_split(var, "=", MAX_VARNAME_LEN, name, &val) != OK) {
             /* RATS: ignore; format is short and a literal. */
-            syslog(LOG_INFO, "variable $%s: name is too long.", var);
+            syslog(LOG_INFO, "variable $%s: name too long.", var);
         } else if (val == NULL) {
             /* RATS: ignore; format is short and a literal. */
             syslog(LOG_INFO, "variable $%s: malformed.", var);
@@ -91,7 +91,7 @@ env_restore(char *const *vars, const size_t n, regex_t pregs[n])
         } else {
             size_t j;
 
-            for (j = 0; j < n; ++j) {
+            for (j = 0; j < npregs; ++j) {
                 if (regexec(&pregs[j], name, 0, NULL, 0) == 0) {
                     errno = 0;
                     if (setenv(name, val, true) != 0) {
@@ -104,7 +104,7 @@ env_restore(char *const *vars, const size_t n, regex_t pregs[n])
                 }
             }
 
-            if (j == n) {
+            if (j == npregs) {
                 /* RATS: ignore; format is short and a literal. */
                 syslog(LOG_INFO, "discarding $%s.", name);
             }

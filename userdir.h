@@ -40,7 +40,7 @@
  *     ERR_SYS_SNPRINTF  snprintf failed.
  */
 __attribute__((nonnull(1, 2, 3), format(printf, 1, 0), warn_unused_result))
-Error userdir_resolve(const char *s, const struct passwd *user,
+Error userdir_resolve(const char *str, const struct passwd *user,
                       char userdir[MAX_FNAME_LEN]);
 
 

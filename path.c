@@ -92,9 +92,9 @@ path_suffix(const char *const fname, const char **const suffix)
 
     *suffix = strrchr(fname, '.');
     /* cppcheck-suppress misra-c2012-18.4;
-       *suffix - 1 can only be reached if *suffix > fname. */
+       the expression *suffix - 1 can only be reached if *suffix > fname. */
     if (*suffix != NULL && *suffix > fname && *(*suffix - 1) != '/') {
-        char *sep;		/* Position of path separator after suffix. */
+        char *sep;
 
         sep = strchr(*suffix, '/');
         if (sep == NULL) {
@@ -117,7 +117,7 @@ Error
 path_check_wexcl(const uid_t uid, const char *const basedir,
                  const char *const fname)
 {
-    const char *pos;    /* Current position in filename. */
+    const char *pos;
 
     assert(basedir);
     assert(strnlen(basedir, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);

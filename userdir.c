@@ -37,33 +37,33 @@
 
 
 Error
-userdir_resolve(const char *const s, const struct passwd *const user,
+userdir_resolve(const char *const str, const struct passwd *const user,
                 char userdir[MAX_FNAME_LEN])
 {
-    int n;        /* Length of expanded user directory. */
+    int n;
 
-    assert(s);
-    assert(*s != '\0');
-    assert(strnlen(s, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
+    assert(str);
+    assert(*str != '\0');
+    assert(strnlen(str, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
     assert(user);
     assert(userdir);
 
     /* Some versions of snprintf fail to NUL-terminate strings. */
     (void) memset(userdir, '\0', MAX_FNAME_LEN);
 
-    if (*s != '/') {
+    if (*str != '/') {
         /* RATS: ignore; format is short and a literal. */
-	n = snprintf(userdir, MAX_FNAME_LEN, "%s/%s", user->pw_dir, s);
-    } else if (strstr(s, "%s") == NULL) {
+        n = snprintf(userdir, MAX_FNAME_LEN, "%s/%s", user->pw_dir, str);
+    } else if (strstr(str, "%s") == NULL) {
         /* RATS: ignore; format is short and a literal. */
-        n = snprintf(userdir, MAX_FNAME_LEN, "%s/%s", s, user->pw_name);
+        n = snprintf(userdir, MAX_FNAME_LEN, "%s/%s", str, user->pw_name);
     } else {
-/* s is not a literal, but can only set by the system administrator. */
+/* str can only be set by the administrator. */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
-        
-	/* RATS: ignore; see above. */
-        n = snprintf(userdir, MAX_FNAME_LEN, s, user->pw_name);
+
+    	/* RATS: ignore; str can only be set by the administrator. */
+        n = snprintf(userdir, MAX_FNAME_LEN, str, user->pw_name);
 #pragma GCC diagnostic pop
     }
 

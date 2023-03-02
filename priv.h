@@ -30,8 +30,9 @@
 
 
 /*
- * Set the real and effective user and group IDs to the given UID and GID and
- * the supplementary groups to the first N group IDs in GROUPS respectively.
+ * Set the real and effective user and group IDs to UID and GID and the
+ * supplementary groups to GROUPS respectively. GROUPS must have at least
+ * NGROUPS elements; supernumery elements are ignored.
  *
  * Return value:
  *     OK                 Success.
@@ -41,8 +42,8 @@
  *     ERR_PRIV_RESUME    Superuser privileges could be resumed.
  */
 __attribute__((nonnull(4), warn_unused_result))
-/* cppcheck-suppress misra-c2012-8.2; declaration is in prototype form. */
-Error priv_drop(uid_t uid, gid_t gid, SETGRPNUM_T n, const gid_t groups[n]);
+Error priv_drop(uid_t uid, gid_t gid,
+                SETGRPNUM_T ngroups, const gid_t *groups);
 
 /*
  * Set the effective user, group, and supplementary groups IDs

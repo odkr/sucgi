@@ -40,14 +40,14 @@
 
 Error
 priv_drop(const uid_t uid, const gid_t gid,
-          const SETGRPNUM_T n, const gid_t groups[n])
+          const SETGRPNUM_T ngroups, const gid_t *const groups)
 {
     assert(uid > 0);
     assert(gid > 0);
-    assert(n > 0);
+    assert(ngroups > 0);
 
     errno = 0;
-    if (setgroups(n, groups) != 0) {
+    if (setgroups(ngroups, groups) != 0) {
         return ERR_SYS_SETGROUPS;
     }
 

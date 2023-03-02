@@ -44,21 +44,21 @@ extern char **environ;
  */
 
 /*
- * Check whether S is a valid environment variable name.
+ * Check whether STR is a valid environment variable name.
  */
 __attribute__((nonnull(1), warn_unused_result))
-bool env_is_name(const char *s);
+bool env_is_name(const char *str);
 
 /*
- * Set every variable in VARS the name of which matches any of the N regular
- * expressions in PREGS as environment variable. VARS is a NULL-terminated
- * array of variables and may contain at most MAX_NVARS elements. Variables
- * are strings of the form <name>=<value> and may be at most MAX_VAR_LEN
- * bytes long, including the terminating NUL. Moreover, variable names must
- * be ASCII-encoded, non-empty, start with a non-numeric character, comprise
- * alphanumeric characters and the underscore only, and may be at most
- * MAX_VARNAME_LEN bytes long. PREGS must contain at least N expressions;
- * supernumery expressions are ignored.
+ * Set every variable in VARS the name of which matches one of the regular
+ * expressions in PREGS as environment variable. VARS is an array of strings,
+ * must be NULL-terminated, and may contain at most MAX_NVARS elements,
+ * including the terminating NULL; strings must be of the form <name>=<value>
+ * and may be at most MAX_VAR_LEN bytes long, including the terminating NUL;
+ * variable names must be ASCII-encoded, non-empty, start with a non-numeric
+ * character, consist only of alphanumeric characters or the underscore, and
+ * may be at most MAX_VARNAME_LEN - 1 bytes long. PREGS must contain at least
+ * NPREGS expressions; supernumery expressions are ignored.
  *
  * Note, an attacker may populate the environment with variables that are
  * not NUL-terminated. If the memory area after such a variable contains
@@ -74,8 +74,7 @@ bool env_is_name(const char *s);
  *     Logs which variables are kept and which are discarded.
  */
 __attribute__((nonnull(1, 3), warn_unused_result))
-/* cppcheck-suppress misra-c2012-8.2; declaration is in prototype form. */
-Error env_restore(char *const *vars, size_t n, regex_t pregs[n]);
+Error env_restore(char *const *vars, size_t npregs, regex_t *pregs);
 
 
 #endif /* !defined(ENV_H) */

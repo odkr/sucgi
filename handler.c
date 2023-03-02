@@ -34,14 +34,14 @@
 #include "types.h"
 
 Error
-handler_lookup(const size_t n, const Pair db[n],
+handler_lookup(const size_t nelems, const Pair *const handlerdb,
                const char *const script, const char **const hdl)
 {
     const char *suffix;     /* Filename suffix. */
     size_t len;             /* Suffix length. */
     Error ret;              /* Return code. */
 
-    assert(db);
+    assert(handlerdb);
     assert(script);
     assert(strnlen(script, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
     assert(*script != '\0');
@@ -57,8 +57,8 @@ handler_lookup(const size_t n, const Pair db[n],
         return ERR_LEN;
     }
 
-    for (size_t i = 0; i < n; ++i) {
-        const Pair *ent = &db[i];
+    for (size_t i = 0; i < nelems; ++i) {
+        const Pair *ent = &handlerdb[i];
 
         if (strncmp(suffix, ent->key, len + 1U) == 0) {
             if (ent->value == NULL || *ent->value == '\0') {

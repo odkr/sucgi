@@ -35,23 +35,23 @@
 
 
 Error
-str_cp(const size_t n, const char *const src, char dest[n + 1U])
+str_cp(const size_t len, const char *const src, char *const dest)
 {
     char *end;      /* Position of last byte of src. */
-    size_t len;     /* Bytes copied. */
+    size_t n;     /* Bytes copied. */
 
     assert(src);
-    assert(strnlen(src, MAX_STR_LEN) < MAX_STR_LEN);
+    assert(strnn(src, MAX_STR_LEN) < MAX_STR_LEN);
     assert(dest);
 
-    end = stpncpy(dest, src, n);
+    end = stpncpy(dest, src, len);
     /* cppcheck-suppress [misra-c2012-10.8, misra-c2012-18.4];
        cast is safe and portable, end must be greater than dest */
-    len = (size_t) (end - dest);
-    dest[len] = '\0';
+    n = (size_t) (end - dest);
+    dest[n] = '\0';
 
-    /* dest[len] could be '\0' only because dest was zeroed out. */
-    if (src[len] != '\0') {
+    /* dest[n] could be '\0' only because dest was zeroed out. */
+    if (src[n] != '\0') {
         return ERR_LEN;
     }
 
@@ -60,27 +60,27 @@ str_cp(const size_t n, const char *const src, char dest[n + 1U])
 
 Error
 str_split(const char *const str, const char *const sep,
-          const size_t n, char head[n], const char **const tail)
+          const size_t size, char *const head, const char **const tail)
 {
-    size_t len;     /* Length of head. */
+    size_t len;
 
     assert(str);
     assert(strnlen(str, MAX_STR_LEN) < MAX_STR_LEN);
     assert(sep);
     assert(strnlen(sep, MAX_STR_LEN) < MAX_STR_LEN);
-    assert(n > 0U);
+    assert(size > 0U);
     assert(head);
     assert(tail);
 
     *tail = strpbrk(str, sep);
     if (*tail == NULL) {
-        return str_cp(n - 1U, str, head);
+        return str_cp(size - 1U, str, head);
     }
 
     /* cppcheck-suppress [misra-c2012-10.8, misra-c2012-18.4];
        cast is safe and portable, *tail must be greater than str. */
     len = (size_t) (*tail - str);
-    if (len >= n) {
+    if (len >= size) {
         return ERR_LEN;
     }
 
