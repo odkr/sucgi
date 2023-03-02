@@ -44,7 +44,7 @@ main (int argc, char **argv)
 "          badexec -h\n\n"
 "Operands:\n"
 "    COMM  A command to run.\n"
-"    ARG   An argument to COMM, start with the 0th argument\n\n"
+"    ARG   An argument to COMM, starting with the 0th argument\n\n"
 "Options:\n"
 "    -h    Print this help screen.\n\n"
 "Copyright 2023 Odin Kroeger.\n"
