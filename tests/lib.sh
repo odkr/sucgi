@@ -205,10 +205,14 @@ mklongpath() (
 
 # Pad $str with $ch up to length $n.
 pad() (
-	str="${1?}" n="${2:?}" ch="${3:-x}"
+	str="${1?}" n="${2:?}" ch="${3:-x}" side="${4:-l}"
 	pipe="${TMPDIR:-/tmp}/pad-$$.fifo" rc=0
 	mkfifo -m 0700 "$pipe"
-	printf '%*s\n' "$n" "$str" >"$pipe" & printf=$!
+	case $side in
+	(l) printf '%*s\n' "$n" "$str" >"$pipe" & printf=$! ;;
+	(r) printf '%-*s\n' "$n" "$str" >"$pipe" & printf=$! ;;
+	(*) err "side must be 'l' or 'r'."
+	esac
 	tr ' ' "$ch" <"$pipe" || rc=$?
 	wait $printf          || rc=$?
 	rm -f "$pipe"
