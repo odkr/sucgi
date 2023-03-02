@@ -405,8 +405,6 @@ test(const ConstArgs *args)
     environ = &null;
 
     for (size_t j = 0; j < args->n && j < MAX_TEST_NVARS; ++j) {
-        int rc; /* Return code of regcomp. */
-
         rc = regcomp(&pregs[j], args->patterns[j], REG_EXTENDED | REG_NOSUB);
         if (rc != 0) {
             char message[MAX_ERRMSG_LEN];   /* Buffer for error message. */
@@ -435,7 +433,6 @@ test(const ConstArgs *args)
 
     if (ret == OK && !cmp_env(args->rst)) {
         char buf[MAX_TEST_STR_LEN];
-        int rc;
 
         rc = join_strs(MAX_TEST_NVARS, (const char *const *) environ, " ",
                        sizeof(buf), buf);
