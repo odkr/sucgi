@@ -1,5 +1,5 @@
 /*
- * Run a programme with a given environment, any environment.
+ * Run a programme with a custom/without argv[0].
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
