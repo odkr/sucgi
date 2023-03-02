@@ -107,9 +107,6 @@ mkdir -p "$doc_root"
 doc_root="$(cd -P "$doc_root" && pwd)"
 readonly doc_root
 
-# Get the canonical location of main.
-tests_dir=$(cd -P "$script_dir" && pwd)
-
 # Get the maximum path length that suCGI permits.
 long_path="$(mklongpath "$doc_root" "$((MAX_FNAME_LEN - 1))")"
 mkdir -p "$(dirname -- "$long_path")"
@@ -191,11 +188,58 @@ check -s1 -e'usage: sucgi' main -hV
 
 
 #
-# Check the environment
+# Environment sanitisation
 #
 
-# number of variables
-# various malformed variables (should create a warning and be purged)
+# Too many variables.
+i=0 vars=
+while [ "$i" -le "$MAX_NVARS" ]
+do
+	i=$((i + 1))
+	vars="$vars var$i="
+done
+
+check -s1 -e'too many environment variables.' \
+	env $vars main
+
+# Variable name has maximum length.
+varname="$(pad v $((MAX_VARNAME_LEN - 1)))"
+check -s1 -e"discarding \$$varname" \
+	env "$varname=" main
+
+# Variable name is too long.
+varname="$(pad v $MAX_VARNAME_LEN)"
+var="$varname=foo"
+check -s1 -e"variable \$$var: name too long." \
+	env "$var" main
+
+# Variable has maximum length.
+var="$(pad var= $((MAX_VAR_LEN - 1)) x r)"
+check -s1 -e"discarding \$${var%=*}" \
+	env "$var" main
+
+# Variable is too long.
+var="$(pad var= $MAX_VAR_LEN x r)"
+check -s1 -e"variable \$$var: too long." \
+	env "$var" main
+
+# Variable name is illegal.
+for var in 'foo =' '0foo=' '$(echo foo)=' '`echo foo`='
+do
+	check -s1 -e"variable \$$var: bad name." \
+		badenv "$var" "$tests_dir/main"
+done
+
+# Variable is not of the form <key>=<value>.
+for var in 'foo' '0foo' 'foo '
+do
+	check -s1 -e"variable \$$var: malformed." \
+		badenv -n1 "$var" "$tests_dir/main"
+done
+
+# Not a CGI variable.
+check -s1 -e'discarding $foo' \
+	env foo=foo main
 
 
 #
@@ -294,7 +338,7 @@ touch "$root_owned"
 
 # Store IDs.
 uids="$TMPDIR/uids.list"
-tools/ids >"$uids"
+ids >"$uids"
 
 # Create a file owned by a non-root privileged user with a low UID.
 if low_uid="$(awk '0 < $1 && $1 < 500 {print $2; exit}' "$uids")"
