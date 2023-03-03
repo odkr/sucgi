@@ -88,6 +88,63 @@ typedef struct {
 
 
 /*
+ * Prototypes
+ */
+
+/*
+ * Create a new environment and populate it with VARS.
+ *
+ * Return value:
+ *     0  Success.
+ *     1  calloc failed. errno should be set.
+ */
+__attribute__((nonnull(1), warn_unused_result))
+static int init_env(const char *const vars[MAX_TEST_NVARS]);
+
+/*
+ * Free the memory used by the array of strings ARR, unless ARR is NULL.
+ * ARR must have at most N elements and may be NULL-terminated. Elements
+ * after the first NULL element are not freed, but ARR is freed regardless.
+ */
+static void free_arr(size_t n, char ***arr);
+
+/*
+ * Check whether the environment equals VARS.
+ */
+__attribute__((nonnull(1), warn_unused_result))
+static bool cmp_env(const char *const vars[MAX_TEST_NVARS]);
+
+/*
+ * Create a variable the name of which is NAMELEN bytes long and that is
+ * VARLEN bytes long overall, allocate memory to store that variable, and
+ * return a pointer to that memory in the memory region pointed to by VARS.
+ * Memory is to be freed by the caller.
+ *
+ * Return value:
+ *     0  Success.
+ *     1  calloc failed. errno should be set.
+ */
+__attribute__((nonnull(3), warn_unused_result))
+static int mkvar(size_t namelen, size_t varlen, char **var);
+
+/*
+ * Populate the array of strings VARS with N - 1 variables and
+ * terminate it with a NULL pointer.
+ *
+ * Return value:
+ *     0  Success.
+ *     1  calloc failed. errno should be set.
+ *     2  snprintf failed.
+ */
+__attribute__((nonnull(2), warn_unused_result))
+static int mkvars(size_t n, char **vars);
+
+/* Test env_restore. */
+__attribute__((nonnull(1)))
+static void test(const ConstArgs *args);
+
+
+/*
  * Module variables
  */
 
@@ -200,63 +257,6 @@ static const RealArgs realistic[] = {
 
 
 /*
- * Prototypes
- */
-
-/*
- * Create a new environment and populate it with VARS.
- *
- * Return value:
- *     0  Success.
- *     1  calloc failed. errno should be set.
- */
-__attribute__((nonnull(1), warn_unused_result))
-static int init_env(const char *const vars[MAX_TEST_NVARS]);
-
-/*
- * Free the memory used by the array of strings ARR, unless ARR is NULL.
- * ARR must have at most N elements and may be NULL-terminated. Elements
- * after the first NULL element are not freed, but ARR is freed regardless.
- */
-static void free_arr(size_t n, char ***arr);
-
-/*
- * Check whether the environment equals VARS.
- */
-__attribute__((nonnull(1), warn_unused_result))
-static bool cmp_env(const char *const vars[MAX_TEST_NVARS]);
-
-/*
- * Create a variable the name of which is NAMELEN bytes long and that is
- * VARLEN bytes long overall, allocate memory to store that variable, and
- * return a pointer to that memory in the memory region pointed to by VARS.
- * Memory is to be freed by the caller.
- *
- * Return value:
- *     0  Success.
- *     1  calloc failed. errno should be set.
- */
-__attribute__((nonnull(3), warn_unused_result))
-static int mkvar(size_t namelen, size_t varlen, char **var);
-
-/*
- * Populate the array of strings VARS with N - 1 variables and
- * terminate it with a NULL pointer.
- *
- * Return value:
- *     0  Success.
- *     1  calloc failed. errno should be set.
- *     2  snprintf failed.
- */
-__attribute__((nonnull(2), warn_unused_result))
-static int mkvars(size_t n, char *vars[n]);
-
-/* Test env_restore. */
-__attribute__((nonnull(1)))
-static void test(const ConstArgs *args);
-
-
-/*
  * Functions
  */
 
@@ -343,7 +343,7 @@ static int mkvar(size_t namelen, size_t varlen, char **var) {
 }
 
 static int
-mkvars(size_t n, char *vars[n])
+mkvars(size_t n, char **vars)
 {
     static const char fmt[] = "v%zu=";  /* Format for variables. */
     size_t len;                         /* Maximum length of a variable. */
