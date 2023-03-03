@@ -77,16 +77,12 @@ bins = $(tool_bins) $(macro_checks) $(check_bins)
 inspect = *.h *.c
 
 cppcheck_flags = --quiet --language=c --std=c99 \
-                 --project=stat/sucgi.cppcheck \
-                 --library=posix --library=stat/library.cfg \
-                 --suppressions-list=stat/suppr.txt --inline-suppr \
-                 --enable=all --force --addon=stat/cert.py --addon=misra.py
-
-flawfinder_hitlist = stat/flawfinder.hits
+                 --project=cppcheck/sucgi.cppcheck --force \
+                 --library=posix --library=cppcheck/library.cfg \
+                 --suppressions-list=cppcheck/suppr.txt --inline-suppr \
+                 --enable=all --addon=cppcheck/cert.py --addon=misra.py
 
 flawfinder_flags = --falsepositive --dataonly --quiet
-
-rats_hitlist = stat/rats.hits
 
 rats_flags = --resultsonly --quiet --warning 3
 
@@ -100,7 +96,7 @@ version = 0
 dist_name = $(package)-$(version)
 dist_ar = $(dist_name).tgz
 dist_files = *.c *.h *.env *.excl *.m4 *.sample README.rst LICENSE.txt \
-             configure stat docs m4 tests tools
+             configure cppcheck docs m4 tests tools
 
 
 #
@@ -300,9 +296,9 @@ uninstall:
 cov: clean $(tool_bins)
 	make CC=$(SC_COV_CC) CFLAGS="--coverage -O2" \
 		$(macro_checks) $(check_bins)
-	tools/runpara -cj1 $(macro_checks) $(check_bins) || :
-	chown -R "$(repo_owner)" .
-	tools/runpara -i75 -j1 $(checks)
+	#tools/runpara -cj1 $(macro_checks) $(check_bins) || :
+	#chown -R "$(repo_owner)" .
+	umask 0 && tools/runpara -i75 -j1 $(checks)
 
 gcov: cov
 	ar -t lib.a | sed -n '/^.*\.o$$/p' | xargs gcov -p sucgi
