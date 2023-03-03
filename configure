@@ -54,7 +54,7 @@ readonly confsave=config.status
 
 # Number of child processes to spawn.
 max_njobs=4
-# FIXME: The Almquist shell crashes when using multiple jobs.
+# FIXME: The Almquist shell may crash when using multiple jobs.
 [ "$(basename "${SHELL-}")" = ash ] && max_njobs=1
 
 # Default build configuration.
@@ -84,7 +84,7 @@ addflags() {
 # Test compiler features.
 testcc() {
 	case "$(basename "${CC:?}")" in
-	(clang|clang[!a-z]*|gcc|gcc[!a-z]*|musl-gcc|musl-gcc[!a-z]*)
+	(clang|clang[!a-z]*|gcc|gcc[!a-z]*|musl-gcc|musl-gcc[!a-z]*|tcc|tcc[!a-z]*)
 		"$CC" -xc -Wall -Werror -pedantic -o/dev/null "$@"
 		;;
 	(icc|icc[!a-z]*)
