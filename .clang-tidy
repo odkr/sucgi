@@ -1,3 +1,2 @@
-Checks: 'bugprone-*,cert-*,clang-analyzer-*,misc-*,performance-*,portability-*,readability-*'
-VerifyConfig: true
+Checks: 'bugprone-*,cert-*,clang-analyzer-*,misc-*,performance-*,portability-*,readability-*,-bugprone-reserved-identifier,-cert-dc137,-cert-dc151-cpp'
 
