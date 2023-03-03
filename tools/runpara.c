@@ -631,7 +631,10 @@ PROGNAME " - run jobs in parallel\n\n"
 
     if (caught > 0) {
         clearln(stderr);
-/* The psignal implementation of Apple's Libc, counter to POSIX.1-2008, */
+/*
+ * The psignal implementation of Apple's Libc, counter to POSIX.1-2008,
+ * assumes that the signal number is an unsigned int.
+ */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wsign-conversion"
         psignal((int) caught, PROGNAME);
