@@ -36,11 +36,18 @@
 #include "types.h"
 
 
+/*
+ * Only one format string is a non-literal, and
+ * that string can only be set by the system administrator.
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-nonliteral"
+
 Error
 userdir_resolve(const char *const str, const struct passwd *const user,
                 char userdir[MAX_FNAME_LEN])
 {
-    int n;
+    int nchars;
 
     assert(str);
     assert(*str != '\0');
@@ -53,26 +60,23 @@ userdir_resolve(const char *const str, const struct passwd *const user,
 
     if (*str != '/') {
         /* RATS: ignore; format is short and a literal. */
-        n = snprintf(userdir, MAX_FNAME_LEN, "%s/%s", user->pw_dir, str);
+        nchars = snprintf(userdir, MAX_FNAME_LEN, "%s/%s", user->pw_dir, str);
     } else if (strstr(str, "%s") == NULL) {
         /* RATS: ignore; format is short and a literal. */
-        n = snprintf(userdir, MAX_FNAME_LEN, "%s/%s", str, user->pw_name);
+        nchars = snprintf(userdir, MAX_FNAME_LEN, "%s/%s", str, user->pw_name);
     } else {
-/* str can only be set by the administrator. */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-nonliteral"
-
-    	/* RATS: ignore; str can only be set by the administrator. */
-        n = snprintf(userdir, MAX_FNAME_LEN, str, user->pw_name);
-#pragma GCC diagnostic pop
+    	/* RATS: ignore; str can only be set by the system administrator. */
+        nchars = snprintf(userdir, MAX_FNAME_LEN, str, user->pw_name);
     }
 
-    if (n < 0) {
+    if (nchars < 0) {
         return ERR_SYS_SNPRINTF;
     }
-    if ((size_t) n >= (size_t) MAX_FNAME_LEN) {
+    if ((size_t) nchars >= (size_t) MAX_FNAME_LEN) {
         return ERR_LEN;
     }
 
     return OK;
 }
+
+#pragma GCC diagnostic pop
