@@ -26,7 +26,7 @@
 
 
 /* Trigger a compile-time error if COND is false. */
-#define ERRORIF(cond) ((void) sizeof(char [1 - 2 * !!(cond)]))
+#define ERRORIF(cond) (void) sizeof(char[(cond) ? -1 : 1])
 
 /* Check whether a given integer TYPE is signed. */
 #define ISSIGNED(type) ((type) -1 < (type) 1)
@@ -38,7 +38,7 @@
 #define NELEMS(array) (sizeof((array)) / sizeof(*(array)))
 
 /* Calculate the maximum signed value that a given integer TYPE can hold. */
-#define SIGNEDMAX(type) ((1ULL << (CHAR_BIT * sizeof(type) - 1U)) - 1ULL)
+#define SIGNEDMAX(type) ((1UL << ((size_t) CHAR_BIT * sizeof(type) - 1UL)) - 1UL)
 
 
 #endif /* !defined(MACROS_H) */
