@@ -49,11 +49,11 @@ cat_strs(char *dest, const char *const src, const char *const lim, char **end)
 }
 
 int
-join_strs(size_t n, const char *const strs[n], const char *sep,
-          size_t size, char dest[size])
+join_strs(size_t n, const char *const *const strs, const char *sep,
+          size_t size, char *const dest)
 {
-    char *ptr;		/* Pointer to current position in dest. */
-    char *lim;		/* Limit past which must not be written. */
+    char *ptr;
+    char *lim;
 
     assert(strs != NULL);
     assert(sep != NULL);
@@ -79,7 +79,7 @@ join_strs(size_t n, const char *const strs[n], const char *sep,
 }
 
 void
-fill_str(const char ch, const size_t n, char dest[n])
+fill_str(const char ch, const size_t n, char *const dest)
 {
     assert(n > 0);
     assert(dest != NULL);
@@ -91,13 +91,11 @@ fill_str(const char ch, const size_t n, char dest[n])
     dest[len] = '\0';
 }
 
-#include <err.h>
-
 int
-to_str(unsigned int num, unsigned int base, const char digits[base],
-       size_t size, char dest[size])
+to_str(unsigned int num, unsigned int base, const char *const digits,
+       size_t size, char *const dest)
 {
-    size_t len;         /* Number of digits needed. */
+    size_t len;
 
     assert(base > 0);
     assert(digits != NULL);
@@ -111,7 +109,7 @@ to_str(unsigned int num, unsigned int base, const char digits[base],
 
     (void) memset(dest + len, '\0', size - len);
     for (char *ptr = dest + len - 1U; ptr >= dest; --ptr) {
-        unsigned int rem;	/* Remainder. */
+        unsigned int rem;
 
         rem = num % base;
         num = num / base;
