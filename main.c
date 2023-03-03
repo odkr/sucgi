@@ -281,11 +281,7 @@ main(int argc, char **argv) {
      * Check system-dependent types.
      */
 
-    /* cppcheck-suppress misra-c2012-10.4;
-       ERRORIF has to ignore type categories. */
     ERRORIF(sizeof(GETGRPLST_T) != sizeof(gid_t));
-
-    /* cppcheck-suppress misra-c2012-10.4; see ERRORIF above. */
     ERRORIF(SIGNEDMAX(SETGRPNUM_T) < SIGNEDMAX(int));
 
 
@@ -293,22 +289,13 @@ main(int argc, char **argv) {
      * Check whether configuration values are within bounds.
      */
 
-    /* cppcheck-suppress misra-c2012-10.4; see ERRORIF above. */
-    ERRORIF(sizeof(USER_DIR) <= 1);
-    /* cppcheck-suppress misra-c2012-10.4; see ERRORIF above. */
-    ERRORIF(sizeof(USER_DIR) >= MAX_FNAME_LEN);
-    /* cppcheck-suppress misra-c2012-10.4; see ERRORIF above. */
-    ERRORIF(sizeof(PATH) <= 1);
-    /* cppcheck-suppress misra-c2012-10.4; see ERRORIF above. */
-    ERRORIF(sizeof(PATH) >= MAX_FNAME_LEN);
-    /* cppcheck-suppress misra-c2012-10.4; see ERRORIF above. */
-    ERRORIF(sizeof(ALLOW_GROUP) < 1);
-    /* cppcheck-suppress misra-c2012-10.4; see ERRORIF above. */
+    ERRORIF(sizeof(USER_DIR) <= 1U);
+    ERRORIF(sizeof(USER_DIR) >= (size_t) MAX_FNAME_LEN);
+    ERRORIF(sizeof(PATH) >= (size_t) MAX_FNAME_LEN);
+    ERRORIF(sizeof(ALLOW_GROUP) < 1U);
     ERRORIF(sizeof(ALLOW_GROUP) >= MAX_GRPNAME_LEN);
-    /* cppcheck-suppress misra-c2012-10.4; see ERRORIF above. */
-    ERRORIF(MAX_UID > SIGNEDMAX(uid_t));
-    /* cppcheck-suppress misra-c2012-10.4; see ERRORIF above. */
-    ERRORIF(MAX_GID > MIN(SIGNEDMAX(gid_t), SIGNEDMAX(GETGRPLST_T)));
+    ERRORIF((size_t) MAX_UID > SIGNEDMAX(uid_t));
+    ERRORIF((size_t) MAX_GID > MIN(SIGNEDMAX(gid_t), SIGNEDMAX(GETGRPLST_T)));
 
 
     /*
