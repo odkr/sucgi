@@ -37,11 +37,11 @@
 Error
 str_cp(const size_t len, const char *const src, char *const dest)
 {
-    char *end;      /* Position of last byte of src. */
-    size_t n;     /* Bytes copied. */
+    char *end;
+    size_t n;
 
     assert(src);
-    assert(strnn(src, MAX_STR_LEN) < MAX_STR_LEN);
+    assert(strnlen(src, MAX_STR_LEN) < MAX_STR_LEN);
     assert(dest);
 
     end = stpncpy(dest, src, len);
