@@ -47,7 +47,7 @@ eval $(main -C | grep -E ^NDEBUG=)
 # Main
 #
 
-[ "$NDEBUG" ] || check -s134 -e"*message" error ''
+[ "${NDEBUG-}" ] || check -s134 -e"*message" error ''
 check -s1 error %s ''
 
 for message in - foo bar baz
