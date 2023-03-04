@@ -1,4 +1,4 @@
 # bugprone-reserved-identifier, cert-dc137-c, and cert-dc151-cpp
 # match feature tests macros.
-Checks: 'bugprone-*,cert-*,clang-analyzer-*,misc-*,performance-*,portability-*,readability-*,-bugprone-reserved-identifier,-cert-dc137-c,-cert-dc151-cpp'
+Checks: 'bugprone-*,cert-*,clang-analyzer-*,misc-*,performance-*,portability-*,readability-*,-bugprone-reserved-identifier,-cert-dcl37-c,-cert-dcl51-cpp'
 
