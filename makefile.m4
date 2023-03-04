@@ -4,7 +4,7 @@ dnl Edit this file, NOT the makefile itself.
 dnl Then run ./configure to generate or ./config.status to update it.
 dnl See docs/build.rst for details.
 dnl
-include(`m4/macros.m4')dnl
+include(`lib.m4')dnl
 .POSIX:
 
 #
@@ -292,10 +292,11 @@ uninstall:
 #
 
 cov: clean $(tool_bins)
-	make CC=$(SC_COV_CC) CFLAGS="--coverage -O2" \
-		$(macro_checks) $(check_bins)
+#	make CC=$(SC_COV_CC) CFLAGS="--coverage -O2" \
+#		$(macro_checks) $(check_bins)
 	#tools/runpara -cj1 $(macro_checks) $(check_bins) || :
 	#chown -R "$(repo_owner)" .
+	make CFLAGS="-O2 --coverage" $(checks)
 	umask 0 && tools/runpara -i75 -j1 $(checks)
 
 gcov: cov
@@ -324,7 +325,7 @@ shellcheck:
 	shellcheck -x $(scripts)
 
 analysis:
-	clang-tidy *.c *.h -- -std=c99
+	clang-tidy $(inspect) -- -std=c99
 	cppcheck $(cppcheck_flags) $(inspect)
 	flawfinder $(flawfinder_flags) $(inspect)
 	rats $(rats_flags) $(inspect)
@@ -334,7 +335,7 @@ analysis:
 # Special targets
 #
 
-.PHONY:	all analysis check clean cov covhtml cppcheck \
+.PHONY:	all analysis check clean cov covhtml \
         dist distcheck distclean install uninstall shellcheck
 
 .IGNORE: analysis
