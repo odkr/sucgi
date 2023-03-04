@@ -296,6 +296,7 @@ main(int argc, char **argv) {
     ERRORIF(sizeof(ALLOW_GROUP) < 1U);
     ERRORIF(sizeof(ALLOW_GROUP) >= MAX_GRPNAME_LEN);
     ERRORIF((uint64_t) MAX_UID > SIGNEDMAX(uid_t));
+    /* NOLINTNEXTLINE(bugprone-branch-clone); GETGRPLST_T may be gid_t. */
     ERRORIF((uint64_t) MAX_GID > MIN(SIGNEDMAX(gid_t),
                                      SIGNEDMAX(GETGRPLST_T)));
 
