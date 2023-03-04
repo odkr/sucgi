@@ -182,8 +182,6 @@ tests/env_is_name: tests/env_is_name.c lib.a(env.o) $(stdhdrs) tests/lib.o
 
 tests/env_restore: tests/env_restore.c lib.a(env.o) $(stdhdrs) tests/lib.o
 
-tests/env_restore: tests/env_restore.c lib.a(env.o) $(stdhdrs) tests/lib.o
-
 tests/error: tests/error.c lib.a(error.o) $(stdhdrs) tests/lib.o
 
 tests/error.sh: tests/error
