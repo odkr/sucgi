@@ -1,9 +1,16 @@
 #
 # bugprone-reserved-identifier, cert-dcl37-c, cert-dcl51-cpp
-# => Match feature test macros and triggers a lot of false positives.
+# => Match feature test macros and trigger a lot of false positives.
 #
 # bugprone-easily-swappable-parameters
 # => Overzealous.
 #
-Checks: 'bugprone-*,cert-*,clang-analyzer-*,misc-*,performance-*,portability-*,readability-*,-bugprone-reserved-identifier,-cert-dcl37-c,-cert-dcl51-cpp,-bugprone-easily-swappable-parameters'
+Checks: |
+    bugprone-*, cert-*, clang-analyzer-*, misc-*,
+    performance-*, portability-*, readability-*,
+    -bugprone-reserved-identifier, -cert-dcl37-c, -cert-dcl51-cpp,
+    -bugprone-easily-swappable-parameters
 
+CheckOptions:
+	readability-function-cognitive-complexity.Threshold = 30
+	readability-function-cognitive-complexity.DescribeBasicIncrements = false
