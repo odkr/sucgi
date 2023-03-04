@@ -35,23 +35,23 @@
 
 
 Error
-str_cp(const size_t len, const char *const src, char *const dest)
+str_cp(const size_t nbytes, const char *const src, char *const dest)
 {
     char *end;
-    size_t n;
+    size_t len;
 
     assert(src);
     assert(strnlen(src, MAX_STR_LEN) < MAX_STR_LEN);
     assert(dest);
 
-    end = stpncpy(dest, src, len);
+    end = stpncpy(dest, src, nbytes);
     /* cppcheck-suppress [misra-c2012-10.8, misra-c2012-18.4];
        cast is safe and portable, end must be greater than dest */
-    n = (size_t) (end - dest);
-    dest[n] = '\0';
+    len = (size_t) (end - dest);
+    dest[len] = '\0';
 
-    /* dest[n] could be '\0' only because dest was zeroed out. */
-    if (src[n] != '\0') {
+    /* dest[len] could only be '\0' only dest was zeroed out. */
+    if (src[len] != '\0') {
         return ERR_LEN;
     }
 

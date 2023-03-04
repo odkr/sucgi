@@ -63,20 +63,20 @@ env_is_name(const char *str)
 Error
 env_restore(char *const *vars, const size_t npregs, regex_t *const pregs)
 {
-    size_t i;
+    size_t varidx;
 
     assert(vars);
     assert(pregs);
 
-    for (i = 0; i < MAX_NVARS && vars[i]; ++i) {
+    for (varidx = 0; varidx < MAX_NVARS && vars[varidx]; ++varidx) {
         /* RATS: ignore; str_split respects MAX_VARNAME_LEN. */
         char name[MAX_VARNAME_LEN];
         const char *val;
         const char *var;
 
-        var = vars[i];
+        var = vars[varidx];
 
-        if (strnlen(vars[i], MAX_VAR_LEN) >= (size_t) MAX_VAR_LEN) {
+        if (strnlen(var, MAX_VAR_LEN) >= (size_t) MAX_VAR_LEN) {
             /* RATS: ignore; format is short and a literal. */
             syslog(LOG_INFO, "variable $%s: too long.", var);
         } else if (str_split(var, "=", MAX_VARNAME_LEN, name, &val) != OK) {
@@ -89,10 +89,10 @@ env_restore(char *const *vars, const size_t npregs, regex_t *const pregs)
             /* RATS: ignore; format is short and a literal. */
             syslog(LOG_INFO, "variable $%s: bad name.", var);
         } else {
-            size_t j;
+            size_t pregidx;
 
-            for (j = 0; j < npregs; ++j) {
-                if (regexec(&pregs[j], name, 0, NULL, 0) == 0) {
+            for (pregidx = 0; pregidx < npregs; ++pregidx) {
+                if (regexec(&pregs[pregidx], name, 0, NULL, 0) == 0) {
                     errno = 0;
                     if (setenv(name, val, true) != 0) {
                         return ERR_SYS_SETENV;
@@ -104,14 +104,14 @@ env_restore(char *const *vars, const size_t npregs, regex_t *const pregs)
                 }
             }
 
-            if (j == npregs) {
+            if (pregidx == npregs) {
                 /* RATS: ignore; format is short and a literal. */
                 syslog(LOG_INFO, "discarding $%s.", name);
             }
         }
     }
 
-    if (i == MAX_NVARS) {
+    if (varidx == MAX_NVARS) {
         return ERR_LEN;
     }
 

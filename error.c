@@ -37,22 +37,22 @@
 #include "error.h"
 #include "max.h"
 
-/* The message cannot be a literal. */
+/* message cannot be a literal. */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 
 void
 error(const char *const message, ...)
 {
-    va_list ap;
+    va_list argp;
 
     assert(message);
-    assert(strnlen(message, MAX_STR_LEN) < MAX_STR_LEN);
+    assert(strnlen(message, MAX_ERRMSG_LEN) < MAX_STR_LEN);
     assert(*message != '\0');
 
-    va_start(ap, message);
-    vsyslog(LOG_ERR, message, ap);
-    va_end(ap);
+    va_start(argp, message);
+    vsyslog(LOG_ERR, message, argp);
+    va_end(argp);
 
     exit(EXIT_FAILURE);
 }

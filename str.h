@@ -29,16 +29,16 @@
 
 
 /*
- * Copy at most LEN bytes, excluding the terminating NUL, from SRC to DEST
- * and terminate the string at DEST with NUL. DEST must be large enough to
- * hold LEN + 1 bytes.
+ * Copy at most NBYTES bytes, excluding the terminating NUL, from SRC
+ * to DEST and terminate the string at DEST with NUL. DEST must be large
+ * enough to hold NBYTES + 1 bytes.
  *
  * Return value:
  *      OK       Success.
  *      ERR_LEN  Source is longer than LEN bytes.
  */
 __attribute__((nonnull(2, 3)))
-Error str_cp(size_t len, const char *src, char *dest);
+Error str_cp(size_t nbytes, const char *src, char *dest);
 
 /*
  * Split STR at the first occurence of any byte in SEP, copy the substring

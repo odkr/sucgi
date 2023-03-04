@@ -45,7 +45,7 @@
 
 Error
 userdir_resolve(const char *const str, const struct passwd *const user,
-                char userdir[MAX_FNAME_LEN])
+                char dir[MAX_FNAME_LEN])
 {
     int nchars;
 
@@ -53,20 +53,20 @@ userdir_resolve(const char *const str, const struct passwd *const user,
     assert(*str != '\0');
     assert(strnlen(str, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
     assert(user);
-    assert(userdir);
+    assert(dir);
 
     /* Some versions of snprintf fail to NUL-terminate strings. */
-    (void) memset(userdir, '\0', MAX_FNAME_LEN);
+    (void) memset(dir, '\0', MAX_FNAME_LEN);
 
     if (*str != '/') {
         /* RATS: ignore; format is short and a literal. */
-        nchars = snprintf(userdir, MAX_FNAME_LEN, "%s/%s", user->pw_dir, str);
+        nchars = snprintf(dir, MAX_FNAME_LEN, "%s/%s", user->pw_dir, str);
     } else if (strstr(str, "%s") == NULL) {
         /* RATS: ignore; format is short and a literal. */
-        nchars = snprintf(userdir, MAX_FNAME_LEN, "%s/%s", str, user->pw_name);
+        nchars = snprintf(dir, MAX_FNAME_LEN, "%s/%s", str, user->pw_name);
     } else {
     	/* RATS: ignore; str can only be set by the system administrator. */
-        nchars = snprintf(userdir, MAX_FNAME_LEN, str, user->pw_name);
+        nchars = snprintf(dir, MAX_FNAME_LEN, str, user->pw_name);
     }
 
     if (nchars < 0) {
