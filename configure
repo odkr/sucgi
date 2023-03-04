@@ -57,8 +57,11 @@ max_njobs=4
 # FIXME: The Almquist shell may crash when using multiple jobs.
 [ "$(basename "${SHELL-}")" = ash ] && max_njobs=1
 
-# Default build configuration.
+# Build configuration.
 conf=prod.env
+
+# Files to generate.
+files='build.h compat.h makefile'
 
 # Overwrite existing files?
 force=
@@ -84,11 +87,14 @@ addflags() {
 # Test compiler features.
 testcc() {
 	case "$(basename "${CC:?}")" in
-	(clang|clang[!a-z]*|gcc|gcc[!a-z]*|musl-gcc|musl-gcc[!a-z]*|tcc|tcc[!a-z]*)
+	(clang|clang[!a-z]*|gcc|gcc[!a-z]*|musl-gcc|musl-gcc[!a-z]*)
+		"$CC" -S -xc -Wall -Werror -pedantic -o/dev/null "$@"
+		;;
+	(tcc|tcc[!a-z]*)
 		"$CC" -xc -Wall -Werror -pedantic -o/dev/null "$@"
 		;;
 	(icc|icc[!a-z]*)
-		"$CC" -xc -w3 -Wcheck -Werror-all -o/dev/null "$@"
+		"$CC" -S -xc -w3 -Wcheck -Werror-all -o/dev/null "$@"
 		;;
 	(*)
 		return 1
@@ -112,7 +118,7 @@ Usage:       $prog_name [-cFILE|-d] [-f] [-q] [FILE ...]
              $prog_name -h
 
 Operands:
-    FILE     A file to generate (default: all files).
+    FILE     A file to generate (default: $files).
 
 Options:
     -c FILE  Read build configuration from FILE (default: $conf).
@@ -152,19 +158,12 @@ esac
 # shellcheck source=devel.conf
 . "$conf" || exit
 
-if [ $# -eq 0 ]
-then
-	set -- *.m4
-	[ "$*" = "*.m4" ] && shift $#
-fi
+[ $# -eq 0 ] && set -- $files
+unset files
 
 nfiles=0
 for file
 do
-	case $file in (*.m4)
-		file="${file%.m4}"
-	esac
-
 	eval "file_$nfiles"='"$file"'
 	nfiles=$((nfiles + 1))
 done
