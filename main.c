@@ -41,6 +41,7 @@
 #include <stdlib.h>
 /* cppcheck-suppress misra-c2012-21.6; needed for -h, -C, and -V. */
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <syslog.h>
 #include <unistd.h>
