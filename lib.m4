@@ -1,4 +1,4 @@
-dnl Macros for suCGI's M4 templates.
+dnl Macros for M4 templates.
 dnl
 dnl Copyright 2022 and 2023 Odin Kroeger
 dnl
