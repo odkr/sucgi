@@ -388,6 +388,7 @@ main(int argc, char **argv) {
      * Restore the environment variables used by CGI scripts.
      */
 
+    /* NOLINTNEXTLINE(bugprone-suspicious-missing-comma); literals intended. */
     const char *const patterns[] = ENV_PATTERNS;
     regex_t pregs[NELEMS(patterns)];
 

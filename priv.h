@@ -22,6 +22,7 @@
 #if !defined(PRIV_H)
 #define PRIV_H
 
+#include <sys/types.h>
 #include <pwd.h>
 
 #include "cattr.h"
