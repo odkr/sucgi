@@ -383,7 +383,7 @@ main (int argc, char **argv)
     (void) sigemptyset(&nosigs);
     (void) sigemptyset(&chldsig);
 
-/* Go home GCC, you're drunk. */
+/* GCC mistakes chldsig for an int, and hence warns about a sign change. */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wsign-conversion"
     (void) sigaddset(&chldsig, SIGCHLD);
@@ -631,14 +631,7 @@ PROGNAME " - run jobs in parallel\n\n"
 
     if (caught > 0) {
         clearln(stderr);
-/*
- * The psignal implementation of Apple's Libc, counter to POSIX.1-2008,
- * assumes that the signal number is an unsigned int.
- */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wsign-conversion"
-        psignal((int) caught, PROGNAME);
-#pragma GCC diagnostic pop
+	warnx("%s", strsignal(caught));
 
         cleanup();
 
