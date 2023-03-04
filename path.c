@@ -79,7 +79,7 @@ path_check_in(const char *const basedir, const char *const fname)
             return OK;
         }
     }
-    /* NOLINTEND */
+    /* NOLINTEND(bugprone-not-null-terminated-result) */
 
     return ERR_NO_MATCH;
 }

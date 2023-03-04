@@ -381,7 +381,7 @@ main(int argc, char **argv) {
             usage();
             return EXIT_FAILURE;
     }
-    /* NOLINTEND */
+    /* NOLINTEND(bugprone-not-null-terminated-result) */
 
 
     /*
