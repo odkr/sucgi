@@ -39,6 +39,11 @@
 #include "types.h"
 
 
+/*
+ * NOLINTBEGIN(bugprone-not-null-terminated-result);
+ * strncmp(<...>, "/", 2) and strncmp(<...>, ".", 2) are fine.
+ */
+
 Error
 path_check_in(const char *const basedir, const char *const fname)
 {
@@ -81,6 +86,10 @@ path_check_in(const char *const basedir, const char *const fname)
 
     return ERR_NO_MATCH;
 }
+
+/*
+ * NOLINTEND
+ */
 
 Error
 path_suffix(const char *const fname, const char **const suffix)
