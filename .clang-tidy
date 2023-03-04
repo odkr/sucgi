@@ -8,10 +8,11 @@
 Checks: |
     bugprone-*, cert-*, clang-analyzer-*, misc-*,
     performance-*, portability-*, readability-*,
-    -bugprone-reserved-identifier, -cert-dcl37-c, -cert-dcl51-cpp,
     -bugprone-easily-swappable-parameters
 
 CheckOptions:
+    - key: bugprone-reserved-identifier.AllowedIdentifiers
+      value: _XOPEN_SOURCE;_BSD_SOURCE;_DARWIN_C_SOURCE;_DEFAULT_SOURCE;_GNU_SOURCE;_FORTIFY_SOURCE
     - key: readability-function-cognitive-complexity.Threshold
       value: 30
     - key: readability-function-cognitive-complexity.DescribeBasicIncrements
