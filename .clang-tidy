@@ -12,5 +12,7 @@ Checks: |
     -bugprone-easily-swappable-parameters
 
 CheckOptions:
-	readability-function-cognitive-complexity.Threshold = 30
-	readability-function-cognitive-complexity.DescribeBasicIncrements = false
+    - key: readability-function-cognitive-complexity.Threshold
+      value: 30
+    - key: readability-function-cognitive-complexity.DescribeBasicIncrements
+      value: false
