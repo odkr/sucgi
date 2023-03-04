@@ -357,6 +357,8 @@ main(int argc, char **argv) {
         error("empty argument vector.");
     }
 
+    /* NOLINTBEGIN(bugprone-not-null-terminated-result);
+       strncmp(argv[1], <option>, 3) is fine. */
     switch (argc) {
     case 1:
         break;
@@ -379,6 +381,7 @@ main(int argc, char **argv) {
             usage();
             return EXIT_FAILURE;
     }
+    /* NOLINTEND */
 
 
     /*
