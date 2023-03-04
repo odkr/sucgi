@@ -188,7 +188,7 @@ config(void)
     const Pair handlers[] = HANDLERS;
 
 #if defined(NDEBUG)
-    (void) printf("NDEBUG=set\n");
+    (void) printf("NDEBUG=on\n");
 #endif
 #if defined(TESTING) && TESTING
     (void) printf("TESTING=%d\n", TESTING);
@@ -294,8 +294,9 @@ main(int argc, char **argv) {
     ERRORIF(sizeof(PATH) >= (size_t) MAX_FNAME_LEN);
     ERRORIF(sizeof(ALLOW_GROUP) < 1U);
     ERRORIF(sizeof(ALLOW_GROUP) >= MAX_GRPNAME_LEN);
-    ERRORIF((size_t) MAX_UID > SIGNEDMAX(uid_t));
-    ERRORIF((size_t) MAX_GID > MIN(SIGNEDMAX(gid_t), SIGNEDMAX(GETGRPLST_T)));
+    ERRORIF((uint64_t) MAX_UID > SIGNEDMAX(uid_t));
+    ERRORIF((uint64_t) MAX_GID > MIN(SIGNEDMAX(gid_t),
+                                     SIGNEDMAX(GETGRPLST_T)));
 
 
     /*
@@ -332,19 +333,7 @@ main(int argc, char **argv) {
      */
 
     ret = priv_suspend();
-    switch (ret) {
-    case OK:
-        break;
-    case ERR_SYS_SETGROUPS:
-        /* Should be unreachable. */
-	error("setgroups: %m.");
-    case ERR_SYS_SETEGID:
-        /* Should be unreachable. */
-        error("setegid: %m.");
-    case ERR_SYS_SETEUID:
-        /* Should be unreachable. */
-        error("seteuid: %m.");
-    default:
+    if (ret != OK) {
         /* Should be unreachable. */
         error("%d: priv_suspend returned %u.", __LINE__, ret);
     }
@@ -624,17 +613,8 @@ main(int argc, char **argv) {
     switch (ret) {
     case OK:
         break;
-    case ERR_PRIV_RESUME:
-        /* Should be unreachable. */
-        error("could resume superuser privileges.");
     case ERR_SYS_SETGROUPS:
         error("setgroups: %m.");
-    case ERR_SYS_SETGID:
-        /* Should be unreachable. */
-        error("setgid: %m.");
-    case ERR_SYS_SETUID:
-        /* Should be unreachable. */
-        error("setuid: %m.");
     default:
         /* Should be unreachable. */
         error("%d: priv_drop returned %u.", __LINE__, ret);
