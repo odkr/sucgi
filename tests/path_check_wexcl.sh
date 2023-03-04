@@ -41,7 +41,7 @@ tmpdir chk
 # Configuration
 #
 
-eval $(main -C | grep -E ^NDEBUG=)
+eval $(main -C | grep -vE ^PATH=)
 
 
 #
@@ -51,11 +51,11 @@ eval $(main -C | grep -E ^NDEBUG=)
 user="$(id -un)"
 uid="$(id -u "$user")"
 
-shallow="$TMPDIR/file"
-touch "$shallow"
-
 dir="$TMPDIR/dir"
 mkdir "$dir"
+
+shallow="$TMPDIR/file"
+touch "$shallow"
 
 deeper="$dir/file"
 touch "$deeper"
@@ -64,10 +64,37 @@ chmod 600 "$deeper"
 root="$(ids | awk '$1 == 0 {print $2; exit}')"
 bin="$(cd -P /bin && pwd)"
 
+long_fname="$(pad / $((MAX_FNAME_LEN - 1)) x r)"
+err_fname="${long_fname}c"
+
 
 #
 # Main
 #
+
+check -s134 -e"*basedir == '/'" \
+	path_check_wexcl "$user" '' /
+check -s134 -e"*basedir == '/'" \
+	path_check_wexcl "$user" relpath /
+check -s134 -e"*basedir == '/'" \
+	path_check_wexcl "$user" . /
+
+check -s134 -e"*fname == '/'" \
+	path_check_wexcl "$user" / ''
+check -s134 -e"*fname == '/'" \
+	path_check_wexcl "$user" / relpath
+check -s134 -e"*fname == '/'" \
+	path_check_wexcl "$user" / .
+
+check -s1 \
+	path_check_wexcl "$user" "$long_fname" /
+check -s1 \
+	path_check_wexcl "$user" / "$long_fname"
+check -s134 -e 'strnlen(basedir, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN' \
+	path_check_wexcl "$user" "$err_fname" /
+check -s134 -e 'strnlen(fname, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN' \
+	path_check_wexcl "$user" / "$err_fname"
+
 
 no="u=r,g=w,o= u=r,g=,o=w u=rw,g=w,o= u=rw,g=,o=w u=rw,go=w u=rw,go=w"
 for mode in $no
@@ -81,6 +108,7 @@ do
 	check -s1 -e"$deeper is writable by users other than $user" \
 		path_check_wexcl "$user" "$TMPDIR" "$deeper"
 done
+
 
 yes="u=rw,go= ugo=r"
 for mode in $yes
@@ -106,6 +134,8 @@ do
 		path_check_wexcl "$user" "$TMPDIR" "$deeper"
 done
 
+
 check path_check_wexcl "$root" "$bin" "$bin/cat"
+
 
 warn "all tests passed."
