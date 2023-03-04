@@ -393,15 +393,15 @@ main(int argc, char **argv) {
     regex_t pregs[NELEMS(patterns)];
 
     for (size_t i = 0; i < NELEMS(patterns); ++i) {
-        int rc;
+        int err;
 
-        rc = regcomp(&pregs[i], patterns[i], REG_EXTENDED | REG_NOSUB);
-        if (rc != 0) {
+        err = regcomp(&pregs[i], patterns[i], REG_EXTENDED | REG_NOSUB);
+        if (err != 0) {
             /* RATS: ignore; regerror respects the size of errmsg. */
             char errmsg[MAX_ERRMSG_LEN];
             size_t errmsglen;
 
-            errmsglen = regerror(rc, &pregs[i], errmsg, sizeof(errmsg));
+            errmsglen = regerror(err, &pregs[i], errmsg, sizeof(errmsg));
             if (errmsglen > sizeof(errmsg)) {
                 /* RATS: ignore; message is short and a literal. */
                 syslog(LOG_NOTICE, "regular expression error truncated.");

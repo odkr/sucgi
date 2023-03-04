@@ -129,7 +129,11 @@ path_check_wexcl(const uid_t uid, const char *const basedir,
     assert(fname);
     assert(strnlen(fname, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
     assert(*fname == '/');
-    assert(path_check_in(basedir, fname) == OK);
+
+    if (path_check_in(basedir, fname) != OK) {
+        /* FIXME: Not unit-tested. */
+        return ERR_NO_MATCH; /* FIXME: should be ERR_BAD; rename ERR_BAD to ERR_NOK */
+    }
 
     /* cppcheck-suppress misra-c2012-18.4; basedir is shorter than fname. */
     pos = fname + strnlen(basedir, MAX_FNAME_LEN);
