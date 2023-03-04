@@ -88,13 +88,13 @@ addflags() {
 testcc() {
 	case "$(basename "${CC:?}")" in
 	(clang|clang[!a-z]*|gcc|gcc[!a-z]*|musl-gcc|musl-gcc[!a-z]*)
-		"$CC" -S -xc -Wall -Werror -pedantic -o/dev/null "$@"
+		"$CC" -xc -Wall -Werror -pedantic -pipe -o/dev/null "$@"
 		;;
 	(tcc|tcc[!a-z]*)
 		"$CC" -xc -Wall -Werror -pedantic -o/dev/null "$@"
 		;;
 	(icc|icc[!a-z]*)
-		"$CC" -S -xc -w3 -Wcheck -Werror-all -o/dev/null "$@"
+		"$CC" -xc -w3 -Wcheck -Werror-all -o/dev/null "$@"
 		;;
 	(*)
 		return 1
