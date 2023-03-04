@@ -50,6 +50,13 @@ cd -P "$script_dir" || exit
 
 
 #
+# Build configuration
+#
+
+eval $(main -C | grep -E ^NDEBUG=)
+
+
+#
 # Test
 #
 
@@ -57,6 +64,7 @@ skipc=0
 if [ "$uid" -eq 0 ]
 then
 	owner="$(owner "$src_dir")"
+
 	if [ "$(id -u "$owner")" -eq 0 ]
 	then
 		warn "$src_dir owned by superuser."
@@ -78,12 +86,16 @@ then
 			priv_drop "$regular"
 	fi
 
-	check -s134 -e'uid > 0' \
-		priv_drop "$user"
+	if ! [ "${NDEBUG-}" ]
+	then
+		check -s134 -e'uid > 0' \
+			priv_drop "$user"
+	fi
 
-	[ $skipc -eq 0 ] && err -s0 'all tests passed.'
-
-	err -s75 '%d tests skipped.' "$skipc"
+	case $skipc in
+	(0) err -s0 'all tests passed.' ;;
+	(*) err -s75 '%d tests skipped.' "$skipc" ;;
+	esac
 else
 	check -s1 -e'Operation not permitted' priv_drop "$user"
 	warn "all non-superuser tests passed."
