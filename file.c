@@ -35,11 +35,12 @@
 bool
 file_is_exe(const uid_t uid, const gid_t gid, const struct stat fstatus)
 {
-    mode_t perm = fstatus.st_mode;      /* Permissions. */
+    mode_t perm = fstatus.st_mode;
 
     if (uid == 0) {
         return (perm & (S_IXUSR | S_IXGRP | S_IXOTH)) != 0;
     }
+
     if (fstatus.st_uid == uid) {
         return (perm & S_IXUSR) != 0;
     }
@@ -52,7 +53,7 @@ file_is_exe(const uid_t uid, const gid_t gid, const struct stat fstatus)
 bool
 file_is_wexcl(const uid_t uid, const struct stat fstatus)
 {
-    mode_t perm = fstatus.st_mode;      /* Permissions. */
+    mode_t perm = fstatus.st_mode;
 
     return fstatus.st_uid == uid && (perm & (S_IWGRP | S_IWOTH)) == 0;
 }

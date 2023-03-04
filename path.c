@@ -48,8 +48,8 @@ path_check_in(const char *const basedir, const char *const fname)
     assert(*fname != '\0');
 
     if (strncmp(fname, "/", 2) != 0 && strncmp(fname, ".", 2) != 0) {
-        size_t basedir_len;		/* Length of basedir. */
-        size_t fname_len;       /* Length of fname. */
+        size_t basedir_len;
+        size_t fname_len;
 
         if (*fname == '/') {
             if (strncmp(basedir, "/", 2) == 0) {

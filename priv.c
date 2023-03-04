@@ -63,10 +63,17 @@ priv_drop(const uid_t uid, const gid_t gid,
         return ERR_SYS_SETUID;
     }
 
-    if (setgroups(1, (gid_t [1]) {0}) != -1 ||
-        setgid(0) != -1                     ||
-        setuid(0) != -1)
-    {
+    if (setgroups(1, (gid_t [1]) {0}) != -1) {
+        /* Should be unreachable. */
+        return ERR_PRIV_RESUME;
+    }
+
+    if (setgid(0) != -1) {
+        /* Should be unreachable. */
+        return ERR_PRIV_RESUME;
+    }
+
+    if (setuid(0) != -1) {
         /* Should be unreachable. */
         return ERR_PRIV_RESUME;
     }
