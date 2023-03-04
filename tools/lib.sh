@@ -72,6 +72,11 @@ init() {
 	# Root directory of the repository.
 	: "${src_dir:?}"
 
+	# shellcheck disable=2039
+	[ "${BASH_VERSION-}" ] && set -o posix
+	[ "${ZSH_VERSION-}" ] && emulate sh 2>/dev/null
+	export BIN_SH=xpg4 NULLCMD=: POSIXLY_CORRECT=x CLICOLOR_FORCE=
+
 	# Environment variables.
 	# shellcheck disable=2154
 	PATH="$src_dir/tests:$src_dir/tools:$PATH"
