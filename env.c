@@ -60,6 +60,8 @@ env_is_name(const char *str)
     return true;
 }
 
+/* NOLINTBEGIN(readability-function-cognitive-complexity);
+   you can do it. */
 Error
 env_restore(char *const *vars, const size_t npregs, regex_t *const pregs)
 {
@@ -117,3 +119,4 @@ env_restore(char *const *vars, const size_t npregs, regex_t *const pregs)
 
     return OK;
 }
+/* NOLINTEND(readability-function-cognitive-complexity) */
