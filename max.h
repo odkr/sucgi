@@ -37,8 +37,8 @@
 #endif
 
 /*
- * Maximum length for regular expression errors, including the NUL-terminator.
- * Unsigned integer. Regular expression errors are truncated to this length.
+ * Maximum length for error message formats and error messages,
+ * including the NUL-terminator. Unsigned integer.
  */
 #if !defined(MAX_ERRMSG_LEN)
 #define MAX_ERRMSG_LEN 128U
