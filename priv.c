@@ -38,6 +38,9 @@
 #include "priv.h"
 #include "types.h"
 
+
+/* NOLINTBEGIN(bugprone-easily-swappable-parameters);
+   uid_t and gid_t are well-place the way they are. */
 Error
 priv_drop(const uid_t uid, const gid_t gid,
           const SETGRPNUM_T ngroups, const gid_t *const groups)
@@ -80,6 +83,7 @@ priv_drop(const uid_t uid, const gid_t gid,
 
     return OK;
 }
+/* NOLINTBEGIN(bugprone-easily-swappable-parameters); */
 
 Error
 priv_suspend(void)
