@@ -38,12 +38,6 @@
 #include "str.h"
 #include "types.h"
 
-
-/*
- * NOLINTBEGIN(bugprone-not-null-terminated-result);
- * strncmp(<...>, "/", 2) and strncmp(<...>, ".", 2) are fine.
- */
-
 Error
 path_check_in(const char *const basedir, const char *const fname)
 {
@@ -52,6 +46,8 @@ path_check_in(const char *const basedir, const char *const fname)
     assert(fname);
     assert(*fname != '\0');
 
+    /* NOLINTBEGIN(bugprone-not-null-terminated-result);
+       strncmp(<...>, "/", 2) and strncmp(<...>, ".", 2) are fine. */
     if (strncmp(fname, "/", 2) != 0 && strncmp(fname, ".", 2) != 0) {
         size_t basedir_len;
         size_t fname_len;
@@ -83,13 +79,12 @@ path_check_in(const char *const basedir, const char *const fname)
             return OK;
         }
     }
+    /* NOLINTEND */
 
     return ERR_NO_MATCH;
 }
 
-/*
- * NOLINTEND
- */
+
 
 Error
 path_suffix(const char *const fname, const char **const suffix)
