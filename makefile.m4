@@ -18,19 +18,19 @@ include(`m4/macros.m4')dnl
 # Compiler variables
 #
 
-ifnempty(`__CC__', `CC = __CC__
+ifnempty(`__CC', `CC = __CC
 ')dnl
-CFLAGS = default(`__CFLAGS__', `-O2 -s')
-ifnempty(`__ARFLAGS__', `ARFLAGS = __ARFLAGS__
+CFLAGS = default(`__CFLAGS', `-O2 -s')
+ifnempty(`__ARFLAGS', `ARFLAGS = __ARFLAGS
 ')dnl
-ifnempty(`__AR__', `AR = __AR__
+ifnempty(`__AR', `AR = __AR
 ')dnl
-ifnempty(`__LDFLAGS__', `LDFLAGS = __LDFLAGS__
+ifnempty(`__LDFLAGS', `LDFLAGS = __LDFLAGS
 ')dnl
-ifnempty(`__LDLIBS__', `LDLIBS = __LDLIBS__
+ifnempty(`__LDLIBS', `LDLIBS = __LDLIBS
 ')dnl
 
-SC_COV_CC = default(`__SC_COV_CC__', `$(CC)')
+SC_COV_CC = default(`__SC_COV_CC', `$(CC)')
 
 
 #
@@ -44,7 +44,7 @@ stdhdrs = cattr.h compat.h macros.h max.h types.h
 # Test suite
 #
 
-repo_owner = default(`__sc_repo_owner__', `$$(ls -ld . | awk "{print \$$3}")')
+repo_owner = default(`__sc_repo_owner', `$$(ls -ld . | awk "{print \$$3}")')
 
 tool_bins = tools/badenv tools/badexec tools/ids tools/runpara tools/runas
 
@@ -103,12 +103,12 @@ dist_files = *.c *.h *.env *.excl *.m4 *.sample README.rst LICENSE.txt \
 # Installer
 #
 
-ifnempty(`__DESTDIR__', `DESTDIR = __DESTDIR__
+ifnempty(`__DESTDIR', `DESTDIR = __DESTDIR
 ')dnl
-PREFIX = default(`__PREFIX__', `/usr/local')
+PREFIX = default(`__PREFIX', `/usr/local')
 install_dir = $(DESTDIR)$(PREFIX)
-SC_WWW_GRP = default(`__SC_WWW_GRP__', `www-data')
-SC_CGI_DIR = default(`__SC_CGI_DIR__', `/usr/lib/cgi-bin')
+SC_WWW_GRP = default(`__SC_WWW_GRP', `www-data')
+SC_CGI_DIR = default(`__SC_CGI_DIR', `/usr/lib/cgi-bin')
 
 
 #

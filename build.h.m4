@@ -45,9 +45,9 @@ include(`m4/macros.m4')dnl
 #if !defined(BUILD_H)
 #define BUILD_H
 
-ifnempty(`__CC__', `#define CC "__CC__"'
+ifnempty(`__CC', `#define CC "__CC"'
 )dnl
-ifnempty(`__CFLAGS__', `#define CFLAGS "__CFLAGS__"
+ifnempty(`__CFLAGS', `#define CFLAGS "__CFLAGS"
 ')dnl
 
 #endif /* !defined(BUILD_H) */
