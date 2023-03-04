@@ -20,6 +20,8 @@
 
 # shellcheck disable=2015,2031
 
+. "${src_dir:?}/tools/lib.sh" || exit
+
 
 #
 # Functions
@@ -127,39 +129,6 @@ dirwalk() (
 		esac
 	done
 )
-
-# Register signals, set variables, and enable colours.
-init() {
-	# Root directory of the repository.
-	: "${src_dir:?}"
-
-	# Load tool library.
-	# shellcheck source=../tools/lib.sh
-	. "$src_dir/tools/lib.sh" || exit
-
-	# Environment variables.
-	# shellcheck disable=2154
-	PATH="$src_dir/tests:$src_dir/tools:$PATH"
-	unset IFS
-
-	# Signal handling.
-	catch=x caught=
-	trap 'catch 1' HUP
-	trap 'catch 2' INT
-	trap 'catch 15' TERM
-	trap cleanup EXIT
-	[ "$caught" ] && exit "$((caught + 128))"
-
-	# Permission mask.
-	umask 022
-
-	# Output control.
-	quiet='' verbose=''
-
-	# Programme name.
-	prog_name="$(basename -- "$0")" || prog_name="$0"
-	readonly prog_name
-}
 
 # Create a path that is $len characters long in $basepath.
 mklongpath() (
