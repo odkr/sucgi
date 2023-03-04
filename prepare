@@ -50,7 +50,7 @@ case $(uname) in
 	exec xcode-select --install
 	;;
 (FreeBSD)
-	cat <<-EOF
+	exec cat <<-EOF
 	FreeBSD ships with C build tools.
 	Nothing to do, nothing done.
 	EOF
@@ -60,14 +60,18 @@ case $(uname) in
 		exec apk add binutils fortify-headers gcc libc-dev make m4
 	[ -e /etc/debian_version ] &&
 		exec apt-get install binutils gcc libc-dev make m4
+	[ -e /etc/fedora-release ] &&
+		exec dnf install binutils gcc glibc-devel make mk4
 	;;
-(*)	cat <<-EOF >&2
-	$0 does not support your operating system. Please install:
-	    * A C compiler (e.g., gcc or clang).
-	    * The header files of your system's standard library.
-	    * The so-called "binary utilities" (i.e., ar, ld, as).
-	    * GNU Make
-	    * M4
-	EOF
-	exit 8
 esac
+
+cat <<-EOF >&2
+$0 does not support your operating system. Please install:
+    * A C compiler (e.g., gcc or clang).
+    * The header files of your system's standard library.
+    * The so-called "binary utilities" (i.e., ar, ld, and as).
+    * GNU Make
+    * M4
+EOF
+
+exit 8
