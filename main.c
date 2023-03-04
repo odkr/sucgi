@@ -184,6 +184,7 @@ help(void)
 static void
 config(void)
 {
+    /* NOLINTNEXTLINE(bugprone-suspicious-missing-comma); literals intended. */
     const char *const env_patterns[] = ENV_PATTERNS;
     const char *const deny_groups[] = DENY_GROUPS;
     const Pair handlers[] = HANDLERS;
