@@ -773,8 +773,12 @@ main (void)
 
     warnx("generating up to %u filenames and suffices ...", maxnfixes);
     for (unsigned int i = 0; i < maxnfixes; ++i) {
-        char *s;
+/* rc is needed when debugging is enabled. */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
         int rc;
+#pragma GCC diagnostic pop
+        char *s;
 
         s = calloc(FIX_LEN + 1, sizeof(*s));
         if(s == NULL) {

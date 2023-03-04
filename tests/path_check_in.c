@@ -227,8 +227,12 @@ main(void)
     /* Run dynamic tests. */
     warnx("generating %u filenames ...", nfnames);
     for (unsigned int i = 0; i < nfnames; ++i) {
-        char *fname;
+/* rc is needed when debugging is enabled. */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
         int rc;
+#pragma GCC diagnostic pop
+        char *fname;
 
         fname = calloc(FNAME_LEN + 1, sizeof(*fname));
         if(fname == NULL) {

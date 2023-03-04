@@ -162,7 +162,11 @@ main(void)
 
     warnx("generating %zu strings ...", nstrs);
     for (size_t i = 0; i < nstrs; ++i) {
+/* rc is needed when debugging is enabled. */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
         int rc;
+#pragma GCC diagnostic pop
 
         strs[i] = calloc(SUB_STR_LEN + 1, sizeof(*strs[i]));
         if (strs[i] == NULL) {

@@ -116,9 +116,13 @@ main (void) {
 
     warnx("checking dynamically created strings ...");
     for (unsigned int i = 0; i < pow(sizeof(ascii), STR_LEN); ++i) {
+/* rc is needed when debugging is enabled. */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+        int rc;
+#pragma GCC diagnostic pop
         char src[MAX_STR_LEN];
         char dest[MAX_STR_LEN];
-        int rc;
         Error ret;
 
         (void) memset(src, '\0', sizeof(src));
