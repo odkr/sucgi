@@ -42,7 +42,7 @@ You may need to install:
 * GNU Make
 * M4
 
-On Alpine, Arch, Debian, Fedora, and derived systems you can do so by::
+On many systems you can do so by::
 
 	sudo ./prepare
 
