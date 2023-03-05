@@ -277,7 +277,7 @@ then
 			unset job
 		done
 
-		[ "${CFLAGS-}" ] || printf ' none supported.\a'
+		[ "${CFLAGS-}" ] || printf ' detection failed.\a'
 		echo
 	fi
 else
