@@ -20,11 +20,28 @@
 
 # shellcheck disable=2015
 
+
+#
+# Constants
+#
+
+# Compilers to test.
+readonly compilers='
+	gcc-12 gcc-11 gcc-10 gcc-9 gcc-8 gcc musl-gcc
+	clang-16 clang-15 clang-14 clang-13 clang-12
+	clang-11 clang-10 clang-9 clang
+	tcc icc c99 cc
+'
+
+# Build configurations to test.
+readonly configs='prod.env devel.env speed.env'
+
+
 #
 # Initialiation
 #
 
-set -Cefu
+set -Ceu
 tools_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
 src_dir="$(dirname -- "$tools_dir")"
 # shellcheck disable=2034
@@ -71,21 +88,34 @@ cd -P "$src_dir" || exit
 
 # shellcheck disable=2034
 cleanup="[ -e makefile ] && make distclean"
-for cc in							\
-	gcc-12 gcc-11 gcc-10 gcc-9 gcc musl-gcc			\
-	clang-16 clang-15 clang-14 clang-13 clang-12 		\
-	clang-11 clang-10 clang-9 clang \
-	icc \
-	c99 cc
+for cc in $compilers
 do
-	if command -v "$cc" >/dev/null
-	then
-		for args in -d ''
-		do
-			CC="$cc" ./configure -fq $args
-			make clean all check
-		done
-	fi
+	command -v "$cc" >/dev/null || continue
+
+	[ -e makefile ] && make distclean
+	for template in *.m4
+	do
+		case $template in
+		('*.m4')   break ;;
+		('lib.m4') continue ;;
+		esac
+
+		m4 -D__CC="$cc" "$template" >"${template%.m4}"
+	done
+
+	make clean all check ||
+	err '%s w/o configuration failed.' "$cc"
+
+	for config in $configs
+	do
+		[ -e "$config" ] || continue
+
+		[ -e makefile ] && make distclean
+		CC="$cc" ./configure -fqc"$config"
+
+		make clean all check ||
+		err '%s with configuration %s failed.' "$cc" "$config"
+	done
 done
 
 warn 'all compilers passed.'
