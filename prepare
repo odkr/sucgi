@@ -58,6 +58,8 @@ case $(uname) in
 (Linux)
 	[ -e /etc/alpine-release ] &&
 		exec apk add binutils fortify-headers gcc libc-dev make m4
+	[ -e /etc/arch-release ] &&
+		exec pacman -S binutils findutils gawk gcc grep libtool make m4
 	[ -e /etc/debian_version ] &&
 		exec apt-get install binutils gcc libc-dev make m4
 	[ -e /etc/fedora-release ] &&
