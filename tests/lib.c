@@ -32,7 +32,7 @@
 
 
 int
-cat_strs(char *dest, const char *const src, const char *const lim, char **end)
+catstrs(char *dest, const char *const src, const char *const lim, char **end)
 {
     assert(dest != NULL);
     assert(src != NULL);
@@ -49,8 +49,8 @@ cat_strs(char *dest, const char *const src, const char *const lim, char **end)
 }
 
 int
-join_strs(size_t n, const char *const *const strs, const char *sep,
-          size_t size, char *const dest)
+joinstrs(size_t n, const char *const *const strs, const char *sep,
+         size_t size, char *const dest)
 {
     char *ptr;
     char *lim;
@@ -65,12 +65,12 @@ join_strs(size_t n, const char *const *const strs, const char *sep,
     (void) memset(dest, '\0', size);
     for (size_t i = 0U; i < n && strs[i]; ++i) {
         if (i > 0U) {
-            if (cat_strs(ptr, sep, lim, &ptr) != 0) {
+            if (catstrs(ptr, sep, lim, &ptr) != 0) {
                 return 1;
             }
         }
 
-        if (cat_strs(ptr, strs[i], lim, &ptr) != 0) {
+        if (catstrs(ptr, strs[i], lim, &ptr) != 0) {
             return 1;
         }
     }
@@ -79,7 +79,7 @@ join_strs(size_t n, const char *const *const strs, const char *sep,
 }
 
 void
-fill_str(const char ch, const size_t n, char *const dest)
+fillstr(const char ch, const size_t n, char *const dest)
 {
     assert(n > 0);
     assert(dest != NULL);
@@ -92,8 +92,8 @@ fill_str(const char ch, const size_t n, char *const dest)
 }
 
 int
-to_str(unsigned int num, unsigned int base, const char *const digits,
-       size_t size, char *const dest)
+tostr(unsigned int num, unsigned int base, const char *const digits,
+      size_t size, char *const dest)
 {
     size_t len;
 

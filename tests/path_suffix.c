@@ -773,26 +773,26 @@ main (void)
 
     warnx("generating up to %u filenames and suffices ...", maxnfixes);
     for (unsigned int i = 0; i < maxnfixes; ++i) {
-/* rc is needed when debugging is enabled. */
+/* tostr_ret is needed when debugging is enabled. */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-        int rc;
+        int tostr_ret;
 #pragma GCC diagnostic pop
-        char *s;
+        char *str;
 
-        s = calloc(FIX_LEN + 1, sizeof(*s));
-        if(s == NULL) {
+        str = calloc(FIX_LEN + 1, sizeof(*str));
+        if(str == NULL) {
             err(TEST_ERROR, "calloc");
         }
 
-        rc = to_str(i, sizeof(ascii), ascii, FIX_LEN + 1U, s);
-        assert(rc == 0);
+        tostr_ret = tostr(i, sizeof(ascii), ascii, FIX_LEN + 1U, str);
+        assert(tostr_ret == 0);
 
-        if (strchr(s, '/') == NULL) {
-            prefixes[nprefixes++] = s;
+        if (strchr(str, '/') == NULL) {
+            prefixes[nprefixes++] = str;
 
-            if (strchr(s, '.') == NULL) {
-                suffices[nsuffices++] = s;
+            if (strchr(str, '.') == NULL) {
+                suffices[nsuffices++] = str;
             }
         }
     }

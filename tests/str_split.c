@@ -116,10 +116,10 @@ main(void)
     char **strs;
     size_t nstrs;
 
-    fill_str('x', sizeof(long_str), long_str);
-    fill_str('x', sizeof(huge_str), huge_str);
-    fill_str('x', sizeof(huge_head), huge_head);
-    fill_str('\0', sizeof(sep), sep);
+    fillstr('x', sizeof(long_str), long_str);
+    fillstr('x', sizeof(huge_str), huge_str);
+    fillstr('x', sizeof(huge_head), huge_head);
+    fillstr('\0', sizeof(sep), sep);
 
     (void) strncpy(&huge_head[MAX_FNAME_LEN], ",foo", 5); /* RATS: ignore. */
 
@@ -162,10 +162,10 @@ main(void)
 
     warnx("generating %zu strings ...", nstrs);
     for (size_t i = 0; i < nstrs; ++i) {
-/* rc is needed when debugging is enabled. */
+/* tostr_ret is needed when debugging is enabled. */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-        int rc;
+        int tostr_ret;
 #pragma GCC diagnostic pop
 
         strs[i] = calloc(SUB_STR_LEN + 1, sizeof(*strs[i]));
@@ -173,9 +173,9 @@ main(void)
             err(TEST_ERROR, "calloc");
         }
 
-        rc = to_str((unsigned int) i, sizeof(ascii), ascii,
-                    SUB_STR_LEN + 1, strs[i]);
-        assert(rc == 0);
+        tostr_ret = tostr((unsigned int) i, sizeof(ascii), ascii,
+                          SUB_STR_LEN + 1, strs[i]);
+        assert(tostr_ret == 0);
     }
 
     warnx("checking dynamically created strings ...");

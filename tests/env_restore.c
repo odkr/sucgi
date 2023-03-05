@@ -336,7 +336,7 @@ static int mkvar(size_t namelen, size_t varlen, char **var) {
         return 1;
     }
 
-    fill_str('x', varlen, *var);
+    fillstr('x', varlen, *var);
     (*var)[namelen] = '=';
 
     return 0;
@@ -387,11 +387,11 @@ test(const ConstArgs *args)
 
     assert(args != NULL);
 
-    rc = join_strs(args->n, args->patterns, ", ", sizeof(patbuf), patbuf);
+    rc = joinstrs(args->n, args->patterns, ", ", sizeof(patbuf), patbuf);
     assert(rc == 0);
-    rc = join_strs(NELEMS(args->env), args->env, " ", sizeof(envbuf), envbuf);
+    rc = joinstrs(NELEMS(args->env), args->env, " ", sizeof(envbuf), envbuf);
     assert(rc == 0);
-    rc = join_strs(NELEMS(args->rst), args->rst, " ", sizeof(rstbuf), rstbuf);
+    rc = joinstrs(NELEMS(args->rst), args->rst, " ", sizeof(rstbuf), rstbuf);
     assert(rc == 0);
 
     warnx("checking %s => (%zu, {%s}) -> %u => %s ...",
@@ -434,7 +434,7 @@ test(const ConstArgs *args)
     if (ret == OK && !cmp_env(args->rst)) {
         char buf[MAX_TEST_STR_LEN];
 
-        rc = join_strs(MAX_TEST_NVARS, (const char *const *) environ, " ",
+        rc = joinstrs(MAX_TEST_NVARS, (const char *const *) environ, " ",
                        sizeof(buf), buf);
         assert(rc == 0);
         errx(TEST_FAILED, "restored environment: %s", buf);

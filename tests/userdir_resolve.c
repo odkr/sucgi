@@ -116,12 +116,12 @@ static const Args cases[] = {
 int
 main(void)
 {
-    fill_str('x', sizeof(long_rel_fname), long_rel_fname);
+    fillstr('x', sizeof(long_rel_fname), long_rel_fname);
 
-    fill_str('x', sizeof(long_abs_fname), long_abs_fname);
+    fillstr('x', sizeof(long_abs_fname), long_abs_fname);
     long_abs_fname[0] = '/';
 
-    fill_str('x', sizeof(long_pattern), long_pattern);
+    fillstr('x', sizeof(long_pattern), long_pattern);
     (void) str_cp(4, "/%s", &long_pattern[sizeof(long_pattern) - 4]);
     long_pattern[0] = '/';
 

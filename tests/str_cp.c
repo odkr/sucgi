@@ -116,10 +116,10 @@ main (void) {
 
     warnx("checking dynamically created strings ...");
     for (unsigned int i = 0; i < pow(sizeof(ascii), STR_LEN); ++i) {
-/* rc is needed when debugging is enabled. */
+/* tostr_ret is needed when debugging is enabled. */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-        int rc;
+        int tostr_ret;
 #pragma GCC diagnostic pop
         char src[MAX_STR_LEN];
         char dest[MAX_STR_LEN];
@@ -128,8 +128,8 @@ main (void) {
         (void) memset(src, '\0', sizeof(src));
         (void) memset(dest, '\0', sizeof(dest));
 
-        rc = to_str(i, sizeof(ascii), ascii, sizeof(src), src);
-        assert(rc == 0);
+        tostr_ret = tostr(i, sizeof(ascii), ascii, sizeof(src), src);
+        assert(tostr_ret == 0);
 
         ret = str_cp(sizeof(dest) - 1, src, dest);
 

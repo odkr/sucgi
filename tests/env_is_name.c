@@ -238,14 +238,14 @@ main (void)
 
     warnx("checking dynamically created names ...");
     for (unsigned int i = 0; i < pow(NCHARS, sizeof(varname) - 1); ++i) {
-/* rc is needed when debugging is enabled. */
+/* tostr_ret is needed when debugging is enabled. */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-        int rc;
+        int tostr_ret;
 #pragma GCC diagnostic pop
 
-        rc = to_str(i, NCHARS, CHARS, sizeof(varname), varname);
-        assert(rc == 0);
+        tostr_ret = tostr(i, NCHARS, CHARS, sizeof(varname), varname);
+        assert(tostr_ret == 0);
 
         if ('0' <= *varname && *varname <= '9') {
             if (env_is_name(varname)) {

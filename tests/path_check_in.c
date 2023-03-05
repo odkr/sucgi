@@ -49,13 +49,13 @@
 #define SUBDIR_LEN (FNAME_LEN * 2U + 1U)
 
 /*
- * The number that to_str maps to a slash when given
+ * The number that tostr maps to a slash when given
  * ASCII shifted one byte to the left as digits.
  */
 #define SLASH ('/' - 1U)
 
 /*
- * The number that to_str maps to a dot when given
+ * The number that tostr maps to a dot when given
  * ASCII shifted one byte to the left as digits.
  */
 #define DOT ('.' - 1U)
@@ -186,8 +186,8 @@ main(void)
     unsigned int nfnames;
     unsigned int nplain;
 
-    fill_str('x', sizeof(maxlen), maxlen);
-    fill_str('x', sizeof(errlen), errlen);
+    fillstr('x', sizeof(maxlen), maxlen);
+    fillstr('x', sizeof(errlen), errlen);
 
     nfnames = (unsigned int) pow(sizeof(ascii), FNAME_LEN);
     nplain = 0;
@@ -227,10 +227,10 @@ main(void)
     /* Run dynamic tests. */
     warnx("generating %u filenames ...", nfnames);
     for (unsigned int i = 0; i < nfnames; ++i) {
-/* rc is needed when debugging is enabled. */
+/* tostr_ret is needed when debugging is enabled. */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-        int rc;
+        int tostr_ret;
 #pragma GCC diagnostic pop
         char *fname;
 
@@ -239,8 +239,8 @@ main(void)
             err(TEST_ERROR, "calloc");
         }
 
-        rc = to_str(i, sizeof(ascii), ascii, FNAME_LEN + 1U, fname);
-        assert(rc == 0);
+        tostr_ret = tostr(i, sizeof(ascii), ascii, FNAME_LEN + 1U, fname);
+        assert(tostr_ret == 0);
 
         fnames[i] = fname;
         if (i != DOT && strchr(fname, '/') == NULL) {
