@@ -21,7 +21,7 @@ Requirements
 ============
 
 suCGI requires a system that is compatible with `4.4BSD`_ and compliant
-with `POSIX.1-2008`_, including its X/Open system interface extension.
+with `POSIX.1-2008`_, including its X/Open System Interface extension.
 Any Unix-like operating system that has been released since 2017 and
 that does *not* target embedded systems should meet these requirements.
 
@@ -35,9 +35,10 @@ suCGI is work in progess and has *not* been reviewed, let alone audited.
 ----
 
 You may need to install:
-    * A C compiler (e.g., gcc or clang).
+
+    * A C compiler (e.g., GCC_ or Clang_).
     * The header files of your system's standard library.
-    * The so-called "binary utilities" (i.e., ar, ld, and as).
+    * The so-called "binary utilities" (i.e., `ar`, `ld`, and `as`).
     * GNU Make
     * M4
 
@@ -162,10 +163,6 @@ GitHub: https://github.com/odkr/sucgi
 .. _PHP: https://www.php.net/
 
 .. _`POSIX.1-2008`: https://pubs.opengroup.org/onlinepubs/9699919799.2008edition/
-
-.. _realpath: https://cve.mitre.org/cgi-bin/cvekey.cgi?keyword=realpath
-
-.. _XNU: https://github.com/apple-oss-distributions/xnu/
 
 .. |codacy| image:: https://app.codacy.com/project/badge/Grade/cb67a3bad615449589dfb242876600ac
             :target: https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_source=github.com&amp;utm_content=odkr/sucgi
