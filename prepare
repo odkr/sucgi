@@ -56,7 +56,7 @@ case $(uname) in
 	EOF
 	;;
 (NetBSD)
-	if command -v pkgin
+	if command -v pkgin >/dev/null 2>&1
 	then
 		exec pkgin install clang binutils
 	else
