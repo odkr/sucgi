@@ -72,29 +72,31 @@ err_fname="${long_fname}c"
 # Main
 #
 
-check -s134 -e"*basedir == '/'" \
-	path_check_wexcl "$user" '' /
-check -s134 -e"*basedir == '/'" \
-	path_check_wexcl "$user" relpath /
-check -s134 -e"*basedir == '/'" \
-	path_check_wexcl "$user" . /
+if ! [ "${NDEBUG-}" ]
+then
+	check -s134 -e"*basedir == '/'" \
+	      path_check_wexcl "$user" '' /
+	check -s134 -e"*basedir == '/'" \
+	      path_check_wexcl "$user" relpath /
+	check -s134 -e"*basedir == '/'" \
+	      path_check_wexcl "$user" . /
 
-check -s134 -e"*fname == '/'" \
-	path_check_wexcl "$user" / ''
-check -s134 -e"*fname == '/'" \
-	path_check_wexcl "$user" / relpath
-check -s134 -e"*fname == '/'" \
-	path_check_wexcl "$user" / .
+	check -s134 -e"*fname == '/'" \
+	      path_check_wexcl "$user" / ''
+	check -s134 -e"*fname == '/'" \
+	      path_check_wexcl "$user" / relpath
+	check -s134 -e"*fname == '/'" \
+	      path_check_wexcl "$user" / .
 
-check -s1 \
-	path_check_wexcl "$user" "$long_fname" /
-check -s1 \
-	path_check_wexcl "$user" / "$long_fname"
-check -s134 -e 'strnlen(basedir, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN' \
-	path_check_wexcl "$user" "$err_fname" /
-check -s134 -e 'strnlen(fname, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN' \
-	path_check_wexcl "$user" / "$err_fname"
-
+	check -s1 \
+	      path_check_wexcl "$user" "$long_fname" /
+	check -s1 \
+	      path_check_wexcl "$user" / "$long_fname"
+	check -s134 -e 'strnlen(basedir, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN' \
+	      path_check_wexcl "$user" "$err_fname" /
+	check -s134 -e 'strnlen(fname, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN' \
+	      path_check_wexcl "$user" / "$err_fname"
+fi
 
 no="u=r,g=w,o= u=r,g=,o=w u=rw,g=w,o= u=rw,g=,o=w u=rw,go=w u=rw,go=w"
 for mode in $no
