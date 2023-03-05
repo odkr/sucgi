@@ -36,17 +36,17 @@ suCGI is work in progess and has *not* been reviewed, let alone audited.
 
 You may need to install:
 
-    * A C compiler (e.g., GCC_ or Clang_).
-    * The header files of your system's standard library.
-    * The so-called "binary utilities" (i.e., `ar`, `ld`, and `as`).
-    * GNU Make
-    * M4
+* A C compiler (e.g., GCC_ or Clang_).
+* The header files of your system's standard library.
+* The so-called "binary utilities" (i.e., ``ar``, ``ld``, and ``as``).
+* GNU Make
+* M4
 
 On Alpine, Arch, Debian, Fedora, and derived systems you can do so by::
 
 	sudo ./prepare
 
-./prepare uses the package manager of your operating system.
+``./prepare`` uses the package manager of your operating system.
 
 ----
 
