@@ -34,6 +34,12 @@ suCGI is work in progess and has *not* been reviewed, let alone audited.
 
 ----
 
+Download the repository and unpack it.
+
+Please take the time to read and evaluate the source code.
+
+----
+
 You may need to install:
 
 * A C compiler (e.g., GCC_ or Clang_).
@@ -47,12 +53,6 @@ On many systems you can do so by::
 	sudo ./prepare
 
 ``./prepare`` uses the package manager of your operating system.
-
-----
-
-Download the repository and unpack it.
-
-Please take the time to read and evaluate the source code.
 
 ----
 
