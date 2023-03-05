@@ -55,6 +55,9 @@ case $(uname) in
 	Nothing to do.
 	EOF
 	;;
+(NetBSD)
+	exec pkg_add clang binutils
+	;;
 (Linux)
 	[ -e /etc/alpine-release ] &&
 		exec apk add binutils fortify-headers gcc libc-dev make m4
