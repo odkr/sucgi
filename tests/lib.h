@@ -50,8 +50,8 @@ typedef enum {
  *     Non-zero  Appending SRC to DEST would require to write past LIM.
  */
 __attribute__((nonnull(1, 2, 3, 4), warn_unused_result))
-int cat_strs(char *dest, const char *const src,
-             const char *const lim, char **end);
+int catstrs(char *dest, const char *const src,
+            const char *const lim, char **end);
 
 /*
  * Join the first N strings in STRS using the separator SEP and store the
@@ -64,14 +64,14 @@ int cat_strs(char *dest, const char *const src,
  *     Non-zero  SIZE is too small to hold the result.
  */
 __attribute__((nonnull(2, 3, 5), warn_unused_result))
-int join_strs(size_t n, const char *const *strs, const char *sep,
-              size_t size, char *dest);
+int joinstrs(size_t n, const char *const *strs, const char *sep,
+             size_t size, char *dest);
 
 /*
  * Fill the first N - 1 bytes of DEST with CH and then NUL-terminate it.
  */
 __attribute__((nonnull(3)))
-void fill_str(const char ch, const size_t n, char *dest);
+void fillstr(const char ch, const size_t n, char *dest);
 
 /*
  * Generate a big endian representation of NUM in BASE, using the given
@@ -83,8 +83,8 @@ void fill_str(const char ch, const size_t n, char *dest);
  *     Non-zero  SIZE is too small to hold the result.
  */
 __attribute__((nonnull(3, 5), warn_unused_result))
-int to_str(unsigned int num, unsigned int base, const char *digits,
-           size_t size, char *dest);
+int tostr(unsigned int num, unsigned int base, const char *digits,
+          size_t size, char *dest);
 
 
 #endif /* defined(TESTS_TESTS_H) */
