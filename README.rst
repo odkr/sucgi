@@ -20,8 +20,10 @@ user, cleans the environment, and then runs the script.
 Requirements
 ============
 
-suCGI requires a system that is compatible with `4.4BSD`_ and compliant with
-`POSIX.1-2008`_, including its X/Open system interface extension.
+suCGI requires a system that is compatible with `4.4BSD`_ and compliant
+with `POSIX.1-2008`_, including its X/Open system interface extension.
+Any Unix-like operating system that has been released since 2017 and
+that does *not* target embedded systems should meet these requirements.
 
 
 Installation
@@ -32,24 +34,18 @@ suCGI is work in progess and has *not* been reviewed, let alone audited.
 
 ----
 
-You may need to install the standard build tools and M4.
+You may need to install:
+    * A C compiler (e.g., gcc or clang).
+    * The header files of your system's standard library.
+    * The so-called "binary utilities" (i.e., ar, ld, and as).
+    * GNU Make
+    * M4
 
-Arch-based GNU/Linux systems::
+On Alpine, Arch, Debian, Fedora, and derived systems you can do so by::
 
-    pacman -S base-devel
+	sudo ./prepare
 
-Debian-based GNU/Linux systems::
-
-    apt-get install build-essential m4
-
-RedHat-based GNU/Linux systems::
-
-    dnf group install "C Development Tools and Libraries" "Development Tools"
-    dnf install m4
-
-macOS::
-
-    xcode-select --install
+./prepare uses the package manager of your operating system.
 
 ----
 
