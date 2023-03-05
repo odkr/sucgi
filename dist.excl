@@ -1,3 +1,3 @@
 config.h
 local.env
-stat/*.hits
+speed.env
