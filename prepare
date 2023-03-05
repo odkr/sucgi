@@ -56,11 +56,12 @@ case $(uname) in
 	EOF
 	;;
 (NetBSD)
-	base="https://cdn.NetBSD.org/pub/pkgsrc/packages"
-	arch="$(uname -m)" && vers="$(uname -r)" &&
-	: "${PKG_PATH:="$base/NetBSD/$arch/$vers/All/"}"
-	export PKG_PATH
-	exec pkg_add clang binutils
+	if command -v pkgin
+	then
+		exec pkgin install clang binutils
+	else
+		exec pkg_add clang binutils
+	fi
 	;;
 (Linux)
 	[ -e /etc/alpine-release ] &&
