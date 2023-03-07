@@ -40,16 +40,6 @@ __attribute__((nonnull(1, 2), warn_unused_result))
 Error path_check_in(const char *basedir, const char *fname);
 
 /*
- * Return a pointer to the filename suffix of FNAME in SUFFIX.
- *
- * Return value:
- *     OK             Success.
- *     ERR_NO_SUFFIX  FNAME has no filename suffix.
- */
-__attribute__((nonnull(1, 2), warn_unused_result))
-Error path_suffix(const char *fname, const char **suffix);
-
-/*
  * Check whether the user with the user ID UID has exclusive write access
  * to the file named FNAME and each parent directory of FNAME up to, and
  * including, BASEDIR.
@@ -61,6 +51,16 @@ Error path_suffix(const char *fname, const char **suffix);
  */
 __attribute__((nonnull(2, 3), warn_unused_result))
 Error path_check_wexcl(uid_t uid, const char *basedir, const char *fname);
+
+/*
+ * Return a pointer to the filename suffix of FNAME in SUFFIX.
+ *
+ * Return value:
+ *     OK             Success.
+ *     ERR_NO_SUFFIX  FNAME has no filename suffix.
+ */
+__attribute__((nonnull(1, 2), warn_unused_result))
+Error path_suffix(const char *fname, const char **suffix);
 
 
 #endif /* !defined(PATH_H) */

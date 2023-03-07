@@ -84,39 +84,6 @@ path_check_in(const char *const basedir, const char *const fname)
     return ERR_NO_MATCH;
 }
 
-
-
-Error
-path_suffix(const char *const fname, const char **const suffix)
-{
-    assert(fname);
-    assert(*fname != '\0');
-    assert(strnlen(fname, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
-    assert(suffix);
-
-    *suffix = strrchr(fname, '.');
-    /* cppcheck-suppress misra-c2012-18.4;
-       the expression *suffix - 1 can only be reached if *suffix > fname. */
-    if (*suffix != NULL && *suffix > fname && *(*suffix - 1) != '/') {
-        char *sep;
-
-        sep = strchr(*suffix, '/');
-        if (sep == NULL) {
-            return OK;
-        }
-
-        do {
-            ++sep;
-        } while (*sep == '/');
-
-        if (*sep == '\0') {
-            return OK;
-        }
-    }
-
-    return ERR_NO_SUFFIX;
-}
-
 Error
 path_check_wexcl(const uid_t uid, const char *const basedir,
                  const char *const fname)
@@ -164,4 +131,35 @@ path_check_wexcl(const uid_t uid, const char *const basedir,
     } while (true);
 
     return OK;
+}
+
+Error
+path_suffix(const char *const fname, const char **const suffix)
+{
+    assert(fname);
+    assert(*fname != '\0');
+    assert(strnlen(fname, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
+    assert(suffix);
+
+    *suffix = strrchr(fname, '.');
+    /* cppcheck-suppress misra-c2012-18.4;
+       the expression *suffix - 1 can only be reached if *suffix > fname. */
+    if (*suffix != NULL && *suffix > fname && *(*suffix - 1) != '/') {
+        char *sep;
+
+        sep = strchr(*suffix, '/');
+        if (sep == NULL) {
+            return OK;
+        }
+
+        do {
+            ++sep;
+        } while (*sep == '/');
+
+        if (*sep == '\0') {
+            return OK;
+        }
+    }
+
+    return ERR_NO_SUFFIX;
 }
