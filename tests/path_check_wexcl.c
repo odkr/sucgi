@@ -37,7 +37,10 @@
 int
 main (int argc, char **argv)
 {
-    struct passwd *pwd;
+    struct passwd *user;
+    char *basedir;
+    char *fname;
+    char *logname;
     Error ret;
 
     if (argc != 4) {
@@ -45,25 +48,32 @@ main (int argc, char **argv)
         return EXIT_FAILURE;
     }
 
+    logname = argv[1];
+    basedir = argv[2];
+    fname = argv[3];
+
     errno = 0;
-    pwd = getpwnam(argv[1]);
-    if (!pwd) {
+    user = getpwnam(logname);
+    if (!user) {
         if (errno == 0) {
             errx(EXIT_FAILURE, "no such user");
         } else {
             err(EXIT_FAILURE, "getpwnam");
-	}
+	    }
     }
 
-    ret = path_check_wexcl(pwd->pw_uid, argv[2], argv[3]);
+    ret = path_check_wexcl(user->pw_uid, basedir, fname);
     switch (ret) {
     case OK:
         break;
-    case ERR_SYS_STAT:
-        err(EXIT_FAILURE, "stat %s", argv[3]);
-    case ERR_BAD:
+    case FAIL:
         errx(EXIT_FAILURE, "%s is writable by users other than %s",
-             argv[3], pwd->pw_name);
+             fname, user->pw_name);
+    case ERR_BAD:
+        /* FIXME: not tested by the script. */
+        errx(EXIT_FAILURE, "%s is not within %s", fname, basedir);
+    case ERR_SYS_STAT:
+        err(EXIT_FAILURE, "stat %s", fname);
     default:
         errx(EXIT_FAILURE, "returned %u", ret);
     }
