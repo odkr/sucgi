@@ -51,8 +51,8 @@ env_is_name(const char *str)
         return false;
     }
 
-    for (const char *ch = str; *ch != '\0'; ++ch) {
-        if (!(isalpha(*ch) || isdigit(*ch) || ('_' == *ch))) {
+    for (const char *chr = str; *chr != '\0'; ++chr) {
+        if (!(isalpha(*chr) || isdigit(*chr) || ('_' == *chr))) {
             return false;
         }
     }
@@ -71,7 +71,7 @@ env_restore(char *const *vars, const size_t npregs, regex_t *const pregs)
     for (varidx = 0; varidx < MAX_NVARS && vars[varidx]; ++varidx) {
         /* RATS: ignore; str_split respects MAX_VARNAME_LEN. */
         char name[MAX_VARNAME_LEN];
-        const char *val;
+        const char *value;
         const char *var;
 
         var = vars[varidx];
@@ -79,10 +79,10 @@ env_restore(char *const *vars, const size_t npregs, regex_t *const pregs)
         if (strnlen(var, MAX_VAR_LEN) >= (size_t) MAX_VAR_LEN) {
             /* RATS: ignore; format is short and a literal. */
             syslog(LOG_INFO, "variable $%s: too long.", var);
-        } else if (str_split(var, "=", MAX_VARNAME_LEN, name, &val) != OK) {
+        } else if (str_split(var, "=", MAX_VARNAME_LEN, name, &value) != OK) {
             /* RATS: ignore; format is short and a literal. */
             syslog(LOG_INFO, "variable $%s: name too long.", var);
-        } else if (val == NULL) {
+        } else if (value == NULL) {
             /* RATS: ignore; format is short and a literal. */
             syslog(LOG_INFO, "variable $%s: malformed.", var);
         } else if (!env_is_name(name)) {
@@ -94,7 +94,7 @@ env_restore(char *const *vars, const size_t npregs, regex_t *const pregs)
             for (pregidx = 0; pregidx < npregs; ++pregidx) {
                 if (regexec(&pregs[pregidx], name, 0, NULL, 0) == 0) {
                     errno = 0;
-                    if (setenv(name, val, true) != 0) {
+                    if (setenv(name, value, true) != 0) {
                         return ERR_SYS_SETENV;
                     }
 
