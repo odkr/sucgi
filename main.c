@@ -820,8 +820,6 @@ main(int argc, char **argv) {
             error("%s's filename suffix is too long.", script_log);
         case ERR_NO_MATCH:
             error("no handler for %s's filename suffix.", script_log);
-        case ERR_NO_SUFFIX:
-            error("script %s has no filename suffix.", script_log);
         default:
             /* Should be unreachable. */
             error("%d: handler_lookup returned %u.", __LINE__, ret);

@@ -35,38 +35,35 @@
 
 Error
 handler_lookup(const size_t nelems, const Pair *const handlerdb,
-               const char *const script, const char **const hdl)
+               const char *const script, const char **const handler)
 {
-    const char *suffix;     /* Filename suffix. */
-    size_t len;             /* Suffix length. */
-    Error ret;              /* Return code. */
+    const char *suffix;
 
     assert(handlerdb);
     assert(script);
     assert(strnlen(script, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
     assert(*script != '\0');
-    assert(hdl);
+    assert(handler);
 
-    ret = path_suffix(script, &suffix);
-    if (ret != OK) {
-        return ret;
-    }
+    if (path_suffix(script, &suffix) == OK) {
+        size_t len;
 
-    len = strnlen(suffix, MAX_SUFFIX_LEN);
-    if (len >= MAX_SUFFIX_LEN) {
-        return ERR_LEN;
-    }
+        len = strnlen(suffix, MAX_SUFFIX_LEN);
+        if (len >= MAX_SUFFIX_LEN) {
+            return ERR_LEN;
+        }
 
-    for (size_t i = 0; i < nelems; ++i) {
-        const Pair *ent = &handlerdb[i];
+        for (size_t i = 0; i < nelems; ++i) {
+            const Pair *ent = &handlerdb[i];
 
-        if (strncmp(suffix, ent->key, len + 1U) == 0) {
-            if (ent->value == NULL || *ent->value == '\0') {
-                return ERR_BAD;
+            if (strncmp(suffix, ent->key, len + 1U) == 0) {
+                if (ent->value == NULL || *ent->value == '\0') {
+                    return ERR_BAD;
+                }
+
+                *handler = ent->value;
+                return OK;
             }
-
-            *hdl = ent->value;
-            return OK;
         }
     }
 

@@ -55,10 +55,10 @@ typedef struct {
 /* Test cases. */
 static const Args cases[] = {
     /* Simple errors. */
-    {"file", NULL, ERR_NO_SUFFIX},
-    {".", NULL, ERR_NO_SUFFIX},
-    {".sh", NULL, ERR_NO_SUFFIX},
-    {".py", NULL, ERR_NO_SUFFIX},
+    {"file", NULL, ERR_NO_MATCH},
+    {".", NULL, ERR_NO_MATCH},
+    {".sh", NULL, ERR_NO_MATCH},
+    {".py", NULL, ERR_NO_MATCH},
     {"file.null", NULL, ERR_BAD},
     {"file.empty", NULL, ERR_BAD},
     {"file.py", NULL, ERR_NO_MATCH},
@@ -66,10 +66,10 @@ static const Args cases[] = {
     {"long.suffix-0123456789abcdef", NULL, ERR_LEN},
 
     /* Empty string shenanigans. */
-    {" ", NULL, ERR_NO_SUFFIX},
-    {". ", NULL, ERR_NO_SUFFIX},
-    {".sh ", NULL, ERR_NO_SUFFIX},
-    {".py ", NULL, ERR_NO_SUFFIX},
+    {" ", NULL, ERR_NO_MATCH},
+    {". ", NULL, ERR_NO_MATCH},
+    {".sh ", NULL, ERR_NO_MATCH},
+    {".py ", NULL, ERR_NO_MATCH},
     {" .null", NULL, ERR_BAD},
     {" .empty", NULL, ERR_BAD},
     {" .py", NULL, ERR_NO_MATCH},
@@ -77,10 +77,10 @@ static const Args cases[] = {
     {" . ", NULL, ERR_NO_MATCH},
 
     /* Unicode shenanigans. */
-    {"𝕗ïḻę", NULL, ERR_NO_SUFFIX},
-    {".", NULL, ERR_NO_SUFFIX},
-    {".sh", NULL, ERR_NO_SUFFIX},
-    {".py", NULL, ERR_NO_SUFFIX},
+    {"𝕗ïḻę", NULL, ERR_NO_MATCH},
+    {".", NULL, ERR_NO_MATCH},
+    {".sh", NULL, ERR_NO_MATCH},
+    {".py", NULL, ERR_NO_MATCH},
     {"𝕗ïḻę.null", NULL, ERR_BAD},
     {"𝕗ïḻę.empty", NULL, ERR_BAD},
     {"𝕗ïḻę.py", NULL, ERR_NO_MATCH},
