@@ -29,8 +29,8 @@ typedef enum {
     ERR_BAD,            /* Generic error. FIXME */
     ERR_LEN,            /* An array or a string is too long. */
     ERR_NO_MATCH,       /* A value does not match a specification. */
-    ERR_NO_SUFFIX,      /* Filename has no suffix. */
-    ERR_PRIV,    /* Privileges could be resumed. */
+    ERR_SUFFIX,      	/* Filename has no suffix. */
+    ERR_PRIV,    		/* Privileges could be resumed. */
 
     /* System errors. */
     ERR_SYS_STAT,

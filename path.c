@@ -164,5 +164,5 @@ path_suffix(const char *const fname, const char **const suffix)
         }
     }
 
-    return ERR_NO_SUFFIX;
+    return ERR_SUFFIX;
 }

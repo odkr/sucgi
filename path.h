@@ -57,7 +57,7 @@ Error path_check_wexcl(uid_t uid, const char *basedir, const char *fname);
  *
  * Return value:
  *     OK             Success.
- *     ERR_NO_SUFFIX  FNAME has no filename suffix.
+ *     ERR_SUFFIX  FNAME has no filename suffix.
  */
 __attribute__((nonnull(1, 2), warn_unused_result))
 Error path_suffix(const char *fname, const char **suffix);
