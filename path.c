@@ -48,6 +48,7 @@ path_check_in(const char *const basedir, const char *const fname)
 
     /* NOLINTBEGIN(bugprone-not-null-terminated-result);
        strncmp(<...>, "/", 2) and strncmp(<...>, ".", 2) are fine. */
+
     if (strncmp(fname, "/", 2) != 0 && strncmp(fname, ".", 2) != 0) {
         size_t basedir_len;
         size_t fname_len;
@@ -79,8 +80,10 @@ path_check_in(const char *const basedir, const char *const fname)
             return OK;
         }
     }
+
     /* NOLINTEND(bugprone-not-null-terminated-result) */
 
+    /* FIXME: Use a distinct error. */
     return ERR_NO_MATCH;
 }
 
@@ -99,7 +102,7 @@ path_check_wexcl(const uid_t uid, const char *const basedir,
 
     if (path_check_in(basedir, fname) != OK) {
         /* FIXME: Not unit-tested. */
-        return ERR_NO_MATCH; /* FIXME: should be ERR_BAD; rename ERR_BAD to ERR_NOK */
+        return ERR_NO_MATCH; /* FIXME: should be a more appropriate error */
     }
 
     /* cppcheck-suppress misra-c2012-18.4; basedir is shorter than fname. */
@@ -117,7 +120,7 @@ path_check_wexcl(const uid_t uid, const char *const basedir,
         }
 
         if (!file_is_wexcl(uid, fstatus)) {
-            return ERR_BAD;
+            return ERR_BAD; /* FIXME: Should be a specific error. */
         }
 
         /* cppcheck-suppress misra-c2012-18.4; only moves past '/'s. */
