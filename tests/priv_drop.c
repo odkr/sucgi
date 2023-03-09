@@ -68,7 +68,7 @@ main (int argc, char **argv)
         err(EXIT_FAILURE, "setgid");
     case ERR_SYS_SETUID:
         err(EXIT_FAILURE, "setuid");
-    case ERR_PRIV_RESUME:
+    case ERR_PRIV:
         errx(EXIT_FAILURE, "could resume superuser privileges.");
     default:
         errx(EXIT_FAILURE, "returned %u.", ret);

@@ -40,7 +40,7 @@
  *     ERR_SYS_SETUID     setuid failed.
  *     ERR_SYS_SETGID     setgid failed.
  *     ERR_SYS_SETGROUPS  setgroups failed.
- *     ERR_PRIV_RESUME    Superuser privileges could be resumed.
+ *     ERR_PRIV    Superuser privileges could be resumed.
  */
 __attribute__((nonnull(4), warn_unused_result))
 Error priv_drop(uid_t uid, gid_t gid,

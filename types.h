@@ -30,7 +30,7 @@ typedef enum {
     ERR_LEN,            /* An array or a string is too long. */
     ERR_NO_MATCH,       /* A value does not match a specification. */
     ERR_NO_SUFFIX,      /* Filename has no suffix. */
-    ERR_PRIV_RESUME,    /* Privileges could be resumed. */
+    ERR_PRIV,    /* Privileges could be resumed. */
 
     /* System errors. */
     ERR_SYS_STAT,
