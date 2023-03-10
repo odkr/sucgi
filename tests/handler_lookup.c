@@ -115,8 +115,14 @@ main(void)
         const char *hdl;                    /* Handler. */
         Error ret;                          /* Return value. */
 
-        warnx("checking (db, %s, -> %s) -> %u ...",
-              args.script, args.hdl, args.ret);
+        /* GCC v9 refuses to fill in %s with NULL when using devel.env. */
+        if (args.hdl == NULL) {
+            warnx("checking (db, %p, -> %s) -> %u ...",
+                  args.script, args.hdl, args.ret);
+        } else {
+            warnx("checking (db, %s, -> %s) -> %u ...",
+                  args.script, args.hdl, args.ret);
+        }
 
         ret = handler_lookup(NELEMS(db), db, args.script, &hdl);
 
