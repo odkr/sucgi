@@ -26,7 +26,7 @@
 #
 
 # Default options for icc
-readonly icc_flags='-std=c99 -O2 -s'
+readonly icc_flags='-diag-disable=10441 -std=c99 -O2 -s'
 
 
 #
