@@ -52,16 +52,19 @@ readonly confsave=config.status
 # Defaults
 #
 
+# Build configuration.
+conf=prod.env
+
+# Compilers to test for. Space-separated list of commands.
+compilers='gcc clang tcc icc'
+
+# Files to generate.
+files='build.h compat.h makefile'
+
 # Number of child processes to spawn.
 max_njobs=4
 # FIXME: The Almquist shell may crash when using multiple jobs.
 [ "$(basename "${SHELL-}")" = ash ] && max_njobs=1
-
-# Build configuration.
-conf=prod.env
-
-# Files to generate.
-files='build.h compat.h makefile'
 
 # Overwrite existing files?
 force=
@@ -190,7 +193,7 @@ printf 'C compiler: '
 : "${CC:=}"
 if ! [ "$CC" ]
 then
-	for cc in gcc clang icc
+	for cc in $compilers
 	do
 		if	command -v "$cc" >/dev/null &&
 			"$cc" -v 2>&1 | grep -q "$cc"
