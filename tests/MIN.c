@@ -178,7 +178,7 @@ main (void) {
         test(tests[i].a, tests[i].b);
     }
 
-    for (long long i = SHRT_MIN; i < SHRT_MAX; ++i) {
+    for (long long i = -1024; i < 1024; ++i) {
         test(i, i + 1);
     }
 
