@@ -25,16 +25,21 @@
 # Constants
 #
 
+# Default options for icc
+readonly icc_flags='-std=c99 -O2 -s'
+
+
+#
+# Defaults
+#
+
 # Compilers to test.
 readonly compilers='
 	gcc-12 gcc-11 gcc-10 gcc-9 gcc-8 gcc musl-gcc
 	clang-16 clang-15 clang-14 clang-13 clang-12
 	clang-11 clang-10 clang-9 clang
-	tcc c99 cc
+	tcc icc c99 cc
 '
-
-# Build configurations to test.
-readonly configs='prod.env devel.env speed.env'
 
 
 #
@@ -63,8 +68,11 @@ while getopts h opt; do
 	(h) exec cat <<EOF
 $prog_name - run checks using different C compilers
 
-Usage:  $prog_name
+Usage:  $prog_name [CC ...]
         $prog_name -h
+
+Operands:
+    CC  A compiler to test.
 
 Options:
     -h  Show this help screen.
@@ -79,6 +87,8 @@ done
 shift $((OPTIND - 1))
 unset opt
 
+[ $# -eq 0 ] && set -- $compilers
+
 
 #
 # Main
@@ -88,9 +98,12 @@ cd -P "$src_dir" || exit
 
 # shellcheck disable=2034
 cleanup="[ -e makefile ] && make distclean"
-for cc in $compilers
+for cc
 do
 	command -v "$cc" >/dev/null || continue
+
+	name="${cc%-*}"
+	eval cflags="\${${name}_flags-}"
 
 	[ -e makefile ] && make distclean
 	for template in *.m4
@@ -100,21 +113,25 @@ do
 		('lib.m4') continue ;;
 		esac
 
-		m4 -D__CC="$cc" "$template" >"${template%.m4}"
+		m4 -D__CC="$cc" -D__CFLAGS="$cflags" \
+		   "$template" >"${template%.m4}"
 	done
 
 	make clean all check ||
 	err '%s w/o configuration failed.' "$cc"
 
-	for config in $configs
+	for env in *.env
 	do
-		[ -e "$config" ] || continue
+		case $env in
+		('*.env')	break ;;
+		('local.env')	continue ;;
+		esac
 
 		[ -e makefile ] && make distclean
-		CC="$cc" ./configure -fqc"$config"
+		CC="$cc" ./configure -fqc"$env"
 
 		make clean all check ||
-		err '%s with configuration %s failed.' "$cc" "$config"
+		err '%s with %s failed.' "$cc" "$env"
 	done
 done
 
