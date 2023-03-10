@@ -20,15 +20,21 @@
 
 # shellcheck disable=2015
 
+
 #
 # Constants
 #
 
-# Shells to test
-readonly shells='sh bash dash ksh mksh oksh posh sash yash zsh'
-
 # Files that ./configure should create.
 readonly files='config.status makefile build.h compat.h'
+
+
+#
+# Defaults
+#
+
+# Shells to test.
+readonly shells='sh bash dash ksh mksh oksh posh sash yash zsh'
 
 
 #
@@ -73,6 +79,8 @@ done
 shift $((OPTIND - 1))
 unset opt
 
+[ $# -eq 0 ] && set -- $shells
+
 
 #
 # Main
@@ -85,7 +93,7 @@ cleanup="[ -e makefile ] && make distclean"
 
 [ -e makefile ] && make distclean
 
-for shell in $shells
+for shell
 do
 	command -v "$shell" >/dev/null 2>&1 || continue
 
