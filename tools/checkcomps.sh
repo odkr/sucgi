@@ -30,7 +30,7 @@ readonly compilers='
 	gcc-12 gcc-11 gcc-10 gcc-9 gcc-8 gcc musl-gcc
 	clang-16 clang-15 clang-14 clang-13 clang-12
 	clang-11 clang-10 clang-9 clang
-	tcc icc c99 cc
+	tcc c99 cc
 '
 
 # Build configurations to test.
