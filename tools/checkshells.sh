@@ -25,7 +25,7 @@
 #
 
 # Shells to test
-readonly shells='sh bash dash ksh mksh oksh posh yash zsh'
+readonly shells='sh bash dash ksh mksh oksh posh sash yash zsh'
 
 # Files that ./configure should create.
 readonly files='config.status makefile build.h compat.h'
