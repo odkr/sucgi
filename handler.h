@@ -38,7 +38,7 @@
  *     OK             Success.
  *     ERR_BAD        Matching handler is NULL or the empty string.
  *     ERR_LEN        Filename suffix is too long.
- *     ERR_NO_MATCH   No handler found.
+ *     ERR_SEARCH   No handler found.
  */
 __attribute__((nonnull(2, 3, 4), warn_unused_result))
 Error handler_lookup(size_t nelems, const Pair *handlerdb,

@@ -26,11 +26,13 @@
 /* Return codes. */
 typedef enum {
     OK = 0,             /* Success. */
-    ERR_BAD,            /* Generic error. FIXME */
+    ERR_BAD,            /* Bad input. */
+    ERR_BASEDIR,        /* File is outside of base directory. */
     ERR_LEN,            /* An array or a string is too long. */
-    ERR_NO_MATCH,       /* A value does not match a specification. */
-    ERR_SUFFIX,      	/* Filename has no suffix. */
-    ERR_PRIV,    		/* Privileges could be resumed. */
+    ERR_PRIV,           /* Privileges could be resumed. */
+    ERR_SEARCH,         /* A value does not match a specification. */
+    ERR_SUFFIX,         /* Filename has no suffix. */
+    ERR_WEXCL,          /* File is not exclusively writable by its owner. */
 
     /* System errors. */
     ERR_SYS_STAT,

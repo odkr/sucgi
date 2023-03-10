@@ -88,67 +88,67 @@ static void test(const char *basedir, const char *fname, Error ret);
 /* Static test cases. */
 static const Args cases[] = {
     /* Absolute paths. */
-    {"/", "/", ERR_NO_MATCH},
+    {"/", "/", ERR_BASEDIR},
     {"/", "/foo", OK},
     {"/foo", "/foo/bar", OK},
-    {"/foo", "/bar", ERR_NO_MATCH},
-    {"/bar", "/foo", ERR_NO_MATCH},
-    {"/foo", "/foobar", ERR_NO_MATCH},
-    {"/", "foo", ERR_NO_MATCH},
-    {"/foo", "/", ERR_NO_MATCH},
-    {"/foo", "/foo", ERR_NO_MATCH},
+    {"/foo", "/bar", ERR_BASEDIR},
+    {"/bar", "/foo", ERR_BASEDIR},
+    {"/foo", "/foobar", ERR_BASEDIR},
+    {"/", "foo", ERR_BASEDIR},
+    {"/foo", "/", ERR_BASEDIR},
+    {"/foo", "/foo", ERR_BASEDIR},
 
     /* Relative paths. */
     {"foo", "foo/bar", OK},
     {".", "foo/bar", OK},
-    {"foo", "foo", ERR_NO_MATCH},
-    {"bar", "foo", ERR_NO_MATCH},
+    {"foo", "foo", ERR_BASEDIR},
+    {"bar", "foo", ERR_BASEDIR},
 
     /* Leading dot. */
     {".", "./foo", OK},
     {"./foo", "./foo/bar", OK},
     {".", ".foo", OK},
-    {"./bar", "./foo", ERR_NO_MATCH},
-    {"./foo", ".", ERR_NO_MATCH},
-    {"./foo", "./", ERR_NO_MATCH},
-    {"./foo", "./foo", ERR_NO_MATCH},
-    {".", ".", ERR_NO_MATCH},
-    {".f", ".foo", ERR_NO_MATCH},
-    {".foo", ".foo", ERR_NO_MATCH},
+    {"./bar", "./foo", ERR_BASEDIR},
+    {"./foo", ".", ERR_BASEDIR},
+    {"./foo", "./", ERR_BASEDIR},
+    {"./foo", "./foo", ERR_BASEDIR},
+    {".", ".", ERR_BASEDIR},
+    {".f", ".foo", ERR_BASEDIR},
+    {".foo", ".foo", ERR_BASEDIR},
 
     /* Realistc tests. */
     {"/home/jdoe", "/home/jdoe/public_html", OK},
     {"/srv/www", "/srv/www/jdoe", OK},
-    {"/home/jdoe", "/srv/www/jdoe", ERR_NO_MATCH},
-    {"/srv/www", "/home/jdoe/public_html", ERR_NO_MATCH},
+    {"/home/jdoe", "/srv/www/jdoe", ERR_BASEDIR},
+    {"/srv/www", "/home/jdoe/public_html", ERR_BASEDIR},
 
     /* UTF-8. */
     {"/", "/𝒇ȫǭ", OK},
     {"/𝒇ȫǭ", "/𝒇ȫǭ/𝕓ắ𝚛", OK},
-    {"/𝒇ȫǭ", "/𝕓ắ𝚛", ERR_NO_MATCH},
-    {"/𝕓ắ𝚛", "/𝒇ȫǭ", ERR_NO_MATCH},
-    {"/𝒇ȫǭ", "/𝒇ȫǭ𝕓ắ𝚛", ERR_NO_MATCH},
-    {"/", "𝒇ȫǭ", ERR_NO_MATCH},
-    {"/𝒇ȫǭ", "/", ERR_NO_MATCH},
-    {"/𝒇ȫǭ", "/𝒇ȫǭ", ERR_NO_MATCH},
+    {"/𝒇ȫǭ", "/𝕓ắ𝚛", ERR_BASEDIR},
+    {"/𝕓ắ𝚛", "/𝒇ȫǭ", ERR_BASEDIR},
+    {"/𝒇ȫǭ", "/𝒇ȫǭ𝕓ắ𝚛", ERR_BASEDIR},
+    {"/", "𝒇ȫǭ", ERR_BASEDIR},
+    {"/𝒇ȫǭ", "/", ERR_BASEDIR},
+    {"/𝒇ȫǭ", "/𝒇ȫǭ", ERR_BASEDIR},
     {"𝒇ȫǭ", "𝒇ȫǭ/𝕓ắ𝚛", OK},
     {".", "𝒇ȫǭ/𝕓ắ𝚛", OK},
-    {"𝒇ȫǭ", "𝒇ȫǭ", ERR_NO_MATCH},
-    {"𝕓ắ𝚛", "𝒇ȫǭ", ERR_NO_MATCH},
+    {"𝒇ȫǭ", "𝒇ȫǭ", ERR_BASEDIR},
+    {"𝕓ắ𝚛", "𝒇ȫǭ", ERR_BASEDIR},
     {".", "./𝒇ȫǭ", OK},
     {"./𝒇ȫǭ", "./𝒇ȫǭ/𝕓ắ𝚛", OK},
     {".", ".𝒇ȫǭ", OK},
-    {"./𝕓ắ𝚛", "./𝒇ȫǭ", ERR_NO_MATCH},
-    {"./𝒇ȫǭ", ".", ERR_NO_MATCH},
-    {"./𝒇ȫǭ", "./", ERR_NO_MATCH},
-    {"./𝒇ȫǭ", "./𝒇ȫǭ", ERR_NO_MATCH},
-    {".", ".", ERR_NO_MATCH},
-    {".f", ".𝒇ȫǭ", ERR_NO_MATCH},
-    {".𝒇ȫǭ", ".𝒇ȫǭ", ERR_NO_MATCH},
+    {"./𝕓ắ𝚛", "./𝒇ȫǭ", ERR_BASEDIR},
+    {"./𝒇ȫǭ", ".", ERR_BASEDIR},
+    {"./𝒇ȫǭ", "./", ERR_BASEDIR},
+    {"./𝒇ȫǭ", "./𝒇ȫǭ", ERR_BASEDIR},
+    {".", ".", ERR_BASEDIR},
+    {".f", ".𝒇ȫǭ", ERR_BASEDIR},
+    {".𝒇ȫǭ", ".𝒇ȫǭ", ERR_BASEDIR},
     {"/home/⒥𝑑𝓸𝖊", "/home/⒥𝑑𝓸𝖊/public_html", OK},
     {"/srv/www", "/srv/www/⒥𝑑𝓸𝖊", OK},
-    {"/home/⒥𝑑𝓸𝖊", "/srv/www/⒥𝑑𝓸𝖊", ERR_NO_MATCH},
-    {"/srv/www", "/home/⒥𝑑𝓸𝖊/public_html", ERR_NO_MATCH}
+    {"/home/⒥𝑑𝓸𝖊", "/srv/www/⒥𝑑𝓸𝖊", ERR_BASEDIR},
+    {"/srv/www", "/home/⒥𝑑𝓸𝖊/public_html", ERR_BASEDIR}
 };
 
 
@@ -207,7 +207,7 @@ main(void)
     }
 
     /* Basedir and filename just within bounds. */
-    test(maxlen, maxlen, ERR_NO_MATCH);
+    test(maxlen, maxlen, ERR_BASEDIR);
 
     /* Basedir too long. */
     test(errlen, maxlen, ERR_LEN);
@@ -266,22 +266,22 @@ main(void)
         }
 
         ret = path_check_in(fname, ".");
-        if (ret != ERR_NO_MATCH) {
+        if (ret != ERR_BASEDIR) {
             errx(TEST_FAILED, "(%s, .) -> %u", fname, ret);
         }
 
         ret = path_check_in(fname, "/");
-        if (ret != ERR_NO_MATCH) {
+        if (ret != ERR_BASEDIR) {
             errx(TEST_FAILED, "(%s, /) -> %u", fname, ret);
         }
 
         ret = path_check_in(".", fname);
-        if (ret != ((isrel) ? OK : ERR_NO_MATCH)) {
+        if (ret != ((isrel) ? OK : ERR_BASEDIR)) {
             errx(TEST_FAILED, "(., %s) -> %u", fname, ret);
         }
 
         ret = path_check_in("/", fname);
-        if (ret != ((isabs) ? OK : ERR_NO_MATCH)) {
+        if (ret != ((isabs) ? OK : ERR_BASEDIR)) {
             errx(TEST_FAILED, "(/, %s) -> %u", fname, ret);
         }
     }
@@ -314,7 +314,7 @@ main(void)
                  */
                 if (i != DOT) {
                     ret = path_check_in(basedir, fname);
-                    if (ret != ERR_NO_MATCH) {
+                    if (ret != ERR_BASEDIR) {
                         errx(TEST_FAILED, "(%s, %s) -> %u!",
                              basedir, fname, ret);
                     }

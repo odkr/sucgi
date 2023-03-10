@@ -27,14 +27,15 @@
 #include "cattr.h"
 #include "types.h"
 
+
 /*
  * Check if the file naemd FNAME is within BASEDIR.
  * FNAME and BASEDIR must be canonical.
  *
  * Return value:
- *     OK            FNAME is within BASEDIR.
- *     ERR_NO_MATCH  FNAME is NOT within of BASEDIR.
- *     ERR_LEN       BASEDIR is longer than MAX_FNAME_LEN - 1 bytes.
+ *     OK           FNAME is within BASEDIR.
+ *     ERR_BASEDIR  FNAME is not within of BASEDIR.
+ *     ERR_LEN      BASEDIR is longer than MAX_FNAME_LEN - 1 bytes.
  */
 __attribute__((nonnull(1, 2), warn_unused_result))
 Error path_check_in(const char *basedir, const char *fname);
@@ -46,7 +47,8 @@ Error path_check_in(const char *basedir, const char *fname);
  *
  * Return value:
  *     OK            UID has exclusive write access to FNAME.
- *     ERR_BAD       UID does NOT have exclusive write access to FNAME.
+ *	   ERR_BASEDIR   FNAME is not within BASEDIR.
+ *     ERR_WEXCL     UID does NOT have exclusive write access to FNAME.
  *     ERR_SYS_STAT  stat failed.
  */
 __attribute__((nonnull(2, 3), warn_unused_result))
@@ -56,7 +58,7 @@ Error path_check_wexcl(uid_t uid, const char *basedir, const char *fname);
  * Return a pointer to the filename suffix of FNAME in SUFFIX.
  *
  * Return value:
- *     OK             Success.
+ *     OK          Success.
  *     ERR_SUFFIX  FNAME has no filename suffix.
  */
 __attribute__((nonnull(1, 2), warn_unused_result))

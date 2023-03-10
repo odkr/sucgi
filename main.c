@@ -674,7 +674,7 @@ main(int argc, char **argv) {
     switch (ret) {
         case OK:
             break;
-        case ERR_NO_MATCH:
+        case ERR_BASEDIR:
             error("%s is not within %s's user directory.",
                   script_log, logname);
         default:
@@ -721,7 +721,7 @@ main(int argc, char **argv) {
     switch (ret) {
     case OK:
         break;
-    case ERR_BAD:
+    case ERR_WEXCL:
         error("%s is writable by users other than %s.", script_log, logname);
     case ERR_SYS_STAT:
         error("stat %s: %m.", script_log);
@@ -818,7 +818,7 @@ main(int argc, char **argv) {
             error("handler for %s's filename suffix is bad.", script_log);
         case ERR_LEN:
             error("%s's filename suffix is too long.", script_log);
-        case ERR_NO_MATCH:
+        case ERR_SEARCH:
             error("no handler for %s's filename suffix.", script_log);
         default:
             /* Should be unreachable. */

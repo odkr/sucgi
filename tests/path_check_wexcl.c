@@ -66,10 +66,10 @@ main (int argc, char **argv)
     switch (ret) {
     case OK:
         break;
-    case ERR_BAD:
+    case ERR_WEXCL:
         errx(EXIT_FAILURE, "%s is writable by users other than %s",
              fname, user->pw_name);
-    case ERR_NO_MATCH:
+    case ERR_SEARCH:
         /* FIXME: not tested by the script. */
         errx(EXIT_FAILURE, "%s is not within %s", fname, basedir);
     case ERR_SYS_STAT:

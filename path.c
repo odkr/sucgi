@@ -75,16 +75,15 @@ path_check_in(const char *const basedir, const char *const fname)
 
         if (fname_len > basedir_len                     &&
             fname[basedir_len] == '/'                   &&
-            strncmp(basedir, fname, basedir_len) == 0
-        ) {
+            strncmp(basedir, fname, basedir_len) == 0)
+        {
             return OK;
         }
     }
 
     /* NOLINTEND(bugprone-not-null-terminated-result) */
 
-    /* FIXME: Use a distinct error. */
-    return ERR_NO_MATCH;
+    return ERR_BASEDIR;
 }
 
 Error
@@ -102,7 +101,7 @@ path_check_wexcl(const uid_t uid, const char *const basedir,
 
     if (path_check_in(basedir, fname) != OK) {
         /* FIXME: Not unit-tested. */
-        return ERR_NO_MATCH; /* FIXME: should be a more appropriate error */
+        return ERR_BASEDIR;
     }
 
     /* cppcheck-suppress misra-c2012-18.4; basedir is shorter than fname. */
@@ -120,7 +119,7 @@ path_check_wexcl(const uid_t uid, const char *const basedir,
         }
 
         if (!file_is_wexcl(uid, fstatus)) {
-            return ERR_BAD; /* FIXME: Should be a specific error. */
+            return ERR_WEXCL;
         }
 
         /* cppcheck-suppress misra-c2012-18.4; only moves past '/'s. */

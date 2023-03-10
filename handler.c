@@ -67,5 +67,5 @@ handler_lookup(const size_t nelems, const Pair *const handlerdb,
         }
     }
 
-    return ERR_NO_MATCH;
+    return ERR_SEARCH;
 }
