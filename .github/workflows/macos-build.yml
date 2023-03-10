@@ -18,9 +18,9 @@ jobs:
     - name: make
       run: make
     - name: make check
-      run: make check
+      run: 'make runpara_flags="-i75 -S" check'
     - name: sudo make check
-      run: sudo make check
+      run: 'sudo make runpara_flags="-i75 -S" check'
     - name: sudo make install
       run: sudo make install
     - name: sudo make uninstall
