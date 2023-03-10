@@ -44,11 +44,13 @@ stdhdrs = cattr.h compat.h macros.h max.h types.h
 # Test suite
 #
 
+runpara_flags = -i75
+
 repo_owner = default(`__sc_repo_owner', `$$(ls -ld . | awk "{print \$$3}")')
 
 tool_bins = tools/badenv tools/badexec tools/ids tools/runpara tools/runas
 
-macro_checks = tests/ISSIGNED tests/MIN tests/NELEMS tests/SIGNEDMAX
+macro_check_bins = tests/ISSIGNED tests/MIN tests/NELEMS tests/SIGNEDMAX
 
 check_bins = tests/env_is_name tests/env_restore \
              tests/error tests/file_is_exe tests/file_is_wexcl \
@@ -57,7 +59,7 @@ check_bins = tests/env_is_name tests/env_restore \
              tests/priv_drop tests/priv_suspend \
              tests/str_cp tests/str_split tests/userdir_resolve
 
-checks = $(macro_checks) \
+checks = $(macro_check_bins) \
          tests/env_is_name tests/env_restore \
          tests/error.sh tests/file_is_exe tests/file_is_wexcl \
          tests/handler_lookup tests/main.sh \
@@ -65,9 +67,12 @@ checks = $(macro_checks) \
          tests/priv_drop.sh tests/priv_suspend.sh \
          tests/str_cp tests/str_split tests/userdir_resolve
 
+
+
+
 scripts = configure tools/*.sh tests/*.sh
 
-bins = $(tool_bins) $(macro_checks) $(check_bins)
+bins = $(tool_bins) $(macro_check_bins) $(check_bins)
 
 
 #
@@ -128,7 +133,7 @@ all: sucgi
 sucgi:
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ main.c lib.a $(LDLIBS)
 
-$(macro_checks):
+$(macro_check_bins):
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/lib.o -lm $(LDLIBS)
 
 $(check_bins):
@@ -239,7 +244,7 @@ clean:
 #
 
 check: $(tool_bins) $(checks)
-	tools/runpara -i75 $(check_args) $(checks)
+	tools/runpara $(runpara_flags) $(checks)
 
 
 #
@@ -293,8 +298,8 @@ uninstall:
 
 cov: clean $(tool_bins)
 #	make CC=$(SC_COV_CC) CFLAGS="--coverage -O2" \
-#		$(macro_checks) $(check_bins)
-	#tools/runpara -cj1 $(macro_checks) $(check_bins) || :
+#		$(macro_check_bins) $(check_bins)
+	#tools/runpara -cj1 $(macro_check_bins) $(check_bins) || :
 	#chown -R "$(repo_owner)" .
 	make CFLAGS="-O2 --coverage" $(checks)
 	umask 0 && tools/runpara -i75 -j1 $(checks)
