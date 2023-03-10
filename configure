@@ -85,7 +85,9 @@ addflags() {
 }
 
 # Test compiler features.
-testcc() {
+testcc() (
+	exec >/dev/null 2>&1
+
 	case "$(basename "${CC:?}")" in
 	(clang|clang[!a-z]*|gcc|gcc[!a-z]*|musl-gcc|musl-gcc[!a-z]*)
 		"$CC" -xc -Wall -Werror -pedantic -pipe -o/dev/null "$@"
@@ -100,7 +102,7 @@ testcc() {
 		return 1
 		;;
 	esac
-}
+)
 
 
 #
@@ -226,6 +228,7 @@ if [ "$ccname" = c99 ]
 	then cctype="$ccname"
 	else cctype="${ccname%%[!a-z]*}"
 fi
+[ "$cctype" = clang ] && cctype=llvm
 
 
 #
@@ -258,8 +261,10 @@ then
 					CFLAGS="${CFLAGS-} $flag"
 					continue
 				esac
+
 				printf 'int main(void) { return 0; }\n' |
-					testcc "$flag" - >/dev/null 2>&1 &
+				testcc "$flag" - &
+
 				njobs=$((njobs + 1)) jobs="$jobs$! "
 				eval "flag_$!"='$flag'
 			done
@@ -294,8 +299,6 @@ printf 'Archiver: '
 
 if [ "${AR-x}" = x ] && ! [ "${AR-}" = x ]
 then
-	[ "$cctype" = clang ] && cctype=llvm
-
 	if ccversion="$(
 		"$CC" --version 2>/dev/null |
 		awk '{
@@ -362,7 +365,8 @@ then
 		#include <unistd.h>
 
 		int
-		main(void) {
+		main(void)
+		{
 			GETGRPLST_T basegid = 0;
 			GETGRPLST_T groups[1] = {0};
 			int n = 1;
@@ -376,7 +380,7 @@ then
 	IFS=:
 	for type in $types
 	do
-		if testcc -DGETGRPLST_T="$type" "$src" >/dev/null 2>&1
+		if testcc -DGETGRPLST_T="$type" "$src"
 		then
 			SC_GETGRPLST_T="$type"
 			break
@@ -385,10 +389,8 @@ then
 	unset IFS src
 
 	if [ "${SC_GETGRPLST_T-}" ]
-	then
-		printf '%s\n' "$SC_GETGRPLST_T"
-	else
-		printf 'guess at compile-time\a\n'
+		then printf '%s\n' "$SC_GETGRPLST_T"
+		else printf 'guess at compile-time\a\n'
 	fi
 else
 	printf '%s\n' "$SC_GETGRPLST_T"
@@ -404,7 +406,7 @@ printf 'setgroups count type: '
 : "${SC_SETGRPNUM_T=}"
 if	! [ "$SC_SETGRPNUM_T" ] &&
 	printf 'int main(void) { return 0; }\n' |
-	testcc -Wconversion - 2>/dev/null
+	testcc -Wconversion -
 then
 	types=size_t
 	for base in 'int' 'short' 'long' 'long long'
@@ -427,7 +429,8 @@ then
 		#include <unistd.h>
 
 		int
-		main(void) {
+		main(void)
+		{
 			SETGRPNUM_T ngroups = 0;
 			gid_t gidset[1] = {0};
 
@@ -440,7 +443,7 @@ then
 	IFS=:
 	for type in $types
 	do
-		if testcc -DSETGRPNUM_T="$type" -Wconversion "$src" >/dev/null 2>&1
+		if testcc -DSETGRPNUM_T="$type" -Wconversion "$src"
 		then
 			SC_SETGRPNUM_T="$type"
 			break
