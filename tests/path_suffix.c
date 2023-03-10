@@ -758,8 +758,14 @@ main (void)
         const char *suffix;
         Error ret;
 
-        warnx("checking (%s, -> %s) -> %u ...",
-              args.fname, args.suffix, args.ret);
+        /* GCC v9 refuses to fill in %s with NULL when using devel.env. */
+        if (args.suffix == NULL) {
+            warnx("checking (%s, -> %p) -> %u ...",
+                  args.fname, args.suffix, args.ret);
+        } else {
+            warnx("checking (%s, -> %s) -> %u ...",
+                  args.fname, args.suffix, args.ret);
+        }
 
         ret = path_suffix(args.fname, &suffix);
 
