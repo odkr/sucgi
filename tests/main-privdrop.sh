@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Test whether suCGI drops its privileges.
+# Test whether privileges are dropped.
 #
 # Copyright 2023 Odin Kroeger.
 #

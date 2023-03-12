@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Test whether the user directory is enforced.
+# Test user directory verification.
 #
 # Copyright 2023 Odin Kroeger.
 #

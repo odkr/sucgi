@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Test whether suCGI bails out if the script is hidden file.
+# Test hidden file checks.
 #
 # Copyright 2023 Odin Kroeger.
 #

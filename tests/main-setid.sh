@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Test whether suCGI bails out if a set-id on execute bit is set.
+# Test set-id on execute bit verification.
 #
 # Copyright 2023 Odin Kroeger.
 #

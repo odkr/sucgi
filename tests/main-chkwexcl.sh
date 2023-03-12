@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Check whether non-exclusively writable paths are rejected.
+# Test whether non-exclusively writable paths are rejected.
 #
 # Copyright 2022 Odin Kroeger.
 #

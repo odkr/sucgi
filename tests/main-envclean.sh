@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Test whether the environment is clean.
+# Test environment clean-up.
 #
 # Copyright 2023 Odin Kroeger.
 #

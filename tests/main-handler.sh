@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Test whether suCGI bails out if no handler is found.
+# Test script handling.
 #
 # Copyright 2023 Odin Kroeger.
 #
