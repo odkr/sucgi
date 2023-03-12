@@ -97,16 +97,17 @@ unset opt
 
 [ $# -eq 0 ] && set -- $vms
 
-readonly comm='
-	cd "$dir"			&&
-	git stash			&&
-	git pull			&&
-	git checkout "$branch"		;
-	[ -e makefile ]			&&
-	make distclean			||
-	exit
-	"$check"
-'
+readonly comm="
+	set -e
+	cd \"$dir\"
+	git stash
+	git pull
+	git checkout \"$branch\"
+	if [ -e makefile ]
+	then make distclean
+	fi
+	\"$check\"
+"
 
 
 #
@@ -161,7 +162,7 @@ do
 		else exec >/dev/null 2>&1
 		fi
 
-		eval ssh "$vm" "$comm"
+		ssh "$vm" "$comm"
 	)
 	then
 		printf 'pass\n' >&2
