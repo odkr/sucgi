@@ -171,7 +171,7 @@ do
 		printf '%s\n' pass >&2
 	else
 		printf '%s\n' fail >&2
-		[ "$storelogs"] && [ -e "$logfile" ] && mv "$logfile" .
+		[ "$storelogs" ] && [ -e "$logfile" ] && mv "$logfile" .
 		failures="$failures $cc"
 	fi
 done
