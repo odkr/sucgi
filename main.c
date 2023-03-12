@@ -754,11 +754,11 @@ main(int argc, char **argv) {
      */
 
     if ((script_stat.st_mode & S_ISUID) != 0) {
-        error("%s's set-user-ID bit is set.", script_phys);
+        error("script %s: set-user-ID on execute bit is set.", script_log);
     }
 
     if ((script_stat.st_mode & S_ISGID) != 0) {
-        error("%s's set-group-ID bit is set.", script_phys);
+        error("script %s: set-group-ID on execute bit is set.", script_log);
     }
 
 
@@ -770,7 +770,7 @@ main(int argc, char **argv) {
 
     /* script_phys is canonical. */
     if (strstr(script_phys, "/.") != NULL) {
-        error("path %s contains hidden files.", script_log);
+        error("path %s: contains hidden files.", script_log);
     }
 
 
@@ -831,9 +831,9 @@ main(int argc, char **argv) {
         switch (ret) {
         case OK:
             break;
-        case ERR_BAD:
+        case ERR_BAD: /* FIXME: not unit-tested by main-*.sh. */
             error("script %s: bad handler.", script_log);
-        case ERR_LEN:
+        case ERR_LEN: /* FIXME: not unit-tested by main-*.sh. */
             error("script %s: filename suffix too long.", script_log);
         case ERR_SEARCH:
             error("script %s: no handler found.", script_log);
