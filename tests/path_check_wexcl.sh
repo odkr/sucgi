@@ -121,6 +121,14 @@ done
 
 
 #
+# Non-existant files
+#
+
+check -s1 -e "stat $TMPDIR/<nosuchfile>: No such file or directory" \
+	path_check_wexcl "$user" "$TMPDIR" "$TMPDIR/<nosuchfile>"
+
+
+#
 # Not exclusively writable
 #
 
