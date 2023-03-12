@@ -62,9 +62,9 @@ compilers='gcc clang tcc icc'
 files='build.h compat.h makefile'
 
 # Number of child processes to spawn.
-max_njobs=4
+maxnjobs=4
 # FIXME: The Almquist shell may crash when using multiple jobs.
-[ "$(basename "${SHELL-}")" = ash ] && max_njobs=1
+[ "$(basename "${SHELL-}")" = ash ] && maxnjobs=1
 
 # Overwrite existing files?
 force=
@@ -136,7 +136,7 @@ Options:
     -c FILE  Read build configuration from FILE (default: $conf).
     -d       Short for -c devel.env.
     -f       Overwrite existing files. config.h is never overwritten.
-    -j N     Run N configuration tests in parallel (default: $max_njobs).
+    -j N     Run N configuration tests in parallel (default: $maxnjobs).
     -q       Be quiet.
     -h       Show this help screen.
 
@@ -151,7 +151,7 @@ EOF
 	(c) conf="$OPTARG" ;;
 	(d) conf=devel.env ;;
 	(f) force=x ;;
-	(j) max_njobs="$OPTARG" ;;
+	(j) maxnjobs="$OPTARG" ;;
 	(q) quiet=x ;;
 	(*) exit 1
 	esac
@@ -188,7 +188,7 @@ then
 fi
 
 # shellcheck disable=2034
-readonly conf force quiet max_njobs nfiles
+readonly conf force quiet maxnjobs nfiles
 
 
 #
@@ -236,6 +236,7 @@ fi
 ccname="$(basename "$CC")"
 case $ccname in
 (clang|clang-*)	cctype=llvm ;;
+(musl-gcc)	cctype=musl_gcc ;;
 (*)		cctype="${ccname%%-*}" ;;
 esac
 
@@ -261,7 +262,7 @@ then
 		while [ "$njobs" -gt 0 ] || [ $# -gt 0 ]
 		do
 			# Start jobs.
-			while [ "$njobs" -lt "$max_njobs" ] && [ $# -gt 0 ]
+			while [ "$njobs" -lt "$maxnjobs" ] && [ $# -gt 0 ]
 			do
 				flag="$1"
 				shift
