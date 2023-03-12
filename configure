@@ -559,7 +559,7 @@ do
 	fi
 
 	swap="$TMPDIR/$file"
-	if m4 "$@" "$template" >"$swap"
+	if m4 "$@" "$template" >"$swap" 2>/dev/null
 	then
 		mv "$swap" "$file"
 		if [ "$exists" ]
