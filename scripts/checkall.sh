@@ -1,5 +1,5 @@
 #!/bin/sh
-# Run checks using different compilers.
+# Run shell and compiler checks.
 #
 # Copyright 2022 Odin Kroeger.
 #
@@ -61,13 +61,10 @@ while getopts h opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF
-$prog_name - run scripts with different shells
+$prog_name - run shell and compiler checks
 
-Usage:  $prog_name [SH ...]
+Usage:  $prog_name
         $prog_name -h
-
-Operands:
-    SH  A shell.
 
 Options:
     -h  Show this help screen.
@@ -89,31 +86,8 @@ unset opt
 # Main
 #
 
-cd -P "$src_dir" || exit
+cd -P "$src_dir/scripts" || exit
 
-# shellcheck disable=2034
-cleanup="[ -e makefile ] && make distclean"
+./checkshells.sh
+./checkcomps.sh
 
-[ -e makefile ] && make distclean
-
-for shell
-do
-	command -v "$shell" >/dev/null 2>&1 || continue
-
-	"$shell" ./configure ||
-	err '%s ./configure exited with status %d.' "$shell" "$?"
-
-	for file in $files
-	do
-		[ -e "$file" ] ||
-		err '%s ./configure did not generate %s' "$shell" "$file"
-	done
-
-	find ./tests -name '*.sh' ! -name lib.sh \
-	     -exec make check SHELL="$shell" checks='{}' ';'
-done
-
-[ -e makefile ] && make distclean
-unset cleanup
-
-warn 'all tests passed.'

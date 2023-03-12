@@ -49,6 +49,7 @@ err() {
 catch() {
 	signo="${1:?}"
 	sig="$(kill -l "$signo")"
+	printf '%*s\r' 80 >&2
 	warn 'caught %s.' "$sig"
 	[ "${catch-}" ] && exit "$((signo + 128))"
 	# shellcheck disable=2034
@@ -149,16 +150,16 @@ tmpdir() {
 }
 
 # Print $* to stderr.
-# -l prefixes the messages with the number of the line warn was called from.
+# -n suppresses the terminating LF.
 # -q suppresses output if $quiet is set.
 # -v suppresses output unless $verbose is set.
 warn() (
-	line=''
+	lf=y
 	OPTIND=1 OPTARG='' opt=''
-	while getopts 'lqv' opt
+	while getopts 'nqv' opt
 	do
 		case $opt in
-		(l) line="${_line-}" ;;
+		(n) lf= ;;
 		(q) [ "${quiet-}" ] && return 0 ;;
 		(v) [ "${verbose-}" ] || return 0 ;;
 		(*) return 1
@@ -168,10 +169,9 @@ warn() (
 
 	exec >&2
 	printf '%s: ' "${prog_name:-$0}"
-	[ "$line" ] && printf 'line %d: ' "$line"
 	# shellcheck disable=SC2059
 	printf -- "$@"
-	echo
+	[ "$lf" ] && echo
 
 	return 0
 )
