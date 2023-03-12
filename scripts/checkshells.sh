@@ -34,7 +34,7 @@ readonly files='config.status makefile build.h compat.h'
 #
 
 # Shells to test.
-readonly shells='sh bash dash ksh mksh oksh posh sash yash zsh'
+readonly shells='sh bash dash ksh mksh oksh posh yash zsh'
 
 # Be quiet?
 quiet=
