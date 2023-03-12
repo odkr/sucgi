@@ -114,7 +114,7 @@ unset opt
 #
 
 cd -P "$src_dir" || exit
-
+lock check.lock
 # shellcheck disable=2034
 cleanup="mrproper; ${cleanup-}"
 
