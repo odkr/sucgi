@@ -57,6 +57,7 @@
 #include "macros.h"
 #include "path.h"
 #include "priv.h"
+#include "str.h"
 #include "types.h"
 #include "userdir.h"
 
@@ -231,6 +232,10 @@ config(void)
     }
     (void) printf("\"\n");
 
+    (void) printf("LOGGING_FACILITY=%d\n", LOGGING_FACILITY);
+    (void) printf("LOGGING_LEVEL=%d\n", LOGGING_LEVEL);
+    (void) printf("LOGGING_OPTIONS=%d\n", LOGGING_OPTIONS);
+
     (void) printf("PATH=\"%s\"\n", PATH);
     (void) printf("UMASK=0%o\n", (unsigned int) UMASK);
 
@@ -336,7 +341,10 @@ main(int argc, char **argv) {
      */
 
     ret = priv_suspend();
-    if (ret != OK) {
+    switch (ret) {
+    case OK:
+        break;
+    default:
         /* Should be unreachable. */
         error("%d: priv_suspend returned %u.", __LINE__, ret);
     }
@@ -430,14 +438,15 @@ main(int argc, char **argv) {
      * Get the script's filename and filesystem metadata.
      */
 
-    const char *script_log;
+    char script_log[MAX_FNAME_LEN];
     const char *script_phys;
+    const char *script_env;
     struct stat script_stat;
 
     errno = 0;
     /* cppcheck-suppress misra-c2012-21.8; PATH_TRANSLATED is sanitised. */
-    script_log = getenv("PATH_TRANSLATED");     /* RATS: ignore */
-    if (script_log == NULL) {
+    script_env = getenv("PATH_TRANSLATED");     /* RATS: ignore */
+    if (script_env == NULL) {
         /* cppcheck-suppress misra-c2012-22.10; getenv may set errno. */
         if (errno == 0) {
             error("$PATH_TRANSLATED not set.");
@@ -447,12 +456,19 @@ main(int argc, char **argv) {
         }
     }
 
-    if (*script_log == '\0') {
+    if (*script_env == '\0') {
         error("$PATH_TRANSLATED is empty.");
     }
 
-    if (strnlen(script_log, MAX_FNAME_LEN) >= (size_t) MAX_FNAME_LEN) {
+    ret = str_cp(MAX_FNAME_LEN, script_env, script_log);
+    switch (ret) {
+    case OK:
+        break;
+    case ERR_LEN:
         error("$PATH_TRANSLATED is too long.");
+    default:
+        /* Should be unreachable. */
+        error("%d: str_cp returned %u.", __LINE__, ret);
     }
 
     errno = 0;
@@ -811,15 +827,16 @@ main(int argc, char **argv) {
 
         ret = handler_lookup(NELEMS(handlers), handlers,
                              script_phys, &handler);
+
         switch (ret) {
         case OK:
             break;
         case ERR_BAD:
-            error("handler for %s's filename suffix is bad.", script_log);
+            error("script %s: bad handler.", script_log);
         case ERR_LEN:
-            error("%s's filename suffix is too long.", script_log);
+            error("script %s: filename suffix too long.", script_log);
         case ERR_SEARCH:
-            error("no handler for %s's filename suffix.", script_log);
+            error("script %s: no handler found.", script_log);
         default:
             /* Should be unreachable. */
             error("%d: handler_lookup returned %u.", __LINE__, ret);
