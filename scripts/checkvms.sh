@@ -28,14 +28,21 @@
 # Virtual machines to test.
 readonly vms='diotima'
 
-# Repository directory on the virtual machine.
-dir='repos/sucgi'
-
 # Branch to run tests on.
 branch=devel
 
 # Check command to run.
 check="scripts/checkall.sh"
+
+# Repository directory on the virtual machine.
+dir='repos/sucgi'
+
+# Be more quiet?
+quiet=
+
+# Store a log in the current working directory?
+storelogs=y
+
 
 
 #
@@ -50,6 +57,7 @@ readonly tools_dir src_dir
 # shellcheck disable=1091
 . "$tools_dir/lib.sh" || exit
 init || exit
+tmpdir
 
 
 #
@@ -58,7 +66,7 @@ init || exit
 
 OPTIND=1 OPTARG='' opt=''
 # shellcheck disable=2034
-while getopts b:c:d:h opt; do
+while getopts b:c:d:hq opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF
@@ -80,6 +88,7 @@ EOF
 	(b) branch="$OPTARG" ;;
 	(c) check="$OPTARG" ;;
 	(d) dir="$OPTARG" ;;
+	(q) quiet=y ;;
 	(*) exit 1
 	esac
 done
@@ -88,12 +97,16 @@ unset opt
 
 [ $# -eq 0 ] && set -- $vms
 
-readonly comm="
-	cd \"$dir\"			&&
+readonly comm='
+	cd "$dir"			&&
+	git stash			&&
 	git pull			&&
-	git checkout \"$branch\"	;
-	\"$check\" >/dev/null
-"
+	git checkout "$branch"		;
+	[ -e makefile ]			&&
+	make distclean			||
+	exit
+	"$check"
+'
 
 
 #
@@ -109,16 +122,19 @@ then
 fi
 
 cleanup="
-	warn 'shutting down ...'			;
-	[ \"\${vm-}\" ]					&&
-	[ \"\${started-}\" = \"\$vm\" ]			&&
-	[ \"\$(utmctl status \"\$vm\")\" = started ]	&&
-	utmctl stop \"\$vm\"				;
+	warn 'shutting down ...'
+	if
+		[ \"\${vm-}\" ]					&&
+		[ \"\${started-}\" = \"\$vm\" ]			&&
+		[ \"\$(utmctl status \"\$vm\")\" = started ]
+	then
+		utmctl stop \"\$vm\"
+	fi
 	${cleanup-}
 "
 
 
-errc=0
+failures=
 for vm
 do
 	warn -n 'testing with %s ... ' "$vm"
@@ -136,22 +152,29 @@ do
 		ssh "$vm" true >/dev/null 2>&1 && break
 		i=$((i + 1))
 	done
+	[ "$i" -eq 5 ] && err 'connection failure.'
 
-	if [ "$i" -eq 5 ]
-	then
-		err 'connection failure.'
-	elif ssh "$vm" "$comm" >/dev/null 2>&1
+	logfile="$TMPDIR/checkvm-$vm.log"
+	if (
+		if [ "$storelogs" ]
+		then exec >"$logfile" 2>&1
+		else exec >/dev/null 2>&1
+		fi
+
+		eval ssh "$vm" "$comm"
+	)
 	then
 		printf 'pass\n' >&2
 	else
-		printf 'fail\n' >&2
-		errc=$((errc + 1))
+		printf '%s\n' fail >&2
+		[ "$storelogs" ] && [ -e "$logfile" ] && mv "$logfile" .
+		failures="$failures $vm"
 	fi
 
 	[ "$started" ] && utmctl stop "$vm"
 done
 
-case $errc in
-(0) warn 'all tests passed.' ;;
-(*) warn '%d test(s) failed.' "$errc" ;;
-esac
+if [ "$failures" ]
+then err -s70 'failures: %s' "${failures# }"
+else warn -q 'all tests passed.'
+fi

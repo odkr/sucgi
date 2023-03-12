@@ -41,6 +41,12 @@ readonly compilers='
 	tcc icc c99 cc
 '
 
+# Be more quiet?
+quiet=
+
+# Store a log in the current working directory?
+storelogs=y
+
 
 #
 # Initialiation
@@ -54,6 +60,19 @@ readonly tools_dir src_dir
 # shellcheck disable=1091
 . "$tools_dir/lib.sh" || exit
 init || exit
+tmpdir
+
+
+#
+# Functions
+#
+
+# make distclean if the makefile exists.
+mrproper() {
+	if [ -e makefile ]
+	then make distclean >/dev/null 2>&1
+	fi
+}
 
 
 #
@@ -62,7 +81,7 @@ init || exit
 
 OPTIND=1 OPTARG='' opt=''
 # shellcheck disable=2034
-while getopts h opt; do
+while getopts hq opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF
@@ -75,12 +94,16 @@ Operands:
     CC  A compiler to test.
 
 Options:
+    -l  Do not log failed runs to the current working directory.
+    -q  Be more quiet.
     -h  Show this help screen.
 
 Must be called from a directory with a makefile.
 The makefile must provide the standard Autoconf targets.
 EOF
 	    ;;
+	(l) storelogs= ;;
+	(q) quiet=y ;;
 	(*) exit 1
 	esac
 done
@@ -97,42 +120,63 @@ unset opt
 cd -P "$src_dir" || exit
 
 # shellcheck disable=2034
-cleanup="[ -e makefile ] && make distclean"
+cleanup="mrproper; ${cleanup-}"
+
+failures=
 for cc
 do
 	command -v "$cc" >/dev/null || continue
 
-	name="${cc%-*}"
-	eval cflags="\${${name}_flags-}"
+	warn -n 'checking %s ... ' "$cc"
 
-	[ -e makefile ] && make distclean
-	for template in *.m4
-	do
-		case $template in
-		('*.m4')   break ;;
-		('lib.m4') continue ;;
-		esac
+	logfile="$TMPDIR/checkcomp-$cc.log"
+	if (
+		if [ "$storelogs" ]
+		then exec >"$logfile" 2>&1
+		else exec >/dev/null 2>&1
+		fi
 
-		m4 -D__CC="$cc" -D__CFLAGS="$cflags" \
-		   "$template" >"${template%.m4}"
-	done
+		name="${cc%-*}"
+		eval cflags="\${${name}_flags-}"
 
-	make clean all check ||
-	err '%s w/o configuration failed.' "$cc"
+		mrproper
 
-	for env in *.env
-	do
-		case $env in
-		('*.env')	break ;;
-		('local.env')	continue ;;
-		esac
+		for template in *.m4
+		do
+			case $template in
+			('*.m4')   break ;;
+			('lib.m4') continue ;;
+			esac
 
-		[ -e makefile ] && make distclean
-		CC="$cc" ./configure -fqc"$env"
+			m4 -D__CC="$cc" -D__CFLAGS="$cflags" \
+			   "$template" >"${template%.m4}"
+		done
 
-		make clean all check ||
-		err '%s with %s failed.' "$cc" "$env"
-	done
+		make clean all check
+
+		for env in *.env
+		do
+			case $env in
+			('*.env')	break ;;
+			('local.env')	continue ;;
+			esac
+
+			[ -e makefile ] && make distclean
+			CC="$cc" ./configure -fqc"$env"
+
+			make clean all check
+		done
+	)
+	then
+		printf '%s\n' pass >&2
+	else
+		printf '%s\n' fail >&2
+		[ "$storelogs"] && [ -e "$logfile" ] && mv "$logfile" .
+		failures="$failures $cc"
+	fi
 done
 
-warn 'all compilers passed.'
+if [ "$failures" ]
+then err -s70 'failures: %s' "${failures# }"
+else warn -q 'all tests passed.'
+fi

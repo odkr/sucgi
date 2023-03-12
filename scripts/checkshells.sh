@@ -36,6 +36,12 @@ readonly files='config.status makefile build.h compat.h'
 # Shells to test.
 readonly shells='sh bash dash ksh mksh oksh posh sash yash zsh'
 
+# Be quiet?
+quiet=
+
+# Store a log in the current working directory?
+storelogs=y
+
 
 #
 # Initialiation
@@ -49,15 +55,29 @@ readonly tools_dir src_dir
 # shellcheck disable=1091
 . "$tools_dir/lib.sh" || exit
 init || exit
+tmpdir
+
+
+#
+# Functions
+#
+
+# make distclean if the makefile exists.
+mrproper() {
+	if [ -e makefile ]
+	then make distclean >/dev/null 2>&1
+	fi
+}
 
 
 #
 # Options
 #
 
+
 OPTIND=1 OPTARG='' opt=''
 # shellcheck disable=2034
-while getopts h opt; do
+while getopts hlq opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF
@@ -70,12 +90,16 @@ Operands:
     SH  A shell.
 
 Options:
+    -l  Do not log failed runs to the current working directory.
+    -q  Be more quiet.
     -h  Show this help screen.
 
 Must be called from a directory with a makefile.
 The makefile must provide the standard Autoconf targets.
 EOF
 	    ;;
+	(q) quiet=y ;;
+	(l) storelogs= ;;
 	(*) exit 1
 	esac
 done
@@ -92,28 +116,47 @@ unset opt
 cd -P "$src_dir" || exit
 
 # shellcheck disable=2034
-cleanup="[ -e makefile ] && make distclean"
+cleanup="mrproper; ${cleanup-}"
 
-[ -e makefile ] && make distclean
-
+failures=
 for shell
 do
 	command -v "$shell" >/dev/null 2>&1 || continue
 
-	"$shell" ./configure ||
-	err '%s ./configure exited with status %d.' "$shell" "$?"
+	warn -n 'checking %s ... ' "$shell"
 
-	for file in $files
-	do
-		[ -e "$file" ] ||
-		err '%s ./configure did not generate %s' "$shell" "$file"
-	done
+	logfile="$TMPDIR/checkshell-$shell.log"
+	if (
+		if [ "$storelogs" ]
+		then exec >"$logfile" 2>&1
+		else exec >/dev/null 2>&1
+		fi
 
-	find ./tests -name '*.sh' ! -name lib.sh \
-	     -exec make check SHELL="$shell" checks='{}' ';'
+		mrproper
+
+		"$shell" ./configure
+
+		for file in $files
+		do
+			[ -e "$file" ] && continue
+
+			err '%s ./configure did not generate %s' \
+			    "$shell" "$file"
+		done
+
+		find ./tests -name '*.sh' ! -name lib.sh \
+		     -exec make check SHELL="$shell" checks='{}' ';'
+	)
+	then
+		printf '%s\n' pass >&2
+	else
+		printf '%s\n' fail >&2
+		[ "$storelogs"] && [ -e "$logfile" ] && mv "$logfile" .
+		failures="$failures $shell"
+	fi
 done
 
-[ -e makefile ] && make distclean
-unset cleanup
-
-warn 'all tests passed.'
+if [ "$failures" ]
+then err -s70 'failures: %s' "${failures# }"
+else warn -q 'all tests passed.'
+fi
