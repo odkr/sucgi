@@ -1,8 +1,8 @@
 #!/bin/sh
 #
-# Test priv_drop.
+# Test option handling.
 #
-# Copyright 2022 Odin Kroeger.
+# Copyright 2023 Odin Kroeger.
 #
 # This file is part of suCGI.
 #
@@ -19,7 +19,7 @@
 # You should have received a copy of the GNU General Public License along
 # with suCGI. If not, see <https://www.gnu.org/licenses>.
 #
-# shellcheck disable=1091,2015
+# shellcheck disable=1091,2015,2016,2034
 
 #
 # Initialisation
@@ -33,57 +33,38 @@ readonly script_dir src_dir tests_dir
 # shellcheck disable=1091
 . "$tests_dir/lib.sh" || exit
 init || exit
-tmpdir chk
 
 
 #
-# Build configuration
+# Tests
 #
 
-eval $(main -C | grep -vE ^PATH=)
-: "${MIN_UID:?}" "${MAX_UID:?}" "${MIN_GID:?}" "${MAX_GID:?}"
+# Help.
+check -o'Print this help screen.'	main -h
+
+# Version.
+check -o'suCGI v'			main -V
+
+# Build configuration.
+sed -n 's/#define \([[:alnum:]_]*\).*/\1/p' "$src_dir/config.h"	|
+sort -u								|
+while read -r var
+do
+	[ "$var" = CONFIG_H ] && continue
+	check -o"$var" main -C
+done
+
+# Usage message.
+for args in -X -XX -x --x - -- '-h -C' '-hC' '-h -V' '-hC'
+do
+	check -s1 -e'usage: sucgi' main $args
+done
+
+check -s1 -e'usage: sucgi' main ''
 
 
 #
-# Setup
+# Success
 #
 
-export PATH
-user="$(id -un)" uid="$(id -u)"
-
-
-#
-# Assertions
-#
-
-if ! [ "${NDEBUG-}" ]
-then
-	root="$(tools/ids | awk '$1 == 0 {print $2; exit}')"
-	check -s134 -e'uid > 0' priv_drop "$root"
-fi
-
-
-#
-# Test
-#
-
-if [ "$uid" -eq 0 ]
-then
-	reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")" ||
-		err -s75 "no reguser user found."
-
-	uid="$(id -u "$reguser")"
-	gid="$(id -g "$reguser")"
-
-	check -s1 -e'Operation not permitted' \
-		runas "$reguser" priv_drop "$reguser"
-	check -s0 -o"euid=$uid egid=$gid ruid=$uid rgid=$gid" \
-		priv_drop "$reguser"
-
-	warn 'all tests passed.'
-else
-	check -s1 -e'Operation not permitted' priv_drop "$user"
-
-	warn "all non-superuser tests passed."
-fi
-
+warn 'all tests passed.'

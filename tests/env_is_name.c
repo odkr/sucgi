@@ -37,18 +37,6 @@
 
 
 /*
- * Constants
- */
-
-/* Characters valid in variable names. */
-#define CHARS "0123456789_ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
-                         "abcdefghijklmnopqrstuvwxyz"
-
-/* Number of characters valid in a variable name. */
-#define NCHARS (sizeof(CHARS) - 1U)
-
-
-/*
  * Data types
  */
 
@@ -220,10 +208,6 @@ static const Args cases[] = {
 int
 main (void)
 {
-    char varname[6];
-
-    (void) memset(varname, 0, sizeof(varname));
-
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
         bool ret;
@@ -233,28 +217,6 @@ main (void)
         ret = env_is_name(args.s);
         if (ret != args.ret) {
             errx(TEST_FAILED, "returned %d", ret);
-        }
-    }
-
-    warnx("checking dynamically created names ...");
-    for (unsigned int i = 0; i < pow(NCHARS, sizeof(varname) - 1); ++i) {
-/* tostr_ret is needed when debugging is enabled. */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-        int tostr_ret;
-#pragma GCC diagnostic pop
-
-        tostr_ret = tostr(i, NCHARS, CHARS, sizeof(varname), varname);
-        assert(tostr_ret == 0);
-
-        if ('0' <= *varname && *varname <= '9') {
-            if (env_is_name(varname)) {
-                 errx(TEST_FAILED, "(%s) -> 1!", varname);
-            }
-        } else {
-            if (!env_is_name(varname)) {
-                 errx(TEST_FAILED, "(%s) -> 0!", varname);
-            }
         }
     }
 

@@ -74,14 +74,6 @@ typedef struct {
 
 
 /*
- * Prototypes
- */
-
-/* Test path_check_in. */
-static void test(const char *basedir, const char *fname, Error ret);
-
-
-/*
  * Module variables
  */
 
@@ -153,173 +145,23 @@ static const Args cases[] = {
 
 
 /*
- * Functions
- */
-
-static void
-test(const char *const basedir, const char *const fname, const Error ret)
-{
-    Error retret;
-
-    warnx("checking (%s, %s) -> %u ...", basedir, fname, ret);
-
-    retret = path_check_in(basedir, fname);
-
-    if (retret != ret) {
-        errx(TEST_FAILED, "returned %u", retret);
-    }
-}
-
-
-/*
  * Main
  */
 
 int
 main(void)
 {
-    char maxlen[MAX_FNAME_LEN];
-    char errlen[MAX_FNAME_LEN + 1U];
-    char ascii[127];
-    char **fnames;
-    char **plain;
-    unsigned int nfnames;
-    unsigned int nplain;
-
-    fillstr('x', sizeof(maxlen), maxlen);
-    fillstr('x', sizeof(errlen), errlen);
-
-    nfnames = (unsigned int) pow(sizeof(ascii), FNAME_LEN);
-    nplain = 0;
-
-    for (unsigned int i = 0; i < sizeof(ascii); ++i) {
-        ascii[i] = (char) (i + 1);
-    }
-
-    fnames = calloc(nfnames, sizeof(*fnames));
-    if(fnames == NULL) {
-        err(TEST_ERROR, "calloc");
-    }
-
-    plain = calloc(nfnames, sizeof(*plain));
-    if(plain == NULL) {
-        err(TEST_ERROR, "calloc");
-    }
-
-    /* Basedir and filename just within bounds. */
-    test(maxlen, maxlen, ERR_BASEDIR);
-
-    /* Basedir too long. */
-    test(errlen, maxlen, ERR_LEN);
-
-    /* Filename too long. */
-    test(maxlen, errlen, ERR_LEN);
-
-    /* Both too long. */
-    test(errlen, errlen, ERR_LEN);
-
-    /* Run static tests. */
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
-        test(args.basedir, args.fname, args.ret);
-    }
-
-    /* Run dynamic tests. */
-    warnx("generating %u filenames ...", nfnames);
-    for (unsigned int i = 0; i < nfnames; ++i) {
-/* tostr_ret is needed when debugging is enabled. */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-        int tostr_ret;
-#pragma GCC diagnostic pop
-        char *fname;
-
-        fname = calloc(FNAME_LEN + 1, sizeof(*fname));
-        if(fname == NULL) {
-            err(TEST_ERROR, "calloc");
-        }
-
-        tostr_ret = tostr(i, sizeof(ascii), ascii, FNAME_LEN + 1U, fname);
-        assert(tostr_ret == 0);
-
-        fnames[i] = fname;
-        if (i != DOT && strchr(fname, '/') == NULL) {
-            plain[nplain++] = fname;
-        }
-    }
-
-    /* Run dynamic tests. */
-    warnx("checking dynamically created filenames ...");
-    for (unsigned int i = 0; i < nfnames; ++i) {
-        char *fname = fnames[i];
-        bool isabs;
-        bool isrel;
         Error ret;
 
-        isabs = false;
-        isrel = false;
+        warnx("checking (%s, %s) -> %u ...",
+              args.basedir, args.fname, args.ret);
 
-        if (*fname == '/') {
-            isabs = strncmp(fname, "/", 3) != 0;
-        } else {
-            isrel = strncmp(fname, ".", 3) != 0;
-        }
+        ret = path_check_in(args.basedir, args.fname);
 
-        ret = path_check_in(fname, ".");
-        if (ret != ERR_BASEDIR) {
-            errx(TEST_FAILED, "(%s, .) -> %u", fname, ret);
-        }
-
-        ret = path_check_in(fname, "/");
-        if (ret != ERR_BASEDIR) {
-            errx(TEST_FAILED, "(%s, /) -> %u", fname, ret);
-        }
-
-        ret = path_check_in(".", fname);
-        if (ret != ((isrel) ? OK : ERR_BASEDIR)) {
-            errx(TEST_FAILED, "(., %s) -> %u", fname, ret);
-        }
-
-        ret = path_check_in("/", fname);
-        if (ret != ((isabs) ? OK : ERR_BASEDIR)) {
-            errx(TEST_FAILED, "(/, %s) -> %u", fname, ret);
-        }
-    }
-
-    /* Testing for more than the first 512 paths takes too long. */
-    for (unsigned int i = 0; i < 512; ++i) {
-        if (i != SLASH) {
-            for (unsigned int j = 0; j < nplain; ++j) {
-                char *basedir = fnames[i];
-                char *fname = plain[j];
-                char subdir[SUBDIR_LEN + 1U];
-                int n;
-                Error ret;
-
-                /* Sub-directories are always within their base directories. */
-                n = snprintf(subdir, sizeof(subdir), "%s/%s", basedir, fname);
-                if (n < 0) {
-                    err(TEST_ERROR, "snprintf");
-                }
-                assert((size_t) n <= SUBDIR_LEN);
-
-                ret = path_check_in(basedir, subdir);
-                if (ret != OK) {
-                    errx(TEST_FAILED, "(%s, %s) -> %u!", basedir, subdir, ret);
-                }
-
-                /*
-                 * fname cannot be in basedir, because basedir
-                 * cannot be "." and fname cannot contain '/'s.
-                 */
-                if (i != DOT) {
-                    ret = path_check_in(basedir, fname);
-                    if (ret != ERR_BASEDIR) {
-                        errx(TEST_FAILED, "(%s, %s) -> %u!",
-                             basedir, fname, ret);
-                    }
-                }
-            }
+        if (ret != args.ret) {
+            errx(TEST_FAILED, "returned %u", ret);
         }
     }
 

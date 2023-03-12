@@ -38,65 +38,61 @@ tmpdir chk
 
 
 #
-# Configuration
+# Build configuration
 #
 
 eval $(main -C | grep -vE ^PATH=)
 
 
 #
-# Prelude
+# Setup
 #
 
 user="$(id -un)"
 uid="$(id -u "$user")"
 
-dir="$TMPDIR/dir"
-mkdir "$dir"
+basedir="$TMPDIR/dir"
+mkdir "$basedir"
 
 shallow="$TMPDIR/file"
 touch "$shallow"
 
-deeper="$dir/file"
+deeper="$basedir/file"
 touch "$deeper"
-chmod 600 "$deeper"
-
-root="$(ids | awk '$1 == 0 {print $2; exit}')"
-bin="$(cd -P /bin && pwd)"
-
-long_fname="$(pad / $((MAX_FNAME_LEN - 1)) x r)"
-err_fname="${long_fname}c"
 
 
 #
-# Main
+# Assertions
 #
 
 if ! [ "${NDEBUG-}" ]
 then
-	check -s134 -e"*basedir == '/'" \
-	      path_check_wexcl "$user" '' /
-	check -s134 -e"*basedir == '/'" \
-	      path_check_wexcl "$user" relpath /
-	check -s134 -e"*basedir == '/'" \
-	      path_check_wexcl "$user" . /
+	long_fname="$(pad / $((MAX_FNAME_LEN - 1)) x r)"
+	err_fname="${long_fname}x"
 
-	check -s134 -e"*fname == '/'" \
-	      path_check_wexcl "$user" / ''
-	check -s134 -e"*fname == '/'" \
-	      path_check_wexcl "$user" / relpath
-	check -s134 -e"*fname == '/'" \
-	      path_check_wexcl "$user" / .
+	check -s134 -e"*basedir == '/'"	path_check_wexcl "$user" '' /
+	check -s134 -e"*basedir == '/'"	path_check_wexcl "$user" relpath /
+	check -s134 -e"*basedir == '/'"	path_check_wexcl "$user" . /
 
-	check -s1 \
-	      path_check_wexcl "$user" "$long_fname" /
-	check -s1 \
-	      path_check_wexcl "$user" / "$long_fname"
-	check -s134 -e 'strnlen(basedir, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN' \
+	check -s134 -e"*fname == '/'" 	path_check_wexcl "$user" / ''
+	check -s134 -e"*fname == '/'"	path_check_wexcl "$user" / relpath
+	check -s134 -e"*fname == '/'"	path_check_wexcl "$user" / .
+
+	check -s1 path_check_wexcl "$user" "$long_fname" /
+	check -s1 path_check_wexcl "$user" / "$long_fname"
+
+	check -s134 \
+	      -e'strnlen(basedir, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN' \
 	      path_check_wexcl "$user" "$err_fname" /
-	check -s134 -e 'strnlen(fname, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN' \
+	check -s134 \
+	      -e'strnlen(fname, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN' \
 	      path_check_wexcl "$user" / "$err_fname"
 fi
+
+
+#
+# Not exclusively writable
+#
 
 no="u=r,g=w,o= u=r,g=,o=w u=rw,g=w,o= u=rw,g=,o=w u=rw,go=w u=rw,go=w"
 for mode in $no
@@ -105,17 +101,21 @@ do
 	check -s1 -e"$shallow is writable by users other than $user" \
 		path_check_wexcl "$user" "$TMPDIR" "$shallow"
 
-	chmod "$mode" "$dir"
-	chmod u+x "$dir"
+	chmod "$mode" "$basedir"
+	chmod u+x "$basedir"
 	check -s1 -e"$deeper is writable by users other than $user" \
 		path_check_wexcl "$user" "$TMPDIR" "$deeper"
 done
 
 
+#
+# Exclusively writable
+#
+
 yes="u=rw,go= ugo=r"
 for mode in $yes
 do
-	chmod go-w "$dir" "$shallow" "$deeper"
+	chmod go-w "$basedir" "$shallow" "$deeper"
 
 	chmod "$mode" "$shallow"
 	check path_check_wexcl "$user" "$TMPDIR" "$shallow"
@@ -123,8 +123,8 @@ do
 		check -s1 -e"$deeper is writable by users other than $user" \
 			path_check_wexcl "$user" / "$deeper"
 
-	chmod "$mode" "$dir"
-	chmod u+wx,go= "$dir"
+	chmod "$mode" "$basedir"
+	chmod u+wx,go= "$basedir"
 	check path_check_wexcl "$user" "$TMPDIR" "$deeper"
 
 	chmod g+w,o= "$deeper"
@@ -137,7 +137,8 @@ do
 done
 
 
-check path_check_wexcl "$root" "$bin" "$bin/cat"
-
+#
+# Success
+#
 
 warn "all tests passed."

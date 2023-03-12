@@ -20,7 +20,7 @@
 
 # shellcheck disable=2015,2031
 
-. "${src_dir:?}/tools/lib.sh" || exit
+. "${src_dir:?}/scripts/lib.sh" || exit
 
 
 #
@@ -129,6 +129,44 @@ dirwalk() (
 		esac
 	done
 )
+
+# Acquire $lockfile. Only returns once the lock is acquired.
+# Errors out if the lock cannot be acquired within $__lock_timeout seconds.
+# The lock is removed automatically upon exit.
+lock() {
+	lockfile="${1:?}" __lock_timeout="${2-300}"
+	readonly lockfile
+
+	while [ "$__lock_timeout" -gt 0 ]
+	do
+		catch=
+		if	( 	set -C
+				printf '%d\n' >"$lockfile"
+			)
+		then
+			cleanup="rm -f \"$lockfile\"; ${cleanup-}"
+			break
+		elif ! kill -0 "$(cat "$lock")"
+		then
+			rm "$lock"
+			continue
+		fi
+
+		catch=x
+		[ "$caught" ] && kill -s"$caught" $$
+
+		sleep 1 & wait $!
+		__lock_timeout=$((__lock_timeout - 1))
+	done
+
+	[ "$__lock_timeout" -eq 0 ] && err 'could not acquire %s.' "$lockfile"
+	unset __lock_timeout
+
+	catch=x
+	if [ "$caught" ]
+	then kill -s"$caught" $$
+	fi
+}
 
 # Create a path that is $len characters long in $basepath.
 mklongpath() (

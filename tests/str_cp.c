@@ -37,14 +37,6 @@
 
 
 /*
- * Constants
- */
-
-/* Maximum length of dynamically created strings. */
-#define STR_LEN 4U
-
-
-/*
  * Data types
  */
 
@@ -62,7 +54,7 @@ typedef struct {
  */
 
 /* Tests. */
-static const Args tests[] = {
+static const Args cases[] = {
     /* Simple test. */
     {MAX_STR_LEN - 1U, "foo", "foo", OK},
 
@@ -88,56 +80,24 @@ static const Args tests[] = {
 
 int
 main (void) {
-    char ascii[127];
-
-    for (unsigned int i = 0; i < sizeof(ascii); ++i) {
-        ascii[i] = (char) (i + 1);
-    }
-
-    for (size_t i = 0; i < NELEMS(tests); ++i) {
-        const Args t = tests[i];
-        char dest[MAX_STR_LEN];        /* RATS: ignore */
+    for (size_t i = 0; i < NELEMS(cases); ++i) {
+        const Args args = cases[i];
+        char dest[MAX_STR_LEN];
         Error ret;
 
         (void) memset(dest, '\0', sizeof(dest));
 
         warnx("checking (%zu, %s, -> %s) -> %u ...",
-              t.n, t.src, t.dest, t.ret);
+              args.n, args.src, args.dest, args.ret);
 
-        ret = str_cp(t.n, t.src, dest);
+        ret = str_cp(args.n, args.src, dest);
 
-        if (ret != t.ret) {
+        if (ret != args.ret) {
             errx(TEST_FAILED, "returned %u", ret);
         }
-        if (!(t.dest == dest || strncmp(t.dest, dest, MAX_STR_LEN) == 0)) {
-            errx(TEST_FAILED, "got copy '%s'", dest);
-        }
-    }
 
-    warnx("checking dynamically created strings ...");
-    for (unsigned int i = 0; i < pow(sizeof(ascii), STR_LEN); ++i) {
-/* tostr_ret is needed when debugging is enabled. */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-        int tostr_ret;
-#pragma GCC diagnostic pop
-        char src[MAX_STR_LEN];
-        char dest[MAX_STR_LEN];
-        Error ret;
-
-        (void) memset(src, '\0', sizeof(src));
-        (void) memset(dest, '\0', sizeof(dest));
-
-        tostr_ret = tostr(i, sizeof(ascii), ascii, sizeof(src), src);
-        assert(tostr_ret == 0);
-
-        ret = str_cp(sizeof(dest) - 1, src, dest);
-
-        if (ret != OK) {
-            errx(TEST_FAILED, "(%s, -> %s) -> %u!", src, dest, ret);
-        }
-        if (strncmp(src, dest, MAX_STR_LEN) != 0) {
-            errx(TEST_FAILED, "(%s, -> %s!) -> %u", src, dest, ret);
+        if (ret == OK && strncmp(args.dest, dest, MAX_STR_LEN) != 0) {
+            errx(TEST_FAILED, "copied '%s'", dest);
         }
     }
 

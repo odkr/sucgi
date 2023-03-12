@@ -55,37 +55,37 @@ typedef struct {
 /* Test cases. */
 static const Args cases[] = {
     /* Simple errors. */
-    {"file", NULL, ERR_SEARCH},
-    {".", NULL, ERR_SEARCH},
-    {".sh", NULL, ERR_SEARCH},
-    {".py", NULL, ERR_SEARCH},
-    {"file.null", NULL, ERR_BAD},
-    {"file.empty", NULL, ERR_BAD},
-    {"file.py", NULL, ERR_SEARCH},
-    {"file.post", NULL, ERR_SEARCH},
-    {"long.suffix-0123456789abcdef", NULL, ERR_LEN},
+    {"file", "<n/a>", ERR_SEARCH},
+    {".", "<n/a>", ERR_SEARCH},
+    {".sh", "<n/a>", ERR_SEARCH},
+    {".py", "<n/a>", ERR_SEARCH},
+    {"file.null", "<n/a>", ERR_BAD},
+    {"file.empty", "<n/a>", ERR_BAD},
+    {"file.py", "<n/a>", ERR_SEARCH},
+    {"file.post", "<n/a>", ERR_SEARCH},
+    {"long.suffix-0123456789abcdef", "<n/a>", ERR_LEN},
 
     /* Empty string shenanigans. */
-    {" ", NULL, ERR_SEARCH},
-    {". ", NULL, ERR_SEARCH},
-    {".sh ", NULL, ERR_SEARCH},
-    {".py ", NULL, ERR_SEARCH},
-    {" .null", NULL, ERR_BAD},
-    {" .empty", NULL, ERR_BAD},
-    {" .py", NULL, ERR_SEARCH},
-    {" .post", NULL, ERR_SEARCH},
-    {" . ", NULL, ERR_SEARCH},
+    {" ", "<n/a>", ERR_SEARCH},
+    {". ", "<n/a>", ERR_SEARCH},
+    {".sh ", "<n/a>", ERR_SEARCH},
+    {".py ", "<n/a>", ERR_SEARCH},
+    {" .null", "<n/a>", ERR_BAD},
+    {" .empty", "<n/a>", ERR_BAD},
+    {" .py", "<n/a>", ERR_SEARCH},
+    {" .post", "<n/a>", ERR_SEARCH},
+    {" . ", "<n/a>", ERR_SEARCH},
 
     /* Unicode shenanigans. */
-    {"𝕗ïḻę", NULL, ERR_SEARCH},
-    {".", NULL, ERR_SEARCH},
-    {".sh", NULL, ERR_SEARCH},
-    {".py", NULL, ERR_SEARCH},
-    {"𝕗ïḻę.null", NULL, ERR_BAD},
-    {"𝕗ïḻę.empty", NULL, ERR_BAD},
-    {"𝕗ïḻę.py", NULL, ERR_SEARCH},
-    {"𝕗ïḻę.post", NULL, ERR_SEARCH},
-    {"𝕗ïḻę.suffix-0123456789abcdef", NULL, ERR_LEN},
+    {"𝕗ïḻę", "<n/a>", ERR_SEARCH},
+    {".", "<n/a>", ERR_SEARCH},
+    {".sh", "<n/a>", ERR_SEARCH},
+    {".py", "<n/a>", ERR_SEARCH},
+    {"𝕗ïḻę.null", "<n/a>", ERR_BAD},
+    {"𝕗ïḻę.empty", "<n/a>", ERR_BAD},
+    {"𝕗ïḻę.py", "<n/a>", ERR_SEARCH},
+    {"𝕗ïḻę.post", "<n/a>", ERR_SEARCH},
+    {"𝕗ïḻę.suffix-0123456789abcdef", "<n/a>", ERR_LEN},
 
     /* Simple test. */
     {"file.sh", "sh", OK},
@@ -111,26 +111,21 @@ int
 main(void)
 {
     for (size_t i = 0; i < NELEMS(cases); ++i) {
-        const Args args = cases[i];         /* Shorthand. */
-        const char *hdl;                    /* Handler. */
-        Error ret;                          /* Return value. */
+        const Args args = cases[i];
+        const char *hdl;
+        Error ret;
 
-        /* GCC v9 refuses to fill in %s with NULL when using devel.env. */
-        if (args.hdl == NULL) {
-            warnx("checking (db, %p, -> %s) -> %u ...",
-                  args.script, args.hdl, args.ret);
-        } else {
-            warnx("checking (db, %s, -> %s) -> %u ...",
-                  args.script, args.hdl, args.ret);
-        }
+        warnx("checking (db, %s, -> %s) -> %u ...",
+              args.script, args.hdl, args.ret);
 
         ret = handler_lookup(NELEMS(db), db, args.script, &hdl);
 
-        if (args.ret != ret)
+        if (args.ret != ret) {
             errx(TEST_FAILED, "returned code %u", ret);
+        }
 
         if (ret == OK && strncmp(hdl, args.hdl, MAX_STR_LEN) != 0) {
-            errx(TEST_FAILED, "returned script %s", args.hdl);
+            errx(TEST_FAILED, "returned handler %s", args.hdl);
         }
     }
 

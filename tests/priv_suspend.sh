@@ -37,16 +37,19 @@ tmpdir chk
 
 
 #
-# Prelude
+# Build configuration
 #
 
 eval "$(main -C | grep -E '^(MIN|MAX)_(UID|GID)=')"
 : "${MIN_UID:?}" "${MAX_UID:?}" "${MIN_GID:?}" "${MAX_GID:?}"
 
+
+#
+# Setup
+#
+
 export PATH
-user="$(id -un)"
-uid="$(id -u)"
-cd -P "$script_dir" || exit
+user="$(id -un)" uid="$(id -u)"
 
 
 #
@@ -56,11 +59,15 @@ cd -P "$script_dir" || exit
 if [ "$uid" -eq 0 ]
 then
 	regular="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")" ||
-		err 'no regular user found.'
+		err -s75 'no regular user found.'
 
 	uid="$(id -u "$regular")"
 	gid="$(id -g "$regular")"
 
+	check -s1 -o"euid=$uid egid=$gid ruid=$uid rgid=$gid" \
+		runas "$regular" priv_suspend
+	check -s1 -e"seteuid: Operation not permitted" \
+		runas "$regular" priv_suspend
 	check -o"euid=$uid egid=$gid ruid=$uid rgid=$gid" \
 		runas -r "$regular" priv_suspend
 
@@ -69,8 +76,8 @@ else
 	uid="$(id -u)"
 	gid="$(id -g)"
 
-	check -s1 -o"euid=$uid egid=$gid ruid=$uid rgid=$gid" priv_suspend
-	check -s1 -e"seteuid: Operation not permitted" priv_suspend
+	check -s1 -o"euid=$uid egid=$gid ruid=$uid rgid=$gid"	priv_suspend
+	check -s1 -e"seteuid: Operation not permitted"		priv_suspend
 
 	warn 'all non-superuser tests passed.'
 fi

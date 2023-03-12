@@ -24,6 +24,8 @@
 #define _DEFAULT_SOURCE
 #define _GNU_SOURCE
 
+#include <err.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <syslog.h>
@@ -32,15 +34,25 @@
 
 int
 main (int argc, char **argv) {
+    char *format;
+    char *arg;
+
 	if (argc < 2 || argc > 3) {
 		fputs("usage: error FORMAT [ARG]\n", stderr);
 		return EXIT_FAILURE;
 	}
 
-	atexit(closelog);
+	format = argv[1];
+	arg = argv[2];
+
+	errno = 0;
+	if (atexit(closelog) != 0) {
+	    err(EXIT_FAILURE, "atexit");
+	}
+
 	openlog("error", LOG_CONS | LOG_NDELAY | LOG_PERROR, LOG_AUTH);
 
-	(void) error(argv[1], argv[2]);
+	(void) error(format, arg);
 
 	/* This point should not be reached. */
 	return EXIT_SUCCESS;

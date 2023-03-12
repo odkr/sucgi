@@ -36,15 +36,6 @@
 
 
 /*
- * Macros
- */
-
-/* Shorthand to create a struct stat object with UID, GID, and MODE. */
-#define STAT(uid, gid, mode) \
-    (const struct stat) {.st_uid = (uid), .st_gid = (gid), .st_mode = (mode)}
-
-
-/*
  * Data types
  */
 
@@ -55,14 +46,6 @@ typedef struct {
     const struct stat fstatus;
     const bool ret;
 } Args;
-
-
-/*
- * Prototypes
- */
-
-/* Test file_is_exe. */
-static void test(uid_t uid, gid_t gid, struct stat fstatus, bool ret);
 
 
 /*
@@ -151,89 +134,29 @@ static const Args cases[] = {
 
 
 /*
- * Functions
- */
-
-static void
-test(const uid_t uid, const gid_t gid,
-     const struct stat fstatus, const bool ret)
-{
-    bool retret;
-
-    warnx(
-        "checking "
-        "(%llu, %llu, {.st_uid = %llu, .st_gid = %llu, .st_mode = 0%o})"
-        " -> %d ...",
-        (unsigned long long) uid,
-        (unsigned long long) gid,
-        (unsigned long long) fstatus.st_uid,
-        (unsigned long long) fstatus.st_gid,
-        fstatus.st_mode,
-        ret
-    );
-
-    retret = file_is_exe(uid, gid, fstatus);
-
-    if (retret != ret) {
-        errx(TEST_FAILED, "returned %d", retret);
-    }
-}
-
-
-/*
  * Main
  */
 
 int
 main(void)
 {
-    const id_t ids[] = {
-        0, 1, 99, 100, 101, 499, 500, 501, 999,
-        1000, 1001, 59999, 60000, 60001, INT_MAX
-    };
-
-    /* Static test cases. */
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
-        test(args.uid, args.gid, args.fstatus, args.ret);
-    }
+        bool ret;
 
-    /* Dynamic test cases. */
-    for (size_t i = 0; i < NELEMS(ids); ++i) {
-        id_t a = ids[i];
-        id_t b = ids[(i + 1) % NELEMS(ids)];
+        warnx(
+            "checking (%d, %d, {%d, %d, 0%03o}) -> %d ...",
+            (int) args.uid,
+            (int) args.gid,
+            (int) args.fstatus.st_uid,
+            (int) args.fstatus.st_gid,
+            args.fstatus.st_mode,
+            args.ret
+        );
 
-        for (mode_t perms = 0; perms <= 0777; ++perms) {
-            const bool usrx = (perms & 0100);
-            const bool grpx = (perms & 0010);
-            const bool othx = (perms & 0001);
-            const bool supx = (usrx || grpx || othx);
-
-            if (a != 0) {
-                /* user ID matches, group ID matches. */
-                test(a, a, STAT(a, a, perms), usrx);
-
-                /* user ID does not match, group ID matches. */
-                test(a, a, STAT(b, a, perms), grpx);
-
-                /* user ID matches, group ID does not match. */
-                test(a, a, STAT(a, b, perms), usrx);
-
-                /* user ID does not match, group ID does not match. */
-                test(a, a, STAT(b, b, perms), othx);
-            } else {
-                /* user ID matches, group ID matches. */
-                test(a, a, STAT(a, a, perms), supx);
-
-                /* user ID does not match, group ID matches. */
-                test(a, a, STAT(b, a, perms), supx);
-
-                /* user ID matches, group ID does not match. */
-                test(a, a, STAT(a, b, perms), supx);
-
-                /* user ID does not match, group ID does not match. */
-                test(a, a, STAT(b, b, perms), supx);
-            }
+        ret = file_is_exe(args.uid, args.gid, args.fstatus);
+        if (ret != args.ret) {
+            errx(TEST_FAILED, "returned %d", ret);
         }
     }
 

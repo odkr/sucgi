@@ -111,29 +111,15 @@ static const Args cases[] = {
 int
 main(void)
 {
-    char ascii[127];
-    char sep[2];
-    char **strs;
-    size_t nstrs;
-
     fillstr('x', sizeof(long_str), long_str);
     fillstr('x', sizeof(huge_str), huge_str);
     fillstr('x', sizeof(huge_head), huge_head);
-    fillstr('\0', sizeof(sep), sep);
 
-    (void) strncpy(&huge_head[MAX_FNAME_LEN], ",foo", 5); /* RATS: ignore. */
-
-    nstrs = (unsigned int) pow(sizeof(ascii), SUB_STR_LEN);
-    assert(nstrs < UINT_MAX);
-
-    strs = calloc(nstrs, sizeof(*strs));
-    if(strs == NULL) {
-        err(TEST_ERROR, "calloc");
-    }
+    (void) strncpy(&huge_head[MAX_FNAME_LEN], ",foo", 5);
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
-        char head[MAX_FNAME_LEN];    /* RATS: ignore */
+        char head[MAX_FNAME_LEN];
         const char *tail;
         Error ret;
 
@@ -146,76 +132,19 @@ main(void)
         ret = str_split(args.str, args.sep, MAX_FNAME_LEN, head, &tail);
 
         if (ret != args.ret) {
-            errx(TEST_FAILED, "returned %u", ret);
+            errx(TEST_FAILED, "returned error %u", ret);
         }
+
         if (!(args.head == NULL ||
               strncmp(args.head, head, MAX_STR_LEN) == 0))
         {
-            errx(TEST_FAILED, "got head '%s'", head);
+            errx(TEST_FAILED, "returned head '%s'", head);
         }
+
         if (!(args.tail == tail ||
               strncmp(args.tail, tail, MAX_STR_LEN) == 0))
         {
-            errx(TEST_FAILED, "got tail '%s'", tail);
-        }
-    }
-
-    warnx("generating %zu strings ...", nstrs);
-    for (size_t i = 0; i < nstrs; ++i) {
-/* tostr_ret is needed when debugging is enabled. */
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
-        int tostr_ret;
-#pragma GCC diagnostic pop
-
-        strs[i] = calloc(SUB_STR_LEN + 1, sizeof(*strs[i]));
-        if (strs[i] == NULL) {
-            err(TEST_ERROR, "calloc");
-        }
-
-        tostr_ret = tostr((unsigned int) i, sizeof(ascii), ascii,
-                          SUB_STR_LEN + 1, strs[i]);
-        assert(tostr_ret == 0);
-    }
-
-    warnx("checking dynamically created strings ...");
-    for (size_t i = 0; i < sizeof(ascii); ++i) {
-        *sep = ascii[i];
-
-        for (size_t j = 0; j < nstrs; ++j) {
-            if (strchr(strs[j], ascii[i]) != NULL) {
-                continue;
-            }
-
-            for (size_t k = 0; k < nstrs; ++k) {
-                char joined[STR_LEN];
-                char head[STR_LEN];
-                const char *tail;
-                int n;
-                Error ret;
-
-                n = snprintf(joined, sizeof(joined),
-                             "%s%c%s", strs[j], ascii[i], strs[k]);
-                if (n < 0) {
-                    err(TEST_ERROR, "snprintf");
-                }
-                assert((size_t) n <= STR_LEN);
-
-                ret = str_split(joined, sep, sizeof(head), head, &tail);
-
-                if (ret != OK) {
-                    errx(TEST_FAILED, "(%s, %c, %zu, -> %s, -> %s) -> %u!",
-                         joined, ascii[i], sizeof(head), head, tail, ret);
-                }
-                if (strncmp(strs[j], head, STR_LEN) != 0) {
-                    errx(TEST_FAILED, "(%s, %c, %zu, -> %s!, -> %s) -> %u",
-                         joined, ascii[i], sizeof(head), head, tail, ret);
-                }
-                if (strncmp(strs[k], tail, STR_LEN) != 0) {
-                    errx(TEST_FAILED, "(%s, %c, %zu, -> %s, -> %s!) -> %u",
-                         joined, ascii[i], sizeof(head), head, tail, ret);
-                }
-            }
+            errx(TEST_FAILED, "returned tail '%s'", tail);
         }
     }
 

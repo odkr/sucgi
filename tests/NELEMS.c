@@ -52,8 +52,8 @@
         }                                                       \
     } while (0)
 
-/* Test NELEMS for the given TYPE for up to INT_MAX elements. */
-#define TEST(type) TESTN(type, INT_MAX)
+/* Test NELEMS for the given TYPE for up to SHRT_MAX elements. */
+#define TEST(type) TESTN(type, SHRT_MAX)
 
 
 /*

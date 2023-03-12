@@ -30,6 +30,7 @@ ifnempty(`__LDFLAGS', `LDFLAGS = __LDFLAGS
 ifnempty(`__LDLIBS', `LDLIBS = __LDLIBS
 ')dnl
 
+dnl FIXME: Get rid of this?
 SC_COV_CC = default(`__SC_COV_CC', `$(CC)')
 
 
@@ -44,64 +45,79 @@ stdhdrs = cattr.h compat.h macros.h max.h types.h
 # Test suite
 #
 
-runpara_flags = -i75
+repo_owner =	default(`__sc_repo_owner', `$$(ls -ld . | awk "{print \$$3}")')
 
-repo_owner = default(`__sc_repo_owner', `$$(ls -ld . | awk "{print \$$3}")')
+tool_bins =	tools/badenv tools/badexec tools/ids \
+		tools/runpara tools/runas
 
-tool_bins = tools/badenv tools/badexec tools/ids tools/runpara tools/runas
+macro_bins =	tests/ISSIGNED tests/MIN tests/NELEMS tests/SIGNEDMAX
 
-macro_check_bins = tests/ISSIGNED tests/MIN tests/NELEMS tests/SIGNEDMAX
+check_bins =	tests/env_is_name tests/env_restore tests/error \
+		tests/file_is_exe tests/file_is_wexcl \
+		tests/handler_lookup tests/main tests/path_check_wexcl \
+		tests/path_check_in tests/path_suffix tests/priv_drop \
+		tests/priv_suspend tests/str_cp tests/str_split \
+		tests/userdir_resolve
 
-check_bins = tests/env_is_name tests/env_restore \
-             tests/error tests/file_is_exe tests/file_is_wexcl \
-             tests/handler_lookup tests/main \
-             tests/path_check_wexcl tests/path_check_in tests/path_suffix \
-             tests/priv_drop tests/priv_suspend \
-             tests/str_cp tests/str_split tests/userdir_resolve
+check_scripts =	tests/error.sh tests/main-arg0.sh tests/main-chkwexcl.sh \
+		tests/main-envclean.sh tests/main-envsan.sh \
+		tests/main-fnamesan.sh tests/main-handler.sh \
+		tests/main-hidden.sh tests/main-privdrop.sh \
+		tests/main-optval.sh tests/main-setid.sh \
+		tests/main-userdir.sh tests/main-userval.sh \
+		tests/path_check_wexcl.sh tests/priv_drop.sh \
+		tests/priv_suspend.sh
 
-checks = $(macro_check_bins) \
-         tests/env_is_name tests/env_restore \
-         tests/error.sh tests/file_is_exe tests/file_is_wexcl \
-         tests/handler_lookup tests/main.sh \
-         tests/path_check_wexcl.sh tests/path_check_in tests/path_suffix \
-         tests/priv_drop.sh tests/priv_suspend.sh \
-         tests/str_cp tests/str_split tests/userdir_resolve
+checks =	$(macro_bins) $(check_scripts) \
+		tests/env_is_name tests/env_restore tests/file_is_exe \
+		tests/file_is_wexcl tests/handler_lookup \
+		tests/path_check_in tests/path_suffix tests/str_cp \
+		tests/str_split tests/userdir_resolve
+
+runpara_flags =	-ci75 -j8
 
 
+#
+# Files
+#
 
+scripts = configure scripts/*.sh tests/*.sh
 
-scripts = configure tools/*.sh tests/*.sh
-
-bins = $(tool_bins) $(macro_check_bins) $(check_bins)
+bins = $(tool_bins) $(macro_bins) $(check_bins)
 
 
 #
 # Static code analysis
 #
 
-inspect = *.h *.c
+inspect	=		*.h *.c
 
-cppcheck_flags = --quiet --language=c --std=c99 \
-                 --project=cppcheck/sucgi.cppcheck --force \
-                 --library=posix --library=cppcheck/library.cfg \
-                 --suppressions-list=cppcheck/suppr.txt --inline-suppr \
-                 --enable=all --addon=cppcheck/cert.py --addon=misra.py
+ifhascmd(`cppcheck', `dnl
+cppcheck_flags =	--quiet --language=c --std=c99 \
+			--project=cppcheck/sucgi.cppcheck --force \
+			--library=posix --library=cppcheck/library.cfg \
+			--suppressions-list=cppcheck/suppr.txt --inline-suppr \
+			--enable=all --addon=cppcheck/cert.py --addon=misra.py
+')dnl
 
-flawfinder_flags = --falsepositive --dataonly --quiet
+ifhascmd(`flawfinder', `dnl
+flawfinder_flags =	--falsepositive --dataonly --quiet
+')dnl
 
-rats_flags = --resultsonly --quiet --warning 3
-
+ifhascmd(`rats', `dnl
+rats_flags =		--resultsonly --quiet --warning 3
+')dnl
 
 #
 # Distribution
 #
 
-package = sucgi
-version = 0
-dist_name = $(package)-$(version)
-dist_ar = $(dist_name).tgz
-dist_files = *.c *.h *.env *.excl *.m4 *.sample README.rst LICENSE.txt \
-             configure cppcheck docs m4 tests tools
+package	= 	sucgi
+version	=	0
+dist_name =	$(package)-$(version)
+dist_ar	=	$(dist_name).tgz
+dist_files =	*.c *.h *.env *.excl *.m4 *.sample README.rst LICENSE.txt \
+		configure cppcheck docs m4 tests tools
 
 
 #
@@ -133,7 +149,7 @@ all: sucgi
 sucgi:
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ main.c lib.a $(LDLIBS)
 
-$(macro_check_bins):
+$(macro_bins):
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/lib.o -lm $(LDLIBS)
 
 $(check_bins):
@@ -152,8 +168,12 @@ build.h: build.h.m4
 
 compat.h: compat.h.m4
 
-lib.a: lib.a(env.o) lib.a(error.o) lib.a(file.o) lib.a(handler.o) \
-       lib.a(path.o) lib.a(priv.o) lib.a(str.o) lib.a(userdir.o)
+tools: $(tool_bins)
+
+checks: $(macro_bins) $(check_bins)
+
+lib.a:	lib.a(env.o) lib.a(error.o) lib.a(file.o) lib.a(handler.o) \
+	lib.a(path.o) lib.a(priv.o) lib.a(str.o) lib.a(userdir.o)
 
 lib.a(env.o): env.c env.h $(stdhdrs) lib.a(str.o)
 
@@ -183,47 +203,71 @@ tests/NELEMS: tests/NELEMS.c $(stdhdrs) tests/lib.o
 
 tests/SIGNEDMAX: tests/SIGNEDMAX.c $(stdhdrs) tests/lib.o
 
-tests/env_is_name: tests/env_is_name.c lib.a(env.o) $(stdhdrs) tests/lib.o
+tests/env_is_name: tests/env_is_name.c $(stdhdrs) lib.a(env.o) tests/lib.o
 
-tests/env_restore: tests/env_restore.c lib.a(env.o) $(stdhdrs) tests/lib.o
+tests/env_restore: tests/env_restore.c $(stdhdrs) lib.a(env.o) tests/lib.o
 
-tests/error: tests/error.c lib.a(error.o) $(stdhdrs) tests/lib.o
+tests/error: tests/error.c $(stdhdrs) lib.a(error.o) tests/lib.o
 
-tests/error.sh: tests/error
+tests/file_is_exe: tests/file_is_exe.c $(stdhdrs) lib.a(file.o) tests/lib.o
 
-tests/file_is_exe: tests/file_is_exe.c lib.a(file.o) $(stdhdrs) tests/lib.o
+tests/file_is_wexcl: tests/file_is_wexcl.c $(stdhdrs) lib.a(file.o) tests/lib.o
 
-tests/file_is_wexcl: tests/file_is_wexcl.c lib.a(file.o) $(stdhdrs) tests/lib.o
+tests/handler_lookup: tests/handler_lookup.c $(stdhdrs) lib.a(handler.o) tests/lib.o
 
-tests/handler_lookup: tests/handler_lookup.c lib.a(handler.o) $(stdhdrs) tests/lib.o
+tests/main: main.c build.h config.h $(stdhdrs) lib.a tests/lib.o
 
-tests/path_check_sub: tests/path_check_sub.c lib.a(path.o) $(stdhdrs) tests/lib.o
+tests/path_check_sub: tests/path_check_sub.c $(stdhdrs) lib.a(path.o) tests/lib.o
 
-tests/path_check_wexcl: tests/path_check_wexcl.c lib.a(path.o) $(stdhdrs) tests/lib.o
+tests/path_check_wexcl: tests/path_check_wexcl.c $(stdhdrs) lib.a(path.o) tests/lib.o
 
-tests/path_check_wexcl.sh: tests/path_check_wexcl tools/ids
+tests/path_check_in: tests/path_check_in.c $(stdhdrs) lib.a(path.o) tests/lib.o
 
-tests/path_check_in: tests/path_check_in.c lib.a(path.o) $(stdhdrs) tests/lib.o
+tests/path_suffix: tests/path_suffix.c $(stdhdrs) lib.a(path.o) tests/lib.o
 
-tests/path_suffix: tests/path_suffix.c lib.a(path.o) $(stdhdrs) tests/lib.o
+tests/priv_drop: tests/priv_drop.c $(stdhdrs) lib.a(priv.o) tests/lib.o
 
-tests/priv_drop: tests/priv_drop.c lib.a(priv.o) $(stdhdrs) tests/lib.o
+tests/priv_suspend: tests/priv_suspend.c $(stdhdrs) lib.a(priv.o) tests/lib.o
 
-tests/priv_drop.sh: tests/priv_drop tests/main tools/runas
+tests/str_cp: tests/str_cp.c $(stdhdrs) lib.a(str.o) tests/lib.o
 
-tests/priv_suspend: tests/priv_suspend.c lib.a(priv.o) $(stdhdrs) tests/lib.o
+tests/str_split: tests/str_split.c $(stdhdrs) lib.a(str.o) tests/lib.o
 
-tests/priv_suspend.sh: tests/priv_suspend tests/main tools/runas
+tests/userdir_resolve: tests/userdir_resolve.c $(stdhdrs) lib.a(userdir.o) tests/lib.o
 
-tests/str_cp: tests/str_cp.c lib.a(str.o) $(stdhdrs) tests/lib.o
+tests/lib.sh: tools/ids
 
-tests/str_split: tests/str_split.c lib.a(str.o) $(stdhdrs) tests/lib.o
+tests/error.sh: tests/error tests/lib.sh
 
-tests/userdir_resolve: tests/userdir_resolve.c lib.a(userdir.o) $(stdhdrs) tests/lib.o
+tests/main-arg0.sh: tests/main tools/badexec tests/lib.sh
 
-tests/main: main.c build.h config.h lib.a $(stdhdrs) tests/lib.o
+tests/main-chkwexcl.sh: tests/main tests/lib.sh
 
-tests/main.sh: tests/main tools/badexec tools/badexec tools/ids
+tests/main-envclean.sh: tests/main tools/badenv tests/lib.sh
+
+tests/main-envsan.sh: tests/main tools/badenv tests/lib.sh
+
+tests/main-fnamesan.sh: tests/main tests/lib.sh
+
+tests/main-handler.sh: tests/main tests/lib.sh
+
+tests/main-hidden.sh: tests/main tests/lib.sh
+
+tests/main-setid.sh: tests/main tests/lib.sh
+
+tests/main-userdir.sh: tests/main tests/lib.sh
+
+tests/main-userval.sh: tests/main tests/lib.sh
+
+tests/main-optval.sh: tests/main tests/lib.sh
+
+tests/main-privdrop.sh: tests/main tests/lib.sh
+
+tests/path_check_wexcl.sh: tests/path_check_wexcl tools/ids tests/lib.sh
+
+tests/priv_drop.sh: tests/priv_drop tests/main tools/ids tools/runas tests/lib.sh
+
+tests/priv_suspend.sh: tests/priv_suspend tests/main tools/runas tests/lib.sh
 
 
 #
@@ -231,11 +275,14 @@ tests/main.sh: tests/main tools/badexec tools/badexec tools/ids
 #
 
 clean:
-	rm -f *.c.* *.o a--.* lib.a sucgi tests/lib.o $(bins) $(dist_name).*
+	rm -f lib.a sucgi $(bins) $(dist_name).*
 	rm -rf tmp-* $(dist_name)
 	find . '(' \
-           -name '*.ctu-info'  -o -name '*.dump'			\
-        -o -name '*.gcda'      -o -name '*.gcno'  -o -name '*.dSYM'	\
+	   -name '*.o'							\
+	-o -name '*.c.*'       -o -name 'a--.*'				\
+	-o -name '*.ctu-info'  -o -name '*.dump'			\
+	-o -name '*.gcda'      -o -name '*.gcno'  -o -name '*.dSYM'	\
+	-o -name '*.lock'						\
        ')' -exec rm -rf '{}' +
 
 
@@ -243,7 +290,7 @@ clean:
 # Tests
 #
 
-check: $(tool_bins) $(checks)
+check: tools checks
 	tools/runpara $(runpara_flags) $(checks)
 
 
@@ -296,16 +343,13 @@ uninstall:
 # Coverage reports
 #
 
-cov: clean $(tool_bins)
-#	make CC=$(SC_COV_CC) CFLAGS="--coverage -O2" \
-#		$(macro_check_bins) $(check_bins)
-	#tools/runpara -cj1 $(macro_check_bins) $(check_bins) || :
-	#chown -R "$(repo_owner)" .
-	make CFLAGS="-O2 --coverage" $(checks)
+cov: clean tools
+	make CFLAGS="-O2 --coverage" checks
 	umask 0 && tools/runpara -i75 -j1 $(checks)
 
+dnl FIXME: Re-write!
 gcov: cov
-	ar -t lib.a | sed -n '/^.*\.o$$/p' | xargs gcov -p sucgi
+	ar -t lib.a | sed -n '/.o$$/ p' | xargs gcov -p sucgi
 	mkdir -p gcov
 	find . -type f -name '*.gcov' -exec mv '{}' gcov ';'
 	chown -R "$(repo_owner)" gcov
@@ -327,13 +371,13 @@ covhtml: cov/index.html
 #
 
 shellcheck:
-	shellcheck -x $(scripts)
+	ifhascmd(`shellcheck', `shellcheck -x $(scripts)')
 
 analysis:
-	clang-tidy $(inspect) -- -std=c99
-	cppcheck $(cppcheck_flags) $(inspect)
-	flawfinder $(flawfinder_flags) $(inspect)
-	rats $(rats_flags) $(inspect)
+	ifhascmd(`clang-tidy', `clang-tidy $(inspect) -- -std=c99')
+	ifhascmd(`cppcheck', `cppcheck $(cppcheck_flags) $(inspect)')
+	ifhascmd(`flawfinder', `flawfinder $(flawfinder_flags) $(inspect)')
+	ifhascmd(`rats', `rats $(rats_flags) $(inspect)')
 
 
 #

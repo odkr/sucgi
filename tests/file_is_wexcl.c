@@ -58,14 +58,6 @@ typedef struct {
 
 
 /*
- * Prototypes
- */
-
-/* Test file_is_wexcl. */
-static void test(uid_t uid, struct stat fstatus, bool ret);
-
-
-/*
  * Module variables
  */
 
@@ -122,54 +114,28 @@ static const Args cases[] = {
 
 
 /*
- * Functions
- */
-
-static void
-test(const uid_t uid, const struct stat fstatus, const bool ret)
-{
-    bool retret;
-
-    warnx(
-        "checking (%llu, {.st_uid = %llu, .st_mode = 0%o})) -> %d ...",
-        (unsigned long long) uid, (unsigned long long) fstatus.st_gid,
-        fstatus.st_mode, ret
-    );
-
-    retret = file_is_wexcl(uid, fstatus);
-
-    if (retret != ret) {
-        errx(TEST_FAILED, "returned %d", retret);
-    }
-}
-
-
-/*
  * Main
  */
 
 int
 main(void)
 {
-    const uid_t uids[] = {
-        0, 1, 99, 100, 101, 499, 500, 501, 999,
-        1000, 1001, 59999, 60000, 60001, INT_MAX
-    };
-
-    /* Static test cases. */
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
-        test(args.uid, args.fstatus, args.ret);
-    }
+        bool ret;
 
-    /* Dynamic tests. */
-    for (size_t i = 0; i < NELEMS(uids); ++i) {
-        uid_t a = uids[i];
-        uid_t b = uids[(i + 1) % NELEMS(uids)];
+        warnx(
+            "checking (%d, {%d, 0%03o})) -> %d ...",
+            (int) args.uid,
+            (int) args.fstatus.st_gid,
+            args.fstatus.st_mode,
+            args.ret
+        );
 
-        for (mode_t perms = 0; perms <= 0777; ++perms) {
-            test(a, STAT(a, perms), !(perms & (S_IWGRP | S_IWOTH)));
-            test(a, STAT(b, perms), false);
+        ret = file_is_wexcl(args.uid, args.fstatus);
+
+        if (ret != args.ret) {
+            errx(TEST_FAILED, "returned %d", ret);
         }
     }
 

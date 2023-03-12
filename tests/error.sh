@@ -44,16 +44,28 @@ eval $(main -C | grep -E ^NDEBUG=)
 
 
 #
-# Main
+# Assertions
 #
 
 [ "${NDEBUG-}" ] || check -s134 -e"*message" error ''
-check -s1 error %s ''
 
-for message in - foo bar baz
+
+#
+# Messages
+#
+
+for format in - foo bar baz %s foo%s bar%s baz%s
 do
-	check -s1 -e"$message" error "$message"
-	check -s1 -e"$message" error %s "$message"
+	for arg in - foo bar baz
+	do
+		message="$(printf -- "$format" "$arg")"
+		check -s1 -e"$message" error "$format" "$arg"
+	done
 done
+
+
+#
+# Success
+#
 
 warn "all tests passed."

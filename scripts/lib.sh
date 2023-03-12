@@ -110,8 +110,7 @@ inlist() (
 
 	# shellcheck disable=2034
 	for straw
-	do
-		eval "[ \"\$needle\" $op \"\$straw\" ]" && return
+	do eval "[ \"\$needle\" $op \"\$straw\" ]" && return
 	done
 
 	return 1

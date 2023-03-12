@@ -119,15 +119,15 @@ main(void)
     fillstr('x', sizeof(long_rel_fname), long_rel_fname);
 
     fillstr('x', sizeof(long_abs_fname), long_abs_fname);
-    long_abs_fname[0] = '/';
+    *long_abs_fname = '/';
 
     fillstr('x', sizeof(long_pattern), long_pattern);
     (void) str_cp(4, "/%s", &long_pattern[sizeof(long_pattern) - 4]);
-    long_pattern[0] = '/';
+    *long_pattern = '/';
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
-        char dir[MAX_FNAME_LEN];    /* RATS: ignore */
+        char dir[MAX_FNAME_LEN];
         Error ret;
 
         (void) memset(dir, '\0', MAX_FNAME_LEN);
@@ -143,7 +143,8 @@ main(void)
         if (ret != args.ret) {
             errx(TEST_FAILED, "returned code %u", ret);
         }
-        if (!(args.dir == NULL || strcmp(args.dir, dir) == 0)) {
+
+        if (ret == OK && strcmp(args.dir, dir) != 0) {
             errx(TEST_FAILED, "returned directory %s", dir);
         }
     }

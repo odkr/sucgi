@@ -39,8 +39,8 @@
 
 /* Arguments to test. */
 typedef struct {
-    long long a;
-    long long b;
+    long long smaller;
+    long long greater;
 } Args;
 
 
@@ -48,8 +48,10 @@ typedef struct {
  * Prototypes
  */
 
-/* Check whether MIN returns A, which must be <= B. */
-static void test(long long a, long long b);
+/*
+ * Check if MIN(A, B) returns MIN.
+ */
+static void test(long long a, long long b, long long min);
 
 
 /*
@@ -57,7 +59,7 @@ static void test(long long a, long long b);
  */
 
 /* Test cases */
-static Args tests[] = {
+static Args cases[] = {
     /* Significant values. */
     {LONG_MIN, LONG_MIN},
     {LONG_MIN, LONG_MIN + 1},
@@ -150,20 +152,15 @@ static Args tests[] = {
  */
 
 static void
-test(long long a, long long b)
+test(const long long a, const long long b, const long long min)
 {
-    assert(a <= b);
+    long long ret;
 
-    warnx("checking (%lld, %lld) -> %lld ...", a, b, a);
+    warnx("checking (%lld, %lld) -> %lld ...", a, b, min);
 
-    if (MIN(a, b) != a) {
-        errx(TEST_FAILED, "returned %lld", b);
-    }
-
-    warnx("checking (%lld, %lld) -> %lld ...", b, a, a);
-
-    if (MIN(b, a) != a) {
-        errx(TEST_FAILED, "returned %lld", b);
+    ret = MIN(a, b);
+    if (ret != min) {
+        errx(TEST_FAILED, "returned %lld", ret);
     }
 }
 
@@ -174,12 +171,13 @@ test(long long a, long long b)
 
 int
 main (void) {
-    for (size_t i = 0; i < NELEMS(tests); ++i) {
-        test(tests[i].a, tests[i].b);
-    }
+    for (size_t i = 0; i < NELEMS(cases); ++i) {
+        const Args args = cases[i];
 
-    for (long long i = -1024; i < 1024; ++i) {
-        test(i, i + 1);
+        assert(args.smaller <= args.greater);
+
+        test(args.smaller, args.greater, args.smaller);
+        test(args.greater, args.smaller, args.smaller);
     }
 
     warnx("all tests passed");
