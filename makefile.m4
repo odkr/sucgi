@@ -98,15 +98,16 @@ cppcheck_flags =	--quiet --language=c --std=c99 \
 			--library=posix --library=cppcheck/library.cfg \
 			--suppressions-list=cppcheck/suppr.txt --inline-suppr \
 			--enable=all --addon=cppcheck/cert.py --addon=misra.py
-')dnl
 
+', `dnl')dnl
 ifhascmd(`flawfinder', `dnl
 flawfinder_flags =	--falsepositive --dataonly --quiet
-')dnl
 
+', `dnl')dnl
 ifhascmd(`rats', `dnl
 rats_flags =		--resultsonly --quiet --warning 3
-')dnl
+
+', `dnl')dnl
 
 #
 # Distribution
@@ -371,13 +372,23 @@ covhtml: cov/index.html
 #
 
 shellcheck:
-	ifhascmd(`shellcheck', `shellcheck -x $(scripts)')
+ifhascmd(`shellcheck',
+`	shellcheck -x $(scripts)
+')dnl
 
 analysis:
-	ifhascmd(`clang-tidy', `clang-tidy $(inspect) -- -std=c99')
-	ifhascmd(`cppcheck', `cppcheck $(cppcheck_flags) $(inspect)')
-	ifhascmd(`flawfinder', `flawfinder $(flawfinder_flags) $(inspect)')
-	ifhascmd(`rats', `rats $(rats_flags) $(inspect)')
+ifhascmd(`clang-tidy',
+`	clang-tidy $(inspect) -- -std=c99
+')dnl
+ifhascmd(`cppcheck',
+`	cppcheck $(cppcheck_flags) $(inspect)
+')dnl
+ifhascmd(`flawfinder',
+`	flawfinder $(flawfinder_flags) $(inspect)
+')dnl
+ifhascmd(`rats',
+`	rats $(rats_flags) $(inspect)
+')dnl
 
 
 #
