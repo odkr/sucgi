@@ -77,14 +77,21 @@ quiet=
 # Functions
 #
 
-# Check if the compiler supports the given flags.
-# If $1 does not start with a dash, assume it's the basename of a compiler
-# and only check if the compiler's basename matches.
+# Check if the given compilers support the given flags.
 addflags() {
-	case ${1:?} in
-	(-*) cflags="${cflags-} $*" ;;
-	(*)  eval "cflags_$1"="\"\${cflags_$1-} \$*\"" ;;
-	esac
+	while [ $# -gt 0 ]
+	do
+		case ${1:?} in
+		(-*)
+			cflags="${cflags-} $*"
+			break
+			;;
+		(*)
+			eval "cflags_$1"="\"\${cflags_$1-} \$*\""
+			shift
+			;;
+		esac
+	done
 }
 
 # Test compiler features.
