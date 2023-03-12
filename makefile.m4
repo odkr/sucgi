@@ -99,15 +99,15 @@ cppcheck_flags =	--quiet --language=c --std=c99 \
 			--suppressions-list=cppcheck/suppr.txt --inline-suppr \
 			--enable=all --addon=cppcheck/cert.py --addon=misra.py
 
-', `dnl')dnl
+')dnl
 ifhascmd(`flawfinder', `dnl
 flawfinder_flags =	--falsepositive --dataonly --quiet
 
-', `dnl')dnl
+')dnl
 ifhascmd(`rats', `dnl
 rats_flags =		--resultsonly --quiet --warning 3
 
-', `dnl')dnl
+')dnl
 
 #
 # Distribution
@@ -279,11 +279,12 @@ clean:
 	rm -f lib.a sucgi $(bins) $(dist_name).*
 	rm -rf tmp-* $(dist_name)
 	find . '(' \
-	   -name '*.o'							\
-	-o -name '*.c.*'       -o -name 'a--.*'				\
-	-o -name '*.ctu-info'  -o -name '*.dump'			\
-	-o -name '*.gcda'      -o -name '*.gcno'  -o -name '*.dSYM'	\
-	-o -name '*.lock'						\
+           -name '*.o'					\
+        -o -name '*.c.*'	-o -name 'a--.*'	\
+        -o -name '*.ctu-info'	-o -name '*.dump'	\
+        -o -name '*.gcda'	-o -name '*.gcno'	\
+        -o -name '*.dSYM'				\
+        -o -name '*.lock'	-o -name '*.lock'	\
        ')' -exec rm -rf '{}' +
 
 
