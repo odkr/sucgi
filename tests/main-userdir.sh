@@ -109,13 +109,13 @@ ln -s "$outside" "$intoout"
 
 for script in "$outside" "$intoout"
 do
-	check -s1 -e"$script is not within $reguser's user directory." \
+	check -s1 -e"script $script: not within $reguser's user directory." \
 		PATH_TRANSLATED="$script" main
 done
 
 for script in "$inside" "$outtoin"
 do
-	check -s1 -e"$script is writable by users other than $reguser." \
+	check -s1 -e"script $script: writable by users other than $reguser." \
 		PATH_TRANSLATED="$script" main
 done
 

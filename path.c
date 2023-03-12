@@ -100,7 +100,6 @@ path_check_wexcl(const uid_t uid, const char *const basedir,
     assert(*fname == '/');
 
     if (path_check_in(basedir, fname) != OK) {
-        /* FIXME: Not unit-tested. */
         return ERR_BASEDIR;
     }
 

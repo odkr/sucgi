@@ -67,11 +67,10 @@ main (int argc, char **argv)
     case OK:
         break;
     case ERR_WEXCL:
-        errx(EXIT_FAILURE, "%s is writable by users other than %s",
+        errx(EXIT_FAILURE, "file %s: writable by users other than %s",
              fname, user->pw_name);
-    case ERR_SEARCH:
-        /* FIXME: not tested by the script. */
-        errx(EXIT_FAILURE, "%s is not within %s", fname, basedir);
+    case ERR_BASEDIR:
+        errx(EXIT_FAILURE, "file %s: not within %s", fname, basedir);
     case ERR_SYS_STAT:
         err(EXIT_FAILURE, "stat %s", fname);
     default:

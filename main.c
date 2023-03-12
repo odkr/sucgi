@@ -691,7 +691,7 @@ main(int argc, char **argv) {
         case OK:
             break;
         case ERR_BASEDIR:
-            error("%s is not within %s's user directory.",
+            error("script %s: not within %s's user directory.",
                   script_log, logname);
         default:
             /* Should be unreachable. */
@@ -738,7 +738,8 @@ main(int argc, char **argv) {
     case OK:
         break;
     case ERR_WEXCL:
-        error("%s is writable by users other than %s.", script_log, logname);
+        error("script %s: writable by users other than %s.",
+              script_log, logname);
     case ERR_SYS_STAT:
         error("stat %s: %m.", script_log);
     default:

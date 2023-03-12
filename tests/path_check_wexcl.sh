@@ -91,6 +91,36 @@ fi
 
 
 #
+# Bad arguments
+#
+
+for pair in					\
+	"/:/"					\
+	"/foo:/bar"				\
+	"/bar:/foo"				\
+	"/foo:/foobar"				\
+	"/foo:/"				\
+	"/foo:/foo"				\
+	"/home/jdoe:/srv/www/jdoe"		\
+	"/srv/www:/home/jdoe/public_html"	\
+	"/𝒇ȫǭ:/𝕓ắ𝚛"				\
+	"/𝕓ắ𝚛:/𝒇ȫǭ"				\
+	"/𝒇ȫǭ:/𝒇ȫǭ𝕓ắ𝚛"				\
+	"/𝒇ȫǭ:/"				\
+	"/𝒇ȫǭ:/𝒇ȫǭ"				\
+	"/home/⒥𝑑𝓸𝖊:/srv/www/⒥𝑑𝓸𝖊"		\
+	"/srv/www:/home/⒥𝑑𝓸𝖊/public_html"
+do
+	IFS=:
+	set -- $pair
+	unset IFS
+
+	check -s1 -e"file $2: not within $1" \
+		path_check_wexcl "$user" "$1" "$2"
+done
+
+
+#
 # Not exclusively writable
 #
 
@@ -98,12 +128,12 @@ no="u=r,g=w,o= u=r,g=,o=w u=rw,g=w,o= u=rw,g=,o=w u=rw,go=w u=rw,go=w"
 for mode in $no
 do
 	chmod "$mode" "$shallow"
-	check -s1 -e"$shallow is writable by users other than $user" \
+	check -s1 -e"file $shallow: writable by users other than $user" \
 		path_check_wexcl "$user" "$TMPDIR" "$shallow"
 
 	chmod "$mode" "$basedir"
 	chmod u+x "$basedir"
-	check -s1 -e"$deeper is writable by users other than $user" \
+	check -s1 -e"file $deeper: writable by users other than $user" \
 		path_check_wexcl "$user" "$TMPDIR" "$deeper"
 done
 
@@ -120,7 +150,7 @@ do
 	chmod "$mode" "$shallow"
 	check path_check_wexcl "$user" "$TMPDIR" "$shallow"
 	[ "$uid" -ne 0 ] &&
-		check -s1 -e"$deeper is writable by users other than $user" \
+		check -s1 -e"file $deeper: writable by users other than $user" \
 			path_check_wexcl "$user" / "$deeper"
 
 	chmod "$mode" "$basedir"
@@ -128,11 +158,11 @@ do
 	check path_check_wexcl "$user" "$TMPDIR" "$deeper"
 
 	chmod g+w,o= "$deeper"
-	check -s1 -e"$deeper is writable by users other than $user" \
+	check -s1 -e"file $deeper: writable by users other than $user" \
 		path_check_wexcl "$user" "$TMPDIR" "$deeper"
 
 	chmod g=,o+w "$deeper"
-	check -s1 -e"$deeper is writable by users other than $user" \
+	check -s1 -e"file $deeper: writable by users other than $user" \
 		path_check_wexcl "$user" "$TMPDIR" "$deeper"
 done
 
