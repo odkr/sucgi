@@ -77,21 +77,12 @@ quiet=
 # Functions
 #
 
-# Check if the given compilers support the given flags.
+# Check if the given compiler supports the given flags.
 addflags() {
-	while [ $# -gt 0 ]
-	do
-		case ${1:?} in
-		(-*)
-			cflags="${cflags-} $*"
-			break
-			;;
-		(*)
-			eval "cflags_$1"="\"\${cflags_$1-} \$*\""
-			shift
-			;;
-		esac
-	done
+	case ${1:?} in
+	(-*) cflags="${cflags-} $*" ;;
+	(*)  eval "cflags_$1"="\"\${cflags_$1-} \$*\"" ;;
+	esac
 }
 
 # Test compiler features.
