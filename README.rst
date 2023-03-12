@@ -64,10 +64,7 @@ See `docs/build.rst`_ for details.
 
 ----
 
-suCGI is configured at compile-time. Adapt *config.h* to your needs::
-
-   cp config.h.sample config.h
-   vi config.h
+suCGI is configured at compile-time. Adapt *config.h* to your needs.
 
 ----
 

@@ -29,7 +29,7 @@ set -Ceu
 src_dir="$(dirname "$0")" || exit
 readonly src_dir
 cd "$src_dir" || exit
-. ./tools/lib.sh || exit
+. ./scripts/lib.sh || exit
 init
 tmpdir tmp .
 
@@ -227,11 +227,10 @@ else
 fi
 
 ccname="$(basename "$CC")"
-if [ "$ccname" = c99 ]
-	then cctype="$ccname"
-	else cctype="${ccname%%[!a-z]*}"
-fi
-[ "$cctype" = clang ] && cctype=llvm
+case $ccname in
+(clang|clang-*)	cctype=llvm ;;
+(*)		cctype="${ccname%%-*}" ;;
+esac
 
 
 #
@@ -392,8 +391,8 @@ then
 	unset IFS src
 
 	if [ "${SC_GETGRPLST_T-}" ]
-		then printf '%s\n' "$SC_GETGRPLST_T"
-		else printf 'guess at compile-time\a\n'
+	then printf '%s\n' "$SC_GETGRPLST_T"
+	else printf 'guess at compile-time\a\n'
 	fi
 else
 	printf '%s\n' "$SC_GETGRPLST_T"
@@ -564,8 +563,8 @@ do
 	then
 		mv "$swap" "$file"
 		if [ "$exists" ]
-			then warn -q 'updated %s.' "$file"
-			else warn -q 'generated %s.' "$file"
+		then warn -q 'updated %s.' "$file"
+		else warn -q 'generated %s.' "$file"
 		fi
 	else
 		rm -f "$swap" || :
@@ -574,3 +573,16 @@ do
 	unset swap
 done
 
+
+#
+# config.h
+#
+
+if [ -e config.h ]
+then
+	cmp -s config.h.sample config.h ||
+	warn -q 'config.h and config.h.sample differ, keeping config.h.'
+else
+	warn -q 'copying config.h.sample to config.h.'
+	cp config.h.sample config.h
+fi
