@@ -244,9 +244,9 @@ static const RealArgs realistic[] = {
       "SCRIPT_NAME=index.php", "SERVER_ADMIN=admin@foo.example",
       "SERVER_NAME=www.foo.example", "SERVER_PORT=443",
       "SERVER_SOFTWARE=Apache v2.4", NULL}, 0, {NULL},
-     {"TMPDIR=/tmp/user/1000", "HTTP_HOST=www.foo.example",
-      "HTTP_REFERER=https://www.bar.example", "HTTP_USER_AGENT=FakeZilla/1",
-      "HTTPS=on", "QUERY_STRING=foo=bar&bar=baz", "REMOTE_ADDR=100::1:2:3",
+     {"HTTP_HOST=www.foo.example", "HTTP_REFERER=https://www.bar.example",
+      "HTTP_USER_AGENT=FakeZilla/1", "HTTPS=on",
+      "QUERY_STRING=foo=bar&bar=baz", "REMOTE_ADDR=100::1:2:3",
       "REMOTE_HOST=100::1:2:3", "REMOTE_PORT=50000", "REQUEST_METHOD=GET"
       "REQUEST_URI=/index.php",
       "PATH_TRANSLATED=/home/jdoe/public_html/index.php",
@@ -345,9 +345,9 @@ static int mkvar(size_t namelen, size_t varlen, char **var) {
 static int
 mkvars(size_t n, char **vars)
 {
-    static const char fmt[] = "v%zu=";  /* Format for variables. */
-    size_t len;                         /* Maximum length of a variable. */
-    size_t lst;                         /* Index of last variable. */
+    static const char fmt[] = "v%zu=";
+    size_t len;
+    size_t lst;
 
     assert(n < SHRT_MAX);
     lst = n - 1U;
@@ -407,8 +407,8 @@ test(const ConstArgs *args)
     for (size_t j = 0; j < args->n && j < MAX_TEST_NVARS; ++j) {
         rc = regcomp(&pregs[j], args->patterns[j], REG_EXTENDED | REG_NOSUB);
         if (rc != 0) {
-            char message[MAX_ERRMSG_LEN];   /* Buffer for error message. */
-            size_t len;                     /* Length of error message. */
+            char message[MAX_ERRMSG_LEN];
+            size_t len;
 
             len = regerror(rc, &pregs[j], message, sizeof(message));
             if (len > sizeof(message)) {
