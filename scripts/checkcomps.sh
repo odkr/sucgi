@@ -94,7 +94,7 @@ Operands:
     CC  A compiler to test.
 
 Options:
-    -l  Do not log failed runs to the current working directory.
+    -l  Do not log failed runs.
     -q  Be more quiet.
     -h  Show this help screen.
 
