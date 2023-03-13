@@ -40,7 +40,7 @@ tmpdir
 # Build configuration
 #
 
-eval "$(main -C | grep -vE ^PATH=)"
+eval "$(main-privdrop -C | grep -vE ^PATH=)"
 
 
 #
@@ -71,8 +71,6 @@ case $tmpdir in
 (*)		err 'temporary directory %s is outside of /tmp.' "$tmpdir"
 esac
 readonly tmpdir
-
-lock "$tests_dir/tmpdir.lock"
 
 catch=
 mkdir -m 0755 "$tmpdir"
@@ -119,7 +117,7 @@ do
 	[ -x "$script" ] && ! $script >/dev/null 2>&1 && continue
 
 	check -s0 -o"uid=$reguid egid=$reggid ruid=$reguid rgid=$reggid" \
-		PATH_TRANSLATED="$script" main
+		PATH_TRANSLATED="$script" main-privdrop
 
 	count=$((count + 1))
 done

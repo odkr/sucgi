@@ -40,7 +40,7 @@ tmpdir
 # Build configuration
 #
 
-eval "$(main -C | grep -vE ^PATH=)"
+eval "$(main-setid -C | grep -vE ^PATH=)"
 
 
 #
@@ -69,8 +69,6 @@ case $tmpdir in
 (*)		err 'temporary directory %s is outside of /tmp.' "$tmpdir"
 esac
 readonly tmpdir
-
-lock "$tests_dir/tmpdir.lock"
 
 catch=
 mkdir -m 0755 "$tmpdir"
@@ -102,11 +100,11 @@ chown -R "$reguser" "$userdir"
 
 chmod u=rws,g=r,o=r "$script"
 check -s1 -e"script $script: set-user-ID on execute bit is set." \
-	PATH_TRANSLATED="$script" main
+	PATH_TRANSLATED="$script" main-setid
 
 chmod u=rx,g=rs,o=r "$script"
 check -s1 -e"script $script: set-group-ID on execute bit is set." \
-	PATH_TRANSLATED="$script" main
+	PATH_TRANSLATED="$script" main-setid
 
 
 #

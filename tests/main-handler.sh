@@ -40,7 +40,7 @@ tmpdir
 # Build configuration
 #
 
-eval "$(main -C | grep -vE ^PATH=)"
+eval "$(main-handler -C | grep -vE ^PATH=)"
 
 
 #
@@ -69,8 +69,6 @@ case $tmpdir in
 (*)		err 'temporary directory %s is outside of /tmp.' "$tmpdir"
 esac
 readonly tmpdir
-
-lock "$tests_dir/tmpdir.lock"
 
 catch=
 mkdir -m 0755 "$tmpdir"
@@ -116,17 +114,17 @@ chown -R "$reguser" "$userdir"
 
 # Bad handler.
 check -s1 -e"script $emptyhandler: bad handler." \
-	PATH_TRANSLATED="$emptyhandler" main
+	PATH_TRANSLATED="$emptyhandler" main-handler
 
 # Suffix is too long.
 check -s1 -e"script $hugesuffix: filename suffix too long." \
-	PATH_TRANSLATED="$hugesuffix" main
+	PATH_TRANSLATED="$hugesuffix" main-handler
 
 # No known suffix.
 for script in "$nosuffix" "$unknownsuffix"
 do
 	check -s1 -e"script $script: no handler found." \
-		PATH_TRANSLATED="$script" main
+		PATH_TRANSLATED="$script" main-handler
 done
 
 

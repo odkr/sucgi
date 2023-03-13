@@ -41,7 +41,7 @@ tmpdir chk
 # Build configuration
 #
 
-eval $(main -C | grep -vE ^PATH=)
+eval $(main-chkwexcl -C | grep -vE ^PATH=)
 
 
 #
@@ -70,8 +70,6 @@ case $tmpdir in
 (*)		err 'temporary directory %s is outside of /tmp.' "$tmpdir"
 esac
 readonly tmpdir
-
-lock "$tests_dir/tmpdir.lock"
 
 catch=
 mkdir -m 0755 "$tmpdir"
@@ -112,12 +110,12 @@ for mode in $no
 do
 	chmod "$mode" "$shallow"
 	check -s1 -e"script $shallow: writable by users other than $reguser" \
-		PATH_TRANSLATED="$shallow" main
+		PATH_TRANSLATED="$shallow" main-chkwexcl
 
 	chmod "$mode" "$subdir"
 	chmod u+x "$subdir"
 	check -s1 -e"script $deeper: writable by users other than $reguser" \
-		PATH_TRANSLATED="$deeper" main
+		PATH_TRANSLATED="$deeper" main-chkwexcl
 done
 
 
@@ -132,20 +130,20 @@ do
 
 	chmod "$mode" "$shallow"
 	check -s1 -e"script $shallow: no handler found." \
-		PATH_TRANSLATED="$shallow" main
+		PATH_TRANSLATED="$shallow" main-chkwexcl
 
 	chmod "$mode" "$subdir"
 	chmod u+wx,go= "$subdir"
 	check -s1 -e"script $deeper: no handler found." \
-		PATH_TRANSLATED="$deeper" main
+		PATH_TRANSLATED="$deeper" main-chkwexcl
 
 	chmod g+w,o= "$deeper"
 	check -s1 -e"script $deeper: writable by users other than $reguser" \
-		PATH_TRANSLATED="$deeper" main
+		PATH_TRANSLATED="$deeper" main-chkwexcl
 
 	chmod g=,o+w "$deeper"
 	check -s1 -e"script $deeper: writable by users other than $reguser" \
-		PATH_TRANSLATED="$deeper" main
+		PATH_TRANSLATED="$deeper" main-chkwexcl
 done
 
 

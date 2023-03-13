@@ -40,7 +40,7 @@ tmpdir
 # Build configuration
 #
 
-eval "$(main -C | grep -vE ^PATH=)"
+eval "$(main-envclean -C | grep -vE ^PATH=)"
 
 
 #
@@ -68,8 +68,6 @@ case $tmpdir in
 (/tmp/*)	: ;;
 (*)		err 'temporary directory %s is outside of /tmp.' "$tmpdir"
 esac
-
-lock "$tests_dir/tmpdir.lock"
 
 catch=
 mkdir -m 0755 "$tmpdir"
@@ -144,8 +142,8 @@ do
 	SERVER_SOFTWARE='Apache v2.4' 			\
 	USER='jdoe'					\
 	VISUAL='vim'					\
-	main >"$logfile" 2>/dev/null			||
-	err -s70 'main exited with status %d.' $?
+	main-envclean >"$logfile" 2>/dev/null			||
+	err -s70 'main-envclean exited with status %d.' $?
 
 	for var in					\
 		"PATH_TRANSLATED=$script"		\
@@ -156,7 +154,6 @@ do
 		'HTTP_REFERER=https://www.bar.example'	\
 		'HTTP_USER_AGENT=FakeZilla/1'		\
 		'PATH=/usr/bin:/bin'			\
-		'PWD=/private/tmp/check-sucgi/john'	\
 		'QUERY_STRING=foo=bar'			\
 		'REMOTE_ADDR=100::1:2:3'		\
 		'REMOTE_HOST=100::1:2:3'		\

@@ -40,7 +40,7 @@ tmpdir
 # Build configuration
 #
 
-eval "$(main -C | grep -vE ^PATH=)"
+eval "$(main-userdir -C | grep -vE ^PATH=)"
 
 
 #
@@ -69,8 +69,6 @@ case $tmpdir in
 (*)		err 'temporary directory %s is outside of /tmp.' "$tmpdir"
 esac
 readonly tmpdir
-
-lock "$tests_dir/tmpdir.lock"
 
 catch=
 mkdir -m 0755 "$tmpdir"
@@ -114,13 +112,13 @@ ln -s "$outside" "$intoout"
 for script in "$outside" "$intoout"
 do
 	check -s1 -e"script $script: not within $reguser's user directory." \
-		PATH_TRANSLATED="$script" main
+		PATH_TRANSLATED="$script" main-userdir
 done
 
 for script in "$inside" "$outtoin"
 do
 	check -s1 -e"script $script: writable by users other than $reguser." \
-		PATH_TRANSLATED="$script" main
+		PATH_TRANSLATED="$script" main-userdir
 done
 
 
