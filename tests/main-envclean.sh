@@ -54,6 +54,7 @@ uid="$(id -u)"
 # Search for a regular user.
 reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")"
 [ "$reguser" ] || err -s75 'no regular user found.'
+eval "homedir=~$reguser"
 
 # Determine user directory.
 case $USER_DIR in
@@ -148,7 +149,7 @@ do
 	for var in					\
 		"PATH_TRANSLATED=$script"		\
 		"DOCUMENT_ROOT=$userdir"		\
-		'HOME=/Users/john'			\
+		"HOME=$homedir"				\
 		'HTTPS=on'				\
 		'HTTP_HOST=www.foo.example'		\
 		'HTTP_REFERER=https://www.bar.example'	\
