@@ -87,10 +87,10 @@ addflags() {
 
 # Test compiler features.
 testcc() (
-	exec >/dev/null 2>&1
+	#exec >/dev/null 2>&1
 
 	case "$(basename "${CC:?}")" in
-	(clang|clang[!a-z]*|gcc|gcc[!a-z]*|musl-gcc|musl-gcc[!a-z]*)
+	(clang|clang[!a-z]*|musl-clang|musl-clang[!a-z]*|gcc|gcc[!a-z]*|musl-gcc|musl-gcc[!a-z]*)
 		"$CC" -xc -Wall -Werror -pedantic -pipe -o/dev/null "$@"
 		;;
 	(tcc|tcc[!a-z]*)
@@ -224,11 +224,12 @@ else
 	exit 2
 fi
 
-ccname="$(basename "$CC")"
-case $ccname in
-(clang|clang-*)	cctype=llvm ;;
-(musl-gcc)	cctype=musl_gcc ;;
-(*)		cctype="${ccname%%-*}" ;;
+compcmd="$(basename "$CC")"
+compname="${compcmd%% *}"
+case $compname in
+(clang|clang-*)	comptype=llvm ;;
+(musl-*)	comptype=musl_${compname#*-} ;;
+(*)		comptype="${compname%%-*}" ;;
 esac
 
 
@@ -240,12 +241,12 @@ printf 'Compiler flags:'
 
 if [ "${CFLAGS-x}" = x ] && ! [ "${CFLAGS-}" = x ]
 then
-	if [ "$ccname" = c99 ]
+	if [ "$compname" = c99 ]
 	then
 		CFLAGS="-O2 -s"
 		printf ' %s\n' "$CFLAGS"
 	else
-		eval specflags="\${cflags_$cctype-}"
+		eval specflags="\${cflags_$comptype-}"
 
 		# shellcheck disable=2086,SC2154
 		set -- $cflags $specflags
@@ -315,14 +316,12 @@ then
 		ccversion="${ccversion#v}"
 		ccmajor="${ccversion%%.*}"
 	else
-		ccmajor="${ccname#$cctype-}"
+		ccmajor="${compname#$comptype-}"
 	fi
 
-	archivers="$cctype-ar"
-	[ "$cctype" != "$ccname" ] &&
-		archivers="$ccname-ar $archivers"
+	archivers="$comptype-ar"
 	[ "${ccmajor-}" ] &&
-		archivers="$cctype-ar-$ccmajor $cctype-$ccmajor-ar $archivers"
+		archivers="$comptype-ar-$ccmajor $archivers"
 
 	for ar in $archivers
 	do
