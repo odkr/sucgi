@@ -118,72 +118,72 @@ do
 
 	logfile="$script.log"
 
-	PATH_TRANSLATED="$script"		\
-	CLICOLOR='x'				\
-	DOCUMENT_ROOT='/home/jdoe/public_html'	\
-	EDITOR='vim'				\
-	HTTP_HOST='www.foo.example'		\
-	HTTP_REFERER='https://www.bar.example'	\
-	HTTP_USER_AGENT='FakeZilla/1'		\
-	HTTPS='on'				\
-	IFS=':' 				\
-	LANG='en_GB.UTF-8'			\
-	LOGNAME='jdoe'				\
-	PAGER='less'				\
-	PWD='/home/jdoe'			\
-	QUERY_STRING='foo=bar'			\
-	REMOTE_ADDR='100::1:2:3'		\
-	REMOTE_HOST='100::1:2:3'		\
-	REMOTE_PORT=50000			\
-	REQUEST_METHOD='GET'			\
-	REQUEST_URI='/index.php'		\
-	SCRIPT_NAME='index.php'			\
-	SERVER_ADMIN='admin@foo.example'	\
-	SERVER_NAME='www.foo.example'		\
-	SERVER_PORT=443				\
-	SERVER_SOFTWARE='Apache v2.4' 		\
-	USER='jdoe'				\
-	VISUAL='vim'				\
-	main >"$logfile" 2>/dev/null		||
+	PATH_TRANSLATED="$script"			\
+	CLICOLOR='x'					\
+	DOCUMENT_ROOT='/home/jdoe/public_html'		\
+	EDITOR='vim'					\
+	HTTP_HOST='www.foo.example'			\
+	HTTP_REFERER='https://www.bar.example'		\
+	HTTP_USER_AGENT='FakeZilla/1'			\
+	HTTPS='on'					\
+	IFS=':' 					\
+	LANG='en_GB.UTF-8'				\
+	LOGNAME='jdoe'					\
+	PAGER='less'					\
+	PWD='/home/jdoe'				\
+	QUERY_STRING='foo=bar'				\
+	REMOTE_ADDR='100::1:2:3'			\
+	REMOTE_HOST='100::1:2:3'			\
+	REMOTE_PORT=50000				\
+	REQUEST_METHOD='GET'				\
+	REQUEST_URI='/index.php'			\
+	SCRIPT_NAME='index.php'				\
+	SERVER_ADMIN='admin@foo.example'		\
+	SERVER_NAME='www.foo.example'			\
+	SERVER_PORT=443					\
+	SERVER_SOFTWARE='Apache v2.4' 			\
+	USER='jdoe'					\
+	VISUAL='vim'					\
+	main >"$logfile" 2>/dev/null			||
 	err -s70 'main exited with status %d.' $?
 
-	for var in							\
-		"PATH_TRANSLATED=$script"				\
-		'DOCUMENT_ROOT=/private/tmp/check-sucgi/john'		\
-		'HOME=/Users/john'					\
-		'HTTPS=on'						\
-		'HTTP_HOST=www.foo.example'				\
-		'HTTP_REFERER=https://www.bar.example'			\
-		'HTTP_USER_AGENT=FakeZilla/1'				\
-		'PATH=/usr/bin:/bin'					\
-		'PWD=/private/tmp/check-sucgi/john'			\
-		'QUERY_STRING=foo=bar'					\
-		'REMOTE_ADDR=100::1:2:3'				\
-		'REMOTE_HOST=100::1:2:3'				\
-		'REMOTE_PORT=50000'					\
-		'REQUEST_METHOD=GET'					\
-		'REQUEST_URI=/index.php'				\
-		"SCRIPT_FILENAME=$script"				\
-		'SCRIPT_NAME=index.php'					\
-		'SERVER_ADMIN=admin@foo.example'			\
-		'SERVER_NAME=www.foo.example'				\
-		'SERVER_PORT=443'					\
-		'SERVER_SOFTWARE=Apache v2.4'				\
+	for var in					\
+		"PATH_TRANSLATED=$script"		\
+		"DOCUMENT_ROOT=$userdir"		\
+		'HOME=/Users/john'			\
+		'HTTPS=on'				\
+		'HTTP_HOST=www.foo.example'		\
+		'HTTP_REFERER=https://www.bar.example'	\
+		'HTTP_USER_AGENT=FakeZilla/1'		\
+		'PATH=/usr/bin:/bin'			\
+		'PWD=/private/tmp/check-sucgi/john'	\
+		'QUERY_STRING=foo=bar'			\
+		'REMOTE_ADDR=100::1:2:3'		\
+		'REMOTE_HOST=100::1:2:3'		\
+		'REMOTE_PORT=50000'			\
+		'REQUEST_METHOD=GET'			\
+		'REQUEST_URI=/index.php'		\
+		"SCRIPT_FILENAME=$script"		\
+		'SCRIPT_NAME=index.php'			\
+		'SERVER_ADMIN=admin@foo.example'	\
+		'SERVER_NAME=www.foo.example'		\
+		'SERVER_PORT=443'			\
+		'SERVER_SOFTWARE=Apache v2.4'		\
 		'USER_NAME=john'
 	do
 		grep -Eq "^$var$" "$logfile" ||
 			err -s70 '$%s: not set.' "$var"
 	done
 
-	for var in		\
-		CLICOLOR=	\
-		EDITOR=		\
-		IFS=		\
-		LANG=		\
-		LOGNAME=	\
-		PAGER=		\
-		PWD=		\
-		'USER=jdoe'	\
+	for var in					\
+		CLICOLOR=				\
+		EDITOR=					\
+		IFS=					\
+		LANG=					\
+		LOGNAME=				\
+		PAGER=					\
+		PWD=					\
+		USER=jdoe				\
 		VISUAL=
 	do
 		grep -Eqv "^$var" "$logfile" ||
