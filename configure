@@ -87,16 +87,16 @@ addflags() {
 
 # Test compiler features.
 testcc() (
-	#exec >/dev/null 2>&1
+	exec >/dev/null 2>&1
 
 	case "$(basename "${CC:?}")" in
-	(clang|clang[!a-z]*|musl-clang|musl-clang[!a-z]*|gcc|gcc[!a-z]*|musl-gcc|musl-gcc[!a-z]*)
+	(clang|clang-*|musl-clang|musl-clang-*|gcc|gcc-*|musl-gcc|musl-gcc-*)
 		"$CC" -xc -Wall -Werror -pedantic -pipe -o/dev/null "$@"
 		;;
-	(tcc|tcc[!a-z]*)
+	(tcc|tcc-*)
 		"$CC" -xc -Wall -Werror -pedantic -o/dev/null "$@"
 		;;
-	(icc|icc[!a-z]*)
+	(icc|icc-*)
 		"$CC" -xc -w3 -Wcheck -Werror-all -o/dev/null "$@"
 		;;
 	(*)
@@ -284,7 +284,7 @@ then
 			unset job
 		done
 
-		[ "${CFLAGS-}" ] || printf ' detection failed.\a'
+		[ "${CFLAGS-}" ] || printf ' none detected.\a'
 		echo
 	fi
 else
