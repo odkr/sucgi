@@ -52,6 +52,9 @@ tool_bins =	tools/badenv tools/badexec tools/ids \
 
 macro_bins =	tests/ISSIGNED tests/MIN tests/NELEMS tests/SIGNEDMAX
 
+main_bins =	tests/main-chkwexcl tests/main-envclean tests/main-handler \
+		tests/main-hidden tests/main-setid tests/main-userdir
+
 check_bins =	tests/env_is_name tests/env_restore tests/error \
 		tests/file_is_exe tests/file_is_wexcl \
 		tests/handler_lookup tests/main tests/path_check_wexcl \
@@ -83,7 +86,7 @@ runpara_flags =	-ci75 -j8
 
 scripts = configure scripts/*.sh tests/*.sh
 
-bins = $(tool_bins) $(macro_bins) $(check_bins)
+bins = $(tool_bins) $(macro_bins) $(main_bins) $(check_bins)
 
 
 #
@@ -156,6 +159,27 @@ $(macro_bins):
 $(check_bins):
 	$(CC) -DTESTING $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/lib.o -lm $(LDLIBS)
 
+tests/main-chkwexcl:
+	$(CC) -DTESTING -DBUILDCONF=BC_CHKWEXCL $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/lib.o -lm $(LDLIBS)
+
+tests/main-envclean:
+	$(CC) -DTESTING -DBUILDCONF=BC_ENVCLEAN $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/lib.o -lm $(LDLIBS)
+
+tests/main-handler:
+	$(CC) -DTESTING -DBUILDCONF=BC_HANDLER $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/lib.o -lm $(LDLIBS)
+
+tests/main-hidden:
+	$(CC) -DTESTING -DBUILDCONF=BC_HIDDEN $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/lib.o -lm $(LDLIBS)
+
+tests/main-privdrop:
+	$(CC) -DTESTING -DBUILDCONF=BC_PRIVDROP $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/lib.o -lm $(LDLIBS)
+
+tests/main-setid:
+	$(CC) -DTESTING -DBUILDCONF=BC_SETID $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/lib.o -lm $(LDLIBS)
+
+tests/main-userdir:
+	$(CC) -DTESTING -DBUILDCONF=BC_USERDIR $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/lib.o -lm $(LDLIBS)
+
 
 #
 # Prerequisites
@@ -171,7 +195,7 @@ compat.h: compat.h.m4
 
 tools: $(tool_bins)
 
-checks: $(macro_bins) $(check_bins)
+checks: $(checks)
 
 lib.a:	lib.a(env.o) lib.a(error.o) lib.a(file.o) lib.a(handler.o) \
 	lib.a(path.o) lib.a(priv.o) lib.a(str.o) lib.a(userdir.o)
@@ -192,7 +216,7 @@ lib.a(str.o): str.c str.h $(stdhdrs)
 
 lib.a(userdir.o): userdir.c userdir.h $(stdhdrs)
 
-sucgi: main.c build.h config.h $(stdhdrs) lib.a
+sucgi: main.c build.h config.h testing.h $(stdhdrs) lib.a
 
 tests/lib.o: tests/lib.c tests/lib.h $(stdhdrs)
 
@@ -216,7 +240,21 @@ tests/file_is_wexcl: tests/file_is_wexcl.c $(stdhdrs) lib.a(file.o) tests/lib.o
 
 tests/handler_lookup: tests/handler_lookup.c $(stdhdrs) lib.a(handler.o) tests/lib.o
 
-tests/main: main.c build.h config.h $(stdhdrs) lib.a tests/lib.o
+tests/main: main.c build.h testing.h config.h $(stdhdrs) lib.a tests/lib.o
+
+tests/main-chkwexcl: main.c build.h testing.h config.h $(stdhdrs) lib.a tests/lib.o
+
+tests/main-envclean: main.c build.h testing.h config.h $(stdhdrs) lib.a tests/lib.o
+
+tests/main-handler: main.c build.h testing.h config.h $(stdhdrs) lib.a tests/lib.o
+
+tests/main-hidden: main.c build.h testing.h config.h $(stdhdrs) lib.a tests/lib.o
+
+tests/main-privdrop: main.c build.h testing.h config.h $(stdhdrs) lib.a tests/lib.o
+
+tests/main-setid: main.c build.h testing.h config.h $(stdhdrs) lib.a tests/lib.o
+
+tests/main-userdir: main.c build.h testing.h config.h $(stdhdrs) lib.a tests/lib.o
 
 tests/path_check_sub: tests/path_check_sub.c $(stdhdrs) lib.a(path.o) tests/lib.o
 
@@ -242,27 +280,27 @@ tests/error.sh: tests/error tests/lib.sh
 
 tests/main-arg0.sh: tests/main tools/badexec tests/lib.sh
 
-tests/main-chkwexcl.sh: tests/main tests/lib.sh
+tests/main-chkwexcl.sh: tests/main-chkwexcl tests/lib.sh
 
-tests/main-envclean.sh: tests/main tools/badenv tests/lib.sh
+tests/main-envclean.sh: tests/main-envclean tools/badenv tests/lib.sh
 
 tests/main-envsan.sh: tests/main tools/badenv tests/lib.sh
 
 tests/main-fnamesan.sh: tests/main tests/lib.sh
 
-tests/main-handler.sh: tests/main tests/lib.sh
+tests/main-handler.sh: tests/main-handler tests/lib.sh
 
-tests/main-hidden.sh: tests/main tests/lib.sh
+tests/main-hidden.sh: tests/main-hidden tests/lib.sh
 
-tests/main-setid.sh: tests/main tests/lib.sh
+tests/main-setid.sh: tests/main-setid tests/lib.sh
 
-tests/main-userdir.sh: tests/main tests/lib.sh
+tests/main-userdir.sh: tests/main-userdir tests/lib.sh
 
 tests/main-userval.sh: tests/main tests/lib.sh
 
 tests/main-optval.sh: tests/main tests/lib.sh
 
-tests/main-privdrop.sh: tests/main tests/lib.sh
+tests/main-privdrop.sh: tests/main-privdrop tests/lib.sh
 
 tests/path_check_wexcl.sh: tests/path_check_wexcl tools/ids tests/lib.sh
 
