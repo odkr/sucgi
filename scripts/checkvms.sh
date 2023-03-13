@@ -106,7 +106,7 @@ readonly comm="
 	if [ -e makefile ]
 	then make distclean
 	fi
-	\"$check\"
+	$check
 "
 
 
