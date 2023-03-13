@@ -58,7 +58,7 @@ user="$(id -un)" uid="$(id -u)"
 
 if ! [ "${NDEBUG-}" ]
 then
-	root="$(tools/ids | awk '$1 == 0 {print $2; exit}')"
+	root="$(ids | awk '$1 == 0 {print $2; exit}')"
 	check -s134 -e'uid > 0' priv_drop "$root"
 fi
 

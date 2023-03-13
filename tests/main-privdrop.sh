@@ -57,7 +57,6 @@ reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")"
 reguid="$(id -u "$reguser")"
 reggid="$(id -g "$reguser")"
 
-
 # Determine user directory.
 case $USER_DIR in
 (/*%s*) userdir="$(printf -- "$USER_DIR" "$reguser")" ;;
@@ -86,6 +85,10 @@ export TMPDIR
 
 # Create the user directory.
 mkdir -p "$userdir"
+tmp="$(cd -P "$userdir" && pwd)" && [ "$tmp" ] || exit
+userdir="$tmp"
+readonly userdir
+unset tmp
 
 # Create a script that prints IDs.
 suffix="$userdir/ids.sh"

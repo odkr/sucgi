@@ -83,6 +83,10 @@ export TMPDIR
 
 # Create the user directory.
 mkdir -p "$userdir"
+tmp="$(cd -P "$userdir" && pwd)" && [ "$tmp" ] || exit
+userdir="$tmp"
+readonly userdir
+unset tmp
 
 # Create a script w/o a suffix.
 nosuffix="$userdir/script"
@@ -92,6 +96,16 @@ touch "$nosuffix"
 unknownsuffix="$userdir/script.nil"
 touch "$unknownsuffix"
 
+# Create a script for which an empty handler is registered.
+emptyhandler="$userdir/script.empty"
+touch "$emptyhandler"
+
+# Create a script with a too long filename suffix.
+suffix=$(pad . $MAX_SUFFIX_LEN x r)
+hugesuffix="$userdir/script$suffix"
+touch "$hugesuffix"
+unset suffix
+
 # Adapt ownership.
 chown -R "$reguser" "$userdir"
 
@@ -99,6 +113,14 @@ chown -R "$reguser" "$userdir"
 #
 # Tests
 #
+
+# Bad handler.
+check -s1 -e"script $emptyhandler: bad handler." \
+	PATH_TRANSLATED="$emptyhandler" main
+
+# Suffix is too long.
+check -s1 -e"script $hugesuffix: filename suffix too long." \
+	PATH_TRANSLATED="$hugesuffix" main
 
 # No known suffix.
 for script in "$nosuffix" "$unknownsuffix"

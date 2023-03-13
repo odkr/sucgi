@@ -90,7 +90,7 @@
 #define DENY_GROUPS {""}
 
 #undef HANDLERS
-#define HANDLERS {{".sh", "sh"}}
+#define HANDLERS {{".sh", "sh"}, {".empty", ""}}
 
 #undef LOGGING_LEVEL
 #define LOGGING_LEVEL (                             \
@@ -832,9 +832,9 @@ main(int argc, char **argv) {
         switch (ret) {
         case OK:
             break;
-        case ERR_BAD: /* FIXME: not unit-tested by main-*.sh. */
+        case ERR_BAD:
             error("script %s: bad handler.", script_log);
-        case ERR_LEN: /* FIXME: not unit-tested by main-*.sh. */
+        case ERR_LEN:
             error("script %s: filename suffix too long.", script_log);
         case ERR_SEARCH:
             error("script %s: no handler found.", script_log);

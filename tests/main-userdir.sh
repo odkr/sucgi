@@ -83,6 +83,10 @@ export TMPDIR
 
 # Create the user directory.
 mkdir -p "$userdir"
+tmp="$(cd -P "$userdir" && pwd)" && [ "$tmp" ] || exit
+userdir="$tmp"
+readonly userdir
+unset tmp
 
 # Create a script inside the user directory.
 inside="$userdir/script.sh"

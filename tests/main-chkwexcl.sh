@@ -84,6 +84,10 @@ export TMPDIR
 
 # Create the user directory.
 mkdir -p "$userdir"
+tmp="$(cd -P "$userdir" && pwd)" && [ "$tmp" ] || exit
+userdir="$tmp"
+readonly userdir
+unset tmp
 
 # Create a file in the user directory.
 shallow="$userdir/file"
@@ -107,12 +111,12 @@ no="u=r,g=w,o= u=r,g=,o=w u=rw,g=w,o= u=rw,g=,o=w u=rw,go=w u=rw,go=w"
 for mode in $no
 do
 	chmod "$mode" "$shallow"
-	check -s1 -e"$shallow is writable by users other than $reguser" \
+	check -s1 -e"script $shallow: writable by users other than $reguser" \
 		PATH_TRANSLATED="$shallow" main
 
 	chmod "$mode" "$subdir"
 	chmod u+x "$subdir"
-	check -s1 -e"$deeper is writable by users other than $reguser" \
+	check -s1 -e"script $deeper: writable by users other than $reguser" \
 		PATH_TRANSLATED="$deeper" main
 done
 
@@ -136,11 +140,11 @@ do
 		PATH_TRANSLATED="$deeper" main
 
 	chmod g+w,o= "$deeper"
-	check -s1 -e"$deeper is writable by users other than $reguser" \
+	check -s1 -e"script $deeper: writable by users other than $reguser" \
 		PATH_TRANSLATED="$deeper" main
 
 	chmod g=,o+w "$deeper"
-	check -s1 -e"$deeper is writable by users other than $reguser" \
+	check -s1 -e"script $deeper: writable by users other than $reguser" \
 		PATH_TRANSLATED="$deeper" main
 done
 
