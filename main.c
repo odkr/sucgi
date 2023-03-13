@@ -58,56 +58,9 @@
 #include "path.h"
 #include "priv.h"
 #include "str.h"
+#include "testing.h"
 #include "types.h"
 #include "userdir.h"
-
-
-/*
- * Configuration for test builds
- */
-
-#if defined(TESTING) && TESTING
-
-#undef USER_DIR
-#define USER_DIR "/tmp/check-sucgi/%s"
-
-#undef MIN_UID
-#define MIN_UID 500
-
-#undef MAX_UID
-#define MAX_UID 30000
-
-#undef MIN_GID
-#define MIN_GID 1
-
-#undef MAX_GID
-#define MAX_GID 30000
-
-#undef ALLOW_GROUP
-#define ALLOW_GROUP ""
-
-#undef DENY_GROUPS
-#define DENY_GROUPS {""}
-
-#undef HANDLERS
-#define HANDLERS {{".sh", "sh"}, {".empty", ""}}
-
-#undef LOGGING_LEVEL
-#define LOGGING_LEVEL (                             \
-    LOG_MASK(LOG_EMERG)   | LOG_MASK(LOG_ALERT)  |  \
-    LOG_MASK(LOG_CRIT)    | LOG_MASK(LOG_ERR)    |  \
-    LOG_MASK(LOG_WARNING) | LOG_MASK(LOG_NOTICE) |  \
-    LOG_MASK(LOG_INFO)    | LOG_MASK(LOG_DEBUG)     \
-)
-
-#undef LOGGING_OPTIONS
-#if defined(LOG_PERROR)
-#define LOGGING_OPTIONS ( LOG_CONS | LOG_PERROR )
-#else
-#define LOGGING_OPTIONS ( LOG_CONS )
-#endif
-
-#endif /* defined(TESTING) && TESTING */
 
 
 /*
@@ -190,7 +143,7 @@ config(void)
     const char *const deny_groups[] = DENY_GROUPS;
     const Pair handlers[] = HANDLERS;
 
-#if defined(NDEBUG)
+#ifdef NDEBUG
     (void) printf("NDEBUG=on\n");
 #endif
 #if defined(TESTING) && TESTING
@@ -249,10 +202,10 @@ config(void)
     (void) printf("MAX_NGROUPS=%u\n", MAX_NGROUPS);
     (void) printf("MAX_NVARS=%u\n", MAX_NVARS);
 
-#if defined(CC)
+#ifdef CC
     (void) printf("CC=\"%s\"\n", CC);
 #endif
-#if defined(CFLAGS)
+#ifdef CFLAGS
     (void) printf("CFLAGS=\"%s\"\n", CFLAGS);
 #endif
 }
