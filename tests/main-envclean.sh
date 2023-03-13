@@ -167,7 +167,7 @@ do
 		'SERVER_NAME=www.foo.example'		\
 		'SERVER_PORT=443'			\
 		'SERVER_SOFTWARE=Apache v2.4'		\
-		'USER_NAME=john'
+		"USER_NAME=$reguser"
 	do
 		grep -Eq "^$var$" "$logfile" ||
 			err -s70 '$%s: not set.' "$var"
