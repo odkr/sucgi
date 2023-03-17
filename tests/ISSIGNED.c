@@ -29,7 +29,7 @@
 #include <stdbool.h>
 
 #include "../macros.h"
-#include "lib.h"
+#include "result.h"
 
 
 /*
@@ -39,14 +39,20 @@
 /* Test whether ISSIGNED returns RET for TYPE. */
 #define TEST(type, ret)                                             \
     do {                                                            \
-        bool _test_ret = (ret);                                     \
-                                                                    \
-        warnx("checking (" #type ") -> %d ...", _test_ret);         \
-                                                                    \
-        if (ISSIGNED(type) != _test_ret) {                          \
-            errx(TEST_FAILED, "returned %d", _test_ret);            \
+        bool _test_ret = ISSIGNED(type);                            \
+        if (_test_ret != (ret)) {                                   \
+            warnx("(" #type ") -> %d [!]", _test_ret);              \
+            result = TEST_FAILED;                                   \
         }                                                           \
     } while (0)
+
+
+/*
+ * Module variables
+ */
+
+/* The result. */
+static int result = TEST_PASSED;
 
 
 /*
@@ -67,6 +73,5 @@ main (void) {
     TEST(double, true);
     TEST(long double, true);
 
-    warnx("all tests passed");
-    return EXIT_SUCCESS;
+    return result;
 }

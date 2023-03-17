@@ -33,7 +33,7 @@
 #include "../handler.h"
 #include "../macros.h"
 #include "../max.h"
-#include "lib.h"
+#include "result.h"
 
 
 /*
@@ -110,25 +110,27 @@ static const Pair db[] = {
 int
 main(void)
 {
+    int result = TEST_PASSED;
+
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
         const char *hdl;
         Error ret;
 
-        warnx("checking (db, %s, -> %s) -> %u ...",
-              args.script, args.hdl, args.ret);
-
         ret = handler_lookup(NELEMS(db), db, args.script, &hdl);
 
         if (args.ret != ret) {
-            errx(TEST_FAILED, "returned code %u", ret);
+            warnx("(db, %s, -> %s) -> %u [!]",
+                  args.script, args.hdl, ret);
+            result = TEST_FAILED;
         }
 
         if (ret == OK && strncmp(hdl, args.hdl, MAX_STR_LEN) != 0) {
-            errx(TEST_FAILED, "returned handler %s", args.hdl);
+            warnx("(db, %s, -> %s [!]) -> %u",
+                  args.script, hdl, args.ret);
+            result = TEST_FAILED;
         }
     }
 
-    warnx("all tests passed");
-    return EXIT_SUCCESS;
+    return result;
 }

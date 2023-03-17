@@ -38,7 +38,7 @@ readonly icc_flags='-diag-disable=10441 -std=c99 -O2 -s'
 readonly compilers='
 	gcc-12 gcc-11 gcc-10 gcc-9 gcc-8 gcc musl-gcc
 	clang-16 clang-15 clang-14 clang-13 clang-12
-	clang-11 clang-10 clang-9 clang
+	clang-11 clang-10 clang-9 clang musl-clang
 	tcc icc c99 cc
 '
 

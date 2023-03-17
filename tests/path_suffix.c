@@ -34,7 +34,7 @@
 #include "../macros.h"
 #include "../max.h"
 #include "../path.h"
-#include "lib.h"
+#include "result.h"
 
 
 /*
@@ -728,25 +728,27 @@ static const Args cases[] = {
 int
 main (void)
 {
+    int result = TEST_PASSED;
+
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
         const char *suffix;
         Error ret;
 
-        warnx("checking (%s, -> %s) -> %u ...",
-              args.fname, args.suffix, args.ret);
-
         ret = path_suffix(args.fname, &suffix);
 
         if (ret != args.ret) {
-            errx(TEST_FAILED, "returned code %u", ret);
+            warnx("(%s, -> %s) -> %u [!]",
+                  args.fname, args.suffix, ret);
+            result = TEST_FAILED;
         }
 
         if (ret == OK && strncmp(args.suffix, suffix, MAX_SUFFIX_LEN) != 0) {
-            errx(TEST_FAILED, "returned suffix %s", suffix);
+            warnx("(%s, -> %s [!]) -> %u",
+                  args.fname, suffix, args.ret);
+            result = TEST_FAILED;
         }
     }
 
-    warnx("all tests passed");
-    return EXIT_SUCCESS;
+    return result;
 }

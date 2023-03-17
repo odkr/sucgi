@@ -33,6 +33,7 @@ readonly script_dir src_dir
 . "$src_dir/scripts/funcs.sh" || exit
 init || exit
 tmpdir chk
+result=0
 
 
 #
@@ -59,13 +60,13 @@ do
 	do
 		# shellcheck disable=2059
 		message="$(printf -- "$format" "$arg")"
-		check -s1 -e"$message" error "$format" "$arg"
+		check -s1 -e"$message" error "$format" "$arg" || result=70
 	done
 done
 
 
 #
-# Success
+# Result
 #
 
-warn "all tests passed."
+exit "$result"

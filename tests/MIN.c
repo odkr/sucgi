@@ -27,10 +27,11 @@
 #include <assert.h>
 #include <err.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include "../macros.h"
-#include "lib.h"
+#include "result.h"
 
 
 /*
@@ -51,7 +52,7 @@ typedef struct {
 /*
  * Check if MIN(A, B) returns MIN.
  */
-static void test(long long a, long long b, long long min);
+static bool test(long long a, long long b, long long min);
 
 
 /*
@@ -151,17 +152,18 @@ static Args cases[] = {
  * Functions
  */
 
-static void
+static bool
 test(const long long a, const long long b, const long long min)
 {
     long long ret;
 
-    warnx("checking (%lld, %lld) -> %lld ...", a, b, min);
-
     ret = MIN(a, b);
     if (ret != min) {
-        errx(TEST_FAILED, "returned %lld", ret);
+        warnx("(%lld, %lld) -> %lld [!]", a, b, min);
+        return false;
     }
+
+    return true;
 }
 
 
@@ -171,15 +173,20 @@ test(const long long a, const long long b, const long long min)
 
 int
 main (void) {
+    int result = TEST_PASSED;
+
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
 
         assert(args.smaller <= args.greater);
 
-        test(args.smaller, args.greater, args.smaller);
-        test(args.greater, args.smaller, args.smaller);
+        if (!test(args.smaller, args.greater, args.smaller)) {
+            result = TEST_FAILED;
+        };
+        if (!test(args.greater, args.smaller, args.smaller)) {
+            result = TEST_FAILED;
+        }
     }
 
-    warnx("all tests passed");
-    return EXIT_SUCCESS;
+    return result;
 }

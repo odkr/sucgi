@@ -29,7 +29,7 @@
 #include <stdlib.h>
 
 #include "../macros.h"
-#include "lib.h"
+#include "result.h"
 
 
 /*
@@ -37,18 +37,24 @@
  */
 
 /* Check whether SIGNEDMAX returns N for TYPE. */
-#define TEST(type, n)                                       \
-    do {                                                    \
-        size_t _test_n = (n);                               \
-        size_t _test_m;                                     \
-                                                            \
-        warnx("checking (" #type ") -> %zu ...", _test_n);  \
-        _test_m = SIGNEDMAX(type);                          \
-                                                            \
-        if (_test_n != _test_m) {                           \
-            errx(TEST_FAILED, "calculated %zu", _test_m);   \
-        }                                                   \
+#define TEST(type, n)                                   \
+    do {                                                \
+        size_t _test_n = (n);                           \
+        size_t _test_m = SIGNEDMAX(type);               \
+                                                        \
+        if (_test_n != _test_m) {                       \
+            warnx("(" #type ") -> %zu [!]", _test_m);   \
+            result = TEST_FAILED;                       \
+        }                                               \
     } while (0)
+
+
+/*
+ * Module variables
+ */
+
+/* The result. */
+static int result = TEST_PASSED;
 
 
 /*
@@ -66,6 +72,5 @@ main (void) {
     TEST(signed long, LONG_MAX);
     TEST(unsigned long long, LONG_MAX);
 
-    warnx("all tests passed");
-    return EXIT_SUCCESS;
+    return result;
 }

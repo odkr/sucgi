@@ -57,8 +57,6 @@ check() (
 	: "${stdout:=/dev/null}"
 	: "${stderr:=/dev/null}"
 
-	warn -q 'checking %s ...' "$*"
-
 	err=0 rc=0
 
 	# shellcheck disable=2154
@@ -68,9 +66,7 @@ check() (
 	then
 		if ! grep -Fq "$pattern" <"$tmpfile"
 		then
-			warn 'expected output on std%s:' "$stream"
-			warn '> %s' "$pattern"
-			warn 'actual output:'
+			warn '%s printed to std%s:' "$*" "$stream"
 			while read -r line
 			do
 				warn '> %s' "$line"
@@ -84,7 +80,7 @@ check() (
 
 	if [ "$err" -ne "$status" ] && [ "$err" -ne 141 ]
 	then
-		warn '%s exited with status %d.' "$1" "$err"
+		warn '%s: exited with status %d.' "$*" "$err"
 		rc=70
 	fi
 

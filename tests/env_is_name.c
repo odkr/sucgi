@@ -33,7 +33,7 @@
 
 #include "../env.h"
 #include "../macros.h"
-#include "lib.h"
+#include "result.h"
 
 
 /*
@@ -208,19 +208,19 @@ static const Args cases[] = {
 int
 main (void)
 {
+    int result = TEST_PASSED;
+
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
         bool ret;
 
-        warnx("checking (%s) -> %d ...", args.s, args.ret);
-
         ret = env_is_name(args.s);
         if (ret != args.ret) {
-            errx(TEST_FAILED, "returned %d", ret);
+            warnx("(%s) -> %d [!]", args.s, ret);
+            result = TEST_FAILED;
         }
     }
 
-    warnx("all tests passed");
-    return EXIT_SUCCESS;
+    return result;
 }
 

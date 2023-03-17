@@ -55,6 +55,8 @@ user="$(id -un)" uid="$(id -u)"
 # Test
 #
 
+result=0
+
 if [ "$uid" -eq 0 ]
 then
 	regular="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")" ||
@@ -64,20 +66,26 @@ then
 	gid="$(id -g "$regular")"
 
 	check -s1 -o"euid=$uid egid=$gid ruid=$uid rgid=$gid" \
-		runas "$regular" priv_suspend
+		runas "$regular" priv_suspend || result=70
 	check -s1 -e"seteuid: Operation not permitted" \
-		runas "$regular" priv_suspend
+		runas "$regular" priv_suspend || result=70
 	check -o"euid=$uid egid=$gid ruid=$uid rgid=$gid" \
-		runas -r "$regular" priv_suspend
+		runas -r "$regular" priv_suspend || result=70
 
-	warn 'all tests passed.'
+	exit "$result"
 else
 	uid="$(id -u)"
 	gid="$(id -g)"
 
-	check -s1 -o"euid=$uid egid=$gid ruid=$uid rgid=$gid"	priv_suspend
-	check -s1 -e"seteuid: Operation not permitted"		priv_suspend
+	check -s1 -o"euid=$uid egid=$gid ruid=$uid rgid=$gid" \
+		priv_suspend || result=70
+	check -s1 -e"seteuid: Operation not permitted" \
+		priv_suspend || result=70
 
-	err -s75 'all non-superuser tests passed.'
+	case $result in
+	(0) err -s75 'skipped superuser tests.' ;;
+	(*) exit "$result"
+	esac
 fi
 
+exit 69

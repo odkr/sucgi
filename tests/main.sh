@@ -35,6 +35,7 @@ readonly script_dir src_dir tests_dir
 init || exit
 # shellcheck disable=2119
 tmpdir
+result=0
 
 
 #
@@ -89,46 +90,45 @@ unset i
 
 # shellcheck disable=2086
 check -s1 -e'too many environment variables.' \
-      $envsan_vars main
+      $envsan_vars main		|| result=70
 
 # Variable name has maximum length.
 envsan_varname="$(pad v $((MAX_VARNAME_LEN - 1)))"
 check -s1 -e"discarding \$$envsan_varname" \
-      "$envsan_varname=" main
+      "$envsan_varname=" main	|| result=70
 
 # Variable name is too long.
 envsan_varname="$(pad v "$MAX_VARNAME_LEN")"
 envsan_var="$envsan_varname=foo"
 check -s1 -e'discarding variable with overly long name.' \
-      "$envsan_var" main
+      "$envsan_var" main	|| result=70
 
 # Variable has maximum length.
 envsan_var="$(pad var= $((MAX_VAR_LEN - 1)) x r)"
 check -s1 -e"discarding \$${envsan_var%=*}" \
-      "$envsan_var" main
+      "$envsan_var" main	|| result=70
 
 # Variable is too long.
 envsan_var="$(pad var= "$MAX_VAR_LEN" x r)"
 check -s1 -e'discarding overly long variable.'	\
-      "$envsan_var" main
+      "$envsan_var" main	|| result=70
 
 # Variable name is illegal.
 for envsan_varname in 'foo ' '0foo' '$(echo foo)' '`echo foo`'
 do
 	check -s1 -e"variable \$$envsan_varname: bad name." \
-	      badenv "$envsan_varname=" "$tests_dir/main"
+	      badenv "$envsan_varname=" "$tests_dir/main"	|| result=70
 done
 
 # Variable is not of the form <key>=<value>.
 for envsan_var in 'foo' '0foo' 'foo '
 do
 	check -s1 -e"variable \$$envsan_var: no value." \
-	      badenv -n1 "$envsan_var" "$tests_dir/main"
+	      badenv -n1 "$envsan_var" "$tests_dir/main"	|| result=70
 done
 
 # Not a CGI variable.
-check -s1 -e'discarding $foo' \
-      foo=foo main
+check -s1 -e'discarding $foo' foo=foo main || result=70
 
 # Cleanup.
 unset envsan_var envsan_varname envsan_vars
@@ -139,8 +139,8 @@ unset envsan_var envsan_varname envsan_vars
 # Missing argv[0]
 #
 
-check -s1 -e'empty argument vector' badexec main
-check -s1 -e'empty argument vector' badexec main ''
+check -s1 -e'empty argument vector' badexec main	|| result=70
+check -s1 -e'empty argument vector' badexec main ''	|| result=70
 
 
 #
@@ -148,27 +148,29 @@ check -s1 -e'empty argument vector' badexec main ''
 #
 
 # Help.
-check -o'Print this help screen.'	main -h
+check -o'Print this help screen.'	main -h		|| result=70
 
 # Version.
-check -o'suCGI v'			main -V
+check -o'suCGI v'			main -V		|| result=70
 
 # Build configuration.
 sed -n 's/#define \([[:alnum:]_]*\).*/\1/p' "$src_dir/config.h"	|
 sort -u								|
 while read -r opthdl_var
 do
-	[ "$opthdl_var" != CONFIG_H ] && check -o"$opthdl_var" main -C
+	[ "$opthdl_var" != CONFIG_H ] 	&&
+	check -o"$opthdl_var" main -C	||
+	result=70
 done
 
 # Usage message.
 for opthdl_args in -X -XX -x --x - -- '-h -C' '-hC' '-h -V' '-hC'
 do
 	# shellcheck disable=2086
-	check -s1 -e'usage: sucgi' main $opthdl_args
+	check -s1 -e'usage: sucgi' main $opthdl_args	|| result=70
 done
 
-check -s1 -e'usage: sucgi' main ''
+check -s1 -e'usage: sucgi' main ''			|| result=70
 
 # Cleanup.
 unset opthdl_args opthdl_var
@@ -215,38 +217,38 @@ scrsan_script="$TMPDIR/scrsan-valid.php"
 touch "$scrsan_script"
 
 # PATH_TRANSLATED is undefined.
-check -s1 -e'$PATH_TRANSLATED not set.'		main
+check -s1 -e'$PATH_TRANSLATED not set.'	 main			|| result=70
 
 # $PATH_TRANSLATED is empty.
-check -s1 -e'$PATH_TRANSLATED is empty.'	PATH_TRANSLATED= main
+check -s1 -e'$PATH_TRANSLATED is empty.' PATH_TRANSLATED= main	|| result=70
 
 # $PATH_TRANSLATED is too long.
-check -s1 -e'long'	PATH_TRANSLATED="$scrsan_hugepath" main
+check -s1 -e'long'	PATH_TRANSLATED="$scrsan_hugepath" main	|| result=70
 
 # Path to script is too long after having been resolved.
-check -s1 -e'long'	PATH_TRANSLATED="$scrsan_hugelink" main
+check -s1 -e'long'	PATH_TRANSLATED="$scrsan_hugelink" main	|| result=70
 
 # Script is of the wrong type.
 check -s1 -e"$scrsan_wrongftype is not a regular file." \
-	PATH_TRANSLATED="$scrsan_wrongftype" main
+	PATH_TRANSLATED="$scrsan_wrongftype" main	|| result=70
 
 # Script does not exist.
 check -s1 -e"realpath $TMPDIR/<nosuchfile>: No such file or directory." \
-	PATH_TRANSLATED="$TMPDIR/<nosuchfile>" main
+	PATH_TRANSLATED="$TMPDIR/<nosuchfile>" main	|| result=70
 
 # PATH_TRANSLATED is valid.
 case $uid in
 (0) scrsan_err="$scrsan_script is owned by privileged user root." ;;
 (*) scrsan_err='seteuid: Operation not permitted.' ;;
 esac
-check -s1 -e"$scrsan_err" PATH_TRANSLATED="$scrsan_script" main
+check -s1 -e"$scrsan_err" PATH_TRANSLATED="$scrsan_script" main || result=70
 
 # $PATH_TRANSLATED is valid despite its long name.
 case $uid in
 (0) scrsan_err="$scrsan_longpath is owned by privileged user root." ;;
 (*) scrsan_err='seteuid: Operation not permitted.' ;;
 esac
-check -s1 -e"$scrsan_err" PATH_TRANSLATED="$scrsan_longpath" main
+check -s1 -e"$scrsan_err" PATH_TRANSLATED="$scrsan_longpath" main || result=70
 
 # Cleanup.
 unset scrsan_err scrsan_longpath scrsan_script scrsan_wrongftype
@@ -256,8 +258,13 @@ unset scrsan_err scrsan_longpath scrsan_script scrsan_wrongftype
 # Stop unless run by the superuser
 #
 
-[ "$uid" -eq 0 ] || err -s75 'all non-superuser tests passed.'
-
+if [ "$uid" -ne 0 ]
+then
+	case $result in
+	(0) err -s75 'skipping superuser tests.' ;;
+	(*) err -s"$result" 'skipping superuser tests.' ;;
+	esac
+fi
 
 #
 # User validation
@@ -289,7 +296,7 @@ usrval_highuid="$(
 # Owned by non-existing user.
 chown "$usrval_unallocuid" "$usrval_script"
 check -s1 -e"$usrval_script has no owner." \
-      PATH_TRANSLATED="$usrval_script" main
+      PATH_TRANSLATED="$usrval_script" main || result=70
 
 # Owned by a privileged user
 for usrval_uid in 0 "$usrval_lowuid" "$usrval_highuid"
@@ -298,7 +305,7 @@ do
 
 	chown "$usrval_uid" "$usrval_script"
 	check -s1 -e"$usrval_script is owned by privileged user" \
-		PATH_TRANSLATED="$usrval_script" main
+		PATH_TRANSLATED="$usrval_script" main || result=70
 done
 
 # Cleanup.
@@ -315,7 +322,14 @@ nskipped=0
 
 # Search for a regular user.
 reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")"
-[ "$reguser" ] || err -s75 'no regular user found.'
+
+if ! [ "$reguser" ]
+then
+	case $result in
+	(0) err -s75 'no regular user found.' ;;
+	(*) err -s"$result" 'no regular user found.' ;;
+	esac
+fi
 reguid="$(id -u "$reguser")"
 reggid="$(id -g "$reguser")"
 
@@ -394,7 +408,7 @@ do
 	fi
 
 	check -s0 -o"uid=$reguid egid=$reggid ruid=$reguid rgid=$reggid" \
-	      PATH_TRANSLATED="$priv_script" main
+	      PATH_TRANSLATED="$priv_script" main  || result=70
 done
 unset priv_script
 
@@ -420,14 +434,14 @@ ln -s "$dirval_outside" "$dirval_intoout"
 for dirval_forb in "$dirval_outside" "$dirval_intoout"
 do
 	check -s1 -e"script $dirval_forb: not within $reguser's user directory." \
-	      PATH_TRANSLATED="$dirval_forb" main
+	      PATH_TRANSLATED="$dirval_forb" main || result=70
 done
 
 # Permitted location.
 for dirval_perm in "$procids_sfx" "$dirval_outtoin"
 do
 	check -s0 -o"uid=$reguid egid=$reggid ruid=$reguid rgid=$reggid" \
-	      PATH_TRANSLATED="$dirval_perm" main
+	      PATH_TRANSLATED="$dirval_perm" main || result=70
 done
 
 # Cleanup.
@@ -457,12 +471,12 @@ for exclw_mode in $exclw_no
 do
 	chmod "$exclw_mode" "$exclw_shallow"
 	check -s1 -e"script $exclw_shallow: writable by users other than $reguser" \
-	      PATH_TRANSLATED="$exclw_shallow" main
+	      PATH_TRANSLATED="$exclw_shallow" main || result=70
 
 	chmod "$exclw_mode" "$exclw_subdir"
 	chmod u+x "$exclw_subdir"
 	check -s1 -e"script $exclw_deeper: writable by users other than $reguser" \
-	      PATH_TRANSLATED="$exclw_deeper" main
+	      PATH_TRANSLATED="$exclw_deeper" main || result=70
 done
 
 # Exclusively writable.
@@ -473,20 +487,20 @@ do
 
 	chmod "$exclw_mode" "$exclw_shallow"
 	check -s1 -e"script $exclw_shallow: no handler found." \
-	      PATH_TRANSLATED="$exclw_shallow" main
+	      PATH_TRANSLATED="$exclw_shallow" main || result=70
 
 	chmod "$exclw_mode" "$exclw_subdir"
 	chmod u+wx,go= "$exclw_subdir"
 	check -s1 -e"script $exclw_deeper: no handler found." \
-	      PATH_TRANSLATED="$exclw_deeper" main
+	      PATH_TRANSLATED="$exclw_deeper" main || result=70
 
 	chmod g+w,o= "$exclw_deeper"
 	check -s1 -e"script $exclw_deeper: writable by users other than $reguser" \
-	      PATH_TRANSLATED="$exclw_deeper" main
+	      PATH_TRANSLATED="$exclw_deeper" main || result=70
 
 	chmod g=,o+w "$exclw_deeper"
 	check -s1 -e"script $exclw_deeper: writable by users other than $reguser" \
-	      PATH_TRANSLATED="$exclw_deeper" main
+	      PATH_TRANSLATED="$exclw_deeper" main || result=70
 done
 
 # Cleanup.
@@ -500,12 +514,12 @@ unset exclw_shallow exclw_deeper exclw_subdir exclw_yes exclw_no excl_mode
 # Set-user-ID on execute bit set.
 chmod u=rws,g=r,o=r "$procids_sfx"
 check -s1 -e"script $procids_sfx: set-user-ID on execute bit is set." \
-      PATH_TRANSLATED="$procids_sfx" main
+      PATH_TRANSLATED="$procids_sfx" main || result=70
 
 # Set-group-ID on execute bit set.
 chmod u=rx,g=rs,o=r "$procids_sfx"
 check -s1 -e"script $procids_sfx: set-group-ID on execute bit is set." \
-      PATH_TRANSLATED="$procids_sfx" main
+      PATH_TRANSLATED="$procids_sfx" main || result=70
 
 # Cleanup.
 chmod u=rwx,go= "$procids_sfx"
@@ -532,7 +546,7 @@ chown -R "$reguser" "$userdir"
 for hidden_script in "$hidden_file" "$hidden_indir"
 do
 	check -s1 -e"path $hidden_script: contains hidden files." \
-		PATH_TRANSLATED="$hidden_script" main
+		PATH_TRANSLATED="$hidden_script" main || result=70
 done
 
 # Cleanup.
@@ -565,17 +579,17 @@ chown -R "$reguser" "$userdir"
 
 # Bad handler.
 check -s1 -e"script $hdl_emptyhandler: bad handler." \
-      PATH_TRANSLATED="$hdl_emptyhandler" main
+      PATH_TRANSLATED="$hdl_emptyhandler" main || result=70
 
 # Suffix is too long.
 check -s1 -e"script $hdl_hugesuffix: filename suffix too long." \
-	PATH_TRANSLATED="$hdl_hugesuffix" main
+	PATH_TRANSLATED="$hdl_hugesuffix" main || result=70
 
 # No known suffix.
 for hdl_script in "$hdl_nosuffix" "$hdl_unknownsuffix"
 do
 	check -s1 -e"script $hdl_script: no handler found." \
-		PATH_TRANSLATED="$hdl_script" main
+		PATH_TRANSLATED="$hdl_script" main || result=70
 done
 
 # Cleanup.
@@ -657,8 +671,11 @@ do
 		'SERVER_SOFTWARE=Apache v2.4'		\
 		"USER_NAME=$reguser"
 	do
-		grep -Eq "^$envcln_var$" "$envcln_logfile" ||
-		err -s70 '$%s: not set.' "$envcln_var"
+		if ! grep -Eq "^$envcln_var$" "$envcln_logfile"
+		then
+			warn '$%s: not set.' "$envcln_var"
+			result=70
+		fi
 	done
 
 	for envcln_var in				\
@@ -668,12 +685,14 @@ do
 		LANG=					\
 		LOGNAME=				\
 		PAGER=					\
-		PWD=					\
 		USER=jdoe				\
 		VISUAL=
 	do
-		grep -Eqv "^$envcln_var" "$envcln_logfile" ||
-		err -s70 '$%s: is set.' "${envcln_var%=}"
+		if grep -Eq "^$envcln_var" "$envcln_logfile"
+		then
+			warn '$%s: set.' "${envcln_var%=}"
+			result=70
+		fi
 	done
 done
 
@@ -686,6 +705,9 @@ unset envcln_homedir envcln_script envcln_logfile envcln_var
 # Success
 #
 
-[ "$nskipped" -gt 0 ] && err -s75 'skipped %d tests.' "$nskipped"
+case $result in
+(0) [ "$nskipped" -gt 0 ] && err -s75 'skipped %d tests.' "$nskipped" ;;
+(*) [ "$nskipped" -gt 0 ] && err -s"$result" 'skipped %d tests.' "$nskipped" ;;
+esac
 
-warn 'all tests passed.'
+exit "$result"

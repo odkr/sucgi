@@ -32,7 +32,7 @@
 
 #include "../file.h"
 #include "../macros.h"
-#include "lib.h"
+#include "result.h"
 
 
 
@@ -120,25 +120,21 @@ static const Args cases[] = {
 int
 main(void)
 {
+    int result = TEST_PASSED;
+
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
         bool ret;
 
-        warnx(
-            "checking (%d, {%d, 0%03o})) -> %d ...",
-            (int) args.uid,
-            (int) args.fstatus.st_gid,
-            args.fstatus.st_mode,
-            args.ret
-        );
 
         ret = file_is_wexcl(args.uid, args.fstatus);
-
         if (ret != args.ret) {
-            errx(TEST_FAILED, "returned %d", ret);
+            warnx("(%d, {%d, 0%03o})) -> %d [!]",
+                  (int) args.uid, (int) args.fstatus.st_gid,
+                  args.fstatus.st_mode, ret);
+            result = TEST_FAILED;
         }
     }
 
-    warnx("all tests passed");
-    return EXIT_SUCCESS;
+    return result;
 }

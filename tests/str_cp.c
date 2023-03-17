@@ -33,7 +33,7 @@
 #include "../macros.h"
 #include "../max.h"
 #include "../str.h"
-#include "lib.h"
+#include "result.h"
 
 
 /*
@@ -80,6 +80,8 @@ static const Args cases[] = {
 
 int
 main (void) {
+    int result = TEST_PASSED;
+
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
         char dest[MAX_STR_LEN];
@@ -87,20 +89,20 @@ main (void) {
 
         (void) memset(dest, '\0', sizeof(dest));
 
-        warnx("checking (%zu, %s, -> %s) -> %u ...",
-              args.n, args.src, args.dest, args.ret);
-
         ret = str_cp(args.n, args.src, dest);
 
         if (ret != args.ret) {
-            errx(TEST_FAILED, "returned %u", ret);
+            warnx("(%zu, %s, -> %s) -> %u [!]",
+                  args.n, args.src, args.dest, ret);
+            result = TEST_FAILED;
         }
 
         if (ret == OK && strncmp(args.dest, dest, MAX_STR_LEN) != 0) {
-            errx(TEST_FAILED, "copied '%s'", dest);
+            warnx("(%zu, %s, -> %s [!]) -> %u",
+                  args.n, args.src, dest, args.ret);
+            result = TEST_FAILED;
         }
     }
 
-    warnx("all tests passed");
-    return EXIT_SUCCESS;
+    return result;
 }

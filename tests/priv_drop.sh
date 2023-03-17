@@ -66,6 +66,7 @@ fi
 # Test
 #
 
+result=0
 if [ "$uid" -eq 0 ]
 then
 	reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")" ||
@@ -75,14 +76,19 @@ then
 	gid="$(id -g "$reguser")"
 
 	check -s1 -e'Operation not permitted' \
-		runas "$reguser" priv_drop "$reguser"
+		runas "$reguser" priv_drop "$reguser" || result=70
 	check -s0 -o"euid=$uid egid=$gid ruid=$uid rgid=$gid" \
-		priv_drop "$reguser"
+		priv_drop "$reguser" || result=70
 
-	warn 'all tests passed.'
+	exit "$result"
 else
-	check -s1 -e'Operation not permitted' priv_drop "$user"
+	check -s1 -e'Operation not permitted' \
+		priv_drop "$user" || result=70
 
-	err -s75 "all non-superuser tests passed."
+	case $result in
+	(0) err -s75 "skipped superuser tests." ;;
+	(*) exit "$result"
+	esac
 fi
 
+exit 69

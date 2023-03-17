@@ -33,7 +33,7 @@
 #include "../max.h"
 #include "../str.h"
 #include "../userdir.h"
-#include "lib.h"
+#include "result.h"
 
 
 /*
@@ -116,14 +116,18 @@ static const Args cases[] = {
 int
 main(void)
 {
-    fillstr('x', sizeof(long_rel_fname), long_rel_fname);
+    int result = TEST_PASSED;
 
-    fillstr('x', sizeof(long_abs_fname), long_abs_fname);
-    *long_abs_fname = '/';
+    (void) memset(long_rel_fname, 'x', sizeof(long_rel_fname));
+    long_rel_fname[sizeof(long_rel_fname) - 1] = '\0';
 
-    fillstr('x', sizeof(long_pattern), long_pattern);
+    (void) memset(long_abs_fname, 'x', sizeof(long_abs_fname));
+    long_abs_fname[sizeof(long_abs_fname) - 1] = '\0';
+    long_abs_fname[0] = '/';
+
+    (void) memset(long_pattern, 'x', sizeof(long_pattern));
     (void) str_cp(4, "/%s", &long_pattern[sizeof(long_pattern) - 4]);
-    *long_pattern = '/';
+    long_pattern[0] = '/';
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
@@ -132,23 +136,23 @@ main(void)
 
         (void) memset(dir, '\0', MAX_FNAME_LEN);
 
-        warnx("checking (%s, %s, -> %s) -> %u ...",
-              args.s, args.user->pw_name, args.dir, args.ret);
-
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
         ret = userdir_resolve(args.s, args.user, dir);
 #pragma GCC diagnostic pop
 
         if (ret != args.ret) {
-            errx(TEST_FAILED, "returned code %u", ret);
+            warnx("(%s, %s, -> %s) -> %u [!]",
+                  args.s, args.user->pw_name, args.dir, ret);
+            result = TEST_FAILED;
         }
 
         if (ret == OK && strcmp(args.dir, dir) != 0) {
-            errx(TEST_FAILED, "returned directory %s", dir);
+            warnx("(%s, %s, -> %s [!]) -> %u",
+                  args.s, args.user->pw_name, dir, args.ret);
+            result = TEST_FAILED;
         }
     }
 
-    warnx("all tests passed");
-    return EXIT_SUCCESS;
+    return result;
 }

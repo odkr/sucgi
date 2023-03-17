@@ -28,7 +28,7 @@
 #include <stdlib.h>
 
 #include "../macros.h"
-#include "lib.h"
+#include "result.h"
 
 
 /*
@@ -36,24 +36,30 @@
  */
 
 /* Test NELEMS for the given TYPE for up to N elements. */
-#define TESTN(type, n)                                          \
-    do {                                                        \
-        warnx("testing " #type " ...");                         \
-                                                                \
-        for (size_t _test_i = 1; _test_i < (n); ++_test_i) {    \
-            type _test_arr[_test_i];                            \
-            size_t _test_n;                                     \
-                                                                \
-            _test_n = NELEMS(_test_arr);                        \
-            if (_test_n != _test_i) {                           \
-                errx(TEST_FAILED, "[%zu] -> counted %zu!",      \
-                     _test_i, _test_n);                         \
-            }                                                   \
-        }                                                       \
+#define TESTN(type, n)                                                  \
+    do {                                                                \
+        for (size_t _test_i = 1; _test_i < (n); ++_test_i) {            \
+            type _test_arr[_test_i];                                    \
+            size_t _test_n;                                             \
+                                                                        \
+            _test_n = NELEMS(_test_arr);                                \
+            if (_test_n != _test_i) {                                   \
+                warnx("(" #type "[%zu]) -> %zu [!]", _test_i, _test_n); \
+                result = TEST_FAILED;                                   \
+            }                                                           \
+        }                                                               \
     } while (0)
 
 /* Test NELEMS for the given TYPE for up to SHRT_MAX elements. */
 #define TEST(type) TESTN(type, SHRT_MAX)
+
+
+/*
+ * Module variables
+ */
+
+/* The result. */
+static int result = TEST_PASSED;
 
 
 /*
@@ -74,6 +80,5 @@ main (void) {
     TEST(double);
     TEST(long double);
 
-    warnx("all tests passed");
-    return EXIT_SUCCESS;
+    return result;
 }

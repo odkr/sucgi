@@ -35,7 +35,7 @@
 #include "../macros.h"
 #include "../max.h"
 #include "../path.h"
-#include "lib.h"
+#include "result.h"
 
 
 /*
@@ -151,20 +151,19 @@ static const Args cases[] = {
 int
 main(void)
 {
+    int result = TEST_PASSED;
+
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
         Error ret;
 
-        warnx("checking (%s, %s) -> %u ...",
-              args.basedir, args.fname, args.ret);
-
         ret = path_check_in(args.basedir, args.fname);
-
         if (ret != args.ret) {
-            errx(TEST_FAILED, "returned %u", ret);
+            warnx("checking (%s, %s) -> %u ... [!]",
+                  args.basedir, args.fname, ret);
+            result = TEST_FAILED;
         }
     }
 
-    warnx("all tests passed");
-    return EXIT_SUCCESS;
+    return result;
 }

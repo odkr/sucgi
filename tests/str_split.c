@@ -35,7 +35,7 @@
 #include "../macros.h"
 #include "../max.h"
 #include "../str.h"
-#include "lib.h"
+#include "result.h"
 
 
 /*
@@ -111,10 +111,15 @@ static const Args cases[] = {
 int
 main(void)
 {
-    fillstr('x', sizeof(long_str), long_str);
-    fillstr('x', sizeof(huge_str), huge_str);
-    fillstr('x', sizeof(huge_head), huge_head);
+    int result = TEST_PASSED;
 
+    (void) memset(long_str, 'x', sizeof(long_str));
+    long_str[sizeof(long_str) - 1] = '\0';
+
+    (void) memset(huge_str, 'x', sizeof(huge_str));
+    huge_str[sizeof(huge_str) - 1] = '\0';
+
+    (void) memset(huge_head, 'x', sizeof(huge_head));
     (void) strncpy(&huge_head[MAX_FNAME_LEN], ",foo", 5);
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
@@ -125,29 +130,34 @@ main(void)
 
         (void) memset(head, '\0', MAX_FNAME_LEN);
 
-        warnx("checking (%s, %s, %d, -> %s, -> %s) -> %u ...",
-              args.str, args.sep, MAX_FNAME_LEN,
-              args.head, args.tail, args.ret);
-
         ret = str_split(args.str, args.sep, MAX_FNAME_LEN, head, &tail);
 
-        if (ret != args.ret) {
-            errx(TEST_FAILED, "returned error %u", ret);
+        if (ret != args.ret)
+        {
+            warnx("(%s, %s, %d, -> %s, -> %s) -> %u [!]",
+                  args.str, args.sep, MAX_FNAME_LEN,
+                  args.head, args.tail, ret);
+            result = TEST_FAILED;
         }
 
         if (!(args.head == NULL ||
               strncmp(args.head, head, MAX_STR_LEN) == 0))
         {
-            errx(TEST_FAILED, "returned head '%s'", head);
+            warnx("(%s, %s, %d, -> %s [!], -> %s) -> %u",
+                  args.str, args.sep, MAX_FNAME_LEN,
+                  head, args.tail, args.ret);
+            result = TEST_FAILED;
         }
 
         if (!(args.tail == tail ||
               strncmp(args.tail, tail, MAX_STR_LEN) == 0))
         {
-            errx(TEST_FAILED, "returned tail '%s'", tail);
+            warnx("(%s, %s, %d, -> %s, -> %s [!]) -> %u",
+                  args.str, args.sep, MAX_FNAME_LEN,
+                  args.head, tail, args.ret);
+            result = TEST_FAILED;
         }
     }
 
-    warnx("all tests passed");
-    return EXIT_SUCCESS;
+    return result;
 }

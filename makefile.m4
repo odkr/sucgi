@@ -155,45 +155,43 @@ checks: $(checks)
 
 tools: $(tool_bins)
 
-tests/lib.o: tests/lib.c tests/lib.h $(hdrs)
+tests/ISSIGNED: tests/ISSIGNED.c $(hdrs)
 
-tests/ISSIGNED: tests/ISSIGNED.c $(hdrs) tests/lib.o
+tests/MIN: tests/MIN.c $(hdrs)
 
-tests/MIN: tests/MIN.c $(hdrs) tests/lib.o
+tests/NELEMS: tests/NELEMS.c $(hdrs)
 
-tests/NELEMS: tests/NELEMS.c $(hdrs) tests/lib.o
+tests/SIGNEDMAX: tests/SIGNEDMAX.c $(hdrs)
 
-tests/SIGNEDMAX: tests/SIGNEDMAX.c $(hdrs) tests/lib.o
+tests/env_is_name: tests/env_is_name.c $(hdrs) funcs.a(env.o)
 
-tests/env_is_name: tests/env_is_name.c $(hdrs) funcs.a(env.o) tests/lib.o
+tests/env_restore: tests/env_restore.c $(hdrs) funcs.a(env.o) funcs.a(str.o)
 
-tests/env_restore: tests/env_restore.c $(hdrs) funcs.a(env.o) tests/lib.o
+tests/error: tests/error.c $(hdrs) funcs.a(error.o)
 
-tests/error: tests/error.c $(hdrs) funcs.a(error.o) tests/lib.o
+tests/file_is_exe: tests/file_is_exe.c $(hdrs) funcs.a(file.o)
 
-tests/file_is_exe: tests/file_is_exe.c $(hdrs) funcs.a(file.o) tests/lib.o
+tests/file_is_wexcl: tests/file_is_wexcl.c $(hdrs) funcs.a(file.o)
 
-tests/file_is_wexcl: tests/file_is_wexcl.c $(hdrs) funcs.a(file.o) tests/lib.o
-
-tests/handler_lookup: tests/handler_lookup.c $(hdrs) funcs.a(handler.o) tests/lib.o
+tests/handler_lookup: tests/handler_lookup.c $(hdrs) funcs.a(handler.o)
 
 tests/main: main.c build.h testing.h config.h $(hdrs) funcs.a
 
-tests/path_check_wexcl: tests/path_check_wexcl.c $(hdrs) funcs.a(path.o) tests/lib.o
+tests/path_check_wexcl: tests/path_check_wexcl.c $(hdrs) funcs.a(path.o)
 
-tests/path_check_in: tests/path_check_in.c $(hdrs) funcs.a(path.o) tests/lib.o
+tests/path_check_in: tests/path_check_in.c $(hdrs) funcs.a(path.o)
 
-tests/path_suffix: tests/path_suffix.c $(hdrs) funcs.a(path.o) tests/lib.o
+tests/path_suffix: tests/path_suffix.c $(hdrs) funcs.a(path.o)
 
-tests/priv_drop: tests/priv_drop.c $(hdrs) funcs.a(priv.o) tests/lib.o
+tests/priv_drop: tests/priv_drop.c $(hdrs) funcs.a(priv.o)
 
-tests/priv_suspend: tests/priv_suspend.c $(hdrs) funcs.a(priv.o) tests/lib.o
+tests/priv_suspend: tests/priv_suspend.c $(hdrs) funcs.a(priv.o)
 
-tests/str_cp: tests/str_cp.c $(hdrs) funcs.a(str.o) tests/lib.o
+tests/str_cp: tests/str_cp.c $(hdrs) funcs.a(str.o)
 
-tests/str_split: tests/str_split.c $(hdrs) funcs.a(str.o) tests/lib.o
+tests/str_split: tests/str_split.c $(hdrs) funcs.a(str.o)
 
-tests/userdir_resolve: tests/userdir_resolve.c $(hdrs) funcs.a(userdir.o) tests/lib.o
+tests/userdir_resolve: tests/userdir_resolve.c $(hdrs) funcs.a(userdir.o)
 
 scripts/funcs.sh: tools/ids
 
@@ -211,10 +209,10 @@ check:
 	tools/runpara $(runpara_flags) $(checks)
 
 $(macro_check_bins):
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/lib.o -lm $(LDLIBS)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< $(LDLIBS)
 
 $(other_check_bins):
-	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $< funcs.a tests/lib.o -lm $(LDLIBS)
+	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $< funcs.a $(LDLIBS)
 
 
 #
