@@ -111,7 +111,9 @@ static char hugename[MAX_VAR_LEN] = {'\0'};
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+#if defined(__INTEL_COMPILER) && __INTEL_COMPILER
 #pragma warning(disable: 2330 2331 3179)
+#endif
 
 /* Test cases. */
 static const Args cases[] = {
