@@ -15,7 +15,18 @@ include(`macros.m4')dnl
 #
 
 #
-# Compiler variables
+# Special targets
+#
+
+.PHONY:	all analysis check clean distcheck distclean shellcheck
+
+.IGNORE: analysis
+
+all: sucgi
+
+
+#
+# Flags
 #
 
 ifnempty(`__CC', `CC = __CC
@@ -32,126 +43,73 @@ ifnempty(`__LDLIBS', `LDLIBS = __LDLIBS
 
 
 #
-# Headers
+# Common macros
 #
 
-stdhdrs = cattr.h compat.h macros.h max.h types.h
-
-
-#
-# Test suite
-#
-
-tool_bins =	tools/badenv tools/badexec tools/ids \
-		tools/runpara tools/runas
-
-macro_bins =	tests/ISSIGNED tests/MIN tests/NELEMS tests/SIGNEDMAX
-
-check_bins =	tests/env_is_name tests/env_restore tests/error \
-		tests/file_is_exe tests/file_is_wexcl \
-		tests/handler_lookup tests/main tests/path_check_wexcl \
-		tests/path_check_in tests/path_suffix tests/priv_drop \
-		tests/priv_suspend tests/str_cp tests/str_split \
-		tests/userdir_resolve
-
-check_scripts =	tests/error.sh tests/main.sh tests/path_check_wexcl.sh \
-		tests/priv_drop.sh tests/priv_suspend.sh
-
-checks =	$(macro_bins) $(check_scripts) \
-		tests/env_is_name tests/env_restore tests/file_is_exe \
-		tests/file_is_wexcl tests/handler_lookup \
-		tests/path_check_in tests/path_suffix tests/str_cp \
-		tests/str_split tests/userdir_resolve
-
-runpara_flags =	-ci75 -j8
+hdrs = cattr.h compat.h macros.h max.h types.h
 
 
 #
-# Files
+# Build
 #
 
-scripts = configure prepare scripts/*.sh tests/*.sh
+sucgi: main.c build.h config.h testing.h $(hdrs) funcs.a
 
-bins = $(tool_bins) $(macro_bins) $(main_bins) $(check_bins)
+funcs.a: funcs.a(env.o) funcs.a(error.o) funcs.a(file.o) funcs.a(handler.o) \
+	funcs.a(path.o) funcs.a(priv.o) funcs.a(str.o) funcs.a(userdir.o)
 
+funcs.a(env.o): env.c env.h $(hdrs) funcs.a(str.o)
 
-#
-# Static code analysis
-#
+funcs.a(error.o): error.c error.h $(hdrs)
 
-inspect	=		*.h *.c
+funcs.a(file.o): file.c file.h $(hdrs) funcs.a(str.o)
 
-ifhascmd(`clang-tidy', `dnl
-clang_tidy_flags =	--config-file=clang-tidy.yaml
+funcs.a(path.o): path.c path.h $(hdrs) funcs.a(file.o) funcs.a(str.o)
 
-')dnl
-ifhascmd(`cppcheck', `dnl
-cppcheck_flags =	--quiet --force --language=c --std=c99 \
-			--project=cppcheck/sucgi.cppcheck --library=posix \
-			--library=cppcheck/bsd.cfg --library=cppcheck/funcs.cfg \
-			--suppressions-list=cppcheck/suppr.txt --inline-suppr \
-			--enable=all --addon=cppcheck/cert.py --addon=misra.py
+funcs.a(priv.o): priv.c priv.h $(hdrs)
 
-')dnl
-ifhascmd(`flawfinder', `dnl
-flawfinder_flags =	--falsepositive --dataonly --quiet
+funcs.a(handler.o): handler.c handler.h $(hdrs) funcs.a(path.o)
 
-')dnl
-ifhascmd(`rats', `dnl
-rats_flags =		--resultsonly --quiet --warning 3
+funcs.a(str.o): str.c str.h $(hdrs)
 
-')dnl
+funcs.a(userdir.o): userdir.c userdir.h $(hdrs)
 
-#
-# Distribution
-#
-
-package	= 	sucgi
-version	=	0
-dist_name =	$(package)-$(version)
-dist_ar	=	$(dist_name).tgz
-dist_files =	*.c *.h *.env *.excl *.m4 *.sample README.rst LICENSE.txt \
-		clang-tidy.yaml configure cppcheck docs scripts tests tools
+sucgi:
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ main.c funcs.a $(LDLIBS)
 
 
 #
-# Installer
+# Installation
 #
 
 ifnempty(`__DESTDIR', `DESTDIR = __DESTDIR
 ')dnl
 PREFIX = default(`__PREFIX', `/usr/local')
-install_dir = $(DESTDIR)$(PREFIX)
-SC_WWW_GRP = default(`__SC_WWW_GRP', `www-data')
-SC_CGI_DIR = default(`__SC_CGI_DIR', `/usr/lib/cgi-bin')
+wwwgrp = default(`__SC_WWW_GRP', `www-data')
+cgidir = default(`__SC_CGI_DIR', `/usr/lib/cgi-bin')
+libexecdir = $(DESTDIR)$(PREFIX)/libexec
+
+install: $(libexecdir)/sucgi $(cgidir)/sucgi
+
+$(libexecdir)/sucgi: sucgi
+
+$(cgidir)/sucgi: $(libexecdir)/sucgi
+
+$(libexecdir)/sucgi:
+	mkdir -p $(libexecdir)
+	cp sucgi $(libexecdir)
+	chown 0:$(wwwgrp) $(libexecdir)/sucgi
+	chmod u=rws,g=x,o= $(libexecdir)/sucgi
+
+$(cgidir)/sucgi:
+	ln -s $(libexecdir)/sucgi $(cgidir)/sucgi
+
+uninstall:
+	rm -f $(cgidir)/sucgi $(libexecdir)/sucgi
 
 
 #
-# Default target
-#
-
-all: sucgi
-
-
-#
-# Commands
-#
-
-.m4:
-	$(SHELL) ./config.status $@
-
-sucgi:
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ main.c funcs.a $(LDLIBS)
-
-$(macro_bins):
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/lib.o -lm $(LDLIBS)
-
-$(check_bins):
-	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $< funcs.a tests/lib.o -lm $(LDLIBS)
-
-
-#
-# Prerequisites
+# Build configuration
 #
 
 .SUFFIXES: .m4
@@ -162,121 +120,130 @@ build.h: build.h.m4
 
 compat.h: compat.h.m4
 
-tools: $(tool_bins)
-
-checks: $(checks)
-
-funcs.a:	funcs.a(env.o) funcs.a(error.o) funcs.a(file.o) funcs.a(handler.o) \
-	funcs.a(path.o) funcs.a(priv.o) funcs.a(str.o) funcs.a(userdir.o)
-
-funcs.a(env.o): env.c env.h $(stdhdrs) funcs.a(str.o)
-
-funcs.a(error.o):	error.c error.h $(stdhdrs)
-
-funcs.a(file.o): file.c file.h $(stdhdrs) funcs.a(str.o)
-
-funcs.a(path.o): path.c path.h $(stdhdrs) funcs.a(file.o) funcs.a(str.o)
-
-funcs.a(priv.o): priv.c priv.h $(stdhdrs)
-
-funcs.a(handler.o): handler.c handler.h $(stdhdrs) funcs.a(path.o)
-
-funcs.a(str.o): str.c str.h $(stdhdrs)
-
-funcs.a(userdir.o): userdir.c userdir.h $(stdhdrs)
-
-sucgi: main.c build.h config.h testing.h $(stdhdrs) funcs.a
-
-tests/lib.o: tests/lib.c tests/lib.h $(stdhdrs)
-
-tests/ISSIGNED: tests/ISSIGNED.c $(stdhdrs) tests/lib.o
-
-tests/MIN: tests/MIN.c $(stdhdrs) tests/lib.o
-
-tests/NELEMS: tests/NELEMS.c $(stdhdrs) tests/lib.o
-
-tests/SIGNEDMAX: tests/SIGNEDMAX.c $(stdhdrs) tests/lib.o
-
-tests/env_is_name: tests/env_is_name.c $(stdhdrs) funcs.a(env.o) tests/lib.o
-
-tests/env_restore: tests/env_restore.c $(stdhdrs) funcs.a(env.o) tests/lib.o
-
-tests/error: tests/error.c $(stdhdrs) funcs.a(error.o) tests/lib.o
-
-tests/file_is_exe: tests/file_is_exe.c $(stdhdrs) funcs.a(file.o) tests/lib.o
-
-tests/file_is_wexcl: tests/file_is_wexcl.c $(stdhdrs) funcs.a(file.o) tests/lib.o
-
-tests/handler_lookup: tests/handler_lookup.c $(stdhdrs) funcs.a(handler.o) tests/lib.o
-
-tests/main: main.c build.h testing.h config.h $(stdhdrs) funcs.a
-
-tests/path_check_wexcl: tests/path_check_wexcl.c $(stdhdrs) funcs.a(path.o) tests/lib.o
-
-tests/path_check_in: tests/path_check_in.c $(stdhdrs) funcs.a(path.o) tests/lib.o
-
-tests/path_suffix: tests/path_suffix.c $(stdhdrs) funcs.a(path.o) tests/lib.o
-
-tests/priv_drop: tests/priv_drop.c $(stdhdrs) funcs.a(priv.o) tests/lib.o
-
-tests/priv_suspend: tests/priv_suspend.c $(stdhdrs) funcs.a(priv.o) tests/lib.o
-
-tests/str_cp: tests/str_cp.c $(stdhdrs) funcs.a(str.o) tests/lib.o
-
-tests/str_split: tests/str_split.c $(stdhdrs) funcs.a(str.o) tests/lib.o
-
-tests/userdir_resolve: tests/userdir_resolve.c $(stdhdrs) funcs.a(userdir.o) tests/lib.o
-
-tests/funcs.sh: tools/ids
-
-tests/error.sh: tests/error tests/funcs.sh
-
-tests/main.sh: tests/main tools/badexec tests/funcs.sh
-
-tests/path_check_wexcl.sh: tests/path_check_wexcl tools/ids tests/funcs.sh
-
-tests/priv_drop.sh: tests/priv_drop tests/main tools/ids tools/runas tests/funcs.sh
-
-tests/priv_suspend.sh: tests/priv_suspend tests/main tools/runas tests/funcs.sh
-
-
-#
-# Cleanup
-#
-
-clean:
-	rm -f funcs.a sucgi $(bins) $(dist_name).*
-	rm -rf tmp-* $(dist_name)
-	find . '(' \
-           -name '*.o'					\
-        -o -name '*.c.*'	-o -name 'a--.*'	\
-        -o -name '*.ctu-info'	-o -name '*.dump'	\
-        -o -name '*.gcda'	-o -name '*.gcno'	\
-        -o -name '*.dSYM'				\
-        -o -name '*.lock'	-o -name '*.lock'	\
-       ')' -exec rm -rf '{}' +
+.m4:
+	$(SHELL) ./config.status $@
 
 
 #
 # Tests
 #
 
-check: tools checks
+tool_bins = tools/badenv tools/badexec tools/ids tools/runpara tools/runas
+
+macro_check_bins = tests/ISSIGNED tests/MIN tests/NELEMS tests/SIGNEDMAX
+
+other_check_bins = tests/env_is_name tests/env_restore tests/error \
+	tests/file_is_exe tests/file_is_wexcl \
+	tests/handler_lookup tests/main tests/path_check_wexcl \
+	tests/path_check_in tests/path_suffix tests/priv_drop \
+	tests/priv_suspend tests/str_cp tests/str_split \
+	tests/userdir_resolve
+
+check_scripts =	tests/error.sh tests/main.sh tests/path_check_wexcl.sh \
+	tests/priv_drop.sh tests/priv_suspend.sh
+
+checks = $(macro_check_bins) $(check_scripts) tests/env_is_name \
+	tests/env_restore tests/file_is_exe tests/file_is_wexcl \
+	tests/handler_lookup tests/path_check_in tests/path_suffix \
+	tests/str_cp tests/str_split tests/userdir_resolve
+
+runpara_flags =	-ci75 -j8
+
+check: tools/runpara checks
+
+checks: $(checks)
+
+tools: $(tool_bins)
+
+tests/lib.o: tests/lib.c tests/lib.h $(hdrs)
+
+tests/ISSIGNED: tests/ISSIGNED.c $(hdrs) tests/lib.o
+
+tests/MIN: tests/MIN.c $(hdrs) tests/lib.o
+
+tests/NELEMS: tests/NELEMS.c $(hdrs) tests/lib.o
+
+tests/SIGNEDMAX: tests/SIGNEDMAX.c $(hdrs) tests/lib.o
+
+tests/env_is_name: tests/env_is_name.c $(hdrs) funcs.a(env.o) tests/lib.o
+
+tests/env_restore: tests/env_restore.c $(hdrs) funcs.a(env.o) tests/lib.o
+
+tests/error: tests/error.c $(hdrs) funcs.a(error.o) tests/lib.o
+
+tests/file_is_exe: tests/file_is_exe.c $(hdrs) funcs.a(file.o) tests/lib.o
+
+tests/file_is_wexcl: tests/file_is_wexcl.c $(hdrs) funcs.a(file.o) tests/lib.o
+
+tests/handler_lookup: tests/handler_lookup.c $(hdrs) funcs.a(handler.o) tests/lib.o
+
+tests/main: main.c build.h testing.h config.h $(hdrs) funcs.a
+
+tests/path_check_wexcl: tests/path_check_wexcl.c $(hdrs) funcs.a(path.o) tests/lib.o
+
+tests/path_check_in: tests/path_check_in.c $(hdrs) funcs.a(path.o) tests/lib.o
+
+tests/path_suffix: tests/path_suffix.c $(hdrs) funcs.a(path.o) tests/lib.o
+
+tests/priv_drop: tests/priv_drop.c $(hdrs) funcs.a(priv.o) tests/lib.o
+
+tests/priv_suspend: tests/priv_suspend.c $(hdrs) funcs.a(priv.o) tests/lib.o
+
+tests/str_cp: tests/str_cp.c $(hdrs) funcs.a(str.o) tests/lib.o
+
+tests/str_split: tests/str_split.c $(hdrs) funcs.a(str.o) tests/lib.o
+
+tests/userdir_resolve: tests/userdir_resolve.c $(hdrs) funcs.a(userdir.o) tests/lib.o
+
+scripts/funcs.sh: tools/ids
+
+tests/error.sh: tests/error scripts/funcs.sh
+
+tests/main.sh: tests/main tools/badenv tools/badexec tools/ids scripts/funcs.sh
+
+tests/path_check_wexcl.sh: tests/path_check_wexcl tools/ids scripts/funcs.sh
+
+tests/priv_drop.sh: tests/priv_drop tests/main tools/ids tools/runas scripts/funcs.sh
+
+tests/priv_suspend.sh: tests/priv_suspend tests/main tools/runas scripts/funcs.sh
+
+check:
 	tools/runpara $(runpara_flags) $(checks)
+
+$(macro_check_bins):
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/lib.o -lm $(LDLIBS)
+
+$(other_check_bins):
+	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $< funcs.a tests/lib.o -lm $(LDLIBS)
 
 
 #
 # Distribution
 #
 
+package = sucgi
+version = 0
+dist_name = $(package)-$(version)
+dist_ar = $(dist_name).tgz
+dist_files = *.c *.h *.env *.excl *.m4 *.sample README.rst LICENSE.txt \
+	configure prepare cppcheck docs tests tools scripts
+
 dist: $(dist_ar)
 
+distcheck: dist
+
+distclean: clean
+
 sigdist: dist $(dist_ar).asc
+
+$(dist_ar): distclean $(dist_name)
+
+$(dist_ar).asc: $(dist_ar)
 
 distclean: clean
 	rm -f config.status build.h compat.h makefile
 
-distcheck: $(dist_ar)
+distcheck:
 	tar -xzf $(dist_ar)
 	$(dist_name)/configure
 	cd $(dist_name) && make all check dist
@@ -287,41 +254,49 @@ $(dist_name):
 	cp -r $(dist_files) $(dist_name)
 	chmod -R u+rw,go= $(dist_name)
 
-$(dist_ar): distclean $(dist_name)
+$(dist_ar):
 	tar -X dist.excl -czf $(dist_ar) $(dist_name)
 
-$(dist_ar).asc: $(dist_ar)
+$(dist_ar).asc:
 	gpg -qab --batch --yes $(dist_ar)
 
 
 #
-# Installation
+# Static code analysis
 #
 
-$(install_dir)/libexec/sucgi: sucgi
-	mkdir -p $(install_dir)/libexec
-	cp sucgi $(install_dir)/libexec
-	chown 0:$(SC_WWW_GRP) $(install_dir)/libexec/sucgi
-	chmod u=rws,g=x,o= $(install_dir)/libexec/sucgi
+inspect	= *.h *.c
 
-$(SC_CGI_DIR)/sucgi: $(install_dir)/libexec/sucgi
-	ln -s $(install_dir)/libexec/sucgi $(SC_CGI_DIR)/sucgi
+ifhascmd(`shellcheck', `dnl
+scripts = configure prepare scripts/*.sh tests/*.sh
 
-install: $(install_dir)/libexec/sucgi $(SC_CGI_DIR)/sucgi
+')dnl
+ifhascmd(`clang-tidy', `dnl
+clang_tidy_flags = --config-file=clang-tidy.yaml
 
-uninstall:
-	rm -f $(SC_CGI_DIR)/sucgi $(install_dir)/libexec/sucgi
+')dnl
+ifhascmd(`cppcheck', `dnl
+cppcheck_flags = --quiet --force --language=c --std=c99 \
+	--project=cppcheck/sucgi.cppcheck --library=posix \
+	--library=cppcheck/bsd.cfg --library=cppcheck/funcs.cfg \
+	--suppressions-list=cppcheck/suppr.txt --inline-suppr \
+	--enable=all --addon=cppcheck/cert.py --addon=misra.py
 
+')dnl
+ifhascmd(`flawfinder', `dnl
+flawfinder_flags = --falsepositive --dataonly --quiet
 
-#
-# Analysis
-#
+')dnl
+ifhascmd(`rats', `dnl
+rats_flags = --resultsonly --quiet --warning 3
 
-shellcheck:
-ifhascmd(`shellcheck',
-`	shellcheck -x $(scripts)
 ')dnl
 
+ifhascmd(`shellcheck', `dnl
+shellcheck:
+	shellcheck -x $(scripts)
+
+')dnl
 analysis:
 ifhascmd(`clang-tidy',
 `	clang-tidy $(clang_tidy_flags) $(inspect) -- -std=c99
@@ -338,9 +313,19 @@ ifhascmd(`rats',
 
 
 #
-# Special targets
+# Cleanup
 #
 
-.PHONY:	all analysis check clean dist distcheck distclean shellcheck
+bins = sucgi $(tool_bins) $(macro_check_bins) $(other_check_bins)
 
-.IGNORE: analysis
+clean:
+	rm -f funcs.a $(bins) $(dist_name).*
+	rm -rf tmp-* $(dist_name)
+	find . '(' \
+           -name '*.o'					\
+        -o -name '*.c.*'	-o -name 'a--.*'	\
+        -o -name '*.ctu-info'	-o -name '*.dump'	\
+        -o -name '*.gcda'	-o -name '*.gcno'	\
+        -o -name '*.dSYM'				\
+        -o -name '*.lock'	-o -name '*.lock'	\
+       ')' -exec rm -rf '{}' +
