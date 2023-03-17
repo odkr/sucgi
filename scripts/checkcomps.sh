@@ -26,6 +26,7 @@
 #
 
 # Default options for icc
+# shellcheck disable=2034
 readonly icc_flags='-diag-disable=10441 -std=c99 -O2 -s'
 
 
@@ -81,7 +82,7 @@ mrproper() {
 
 OPTIND=1 OPTARG='' opt=''
 # shellcheck disable=2034
-while getopts hq opt; do
+while getopts hlq opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF
@@ -110,6 +111,7 @@ done
 shift $((OPTIND - 1))
 unset opt
 
+# shellcheck disable=2086
 [ $# -eq 0 ] && set -- $compilers
 
 
@@ -144,10 +146,11 @@ do
 		for template in *.m4
 		do
 			case $template in
-			('*.m4')   break ;;
-			('lib.m4') continue ;;
+			('*.m4')   	break ;;
+			('macros.m4')	continue ;;
 			esac
 
+			# shellcheck disable=2154
 			m4 -D__CC="$cc" -D__CFLAGS="$cflags" \
 			   "$template" >"${template%.m4}"
 		done

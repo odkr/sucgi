@@ -28,8 +28,7 @@
 set -Cefu
 script_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
 src_dir="$(cd -P "$script_dir/.." && pwd)"
-tests_dir="$src_dir/tests"
-readonly script_dir src_dir tests_dir
+readonly script_dir src_dir
 # shellcheck disable=1091
 . "$src_dir/scripts/funcs.sh" || exit
 init || exit
@@ -40,7 +39,7 @@ tmpdir chk
 # Build configuration
 #
 
-eval $(main -C | grep -E ^NDEBUG=)
+eval "$(main -C | grep -E ^NDEBUG=)"
 
 
 #
@@ -58,6 +57,7 @@ for format in - foo bar baz %s foo%s bar%s baz%s
 do
 	for arg in - foo bar baz
 	do
+		# shellcheck disable=2059
 		message="$(printf -- "$format" "$arg")"
 		check -s1 -e"$message" error "$format" "$arg"
 	done

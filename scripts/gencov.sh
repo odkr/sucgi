@@ -40,7 +40,9 @@ tmpdir cov .
 # Constants
 #
 
-readonly cwd="$(pwd)"
+# Current working directory.
+cwd="$(pwd)"
+readonly cwd
 
 
 #
@@ -176,8 +178,7 @@ logged make CFLAGS='-O2 --coverage' all checks
 warn -q 'adapting environment ...'
 
 export PATH="$distdir/tools:$distdir/tests:$PATH"
-
-eval $("$distdir/tests/main" -C | grep -vE '^PATH=')
+eval "$("$distdir/tests/main" -C | grep -vE '^PATH=')"
 reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")"
 [ "$reguser" ] || err 'no regular user found.'
 reggroup="$(id -gn "$reguser")"
@@ -232,9 +233,7 @@ then
 	warn -q 'saving GCov files in %s ...' "$gcovdir"
 
 	mkdir -p "$gcovdir"
-
-	find . -maxdepth 1 -type f -name '*.c' |
-	xargs gcov >/dev/null
+	find . -maxdepth 1 -type f -name '*.c' -exec gcov '{}' + >/dev/null
 
 	find . -type f -name '*.c.gcov' |
 	while read -r fname

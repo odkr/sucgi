@@ -160,6 +160,7 @@ esac
 # shellcheck source=devel.conf
 . "$conf" || exit
 
+# shellcheck disable=2086
 [ $# -eq 0 ] && set -- $files
 unset files
 
@@ -315,7 +316,7 @@ then
 		ccversion="${ccversion#v}"
 		ccmajor="${ccversion%%.*}"
 	else
-		ccmajor="${compname#$comptype-}"
+		ccmajor="${compname#"$comptype"-}"
 	fi
 
 	archivers="$comptype-ar"

@@ -96,7 +96,7 @@ check() (
 catch() {
 	signo="${1:?}"
 	sig="$(kill -l "$signo")"
-	printf '%*s\r' 80 >&2
+	printf '%*s\r' 80 '' >&2
 	warn 'caught %s.' "$sig"
 	[ "${catch-}" ] && exit "$((signo + 128))"
 	# shellcheck disable=2034
@@ -177,7 +177,7 @@ init() {
 	# Root directory of the repository.
 	: "${src_dir:?}"
 
-	# shellcheck disable=2039
+	# shellcheck disable=2039,3040
 	[ "${BASH_VERSION-}" ] && set -o posix
 	[ "${ZSH_VERSION-}" ] && emulate sh 2>/dev/null
 	export BIN_SH=xpg4 NULLCMD=: POSIXLY_CORRECT=x CLICOLOR_FORCE=
@@ -220,6 +220,32 @@ inlist() (
 	return 1
 )
 
+# Create a lock file
+lock() {
+	__lock="${1:?}"
+	readonly __lock
+
+	cleanup="unlock \"\$__lock\"; ${cleanup-}"
+
+	while true
+	do
+		if ( set -C && printf '%d\n' "$$" >"$__lock" 2>/dev/null; )
+		then return 0
+		elif ! unlock "$__lock"
+		then err '%s exists.' "$__lock"
+		fi
+	done
+}
+
+# Remove a lock file.
+unlock() {
+	: "${1?}"
+
+	if [ "$1" ] && [ -e "$1" ] && [ "$(cat "$1")" -eq $$ ]
+	then rm -f "$1"
+	else return 1
+	fi
+}
 
 # Create a path that is $len characters long in $basepath.
 mklongpath() (

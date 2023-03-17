@@ -20,15 +20,6 @@
 
 # shellcheck disable=2015
 
-
-#
-# Constants
-#
-
-# Files that ./configure should create.
-readonly files='config.status makefile build.h compat.h'
-
-
 #
 # Defaults
 #
@@ -79,6 +70,7 @@ done
 shift $((OPTIND - 1))
 unset opt
 
+# shellcheck disable=2086
 [ $# -eq 0 ] && set -- $shells
 
 

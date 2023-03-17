@@ -106,6 +106,7 @@ done
 shift $((OPTIND - 1))
 unset opt
 
+# shellcheck disable=2086
 [ $# -eq 0 ] && set -- $shells
 
 

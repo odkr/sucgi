@@ -33,6 +33,7 @@ readonly script_dir src_dir tests_dir
 # shellcheck disable=1091
 . "$src_dir/scripts/funcs.sh" || exit
 init || exit
+# shellcheck disable=2119
 tmpdir
 
 
@@ -86,6 +87,7 @@ do
 done
 unset i
 
+# shellcheck disable=2086
 check -s1 -e'too many environment variables.' \
       $envsan_vars main
 
@@ -95,7 +97,7 @@ check -s1 -e"discarding \$$envsan_varname" \
       "$envsan_varname=" main
 
 # Variable name is too long.
-envsan_varname="$(pad v $MAX_VARNAME_LEN)"
+envsan_varname="$(pad v "$MAX_VARNAME_LEN")"
 envsan_var="$envsan_varname=foo"
 check -s1 -e"variable \$$envsan_var: name too long." \
       "$envsan_var" main
@@ -106,7 +108,7 @@ check -s1 -e"discarding \$${envsan_var%=*}" \
       "$envsan_var" main
 
 # Variable is too long.
-envsan_var="$(pad var= $MAX_VAR_LEN x r)"
+envsan_var="$(pad var= "$MAX_VAR_LEN" x r)"
 check -s1 -e"variable \$$envsan_var: too long."	\
       "$envsan_var" main
 
@@ -162,6 +164,7 @@ done
 # Usage message.
 for opthdl_args in -X -XX -x --x - -- '-h -C' '-hC' '-h -V' '-hC'
 do
+	# shellcheck disable=2086
 	check -s1 -e'usage: sucgi' main $opthdl_args
 done
 
@@ -185,7 +188,8 @@ touch "$scrsan_longpath"
 unset scrsan_varname scrsan_maxlen
 
 # Create a path that is longer than suCGI permits.
-readonly scrsan_hugepath="$(mklongpath "$TMPDIR" "$MAX_FNAME_LEN")"
+scrsan_hugepath="$(mklongpath "$TMPDIR" "$MAX_FNAME_LEN")"
+readonly scrsan_hugepath
 catch=
 dirwalk "$TMPDIR" "$scrsan_hugepath" 'mkdir "$fname"' 'touch "$fname"'
 cleanup="rmtree \"$scrsan_hugepath\" \"$TMPDIR\"; ${cleanup-}"
@@ -194,9 +198,10 @@ catch=x
 
 # Create a link to that path.
 catch=
-readonly scrsan_hugelink="$TMPDIR/$(dirwalk "$TMPDIR" "$scrsan_hugepath" \
+scrsan_hugelink="$TMPDIR/$(dirwalk "$TMPDIR" "$scrsan_hugepath" \
 	'ln -s "$fname" s.d && printf s.d/' \
 	'ln -s "$fname" s.f && printf s.f\\n')"
+readonly scrsan_hugelink
 cleanup="rmtree \"$scrsan_hugelink\" \"$TMPDIR\"; ${cleanup-}"
 catch=x
 [ "$caught" ] && kill "-$caught" $$
@@ -263,7 +268,7 @@ usrval_script="$TMPDIR/usrval-script.sh"
 touch "$usrval_script"
 
 # Find an unallocated user ID.
-usrval_unallocuid="$(unallocid $MIN_UID $MAX_UID)"
+usrval_unallocuid="$(unallocid "$MIN_UID" "$MAX_UID")"
 
 # Store a list of all user IDs.
 usrval_uids="$TMPDIR/usrval-uids.list"
@@ -315,6 +320,7 @@ reguid="$(id -u "$reguser")"
 reggid="$(id -g "$reguser")"
 
 # Determine user directory.
+# shellcheck disable=2059
 case $USER_DIR in
 (/*%s*) userdir="$(printf -- "$USER_DIR" "$reguser")" ;;
 (*%s*)	err 'user directories within home directories are unsupported.' ;;
@@ -322,7 +328,7 @@ case $USER_DIR in
 esac
 
 # Create another temporary directory.
-tmpdir="${userdir%/$reguser*}"
+tmpdir="${userdir%/"$reguser"*}"
 case $tmpdir in
 (/tmp/*)	: ;;
 (*)		err 'temporary directory %s is outside of /tmp.' "$tmpdir"
@@ -550,7 +556,7 @@ hdl_emptyhandler="$userdir/script.empty"
 touch "$hdl_emptyhandler"
 
 # Create a script with a too long filename suffix.
-hdl_suffix=$(pad . $MAX_SUFFIX_LEN x r)
+hdl_suffix=$(pad . "$MAX_SUFFIX_LEN" x r)
 hdl_hugesuffix="$userdir/script$hdl_suffix"
 touch "$hdl_hugesuffix"
 
@@ -627,6 +633,7 @@ do
 	main >"$envcln_logfile" 2>/dev/null		||
 	err -s70 'main exited with status %d.' $?
 
+	# shellcheck disable=2154
 	for envcln_var in				\
 		"PATH_TRANSLATED=$envcln_script"	\
 		"DOCUMENT_ROOT=$userdir"		\
