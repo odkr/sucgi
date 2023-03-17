@@ -31,7 +31,7 @@ src_dir="$(cd -P "$script_dir/.." && pwd)"
 tests_dir="$src_dir/tests"
 readonly script_dir src_dir tests_dir
 # shellcheck disable=1091
-. "$tests_dir/lib.sh" || exit
+. "$src_dir/scripts/lib.sh" || exit
 init || exit
 tmpdir chk
 
