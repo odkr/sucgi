@@ -111,6 +111,7 @@ static char hugename[MAX_VAR_LEN] = {'\0'};
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+#pragma warning(disable: 2330 2331 3179)
 
 /* Test cases. */
 static const Args cases[] = {
@@ -355,7 +356,7 @@ static const Args cases[] = {
  * Report an error of ERRTYPE for ARGS with return value RET.
  */
 __attribute__((nonnull(1)))
-static void report(Args *args, Error ret, ErrType errtype);
+static void report(const Args *args, Error ret, ErrType errtype);
 
 /*
  * Check whether the environment equals VARS.
@@ -452,7 +453,7 @@ joinstrs(const size_t nstrs, char **const strs, char *const sep,
 }
 
 static void
-report(Args *const args, const Error ret, const ErrType errtype)
+report(const Args *const args, const Error ret, const ErrType errtype)
 {
 	char varstr[MAX_TEST_STR_LEN];
 	char patstr[MAX_TEST_STR_LEN];
@@ -461,6 +462,9 @@ report(Args *const args, const Error ret, const ErrType errtype)
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
+#if defined(__clang__) && __clang__
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types-discards-qualifiers"
+#endif
 	JOINSTRS(MAX_TEST_NVARS, args->vars, ", ", varstr);
 	JOINSTRS(args->npatterns, args->patterns, ", ", patstr);
 	JOINSTRS(MAX_TEST_NVARS, args->env, " ", envstr);
