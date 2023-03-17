@@ -54,7 +54,7 @@ check_bins =	tests/env_is_name tests/env_restore tests/error \
 		tests/priv_suspend tests/str_cp tests/str_split \
 		tests/userdir_resolve
 
-check_scripts =	tests/error.sh tests/path_check_wexcl.sh \
+check_scripts =	tests/error.sh tests/main.sh tests/path_check_wexcl.sh \
 		tests/priv_drop.sh tests/priv_suspend.sh
 
 checks =	$(macro_bins) $(check_scripts) \
@@ -84,7 +84,7 @@ inspect	=		*.h *.c
 ifhascmd(`cppcheck', `dnl
 cppcheck_flags =	--quiet --language=c --std=c99 \
 			--project=cppcheck/sucgi.cppcheck --force \
-			--library=posix --library=cppcheck/library.cfg \
+			--funcs.ary=posix --funcs.ary=cppcheck/funcs.ary.cfg \
 			--suppressions-list=cppcheck/suppr.txt --inline-suppr \
 			--enable=all --addon=cppcheck/cert.py --addon=misra.py
 
@@ -137,13 +137,13 @@ all: sucgi
 	$(SHELL) ./config.status $@
 
 sucgi:
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ main.c lib.a $(LDLIBS)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ main.c funcs.a $(LDLIBS)
 
 $(macro_bins):
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/lib.o -lm $(LDLIBS)
 
 $(check_bins):
-	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $< lib.a tests/lib.o -lm $(LDLIBS)
+	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $< funcs.a tests/lib.o -lm $(LDLIBS)
 
 
 #
@@ -162,26 +162,26 @@ tools: $(tool_bins)
 
 checks: $(checks)
 
-lib.a:	lib.a(env.o) lib.a(error.o) lib.a(file.o) lib.a(handler.o) \
-	lib.a(path.o) lib.a(priv.o) lib.a(str.o) lib.a(userdir.o)
+funcs.a:	funcs.a(env.o) funcs.a(error.o) funcs.a(file.o) funcs.a(handler.o) \
+	funcs.a(path.o) funcs.a(priv.o) funcs.a(str.o) funcs.a(userdir.o)
 
-lib.a(env.o): env.c env.h $(stdhdrs) lib.a(str.o)
+funcs.a(env.o): env.c env.h $(stdhdrs) funcs.a(str.o)
 
-lib.a(error.o):	error.c error.h $(stdhdrs)
+funcs.a(error.o):	error.c error.h $(stdhdrs)
 
-lib.a(file.o): file.c file.h $(stdhdrs) lib.a(str.o)
+funcs.a(file.o): file.c file.h $(stdhdrs) funcs.a(str.o)
 
-lib.a(path.o): path.c path.h $(stdhdrs) lib.a(file.o) lib.a(str.o)
+funcs.a(path.o): path.c path.h $(stdhdrs) funcs.a(file.o) funcs.a(str.o)
 
-lib.a(priv.o): priv.c priv.h $(stdhdrs)
+funcs.a(priv.o): priv.c priv.h $(stdhdrs)
 
-lib.a(handler.o): handler.c handler.h $(stdhdrs) lib.a(path.o)
+funcs.a(handler.o): handler.c handler.h $(stdhdrs) funcs.a(path.o)
 
-lib.a(str.o): str.c str.h $(stdhdrs)
+funcs.a(str.o): str.c str.h $(stdhdrs)
 
-lib.a(userdir.o): userdir.c userdir.h $(stdhdrs)
+funcs.a(userdir.o): userdir.c userdir.h $(stdhdrs)
 
-sucgi: main.c build.h config.h testing.h $(stdhdrs) lib.a
+sucgi: main.c build.h config.h testing.h $(stdhdrs) funcs.a
 
 tests/lib.o: tests/lib.c tests/lib.h $(stdhdrs)
 
@@ -193,35 +193,35 @@ tests/NELEMS: tests/NELEMS.c $(stdhdrs) tests/lib.o
 
 tests/SIGNEDMAX: tests/SIGNEDMAX.c $(stdhdrs) tests/lib.o
 
-tests/env_is_name: tests/env_is_name.c $(stdhdrs) lib.a(env.o) tests/lib.o
+tests/env_is_name: tests/env_is_name.c $(stdhdrs) funcs.a(env.o) tests/lib.o
 
-tests/env_restore: tests/env_restore.c $(stdhdrs) lib.a(env.o) tests/lib.o
+tests/env_restore: tests/env_restore.c $(stdhdrs) funcs.a(env.o) tests/lib.o
 
-tests/error: tests/error.c $(stdhdrs) lib.a(error.o) tests/lib.o
+tests/error: tests/error.c $(stdhdrs) funcs.a(error.o) tests/lib.o
 
-tests/file_is_exe: tests/file_is_exe.c $(stdhdrs) lib.a(file.o) tests/lib.o
+tests/file_is_exe: tests/file_is_exe.c $(stdhdrs) funcs.a(file.o) tests/lib.o
 
-tests/file_is_wexcl: tests/file_is_wexcl.c $(stdhdrs) lib.a(file.o) tests/lib.o
+tests/file_is_wexcl: tests/file_is_wexcl.c $(stdhdrs) funcs.a(file.o) tests/lib.o
 
-tests/handler_lookup: tests/handler_lookup.c $(stdhdrs) lib.a(handler.o) tests/lib.o
+tests/handler_lookup: tests/handler_lookup.c $(stdhdrs) funcs.a(handler.o) tests/lib.o
 
-tests/main: main.c build.h testing.h config.h $(stdhdrs) lib.a
+tests/main: main.c build.h testing.h config.h $(stdhdrs) funcs.a
 
-tests/path_check_wexcl: tests/path_check_wexcl.c $(stdhdrs) lib.a(path.o) tests/lib.o
+tests/path_check_wexcl: tests/path_check_wexcl.c $(stdhdrs) funcs.a(path.o) tests/lib.o
 
-tests/path_check_in: tests/path_check_in.c $(stdhdrs) lib.a(path.o) tests/lib.o
+tests/path_check_in: tests/path_check_in.c $(stdhdrs) funcs.a(path.o) tests/lib.o
 
-tests/path_suffix: tests/path_suffix.c $(stdhdrs) lib.a(path.o) tests/lib.o
+tests/path_suffix: tests/path_suffix.c $(stdhdrs) funcs.a(path.o) tests/lib.o
 
-tests/priv_drop: tests/priv_drop.c $(stdhdrs) lib.a(priv.o) tests/lib.o
+tests/priv_drop: tests/priv_drop.c $(stdhdrs) funcs.a(priv.o) tests/lib.o
 
-tests/priv_suspend: tests/priv_suspend.c $(stdhdrs) lib.a(priv.o) tests/lib.o
+tests/priv_suspend: tests/priv_suspend.c $(stdhdrs) funcs.a(priv.o) tests/lib.o
 
-tests/str_cp: tests/str_cp.c $(stdhdrs) lib.a(str.o) tests/lib.o
+tests/str_cp: tests/str_cp.c $(stdhdrs) funcs.a(str.o) tests/lib.o
 
-tests/str_split: tests/str_split.c $(stdhdrs) lib.a(str.o) tests/lib.o
+tests/str_split: tests/str_split.c $(stdhdrs) funcs.a(str.o) tests/lib.o
 
-tests/userdir_resolve: tests/userdir_resolve.c $(stdhdrs) lib.a(userdir.o) tests/lib.o
+tests/userdir_resolve: tests/userdir_resolve.c $(stdhdrs) funcs.a(userdir.o) tests/lib.o
 
 tests/funcs.sh: tools/ids
 
@@ -241,7 +241,7 @@ tests/priv_suspend.sh: tests/priv_suspend tests/main tools/runas tests/funcs.sh
 #
 
 clean:
-	rm -f lib.a sucgi $(bins) $(dist_name).*
+	rm -f funcs.a sucgi $(bins) $(dist_name).*
 	rm -rf tmp-* $(dist_name)
 	find . '(' \
            -name '*.o'					\
@@ -275,7 +275,7 @@ distclean: clean
 distcheck: $(dist_ar)
 	tar -xzf $(dist_ar)
 	$(dist_name)/configure
-	cd $(dist_name) && cp config.h.sample config.h && make all check dist
+	cd $(dist_name) && make all check dist
 	rm -rf $(dist_ar)
 
 $(dist_name):
