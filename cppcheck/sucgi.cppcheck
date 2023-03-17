@@ -5,7 +5,7 @@
 	</paths>
 	<defines>
 		<!-- C99 -->
-		<define name="CHAR_BIT=8"/> -->
+		<define name="CHAR_BIT=8"/>
 		<define name="SHRT_MAX=32767"/>
 		<define name="INT_MAX=2147483647"/>
 
@@ -20,7 +20,7 @@
 		<define name="LOG_PERROR=32"/>
 
 		<!-- suCGI -->
-		<define name="TESTING=0"/>
+		<define name="CHECK=0"/>
 		<define name="MAX_ERRMSG_LEN=128U"/>
 		<define name="MAX_FNAME_LEN=1024"/>
 		<define name="MAX_GRPNAME_LEN=16U"/>

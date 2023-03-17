@@ -70,7 +70,7 @@ runpara_flags =	-ci75 -j8
 # Files
 #
 
-scripts = configure scripts/*.sh tests/*.sh
+scripts = configure prepare scripts/*.sh tests/*.sh
 
 bins = $(tool_bins) $(macro_bins) $(main_bins) $(check_bins)
 
@@ -81,10 +81,14 @@ bins = $(tool_bins) $(macro_bins) $(main_bins) $(check_bins)
 
 inspect	=		*.h *.c
 
+ifhascmd(`clang-tidy', `dnl
+clang_tidy_flags =	--config-file=clang-tidy.yaml
+
+')dnl
 ifhascmd(`cppcheck', `dnl
-cppcheck_flags =	--quiet --language=c --std=c99 \
-			--project=cppcheck/sucgi.cppcheck --force \
-			--funcs.ary=posix --funcs.ary=cppcheck/funcs.ary.cfg \
+cppcheck_flags =	--quiet --force --language=c --std=c99 \
+			--project=cppcheck/sucgi.cppcheck --library=posix \
+			--library=cppcheck/bsd.cfg --library=cppcheck/funcs.cfg \
 			--suppressions-list=cppcheck/suppr.txt --inline-suppr \
 			--enable=all --addon=cppcheck/cert.py --addon=misra.py
 
@@ -107,7 +111,7 @@ version	=	0
 dist_name =	$(package)-$(version)
 dist_ar	=	$(dist_name).tgz
 dist_files =	*.c *.h *.env *.excl *.m4 *.sample README.rst LICENSE.txt \
-		configure cppcheck docs scripts tests tools
+		clang-tidy.yaml configure cppcheck docs scripts tests tools
 
 
 #
@@ -320,7 +324,7 @@ ifhascmd(`shellcheck',
 
 analysis:
 ifhascmd(`clang-tidy',
-`	clang-tidy $(inspect) -- -std=c99
+`	clang-tidy $(clang_tidy_flags) $(inspect) -- -std=c99
 ')dnl
 ifhascmd(`cppcheck',
 `	cppcheck $(cppcheck_flags) $(inspect)
