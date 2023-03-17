@@ -21,9 +21,9 @@ Requirements
 ============
 
 suCGI requires a system that is compatible with `4.4BSD`_ and compliant
-with `POSIX.1-2008`_, including its X/Open System Interface extension.
-Any Unix-like operating system that has been released since 2017 and
-that does *not* target embedded systems should meet these requirements.
+with `POSIX.1-2008`_, including the X/Open System Interface extension.
+Any Unix-like operating system that has been released since 2018 and that
+does *not* target embedded systems should meet these requirements.
 
 
 Installation
@@ -52,11 +52,11 @@ On many systems you can do so by::
 
 	sudo ./prepare
 
-``./prepare`` uses the package manager of your operating system.
+``./prepare`` uses the package manager of your operating system, if possible.
 
 ----
 
-Generate the *makefile*, *build.h*, and *compat.h* by::
+Generate the *makefile*, *build.h*, *compat.h*, and *config.h* by::
 
     ./configure
 
