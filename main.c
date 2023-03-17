@@ -299,7 +299,7 @@ main(int argc, char **argv) {
         break;
     default:
         /* Should be unreachable. */
-        error("%d: priv_suspend returned %u.", __LINE__, ret);
+        error("%d: priv_suspend returned %d.", __LINE__, ret);
     }
 
     assert(getuid() == geteuid());
@@ -383,7 +383,7 @@ main(int argc, char **argv) {
         error("setenv: %m.");
     default:
         /* Should be unreachable. */
-        error("%d: env_restore returned %u.", __LINE__, ret);
+        error("%d: env_restore returned %d.", __LINE__, ret);
     }
 
 
@@ -422,7 +422,7 @@ main(int argc, char **argv) {
         error("$PATH_TRANSLATED is too long.");
     default:
         /* Should be unreachable. */
-        error("%d: str_cp returned %u.", __LINE__, ret);
+        error("%d: str_cp returned %d.", __LINE__, ret);
     }
 
     errno = 0;
@@ -594,7 +594,7 @@ main(int argc, char **argv) {
         error("setgroups: %m.");
     default:
         /* Should be unreachable. */
-        error("%d: priv_drop returned %u.", __LINE__, ret);
+        error("%d: priv_drop returned %d.", __LINE__, ret);
     }
 
     assert(geteuid() == uid);
@@ -626,7 +626,7 @@ main(int argc, char **argv) {
         error("snprintf: %m.");
     default:
         /* Should be unreachable. */
-        error("%d: userdir_resolve returned %u.", __LINE__, ret);
+        error("%d: userdir_resolve returned %d.", __LINE__, ret);
     }
 
     assert(userdir_log);
@@ -649,7 +649,7 @@ main(int argc, char **argv) {
                   script_log, logname);
         default:
             /* Should be unreachable. */
-            error("%d: path_check_in returned %u.", __LINE__, ret);
+            error("%d: path_check_in returned %d.", __LINE__, ret);
     }
 
 
@@ -698,7 +698,7 @@ main(int argc, char **argv) {
         error("stat %s: %m.", script_log);
     default:
         /* Should be unreachable. */
-        error("%d: path_check_wexcl returned %u.", __LINE__, ret);
+        error("%d: path_check_wexcl returned %d.", __LINE__, ret);
     }
 
 
@@ -794,7 +794,7 @@ main(int argc, char **argv) {
             error("script %s: no handler found.", script_log);
         default:
             /* Should be unreachable. */
-            error("%d: handler_lookup returned %u.", __LINE__, ret);
+            error("%d: handler_lookup returned %d.", __LINE__, ret);
         }
 
         assert(handler);
