@@ -31,7 +31,7 @@ src_dir="$(dirname -- "$scripts_dir")"
 # shellcheck disable=2034
 readonly scripts_dir src_dir
 # shellcheck disable=1091
-. "$src_dir/tests/funcs.sh" || exit
+. "$src_dir/scripts/funcs.sh" || exit
 init || exit
 tmpdir cov .
 
