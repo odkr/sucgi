@@ -79,6 +79,6 @@ else
 	check -s1 -o"euid=$uid egid=$gid ruid=$uid rgid=$gid"	priv_suspend
 	check -s1 -e"seteuid: Operation not permitted"		priv_suspend
 
-	warn 'all non-superuser tests passed.'
+	err -s75 'all non-superuser tests passed.'
 fi
 

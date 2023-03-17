@@ -84,6 +84,6 @@ then
 else
 	check -s1 -e'Operation not permitted' priv_drop "$user"
 
-	warn "all non-superuser tests passed."
+	err -s75 "all non-superuser tests passed."
 fi
 
