@@ -146,6 +146,8 @@ readonly htmldir
 # Setup
 #
 
+cd -P "$src_dir" || exit
+
 uid="$(id -u)"
 [ "$uid" -eq 0 ] || err 'not invoked by the superuser.'
 distdir="$TMPDIR/dist"
