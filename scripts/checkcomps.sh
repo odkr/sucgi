@@ -58,7 +58,7 @@ src_dir="$(dirname -- "$tools_dir")"
 # shellcheck disable=2034
 readonly tools_dir src_dir
 # shellcheck disable=1091
-. "$tools_dir/lib.sh" || exit
+. "$tools_dir/funcs.sh" || exit
 init || exit
 tmpdir
 
