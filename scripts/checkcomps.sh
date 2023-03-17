@@ -173,7 +173,7 @@ do
 	then
 		[ "$verbose" ] || printf '%s\n' pass >&2
 	else
-		if ! [ "$verbose" ]
+		if ! [ "$verbose" ]
 		then printf '%s\n' fail >&2
 		elif [ -e "$logfile" ]
 		then mv "$logfile" .
