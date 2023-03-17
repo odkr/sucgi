@@ -26,6 +26,7 @@
 
 #include <assert.h>
 #include <err.h>
+#include <errno.h>
 #include <regex.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -68,15 +69,12 @@
 
 /* Mapping of constant inputs to constant outputs. */
 typedef struct {
-    char *vars[MAX_TEST_NVARS];            /* Variables to restore. */
-    size_t npatterns;                   /* Number of patterns. */
-    char **patterns;                    /* Patterns. */
-    char *env[MAX_TEST_NVARS];           /* Restored environmnet. */
-    Error ret;                            /* Return value. */
+    char **vars;					/* Variables to set. */
+    size_t npatterns;               /* Number of patterns. */
+    char **patterns;                /* Patterns. */
+    char *env[MAX_TEST_NVARS];      /* Resulting environmnet. */
+    Error ret;                      /* Return value. */
 } Args;
-
-/* A shorthand for an array of strings. */
-typedef char *StrArr[];
 
 
 /*
@@ -86,6 +84,9 @@ typedef char *StrArr[];
 /* See config.h. */
 const char *const envpatterns[] = ENV_PATTERNS;
 
+/* Too many variables. */
+static char *toomanyvars[MAX_NVARS + 1U] = {NULL};
+
 /* A variable that is as long as permitted. */
 static char longvar[MAX_VAR_LEN] = {'\0'};
 
@@ -93,10 +94,10 @@ static char longvar[MAX_VAR_LEN] = {'\0'};
 static char hugevar[MAX_VAR_LEN + 1U] = {'\0'};
 
 /* A variable with a name that is as long as is permitted. */
-static char longvarname[MAX_VAR_LEN] = {'\0'};
+static char longname[MAX_VAR_LEN] = {'\0'};
 
 /* A variable with a name that is too long. */
-static char hugevarname[MAX_VAR_LEN] = {'\0'};
+static char hugename[MAX_VAR_LEN] = {'\0'};
 
 /*
  * FIXME: Explain why this is needed.
@@ -109,117 +110,144 @@ static char hugevarname[MAX_VAR_LEN] = {'\0'};
 /* Test cases. */
 static const Args cases[] = {
     /* Null tests. */
-    {{NULL}, 0, (StrArr) {NULL}, {NULL}, OK},
-    {{NULL}, 1, (StrArr) {"."}, {NULL}, OK},
+    {(char *[]) {NULL}, 0, (char *[]) {NULL}, {NULL}, OK},
+    {(char *[]) {NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+
+	/* Too many variables. */
+	{toomanyvars, 1, (char *[]) {"."}, {NULL}, ERR_LEN},
 
 	/* Overly long variables should be ignored. */
-    {{longvar, NULL}, 1, (StrArr) {"."}, {longvar, NULL}, OK},
-    {{hugevar, NULL}, 1, (StrArr) {"."}, {NULL}, OK},
+    {(char *[]) {longvar, NULL}, 1, (char *[]) {"."}, {longvar, NULL}, OK},
+    {(char *[]) {hugevar, NULL}, 1, (char *[]) {"."}, {NULL}, OK},
 
 	/* Variables with overly long should be ignored, too. */
-    {{longvarname, NULL}, 1, (StrArr) {"."}, {longvarname, NULL}, OK},
-	{{hugevarname, NULL}, 1, (StrArr) {"."}, {NULL}, OK},
+    {(char *[]) {longname, NULL}, 1, (char *[]) {"."}, {longname, NULL}, OK},
+	{(char *[]) {hugename, NULL}, 1, (char *[]) {"."}, {NULL}, OK},
 
     /* Simple tests. */
     {
-        {"foo=foo", NULL},
-        1, (StrArr) {"."},
+        (char *[]) {"foo=foo", NULL},
+        1, (char *[]) {"."},
         {"foo=foo", NULL}, OK
     },
     {
-        {"foo=foo", "bar=bar", NULL},
-        1, (StrArr) {"^foo$"},
+        (char *[]) {"foo=foo", "bar=bar", NULL},
+        1, (char *[]) {"^foo$"},
         {"foo=foo", NULL}, OK
     },
     {
-        {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
-        1, (StrArr) {"^foo"},
+        (char *[]) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
+        1, (char *[]) {"^foo"},
         {"foo=foo", "foobar=foobar", NULL}, OK
     },
     {
-        {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
-        1, (StrArr) {"foo"},
+        (char *[]) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
+        1, (char *[]) {"foo"},
         {"foo=foo", "foobar=foobar", NULL}, OK
     },
     {
-        {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
-        1, (StrArr) {"bar$"},
+        (char *[]) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
+        1, (char *[]) {"bar$"},
         {"bar=bar", "foobar=foobar", NULL}, OK
     },
     {
-        {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
-        1, (StrArr) {"bar"},
+        (char *[]) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
+        1, (char *[]) {"bar"},
         {"bar=bar", "foobar=foobar", NULL}, OK
     },
     {
-        {"foo=foo", "bar=bar", "baz=baz", NULL},
-        0, (StrArr) {NULL},
+       (char *[])  {"foo=foo", "bar=bar", "baz=baz", NULL},
+        0, (char *[]) {NULL},
         {NULL}, OK
     },
     {
-        {"foo=foo", "bar=bar", "baz=baz", NULL},
-        1, (StrArr) {"^$"},
+        (char *[]) {"foo=foo", "bar=bar", "baz=baz", NULL},
+        1, (char *[]) {"^$"},
         {NULL}, OK
     },
 
     /* Syntax errors. */
-    {{"", "foo=", NULL}, 1, (StrArr) {"."}, {"foo=", NULL}, OK},
-    {{"foo", "bar=", NULL}, 1, (StrArr) {"."}, {"bar=", NULL}, OK},
-    {{"=foo", "bar=", NULL}, 1, (StrArr) {"."}, {"bar=", NULL}, OK},
+    {(char *[]) {"", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+    {(char *[]) {"foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+    {(char *[]) {"=foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
 
     /* Illegal names. */
-    {{" foo=foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
-    {{"0foo=foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
-    {{"*=foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
-    {{"foo =foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
-    {{"$(foo)=foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
-    {{"`foo`=foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
+    {(char *[]) {" foo=foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+    {(char *[]) {"0foo=foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+    {(char *[]) {"*=foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+    {(char *[]) {"foo =foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+    {(char *[]) {"$(foo)=foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+    {(char *[]) {"`foo`=foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
 
     /* More realistic tests. */
     {
-        {"bar=bar", "foo_0=foo", NULL},
-        1, (StrArr) {"^foo_[0-9]+$"},
+        (char *[]) {"bar=bar", "foo_0=foo", NULL},
+        1, (char *[]) {"^foo_[0-9]+$"},
         {"foo_0=foo", NULL}, OK
     },
     {
-        {"bar=bar", "foo_0=foo", NULL},
-        1, (StrArr) {"^foo_(0|[1-9][0-9]*)$"},
+        (char *[]) {"bar=bar", "foo_0=foo", NULL},
+        1, (char *[]) {"^foo_(0|[1-9][0-9]*)$"},
         {"foo_0=foo", NULL}, OK
     },
     {
-        {"foo_0=foo", "foo_01=foo", NULL},
-        1, (StrArr) {"^foo_(0|[1-9][0-9]*)$"},
+        (char *[]) {"foo_0=foo", "foo_01=foo", NULL},
+        1, (char *[]) {"^foo_(0|[1-9][0-9]*)$"},
         {"foo_0=foo", NULL}, OK
     },
 
     /* Simple tests with real patterns. */
     {
-        {"foo=foo", NULL},
+        (char *[]) {"foo=foo", NULL},
         NELEMS(envpatterns), envpatterns,
         {NULL}, OK
     },
     {
-        {"PATH_TRANSLATED=foo", NULL},
+        (char *[]) {"PATH_TRANSLATED=foo", NULL},
         NELEMS(envpatterns), envpatterns,
         {"PATH_TRANSLATED=foo", NULL}, OK
     },
     {
-        {"PATH_TRANSLATED=foo", "foo=foo", NULL},
+        (char *[]) {"PATH_TRANSLATED=foo", "foo=foo", NULL},
         NELEMS(envpatterns), envpatterns,
         {"PATH_TRANSLATED=foo", NULL}, OK
     },
 
     /* Illegal names. */
-    {{" IPV6=foo", NULL}, NELEMS(envpatterns), envpatterns, {NULL}, OK},
-    {{"0IPV6=foo", NULL}, NELEMS(envpatterns), envpatterns, {NULL}, OK},
-    {{"*=foo", NULL}, NELEMS(envpatterns), envpatterns, {NULL}, OK},
-    {{"IPV6 =foo", NULL}, NELEMS(envpatterns), envpatterns, {NULL}, OK},
-    {{"$(IPV6)=foo", NULL}, NELEMS(envpatterns), envpatterns, {NULL}, OK},
-    {{"`IPV6`=foo", NULL}, NELEMS(envpatterns), envpatterns, {NULL}, OK},
+    {
+    	(char *[]) {" IPV6=foo", NULL},
+    	NELEMS(envpatterns), envpatterns,
+    	{NULL}, OK
+    },
+    {
+    	(char *[]) {"0IPV6=foo", NULL},
+    	NELEMS(envpatterns), envpatterns,
+    	{NULL}, OK
+    },
+    {
+    	(char *[]) {"*=foo", NULL},
+    	NELEMS(envpatterns), envpatterns,
+    	{NULL}, OK
+    },
+    {
+    	(char *[]) {"IPV6 =foo", NULL},
+    	NELEMS(envpatterns), envpatterns,
+    	{NULL}, OK
+    },
+    {
+    	(char *[]) {"$(IPV6)=foo", NULL},
+    	NELEMS(envpatterns), envpatterns,
+    	{NULL}, OK
+    },
+    {
+    	(char *[]) {"`IPV6`=foo", NULL},
+    	NELEMS(envpatterns), envpatterns,
+    	{NULL}, OK
+    },
 
     /* Odd but legal values. */
     {
-    	{
+    	(char *[]) {
         	"SSL_CLIENT_S_DN_C_0=", "SSL_CLIENT_S_DN_C_1==",
             "SSL_CLIENT_S_DN_C_2= ", "SSL_CLIENT_S_DN_C_3=\t",
             "SSL_CLIENT_S_DN_C_4=\n", NULL
@@ -234,7 +262,7 @@ static const Args cases[] = {
 
     /* Real-world tests. */
     {
-        {
+        (char *[]) {
             "CLICOLOR=x",
             "EDITOR=vim",
             "HOME=/home/jdoe",
@@ -254,7 +282,7 @@ static const Args cases[] = {
         {NULL}, OK
     },
     {
-        {
+        (char *[]) {
 			"CLICOLOR=x",
 			"DOCUMENT_ROOT=/home/jdoe/public_html",
 			"EDITOR=vim",
@@ -422,17 +450,37 @@ main (void) {
     char *null = NULL;
     int result = TEST_PASSED;
 
+	for (size_t i = 0; i < NELEMS(toomanyvars); ++i) {
+		char *var;
+		int nbytes;
+
+		errno = 0;
+		var = malloc(MAX_VAR_LEN);
+		if (var == NULL) {
+			err(EXIT_FAILURE, "malloc");
+		}
+
+		errno = 0;
+		nbytes = snprintf(var, MAX_VAR_LEN, "var%zu=", i);
+		if (nbytes < 1) {
+			err(EXIT_FAILURE, "snprintf");
+		}
+
+		toomanyvars[i] = var;
+	}
+
+
 	(void) memset(longvar, 'x', sizeof(longvar) - 1U);
 	(void) str_cp(4, "var=", longvar);
 
 	(void) memset(hugevar, 'x', sizeof(hugevar) - 1U);
 	(void) str_cp(4, "var=", longvar);
 
-	(void) memset(longvarname, 'x', sizeof(longvarname) - 1U);
-	longvarname[MAX_VARNAME_LEN - 1U] = '=';
+	(void) memset(longname, 'x', sizeof(longname) - 1U);
+	longname[MAX_VARNAME_LEN - 1U] = '=';
 
-	(void) memset(hugevarname, 'x', sizeof(hugevarname) - 1U);
-	hugevarname[MAX_VARNAME_LEN] = '=';
+	(void) memset(hugename, 'x', sizeof(hugename) - 1U);
+	hugename[MAX_VARNAME_LEN] = '=';
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
@@ -477,7 +525,7 @@ main (void) {
             result = TEST_FAILED;
         }
 
-        if (!cmpenv(args.env)) {
+        if (ret == OK && !cmpenv(args.env)) {
             char varstr[MAX_TEST_STR_LEN];
             char patstr[MAX_TEST_STR_LEN];
             char envstr[MAX_TEST_STR_LEN];
