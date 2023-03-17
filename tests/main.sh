@@ -99,7 +99,7 @@ check -s1 -e"discarding \$$envsan_varname" \
 # Variable name is too long.
 envsan_varname="$(pad v "$MAX_VARNAME_LEN")"
 envsan_var="$envsan_varname=foo"
-check -s1 -e"variable \$$envsan_var: name too long." \
+check -s1 -e'discarding variable with overly long name.' \
       "$envsan_var" main
 
 # Variable has maximum length.
@@ -109,20 +109,20 @@ check -s1 -e"discarding \$${envsan_var%=*}" \
 
 # Variable is too long.
 envsan_var="$(pad var= "$MAX_VAR_LEN" x r)"
-check -s1 -e"variable \$$envsan_var: too long."	\
+check -s1 -e'discarding overly long variable.'	\
       "$envsan_var" main
 
 # Variable name is illegal.
-for envsan_var in 'foo =' '0foo=' '$(echo foo)=' '`echo foo`='
+for envsan_varname in 'foo ' '0foo' '$(echo foo)' '`echo foo`'
 do
-	check -s1 -e"variable \$$envsan_var: bad name." \
-	      badenv "$envsan_var" "$tests_dir/main"
+	check -s1 -e"variable \$$envsan_varname: bad name." \
+	      badenv "$envsan_varname=" "$tests_dir/main"
 done
 
 # Variable is not of the form <key>=<value>.
 for envsan_var in 'foo' '0foo' 'foo '
 do
-	check -s1 -e"variable \$$envsan_var: malformed." \
+	check -s1 -e"variable \$$envsan_var: no value." \
 	      badenv -n1 "$envsan_var" "$tests_dir/main"
 done
 

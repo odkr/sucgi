@@ -78,16 +78,16 @@ env_restore(char *const *vars, const size_t npregs, regex_t *const pregs)
 
         if (strnlen(var, MAX_VAR_LEN) >= (size_t) MAX_VAR_LEN) {
             /* RATS: ignore; format is short and a literal. */
-            syslog(LOG_INFO, "variable $%s: too long.", var);
+            syslog(LOG_INFO, "discarding overly long variable.");
         } else if (str_split(var, "=", MAX_VARNAME_LEN, name, &value) != OK) {
             /* RATS: ignore; format is short and a literal. */
-            syslog(LOG_INFO, "variable $%s: name too long.", var);
+            syslog(LOG_INFO, "discarding variable with overly long name.");
         } else if (value == NULL) {
             /* RATS: ignore; format is short and a literal. */
-            syslog(LOG_INFO, "variable $%s: malformed.", var);
+            syslog(LOG_INFO, "variable $%s: no value.", name);
         } else if (!env_is_name(name)) {
             /* RATS: ignore; format is short and a literal. */
-            syslog(LOG_INFO, "variable $%s: bad name.", var);
+            syslog(LOG_INFO, "variable $%s: bad name.", name);
         } else {
             size_t pregidx;
 

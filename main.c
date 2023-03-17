@@ -433,7 +433,7 @@ main(int argc, char **argv) {
     }
 
     if (strnlen(script_phys, MAX_FNAME_LEN) >= (size_t) MAX_FNAME_LEN) {
-        error("%s's canonical path is too long.", script_log);
+        error("script %s: canonical path is too long.", script_log);
     }
 
     if (stat(script_phys, &script_stat) != 0) {
@@ -559,13 +559,13 @@ main(int argc, char **argv) {
      * Drop privileges for good.
      */
 
-    long ngroups_max;           /* Maximum number of groups per process. */
+    long ngroups_max;
 
     ngroups_max = sysconf(_SC_NGROUPS_MAX);
     if (-1L < ngroups_max && ngroups_max < ngroups) {
         /* RATS: ignore; message is short and a literal. */
-	syslog(LOG_NOTICE, "can only set %ld of %d groups for user %s.",
-               ngroups_max, ngroups, logname);
+	syslog(LOG_NOTICE, "user %s: can only set %ld of %d groups.",
+           logname, ngroups_max, ngroups);
 
         /* ngroups_max cannot be larger than INT_MAX. */
         ngroups = (int) ngroups_max;
@@ -621,7 +621,7 @@ main(int argc, char **argv) {
     case OK:
         break;
     case ERR_LEN:
-        error("%s's user directory is too long.", logname);
+        error("user %s: user directory is too long.", logname);
     case ERR_SYS_SNPRINTF:
         error("snprintf: %m.");
     default:
@@ -667,7 +667,7 @@ main(int argc, char **argv) {
              * Should only be reachable if a system administrator set the
              * owner's home directory to a path that is longer than PATH_MAX.
              */
-            error("%s's home directory is too long", logname);
+            error("user %s: home directory is too long", logname);
         }
 
         errno = 0;
@@ -683,7 +683,7 @@ main(int argc, char **argv) {
              * owner's home directory to a symlink to a path that is longer
              * than PATH_MAX.
              */
-            error("%s's canonical path is too long.", owner->pw_dir);
+            error("directory %s: canonical path is too long.", owner->pw_dir);
         }
     }
 
