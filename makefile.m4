@@ -4,7 +4,7 @@ dnl Edit this file, NOT the makefile itself.
 dnl Then run ./configure to generate or ./config.status to update it.
 dnl See docs/build.rst for details.
 dnl
-include(`lib.m4')dnl
+include(`macros.m4')dnl
 .POSIX:
 
 #
@@ -223,17 +223,17 @@ tests/str_split: tests/str_split.c $(stdhdrs) lib.a(str.o) tests/lib.o
 
 tests/userdir_resolve: tests/userdir_resolve.c $(stdhdrs) lib.a(userdir.o) tests/lib.o
 
-tests/lib.sh: tools/ids
+tests/funcs.sh: tools/ids
 
-tests/error.sh: tests/error tests/lib.sh
+tests/error.sh: tests/error tests/funcs.sh
 
-tests/main.sh: tests/main tools/badexec tests/lib.sh
+tests/main.sh: tests/main tools/badexec tests/funcs.sh
 
-tests/path_check_wexcl.sh: tests/path_check_wexcl tools/ids tests/lib.sh
+tests/path_check_wexcl.sh: tests/path_check_wexcl tools/ids tests/funcs.sh
 
-tests/priv_drop.sh: tests/priv_drop tests/main tools/ids tools/runas tests/lib.sh
+tests/priv_drop.sh: tests/priv_drop tests/main tools/ids tools/runas tests/funcs.sh
 
-tests/priv_suspend.sh: tests/priv_suspend tests/main tools/runas tests/lib.sh
+tests/priv_suspend.sh: tests/priv_suspend tests/main tools/runas tests/funcs.sh
 
 
 #

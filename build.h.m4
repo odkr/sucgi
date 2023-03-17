@@ -17,7 +17,7 @@ dnl
 dnl You should have received a copy of the GNU General Public License along
 dnl with suCGI. If not, see <https://www.gnu.org/licenses>.
 dnl
-include(`lib.m4')dnl
+include(`macros.m4')dnl
 /*
  * Build information.
  *
