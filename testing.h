@@ -19,62 +19,15 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(TESTING_H) && defined(TESTING) && TESTING
+#if !defined(TESTING_H) && defined(CHECK) && CHECK
 #define TESTING_H
-
-
-/*
- * Dependencies
- */
 
 #if !defined(CONFIG_H)
 #error config.h must be included before testing.h.
 #endif
 
-
-/*
- * Configuration IDs
- */
-
-#define BC_CHKWEXCL 1
-#define BC_ENVCLEAN 2
-#define BC_HANDLER  3
-#define BC_HIDDEN   4
-#define BC_PRIVDROP 5
-#define BC_SETID    6
-#define BC_USERDIR  7
-
-
-/*
- * Build configurations
- */
-
 #undef USER_DIR
-
-#if defined(BUILDCONF)
-#if   BUILDCONF == BC_CHKWEXCL
-#define USER_DIR "/tmp/sucgi-chkwexcl/%s"
-#elif BUILDCONF == BC_ENVCLEAN
-#define USER_DIR "/tmp/sucgi-envclean/%s"
-#elif BUILDCONF == BC_HANDLER
-#define USER_DIR "/tmp/sucgi-handler/%s"
-#elif BUILDCONF == BC_HIDDEN
-#define USER_DIR "/tmp/sucgi-hidden/%s"
-#elif BUILDCONF == BC_PRIVDROP
-#define USER_DIR "/tmp/sucgi-privdrop/%s"
-#elif BUILDCONF == BC_SETID
-#define USER_DIR "/tmp/sucgi-setid/%s"
-#elif BUILDCONF == BC_USERDIR
-#define USER_DIR "/tmp/sucgi-userdir/%s"
-#endif
-#else /* !defined(BUILDCONF) */
 #define USER_DIR "/tmp/sucgi-check/%s"
-#endif /* defined(BUILDCONF) */
-
-
-/*
- * Global settings
- */
 
 #undef MIN_UID
 #define MIN_UID 500

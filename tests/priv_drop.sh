@@ -70,7 +70,7 @@ fi
 if [ "$uid" -eq 0 ]
 then
 	reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")" ||
-		err -s75 "no reguser user found."
+		err -s75 "no regular user user found."
 
 	uid="$(id -u "$reguser")"
 	gid="$(id -g "$reguser")"

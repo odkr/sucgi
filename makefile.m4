@@ -30,9 +30,6 @@ ifnempty(`__LDFLAGS', `LDFLAGS = __LDFLAGS
 ifnempty(`__LDLIBS', `LDLIBS = __LDLIBS
 ')dnl
 
-dnl FIXME: Get rid of this?
-SC_COV_CC = default(`__SC_COV_CC', `$(CC)')
-
 
 #
 # Headers
@@ -45,15 +42,10 @@ stdhdrs = cattr.h compat.h macros.h max.h types.h
 # Test suite
 #
 
-repo_owner =	default(`__sc_repo_owner', `$$(ls -ld . | awk "{print \$$3}")')
-
 tool_bins =	tools/badenv tools/badexec tools/ids \
 		tools/runpara tools/runas
 
 macro_bins =	tests/ISSIGNED tests/MIN tests/NELEMS tests/SIGNEDMAX
-
-main_bins =	tests/main-chkwexcl tests/main-envclean tests/main-handler \
-		tests/main-hidden tests/main-setid tests/main-userdir
 
 check_bins =	tests/env_is_name tests/env_restore tests/error \
 		tests/file_is_exe tests/file_is_wexcl \
@@ -62,14 +54,8 @@ check_bins =	tests/env_is_name tests/env_restore tests/error \
 		tests/priv_suspend tests/str_cp tests/str_split \
 		tests/userdir_resolve
 
-check_scripts =	tests/error.sh tests/main-arg0.sh tests/main-chkwexcl.sh \
-		tests/main-envclean.sh tests/main-envsan.sh \
-		tests/main-fnamesan.sh tests/main-handler.sh \
-		tests/main-hidden.sh tests/main-privdrop.sh \
-		tests/main-optval.sh tests/main-setid.sh \
-		tests/main-userdir.sh tests/main-userval.sh \
-		tests/path_check_wexcl.sh tests/priv_drop.sh \
-		tests/priv_suspend.sh
+check_scripts =	tests/error.sh tests/path_check_wexcl.sh \
+		tests/priv_drop.sh tests/priv_suspend.sh
 
 checks =	$(macro_bins) $(check_scripts) \
 		tests/env_is_name tests/env_restore tests/file_is_exe \
@@ -121,7 +107,7 @@ version	=	0
 dist_name =	$(package)-$(version)
 dist_ar	=	$(dist_name).tgz
 dist_files =	*.c *.h *.env *.excl *.m4 *.sample README.rst LICENSE.txt \
-		configure cppcheck docs m4 tests tools
+		configure cppcheck docs scripts tests tools
 
 
 #
@@ -157,28 +143,7 @@ $(macro_bins):
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< tests/lib.o -lm $(LDLIBS)
 
 $(check_bins):
-	$(CC) -DTESTING $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/lib.o -lm $(LDLIBS)
-
-tests/main-chkwexcl:
-	$(CC) -DTESTING -DBUILDCONF=BC_CHKWEXCL $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/lib.o -lm $(LDLIBS)
-
-tests/main-envclean:
-	$(CC) -DTESTING -DBUILDCONF=BC_ENVCLEAN $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/lib.o -lm $(LDLIBS)
-
-tests/main-handler:
-	$(CC) -DTESTING -DBUILDCONF=BC_HANDLER $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/lib.o -lm $(LDLIBS)
-
-tests/main-hidden:
-	$(CC) -DTESTING -DBUILDCONF=BC_HIDDEN $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/lib.o -lm $(LDLIBS)
-
-tests/main-privdrop:
-	$(CC) -DTESTING -DBUILDCONF=BC_PRIVDROP $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/lib.o -lm $(LDLIBS)
-
-tests/main-setid:
-	$(CC) -DTESTING -DBUILDCONF=BC_SETID $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/lib.o -lm $(LDLIBS)
-
-tests/main-userdir:
-	$(CC) -DTESTING -DBUILDCONF=BC_USERDIR $(LDFLAGS) $(CFLAGS) -o $@ $< lib.a tests/lib.o -lm $(LDLIBS)
+	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $< lib.a tests/lib.o -lm $(LDLIBS)
 
 
 #
@@ -240,23 +205,7 @@ tests/file_is_wexcl: tests/file_is_wexcl.c $(stdhdrs) lib.a(file.o) tests/lib.o
 
 tests/handler_lookup: tests/handler_lookup.c $(stdhdrs) lib.a(handler.o) tests/lib.o
 
-tests/main: main.c build.h testing.h config.h $(stdhdrs) lib.a tests/lib.o
-
-tests/main-chkwexcl: main.c build.h testing.h config.h $(stdhdrs) lib.a tests/lib.o
-
-tests/main-envclean: main.c build.h testing.h config.h $(stdhdrs) lib.a tests/lib.o
-
-tests/main-handler: main.c build.h testing.h config.h $(stdhdrs) lib.a tests/lib.o
-
-tests/main-hidden: main.c build.h testing.h config.h $(stdhdrs) lib.a tests/lib.o
-
-tests/main-privdrop: main.c build.h testing.h config.h $(stdhdrs) lib.a tests/lib.o
-
-tests/main-setid: main.c build.h testing.h config.h $(stdhdrs) lib.a tests/lib.o
-
-tests/main-userdir: main.c build.h testing.h config.h $(stdhdrs) lib.a tests/lib.o
-
-tests/path_check_sub: tests/path_check_sub.c $(stdhdrs) lib.a(path.o) tests/lib.o
+tests/main: main.c build.h testing.h config.h $(stdhdrs) lib.a
 
 tests/path_check_wexcl: tests/path_check_wexcl.c $(stdhdrs) lib.a(path.o) tests/lib.o
 
@@ -278,29 +227,7 @@ tests/lib.sh: tools/ids
 
 tests/error.sh: tests/error tests/lib.sh
 
-tests/main-arg0.sh: tests/main tools/badexec tests/lib.sh
-
-tests/main-chkwexcl.sh: tests/main-chkwexcl tests/lib.sh
-
-tests/main-envclean.sh: tests/main-envclean tools/badenv tests/lib.sh
-
-tests/main-envsan.sh: tests/main tools/badenv tests/lib.sh
-
-tests/main-fnamesan.sh: tests/main tests/lib.sh
-
-tests/main-handler.sh: tests/main-handler tests/lib.sh
-
-tests/main-hidden.sh: tests/main-hidden tests/lib.sh
-
-tests/main-setid.sh: tests/main-setid tests/lib.sh
-
-tests/main-userdir.sh: tests/main-userdir tests/lib.sh
-
-tests/main-userval.sh: tests/main tests/lib.sh
-
-tests/main-optval.sh: tests/main tests/lib.sh
-
-tests/main-privdrop.sh: tests/main-privdrop tests/lib.sh
+tests/main.sh: tests/main tools/badexec tests/lib.sh
 
 tests/path_check_wexcl.sh: tests/path_check_wexcl tools/ids tests/lib.sh
 
@@ -338,10 +265,12 @@ check: tools checks
 # Distribution
 #
 
-dist: $(dist_ar) $(dist_ar).asc
+dist: $(dist_ar)
+
+sigdist: dist $(dist_ar).asc
 
 distclean: clean
-	rm -rf build.h config.status compat.h cov gcov lcov.info makefile
+	rm -f config.status build.h compat.h makefile
 
 distcheck: $(dist_ar)
 	tar -xzf $(dist_ar)
@@ -349,12 +278,13 @@ distcheck: $(dist_ar)
 	cd $(dist_name) && cp config.h.sample config.h && make all check dist
 	rm -rf $(dist_ar)
 
-$(dist_ar): distclean
+$(dist_name):
 	mkdir $(dist_name)
 	cp -r $(dist_files) $(dist_name)
 	chmod -R u+rw,go= $(dist_name)
+
+$(dist_ar): distclean $(dist_name)
 	tar -X dist.excl -czf $(dist_ar) $(dist_name)
-	rm -rf $(dist_name)
 
 $(dist_ar).asc: $(dist_ar)
 	gpg -qab --batch --yes $(dist_ar)
@@ -377,33 +307,6 @@ install: $(install_dir)/libexec/sucgi $(SC_CGI_DIR)/sucgi
 
 uninstall:
 	rm -f $(SC_CGI_DIR)/sucgi $(install_dir)/libexec/sucgi
-
-
-#
-# Coverage reports
-#
-
-cov: clean tools
-	make CFLAGS="-O2 --coverage" checks
-	umask 0 && tools/runpara -i75 -j1 $(checks)
-
-dnl FIXME: Re-write!
-gcov: cov
-	ar -t lib.a | sed -n '/.o$$/ p' | xargs gcov -p sucgi
-	mkdir -p gcov
-	find . -type f -name '*.gcov' -exec mv '{}' gcov ';'
-	chown -R "$(repo_owner)" gcov
-
-lcov.info: cov
-	lcov -c -d . -o $@ --exclude '*/tests/*' --exclude '*/tools/*' \
-		--exclude '/usr/*' --exclude '/Library/*'
-	chown "$(repo_owner)" $@
-
-cov/index.html: lcov.info
-	genhtml -o cov lcov.info
-	chown -R "$(repo_owner)" cov
-
-covhtml: cov/index.html
 
 
 #
@@ -434,7 +337,6 @@ ifhascmd(`rats',
 # Special targets
 #
 
-.PHONY:	all analysis check clean cov covhtml \
-        dist distcheck distclean install uninstall shellcheck
+.PHONY:	all analysis check clean dist distcheck distclean shellcheck
 
 .IGNORE: analysis

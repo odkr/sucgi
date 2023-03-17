@@ -418,6 +418,7 @@ main(int argc, char **argv) {
     case OK:
         break;
     case ERR_LEN:
+        /* Should be unreachable. FIXME: Remove branch. */
         error("$PATH_TRANSLATED is too long.");
     default:
         /* Should be unreachable. */

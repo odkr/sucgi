@@ -31,7 +31,7 @@ readonly src_dir
 cd "$src_dir" || exit
 . ./scripts/lib.sh || exit
 init
-tmpdir tmp .
+tmpdir conf .
 
 
 #
@@ -41,8 +41,7 @@ tmpdir tmp .
 # Variables to set as M4 Macros.
 readonly macros='
 	CC CFLAGS AR ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
-	SC_GETGRPLST_T SC_SETGRPNUM_T SC_COV_CC SC_CGI_DIR SC_WWW_GRP
-	sc_repo_owner
+	SC_GETGRPLST_T SC_SETGRPNUM_T SC_CGI_DIR SC_WWW_GRP
 '
 
 readonly confsave=config.status
@@ -457,17 +456,6 @@ if [ "${SC_SETGRPNUM_T-}" ]
 	then printf '%s\n' "$SC_SETGRPNUM_T"
 	else printf 'guess at compile-time\a\n'
 fi
-
-
-#
-# Check who owns the repository.
-#
-
-# TODO: If the repository is owned by root,
-#       coverage reports will either fail or be inaccurate.
-#       Think of a better solution.
-# shellcheck disable=2034
-sc_repo_owner=$(owner "$src_dir") || sc_repo_owner="$(id -un)"
 
 
 #
