@@ -45,8 +45,8 @@ readonly compilers='
 # Be more quiet?
 quiet=
 
-# Store a log in the current working directory?
-storelogs=y
+# Be verbose?
+verbose=
 
 
 #
@@ -82,7 +82,7 @@ mrproper() {
 
 OPTIND=1 OPTARG='' opt=''
 # shellcheck disable=2034
-while getopts hlq opt; do
+while getopts hqv opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF
@@ -95,16 +95,16 @@ Operands:
     CC  A compiler to test.
 
 Options:
-    -l  Do not log failed runs.
     -q  Be more quiet.
+    -v  Be verbose, but do not log runs.
     -h  Show this help screen.
 
 Must be called from a directory with a makefile.
 The makefile must provide the standard Autoconf targets.
 EOF
 	    ;;
-	(l) storelogs= ;;
 	(q) quiet=y ;;
+	(v) verbose=y ;;
 	(*) exit 1
 	esac
 done
@@ -130,13 +130,11 @@ do
 	command -v "$cc" >/dev/null || continue
 
 	warn -n 'checking %s ... ' "$cc"
+	[ "$verbose" ] && echo >&2
 
 	logfile="$TMPDIR/checkcomp-$cc.log"
 	if (
-		if [ "$storelogs" ]
-		then exec >"$logfile" 2>&1
-		else exec >/dev/null 2>&1
-		fi
+		[ "$verbose" ] || exec >"$logfile" 2>&1
 
 		name="${cc%-*}"
 		eval cflags="\${${name}_flags-}"
@@ -155,7 +153,8 @@ do
 			   "$template" >"${template%.m4}"
 		done
 
-		make clean all check
+		make clean all check ||
+		err '%s failed w/o configuartion' "$cc"
 
 		for env in *.env
 		do
@@ -167,14 +166,18 @@ do
 			[ -e makefile ] && make distclean
 			CC="$cc" ./configure -fqc"$env"
 
-			make clean all check
+			make clean all check ||
+			err '%s failed w/ configuartion %s' "$cc" "$env"
 		done
 	)
 	then
-		printf '%s\n' pass >&2
+		[ "$verbose" ] || printf '%s\n' pass >&2
 	else
-		printf '%s\n' fail >&2
-		[ "$storelogs" ] && [ -e "$logfile" ] && mv "$logfile" .
+		if ! [ "$verbose" ]
+		then printf '%s\n' fail >&2
+		elif [ -e "$logfile" ]
+		then mv "$logfile" .
+		fi
 		failures="$failures $cc"
 	fi
 done
