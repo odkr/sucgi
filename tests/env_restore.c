@@ -471,7 +471,7 @@ report(const Args *const args, const Error ret, const ErrType errtype)
 	JOINSTRS(args->npatterns, args->patterns, ", ", patstr);
 	JOINSTRS(MAX_TEST_NVARS, args->env, " ", envstr);
 	JOINSTRS(MAX_TEST_NVARS, environ, " ", environstr);
-#pragma GCC pop
+#pragma GCC diagnostic pop
 
 	switch (errtype) {
 	case WRONG_RETVAL:
