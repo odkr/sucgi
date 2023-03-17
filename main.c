@@ -143,11 +143,11 @@ config(void)
     const char *const deny_groups[] = DENY_GROUPS;
     const Pair handlers[] = HANDLERS;
 
-#ifdef NDEBUG
+#if defined(NDEBUG)
     (void) printf("NDEBUG=on\n");
 #endif
-#if defined(TESTING) && TESTING
-    (void) printf("TESTING=%d\n", TESTING);
+#if defined(CHECK) && CHECK
+    (void) printf("CHECK=%d\n", CHECK);
 #endif
 
     (void) printf("USER_DIR=\"%s\"\n", USER_DIR);
