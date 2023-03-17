@@ -29,7 +29,7 @@ set -Ceu
 src_dir="$(dirname "$0")" || exit
 readonly src_dir
 cd "$src_dir" || exit
-. ./scripts/lib.sh || exit
+. ./scripts/funcs.sh || exit
 init
 tmpdir conf .
 
