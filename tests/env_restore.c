@@ -76,6 +76,12 @@ typedef struct {
     Error ret;                      /* Return value. */
 } Args;
 
+/* Types of test errors. */
+typedef enum {
+	WRONG_RETVAL,
+	WRONG_ENVIRON
+} ErrType;
+
 
 /*
  * Module variables
@@ -105,7 +111,6 @@ static char hugename[MAX_VAR_LEN] = {'\0'};
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
-#pragma GCC diagnostic ignored "-Wpedantic"
 
 /* Test cases. */
 static const Args cases[] = {
@@ -347,6 +352,12 @@ static const Args cases[] = {
  */
 
 /*
+ * Report an error of ERRTYPE for ARGS with return value RET.
+ */
+__attribute__((nonnull(1)))
+static void report(Args *args, Error ret, ErrType errtype);
+
+/*
  * Check whether the environment equals VARS.
  */
 __attribute__((nonnull(1), warn_unused_result))
@@ -440,6 +451,37 @@ joinstrs(const size_t nstrs, char **const strs, char *const sep,
     }
 }
 
+static void
+report(Args *const args, const Error ret, const ErrType errtype)
+{
+	char varstr[MAX_TEST_STR_LEN];
+	char patstr[MAX_TEST_STR_LEN];
+	char envstr[MAX_TEST_STR_LEN];
+	char environstr[MAX_TEST_STR_LEN];
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
+	JOINSTRS(MAX_TEST_NVARS, args->vars, ", ", varstr);
+	JOINSTRS(args->npatterns, args->patterns, ", ", patstr);
+	JOINSTRS(MAX_TEST_NVARS, args->env, " ", envstr);
+	JOINSTRS(MAX_TEST_NVARS, environ, " ", environstr);
+#pragma GCC pop
+
+	switch (errtype) {
+	case WRONG_RETVAL:
+		warnx("({%s}, %zu, {%s}) -> %u [!] => %s",
+			  varstr, args->npatterns, patstr, ret, envstr);
+		break;
+	case WRONG_ENVIRON:
+		warnx("({%s}, %zu, {%s}) -> %u => %s [!]",
+			  varstr, args->npatterns, patstr, ret, environstr);
+		break;
+	default:
+		/* Unreachable. */
+		abort();
+	}
+}
+
 
 /*
  * Main
@@ -468,7 +510,6 @@ main (void) {
 
 		toomanyvars[i] = var;
 	}
-
 
 	(void) memset(longvar, 'x', sizeof(longvar) - 1U);
 	(void) str_cp(4, "var=", longvar);
@@ -510,35 +551,12 @@ main (void) {
         ret = env_restore(args.vars, args.npatterns, pregs);
 
         if (ret != args.ret) {
-            char varstr[MAX_TEST_STR_LEN];
-            char patstr[MAX_TEST_STR_LEN];
-            char envstr[MAX_TEST_STR_LEN];
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
-            JOINSTRS(MAX_TEST_NVARS, args.vars, ", ", varstr);
-            JOINSTRS(args.npatterns, args.patterns, ", ", patstr);
-#pragma GCC pop
-
-            warnx("({%s}, %zu, {%s}) -> %u [!] => %s",
-                  varstr, args.npatterns, patstr, ret, envstr);
+        	report(&args, ret, WRONG_RETVAL);
             result = TEST_FAILED;
         }
 
         if (ret == OK && !cmpenv(args.env)) {
-            char varstr[MAX_TEST_STR_LEN];
-            char patstr[MAX_TEST_STR_LEN];
-            char envstr[MAX_TEST_STR_LEN];
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
-            JOINSTRS(MAX_TEST_NVARS, args.vars, ", ", varstr);
-            JOINSTRS(args.npatterns, args.patterns, ", ", patstr);
-            JOINSTRS(MAX_TEST_NVARS, environ, " ", envstr);
-#pragma GCC pop
-
-            warnx("({%s}, %zu, {%s}) -> %u => %s [!]",
-                  varstr, args.npatterns, patstr, ret, envstr);
+        	report(&args, ret, WRONG_ENVIRON);
             result = TEST_FAILED;
         }
     }
