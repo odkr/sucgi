@@ -45,9 +45,94 @@ include(`macros.m4')dnl
 #if !defined(BUILD_H)
 #define BUILD_H
 
-ifnempty(`__CC', `#define CC "__CC"'
+#include <limits.h>
+
+#include "macros.h"
+
+
+/* Machine and operating system. */
+ifnempty(`__machine', `dnl
+#define MACHINE "__machine"'
 )dnl
-ifnempty(`__CFLAGS', `#define CFLAGS "__CFLAGS"
+ifnempty(`__os', `dnl
+#define OS "__os"'
+)dnl
+ifnempty(`__osvers', `dnl
+#define OSVERS "__osvers"'
+)dnl
+
+/* Toolchain. */
+ifnempty(`__CC', `dnl
+#define CC "__CC"'
+)dnl
+ifnempty(`__CFLAGS', `dnl
+#define CFLAGS "__CFLAGS"
 ')dnl
+ifnempty(`__AR', `dnl
+#define AR "__AR"'
+)dnl
+ifnempty(`__ARFLAGS', `dnl
+#define ARFLAGS "__ARFLAGS"'
+)dnl
+ifnempty(`__LDFLAGS', `dnl
+#define LDFLAGS "__LDFLAGS"'
+)dnl
+ifnempty(`__LDLIBS', `dnl
+#define LDFLAGS "__LDLIBS"'
+)dnl
+
+/* Compiler. */
+#if defined(__INTEL_COMPILER) && __INTEL_COMPILER
+#define COMP "Intel C Compiler"
+#elif defined(__TINYC__) && __TINYC__
+#define COMP "TinyCC"
+#elif defined(__clang__) && __clang__
+#define COMP "LLVM"
+#elif defined(__GNUC__) && __GNUC__
+#define COMP "GCC"
+ifnempty(`__CC', `dnl
+#else
+#define COMP "__CC"
+')dnl
+#endif
+
+/* Compiler version. */
+#if defined(__INTEL_COMPILER) && __INTEL_COMPILER
+#define COMPVERS __VERSION__
+#elif defined(__TINYC__) && __TINYC__
+#define COMPVERS __VERSION__
+#elif defined(__clang__) && __clang__
+#define COMPVERS STRVAL(__clang_major__.__clang_minor__.__clang_patchlevel__)
+#elif defined(__GNUC__) && __GNUC__
+#define COMPVERS STRVAL(__GNUC__.__GNUC_MINOR__.__GNUC_PATCHLEVEL__)
+ifnempty(`__compvers', `dnl
+#else
+#define COMPVERS "__compvers"'
+)dnl
+#endif
+
+/* Libc. */
+#if defined(__GLIBC__)
+#define LIBC "glibc"
+#elif defined(__GNU_LIBRARY__)
+#define LIBC "glibc"
+#elif defined(__KLIBC__)
+#define LIBC "klibc"
+#elif defined(__ULIBC__)
+#define LIBC "ulibc"
+#elif defined(__APPLE__)
+#define LIBC "Apple"
+#endif
+
+/* Libc version. */
+#if defined(__GLIBC__)
+#define LIBCVERS STRVAL(__GLIBC__.__GLIBC_MINOR__)
+#elif defined(__GNU_LIBRARY__)
+#define LIBCVERS STRVAL(__GNU_LIBRARY__.__GNU_LIBRARY_MINOR__)
+#elif defined (__KLIBC__)
+#define LIBCSERS STRVAL(__KLIBC__.__KLIBC_MINOR__.__KLIBC_PATCHLEVEL__)
+#elif defined (__ULIBC__)
+#define LIBCVERS STRVAL(__UCLIBC_MAJOR__.__UCLIBC_MINOR__.__UCLIBC_SUBLEVEL__)
+#endif
 
 #endif /* !defined(BUILD_H) */

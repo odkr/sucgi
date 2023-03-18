@@ -143,12 +143,7 @@ config(void)
     const char *const deny_groups[] = DENY_GROUPS;
     const Pair handlers[] = HANDLERS;
 
-#if defined(NDEBUG)
-    (void) printf("NDEBUG=on\n");
-#endif
-#if defined(CHECK) && CHECK
-    (void) printf("CHECK=%d\n", CHECK);
-#endif
+    (void) printf("#\n# Configuration\n#\n\n");
 
     (void) printf("USER_DIR=\"%s\"\n", USER_DIR);
 
@@ -192,6 +187,8 @@ config(void)
     (void) printf("PATH=\"%s\"\n", PATH);
     (void) printf("UMASK=0%o\n", (unsigned int) UMASK);
 
+    (void) printf("\n#\n# Limits\n#\n\n");
+
     (void) printf("MAX_STR_LEN=%u\n", MAX_STR_LEN);
     (void) printf("MAX_ERRMSG_LEN=%u\n", MAX_ERRMSG_LEN);
     (void) printf("MAX_FNAME_LEN=%d\n", MAX_FNAME_LEN);
@@ -202,12 +199,102 @@ config(void)
     (void) printf("MAX_NGROUPS=%u\n", MAX_NGROUPS);
     (void) printf("MAX_NVARS=%u\n", MAX_NVARS);
 
-#ifdef CC
+    (void) printf("\n#\n# Debugging\n#\n\n");
+
+#if defined(NDEBUG)
+    (void) printf("NDEBUG=on\n");
+#else
+    (void) printf("# NDEBUG is undefined.\n");
+#endif
+#if defined(CHECK) && CHECK
+    (void) printf("CHECK=%d\n", CHECK);
+#else
+    (void) printf("# CHECK is undefined.\n");
+#endif
+
+    (void) printf("\n#\n# Toolchain\n#\n\n");
+
+#if defined(CC)
     (void) printf("CC=\"%s\"\n", CC);
+#else
+    (void) printf("# Using the default C compiler.\n");
 #endif
-#ifdef CFLAGS
+
+#if defined(CFLAGS)
     (void) printf("CFLAGS=\"%s\"\n", CFLAGS);
+#else
+    (void) printf("# No compiler flags given.\n");
 #endif
+
+#if defined(AR)
+    (void) printf("AR=\"%s\"\n", AR);
+#else
+    (void) printf("# Using the default C compiler.\n");
+#endif
+
+#if defined(ARFLAGS)
+    (void) printf("ARLAGS=\"%s\"\n", ARFLAGS);
+#else
+    (void) printf("# No archiver flags given.\n");
+#endif
+
+#if defined(LDFLAGS)
+    (void) printf("LDFLAGS=\"%s\"\n", LDFLAGS);
+#else
+    (void) printf("# No linker flags given.\n");
+#endif
+
+#if defined(LDLIBS)
+    (void) printf("LDLIBS=\"%s\"\n", LDLIBS);
+#else
+    (void) printf("# No libraries given.\n");
+#endif
+
+    (void) printf("\n#\n# System\n#\n\n");
+
+
+#if defined(MACHINE)
+    (void) printf("MACHINE=\"%s\"\n", MACHINE);
+#else
+    (void) printf("# Unknown machine type.\n");
+#endif
+
+#if defined(OS)
+    (void) printf("OS=\"%s\"\n", OS);
+#else
+    (void) printf("# Unknown operating system.\n");
+#endif
+
+#if defined(OSVERS)
+    (void) printf("OSVERS=\"%s\"\n", OSVERS);
+#else
+    (void) printf("# Unknown operating system version.\n");
+#endif
+
+#if defined(COMP)
+    (void) printf("COMP=\"%s\"\n", COMP);
+#else
+    (void) printf("# Unknown compiler.\n");
+#endif
+
+#if defined(COMPVERS)
+    (void) printf("COMPVERS=\"%s\"\n", COMPVERS);
+#else
+    (void) printf("# Unknown compiler version.\n");
+#endif
+
+#if defined(LIBC)
+    (void) printf("LIBC=\"%s\"\n", LIBC);
+#else
+    (void) printf("# Unknown standard library.\n");
+#endif
+
+#if defined(LIBCVERS)
+    (void) printf("LIBCVERS=\"%s\"\n", LIBCVERS);
+#else
+    (void) printf("# Unknown standard library version.\n");
+#endif
+
 }
 
 static void
@@ -218,7 +305,7 @@ version(void)
 "Copyright 2022 and 2023 Odin Kroeger.\n"
 "Released under the GNU General Public License.\n"
 "This programme comes with ABSOLUTELY NO WARRANTY.\n",
-    VERSION);
+           VERSION);
 }
 
 static void
@@ -268,8 +355,8 @@ main(int argc, char **argv) {
      * > info. Bad news if MALLOC_DEBUG_FILE is set to /etc/passwd.)
      */
 
-    char *const *vars;      /* Backup of the environment. */
-    char *null;             /* Pointer to NULL. */
+    char *const *vars;
+    char *null;
 
     null = NULL;
     vars = environ;

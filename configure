@@ -42,6 +42,7 @@ tmpdir conf .
 readonly macros='
 	CC CFLAGS AR ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
 	SC_GETGRPLST_T SC_SETGRPNUM_T SC_CGI_DIR SC_WWW_GRP
+	machine os osvers compvers compmajor
 '
 
 readonly confsave=config.status
@@ -183,6 +184,33 @@ readonly conf force quiet maxnjobs nfiles
 
 
 #
+# Architecture
+#
+
+printf 'Machine type: '
+
+if machine="$(uname -m)" && [ "$machine" ]
+then printf '%s\n' "$machine"
+else printf '%s\n' 'detection failed.'
+fi
+
+
+#
+# Operating system
+#
+
+printf 'Operating system: '
+
+os="$(uname -s)" osvers="$(uname -r)" || :
+if   [ "$os" ] && [ "$osvers" ]
+then printf '%s v%s\n' "$os" "$osvers"
+elif [ "$os" ]
+then printf '%s\n' "$os"
+else printf 'detection failed.\n'
+fi
+
+
+#
 # Check if gcc, clang, or icc are available.
 #
 
@@ -224,13 +252,41 @@ else
 	exit 2
 fi
 
+
+#
+# Compiler information
+#
+
 compcmd="$(basename "$CC")"
 compname="${compcmd%% *}"
+
 case $compname in
 (clang|clang-*)	comptype=llvm ;;
 (musl-*)	comptype=musl_${compname#*-} ;;
 (*)		comptype="${compname%%-*}" ;;
 esac
+
+compvers="$(
+	"$CC" -v 2>&1 |
+	awk '{
+		for (i = 1; i <= NF; i++) {
+			if ($i ~ /^v?[0-9]+\.[0-9]+\./) {
+				print $i;
+				exit;
+			}
+		}
+	}'
+)"
+
+if [ "$compvers" ]
+then
+	compvers="${compvers#v}"
+	compmajor="${compvers%%.*}"
+elif [ "${compname#"$comptype"-}" != "$compname" ]
+then
+	compmajor="${compname#"$comptype"-}"
+fi
+readonly compcmd compname compvers compmajor
 
 
 #
@@ -301,27 +357,10 @@ printf 'Archiver: '
 
 if [ "${AR-x}" = x ] && ! [ "${AR-}" = x ]
 then
-	if ccversion="$(
-		"$CC" --version 2>/dev/null |
-		awk '{
-			for (i = 1; i <= NF; i++) {
-				if ($i ~ /^v?[0-9]+\.[0-9]+\./) {
-					print $i;
-					exit;
-				}
-			}
-		}'
-	)"
-	then
-		ccversion="${ccversion#v}"
-		ccmajor="${ccversion%%.*}"
-	else
-		ccmajor="${compname#"$comptype"-}"
+	if [ "${compmajor-}" ]
+	then archivers="$comptype-ar-$compmajor $comptype-ar"
+	else archivers="$comptype-ar"
 	fi
-
-	archivers="$comptype-ar"
-	[ "${ccmajor-}" ] &&
-		archivers="$comptype-ar-$ccmajor $archivers"
 
 	for ar in $archivers
 	do
@@ -503,6 +542,10 @@ then
 
 		for key in $macros
 		do
+			case $key in (*[!A-Z_]*)
+				continue
+			esac
+
 			eval "value=\"\${$key--}\""
 			[ "$value" = - ] && continue
 			# shellcheck disable=2016
