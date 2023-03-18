@@ -130,7 +130,7 @@ do
 
 	logfile="$TMPDIR/checkshell-$shell.log"
 	if (
-		[ "$verbose" ] && exec >"$logfile" 2>&1
+		[ "$verbose" ] || exec >"$logfile" 2>&1
 
 		mrproper
 
