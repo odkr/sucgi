@@ -47,7 +47,8 @@ ifnempty(`__LDLIBS', `LDLIBS = __LDLIBS
 #
 
 hdrs = cattr.h compat.h macros.h max.h types.h
-
+objs = funcs.a(env.o) funcs.a(error.o) funcs.a(file.o) funcs.a(handler.o) \
+	funcs.a(path.o) funcs.a(priv.o) funcs.a(str.o) funcs.a(userdir.o)
 
 #
 # Build
@@ -55,24 +56,25 @@ hdrs = cattr.h compat.h macros.h max.h types.h
 
 sucgi: main.c build.h config.h testing.h $(hdrs) funcs.a
 
-funcs.a: funcs.a(env.o) funcs.a(error.o) funcs.a(file.o) funcs.a(handler.o) \
-	funcs.a(path.o) funcs.a(priv.o) funcs.a(str.o) funcs.a(userdir.o)
+funcs.a: $(objs)
 
-funcs.a(env.o): env.c env.h $(hdrs) funcs.a(str.o)
+funcs.a(env.o): env.c env.h funcs.a(str.o)
 
-funcs.a(error.o): error.c error.h $(hdrs)
+funcs.a(error.o): error.c error.h
 
-funcs.a(file.o): file.c file.h $(hdrs) funcs.a(str.o)
+funcs.a(file.o): file.c file.h funcs.a(str.o)
 
-funcs.a(path.o): path.c path.h $(hdrs) funcs.a(file.o) funcs.a(str.o)
+funcs.a(path.o): path.c path.h funcs.a(file.o) funcs.a(str.o)
 
-funcs.a(priv.o): priv.c priv.h $(hdrs)
+funcs.a(priv.o): priv.c priv.h
 
-funcs.a(handler.o): handler.c handler.h $(hdrs) funcs.a(path.o)
+funcs.a(handler.o): handler.c handler.h funcs.a(path.o)
 
-funcs.a(str.o): str.c str.h $(hdrs)
+funcs.a(str.o): str.c str.h
 
-funcs.a(userdir.o): userdir.c userdir.h $(hdrs)
+funcs.a(userdir.o): userdir.c userdir.h
+
+$(objs): $(hdrs)
 
 sucgi:
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ main.c funcs.a $(LDLIBS)
@@ -128,9 +130,10 @@ compat.h: compat.h.m4
 # Tests
 #
 
-tool_bins = tools/badenv tools/badexec tools/ids tools/runpara tools/runas
-
-priv_tools = tools/ids tools/runas
+checks = $(macro_check_bins) $(check_scripts) tests/env_is_name \
+	tests/env_restore tests/file_is_exe tests/file_is_wexcl \
+	tests/handler_lookup tests/path_check_in tests/path_suffix \
+	tests/str_cp tests/str_split tests/userdir_resolve
 
 macro_check_bins = tests/ISSIGNED tests/MIN tests/NELEMS tests/SIGNEDMAX
 
@@ -144,10 +147,7 @@ other_check_bins = tests/env_is_name tests/env_restore tests/error \
 check_scripts =	tests/error.sh tests/main.sh tests/path_check_wexcl.sh \
 	tests/priv_drop.sh tests/priv_suspend.sh
 
-checks = $(macro_check_bins) $(check_scripts) tests/env_is_name \
-	tests/env_restore tests/file_is_exe tests/file_is_wexcl \
-	tests/handler_lookup tests/path_check_in tests/path_suffix \
-	tests/str_cp tests/str_split tests/userdir_resolve
+tool_bins = tools/badenv tools/badexec tools/ids tools/runpara tools/runas
 
 runpara_flags =	-ci75 -j8
 
@@ -165,47 +165,51 @@ tests/NELEMS: tests/NELEMS.c $(hdrs)
 
 tests/SIGNEDMAX: tests/SIGNEDMAX.c $(hdrs)
 
-tests/env_is_name: tests/env_is_name.c $(hdrs) funcs.a(env.o)
+tests/env_is_name: tests/env_is_name.c funcs.a(env.o)
 
-tests/env_restore: tests/env_restore.c $(hdrs) funcs.a(env.o) funcs.a(str.o)
+tests/env_restore: tests/env_restore.c funcs.a(env.o) funcs.a(str.o)
 
-tests/error: tests/error.c $(hdrs) funcs.a(error.o)
+tests/error: tests/error.c funcs.a(error.o)
 
-tests/file_is_exe: tests/file_is_exe.c $(hdrs) funcs.a(file.o)
+tests/file_is_exe: tests/file_is_exe.c funcs.a(file.o)
 
-tests/file_is_wexcl: tests/file_is_wexcl.c $(hdrs) funcs.a(file.o)
+tests/file_is_wexcl: tests/file_is_wexcl.c funcs.a(file.o)
 
-tests/handler_lookup: tests/handler_lookup.c $(hdrs) funcs.a(handler.o)
+tests/handler_lookup: tests/handler_lookup.c funcs.a(handler.o)
 
-tests/main: main.c build.h testing.h config.h $(hdrs) funcs.a
+tests/main: main.c build.h testing.h config.h funcs.a
 
-tests/path_check_wexcl: tests/path_check_wexcl.c $(hdrs) funcs.a(path.o)
+tests/path_check_wexcl: tests/path_check_wexcl.c funcs.a(path.o)
 
-tests/path_check_in: tests/path_check_in.c $(hdrs) funcs.a(path.o)
+tests/path_check_in: tests/path_check_in.c funcs.a(path.o)
 
-tests/path_suffix: tests/path_suffix.c $(hdrs) funcs.a(path.o)
+tests/path_suffix: tests/path_suffix.c funcs.a(path.o)
 
-tests/priv_drop: tests/priv_drop.c $(hdrs) funcs.a(priv.o)
+tests/priv_drop: tests/priv_drop.c funcs.a(priv.o)
 
-tests/priv_suspend: tests/priv_suspend.c $(hdrs) funcs.a(priv.o)
+tests/priv_suspend: tests/priv_suspend.c funcs.a(priv.o)
 
-tests/str_cp: tests/str_cp.c $(hdrs) funcs.a(str.o)
+tests/str_cp: tests/str_cp.c funcs.a(str.o)
 
-tests/str_split: tests/str_split.c $(hdrs) funcs.a(str.o)
+tests/str_split: tests/str_split.c funcs.a(str.o)
 
-tests/userdir_resolve: tests/userdir_resolve.c $(hdrs) funcs.a(userdir.o)
+tests/userdir_resolve: tests/userdir_resolve.c funcs.a(userdir.o)
+
+$(check_bins): $(hdrs)
+
+tests/error.sh: tests/error
+
+tests/main.sh: tests/main tools/badenv tools/badexec tools/ids
+
+tests/path_check_wexcl.sh: tests/path_check_wexcl tools/ids
+
+tests/priv_drop.sh: tests/priv_drop tools/ids tools/runas
+
+tests/priv_suspend.sh: tests/priv_suspend tools/ids tools/runas
+
+$(check_scripts): tests/main scripts/funcs.sh
 
 scripts/funcs.sh: tools/ids
-
-tests/error.sh: tests/error tests/main scripts/funcs.sh
-
-tests/main.sh: tests/main tools/badenv tools/badexec tools/ids scripts/funcs.sh
-
-tests/path_check_wexcl.sh: tests/path_check_wexcl tests/main tools/ids scripts/funcs.sh
-
-tests/priv_drop.sh: tests/priv_drop tests/main $(priv_tools) scripts/funcs.sh
-
-tests/priv_suspend.sh: tests/priv_suspend tests/main $(priv_tools) scripts/funcs.sh
 
 check:
 	tools/runpara $(runpara_flags) $(checks)
@@ -321,10 +325,10 @@ clean:
 	rm -f funcs.a $(bins) $(dist_name).*
 	rm -rf tmp-* $(dist_name)
 	find . '(' \
-           -name '*.o'					\
-        -o -name '*.c.*'	-o -name 'a--.*'	\
-        -o -name '*.ctu-info'	-o -name '*.dump'	\
-        -o -name '*.gcda'	-o -name '*.gcno'	\
-        -o -name '*.dSYM'				\
-        -o -name '*.lock'	-o -name '*.lock'	\
+           -name '*.o'							\
+        -o -name '*.c.*'	-o -name 'a--.*'	-o -name '-.*'	\
+        -o -name '*.ctu-info'	-o -name '*.dump'			\
+        -o -name '*.gcda'	-o -name '*.gcno'			\
+        -o -name '*.dSYM'						\
+        -o -name '*.log'	-o -name '*.lock'			\
        ')' -exec rm -rf '{}' +
