@@ -99,8 +99,6 @@ ifnempty(`__CC', `dnl
 /* Compiler version. */
 #if defined(__INTEL_COMPILER) && __INTEL_COMPILER
 #define COMPVERS __VERSION__
-#elif defined(__TINYC__) && __TINYC__
-#define COMPVERS __VERSION__
 #elif defined(__clang__) && __clang__
 #define COMPVERS STRVAL(__clang_major__.__clang_minor__.__clang_patchlevel__)
 #elif defined(__GNUC__) && __GNUC__
@@ -118,8 +116,8 @@ ifnempty(`__compvers', `dnl
 #define LIBC "glibc"
 #elif defined(__KLIBC__)
 #define LIBC "klibc"
-#elif defined(__ULIBC__)
-#define LIBC "ulibc"
+#elif defined(__UCLIBC__)
+#define LIBC "uClibc"
 #elif defined(__APPLE__)
 #define LIBC "Apple"
 #endif
