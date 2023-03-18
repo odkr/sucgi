@@ -87,25 +87,25 @@ ifnempty(`__DESTDIR', `DESTDIR = __DESTDIR
 PREFIX = default(`__PREFIX', `/usr/local')
 wwwgrp = default(`__SC_WWW_GRP', `www-data')
 cgidir = default(`__SC_CGI_DIR', `/usr/lib/cgi-bin')
-libexecdir = $(DESTDIR)$(PREFIX)/libexec
+libexec = $(DESTDIR)$(PREFIX)/libexec
 
-install: $(libexecdir)/sucgi $(cgidir)/sucgi
+install: $(libexec)/sucgi $(cgidir)/sucgi
 
-$(libexecdir)/sucgi: sucgi
+$(libexec)/sucgi: sucgi
 
-$(cgidir)/sucgi: $(libexecdir)/sucgi
+$(cgidir)/sucgi: $(libexec)/sucgi
 
-$(libexecdir)/sucgi:
-	mkdir -p $(libexecdir)
-	cp sucgi $(libexecdir)
-	chown 0:$(wwwgrp) $(libexecdir)/sucgi
-	chmod u=rws,g=x,o= $(libexecdir)/sucgi
+$(libexec)/sucgi:
+	mkdir -p $(libexec)
+	cp sucgi $(libexec)
+	chown 0:$(wwwgrp) $(libexec)/sucgi
+	chmod u=rws,g=x,o= $(libexec)/sucgi
 
 $(cgidir)/sucgi:
-	ln -s $(libexecdir)/sucgi $(cgidir)/sucgi
+	ln -s $(libexec)/sucgi $(cgidir)/sucgi
 
 uninstall:
-	rm -f $(cgidir)/sucgi $(libexecdir)/sucgi
+	rm -f $(cgidir)/sucgi $(libexec)/sucgi
 
 
 #
@@ -129,6 +129,8 @@ compat.h: compat.h.m4
 #
 
 tool_bins = tools/badenv tools/badexec tools/ids tools/runpara tools/runas
+
+priv_tools = tools/ids tools/runas
 
 macro_check_bins = tests/ISSIGNED tests/MIN tests/NELEMS tests/SIGNEDMAX
 
@@ -201,9 +203,9 @@ tests/main.sh: tests/main tools/badenv tools/badexec tools/ids scripts/funcs.sh
 
 tests/path_check_wexcl.sh: tests/path_check_wexcl tools/ids scripts/funcs.sh
 
-tests/priv_drop.sh: tests/priv_drop tests/main tools/ids tools/runas scripts/funcs.sh
+tests/priv_drop.sh: tests/priv_drop tests/main $(priv_tools) scripts/funcs.sh
 
-tests/priv_suspend.sh: tests/priv_suspend tests/main tools/runas scripts/funcs.sh
+tests/priv_suspend.sh: tests/priv_suspend tests/main $(priv_tools) scripts/funcs.sh
 
 check:
 	tools/runpara $(runpara_flags) $(checks)
@@ -289,7 +291,6 @@ ifhascmd(`rats', `dnl
 rats_flags = --resultsonly --quiet --warning 3
 
 ')dnl
-
 ifhascmd(`shellcheck', `dnl
 shellcheck:
 	shellcheck -x $(scripts)
