@@ -237,7 +237,7 @@ lock() {
 unlock() {
 	: "${1?}"
 
-	if [ "$1" ] && [ -e "$1" ] && [ "$(cat "$1")" -eq $$ ]
+	if [ "$1" ] && [ -e "$1" ] && [ "$(cat "$1")" -eq $$ ] 2>/dev/null
 	then rm -f "$1"
 	else return 1
 	fi
