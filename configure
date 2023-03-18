@@ -116,7 +116,7 @@ testcomp() (
 		;;
 	(tcc|tcc-*)
 		# TCC unlinks /dev/null when given -o/dev/null.
-		"$CC" -xc -Wall -Werror -pedantic -o"$TMPDIR/a.out" "$@"
+		"$CC" -xc -Wall -Werror -pedantic -pipe -o"$TMPDIR/a.out" "$@"
 		;;
 	(icc|icc-*)
 		"$CC" -xc -w3 -Wcheck -Werror-all -o/dev/null "$@"
@@ -453,8 +453,11 @@ then
 	then printf '%s\n' "$SC_GETGRPLST_T"
 	else printf 'guess at compile-time.\a\n'
 	fi
-else
-	printf '%s\n' "$SC_GETGRPLST_T"
+fi
+
+if [ "${SC_GETGRPLST_T-}" ]
+	then printf '%s\n' "$SC_GETGRPLST_T"
+	else printf 'guess at compile-time.\a\n'
 fi
 
 
