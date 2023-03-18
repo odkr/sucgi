@@ -46,7 +46,7 @@ You may need to install:
 * The header files of your system's standard library.
 * The so-called "binary utilities" (i.e., ``ar``, ``ld``, and ``as``).
 * Make (preferably `GNU Make`_)
-* M4
+* M4 (e.g., `GNU M4`_)
 
 On many systems you can do so by::
 
@@ -150,6 +150,8 @@ GitHub: https://github.com/odkr/sucgi
 .. _GCC: https://gcc.gnu.org/
 
 .. _glibc: https://www.gnu.org/software/libc/
+
+.. _`GNU M4`: https://www.gnu.org/software/m4/
 
 .. _`GNU Make`: https://www.gnu.org/software/make/
 
