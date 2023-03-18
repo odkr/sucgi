@@ -197,11 +197,11 @@ tests/userdir_resolve: tests/userdir_resolve.c $(hdrs) funcs.a(userdir.o)
 
 scripts/funcs.sh: tools/ids
 
-tests/error.sh: tests/error scripts/funcs.sh
+tests/error.sh: tests/error tests/main scripts/funcs.sh
 
 tests/main.sh: tests/main tools/badenv tools/badexec tools/ids scripts/funcs.sh
 
-tests/path_check_wexcl.sh: tests/path_check_wexcl tools/ids scripts/funcs.sh
+tests/path_check_wexcl.sh: tests/path_check_wexcl tests/main tools/ids scripts/funcs.sh
 
 tests/priv_drop.sh: tests/priv_drop tests/main $(priv_tools) scripts/funcs.sh
 
