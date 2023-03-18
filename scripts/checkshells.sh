@@ -34,7 +34,7 @@ readonly files='config.status makefile build.h compat.h'
 #
 
 # Shells to test.
-readonly shells='sh bash dash ksh mksh oksh posh yash zsh'
+shells='sh bash dash ksh mksh oksh posh yash zsh'
 
 # Be quiet?
 quiet=
@@ -77,28 +77,30 @@ mrproper() {
 
 OPTIND=1 OPTARG='' opt=''
 # shellcheck disable=2034
-while getopts Dhqv opt; do
+while getopts Dc:hqv opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF
 $prog_name - run scripts with different shells
 
-Usage:  $prog_name [SH ...]
-        $prog_name -h
+Usage:     $prog_name [SH ...]
+           $prog_name -h
 
 Operands:
-    SH  A shell.
+    SH     A shell.
 
 Options:
-    -q  Be more quiet.
-    -v  Be verbose, but do not log runs.
-    -h  Show this help screen.
+    -c CC  Use CC as C compiler.
+    -q     Be more quiet.
+    -v     Be verbose, but do not log runs.
+    -h     Show this help screen.
 
 Must be called from a directory with a makefile.
 The makefile must provide the standard Autoconf targets.
 EOF
 	    ;;
 	(D) set -x ;;
+	(c) CC="$OPTARG" ;;
 	(q) quiet=y ;;
 	(v) verbose=y ;;
 	(*) exit 1
@@ -109,6 +111,20 @@ unset opt
 
 # shellcheck disable=2086
 [ $# -eq 0 ] && set -- $shells
+
+# Use a fast compiler, if one is available.
+if ! [ "${CC-}" ]
+then
+	for cc in tcc clang
+	do
+		if command -v "$cc" >/dev/null
+		then
+			CC="$cc"
+			break
+		fi
+	done
+fi
+[ "${CC-}" ] && export CC
 
 
 #
