@@ -42,6 +42,17 @@ result=0
 # Functions
 #
 
+# Check if suCGI might have been compiled against musl.
+maybemusl() {
+	[ "${LIBC-}" ] && return 1;
+
+	case ${CC-} in (musl-*)
+		return 0
+	esac
+
+	[ "${OS-}" = Linux ]
+}
+
 # Delete every segment of $path up to $stop. Should ignore PATH_MAX.
 # shellcheck disable=2317
 rmtree() (
@@ -224,7 +235,10 @@ check -s1 -e'$PATH_TRANSLATED not set.'	 main			|| result=70
 check -s1 -e'$PATH_TRANSLATED is empty.' PATH_TRANSLATED= main	|| result=70
 
 # $PATH_TRANSLATED is too long.
-check -s1 -e'long'	PATH_TRANSLATED="$scrsan_hugepath" main	|| result=70
+if maybemusl
+then check -s1		PATH_TRANSLATED="$scrsan_hugepath" main	|| result=70
+else check -s1 -e'long'	PATH_TRANSLATED="$scrsan_hugepath" main	|| result=70
+fi
 
 # Path to script is too long after having been resolved.
 check -s1 -e'long'	PATH_TRANSLATED="$scrsan_hugelink" main	|| result=70
