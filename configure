@@ -91,14 +91,15 @@ testflags() (
 
 	case "$(basename "${CC:?}")" in
 	(clang|clang-*|musl-clang|musl-clang-*|gcc|gcc-*|musl-gcc|musl-gcc-*)
-		"$CC" -xc -Wall -Werror -E "$@" /dev/null
+		"$CC" -xc -c -Wall -Werror "$@" /dev/null
 		;;
 	(tcc|tcc-*)
-		"$CC" -xc -Wall -Wunsupported -Werror -E "$@" /dev/null
+		"$CC" -xc -c -Wall -Wunsupported -Werror "$@" \
+		      -o "$TMDIR/a.out" /dev/null
 		;;
 	(icc|icc-*)
 		"$CC" -diag-enable=10006,10148 -diag-error=10006,10148 \
-		      -xc -Wcheck -Werror-all -E "$@" /dev/null
+		      -xc -c -Wcheck -Werror-all "$@" /dev/null
 		;;
 	(*)
 		return 1
@@ -448,11 +449,6 @@ then
 		fi
 	done
 	unset IFS src
-
-	if [ "${SC_GETGRPLST_T-}" ]
-	then printf '%s\n' "$SC_GETGRPLST_T"
-	else printf 'guess at compile-time.\a\n'
-	fi
 fi
 
 if [ "${SC_GETGRPLST_T-}" ]
