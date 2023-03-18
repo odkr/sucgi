@@ -218,7 +218,7 @@ catch=
 dirwalk "$TMPDIR" "$scrsan_hugepath" 'mkdir "$fname"' 'touch "$fname"'
 cleanup="rmtree \"$scrsan_hugepath\" \"$TMPDIR\"; ${cleanup-}"
 catch=x
-[ "$caught" ] && kill "-$caught" $$
+[ "$caught" ] && kill -s"$caught" $$
 
 # Create a link to that path.
 catch=
@@ -228,7 +228,7 @@ scrsan_hugelink="$TMPDIR/$(dirwalk "$TMPDIR" "$scrsan_hugepath" \
 readonly scrsan_hugelink
 cleanup="rmtree \"$scrsan_hugelink\" \"$TMPDIR\"; ${cleanup-}"
 catch=x
-[ "$caught" ] && kill "-$caught" $$
+[ "$caught" ] && kill -s"$caught" $$
 
 # Create a file of the wrong type.
 scrsan_wrongftype="$TMPDIR/scrsan-wrongftype"
@@ -380,7 +380,7 @@ catch=
 mkdir -m 0755 "$tmpdir"
 cleanup="rm -rf \"\$tmpdir\"; ${cleanup}"
 catch=x
-[ "$caught" ] && kill -"$caught" $$
+[ "$caught" ] && kill -s"$caught" $$
 
 TMPDIR="$tmpdir"
 export TMPDIR
