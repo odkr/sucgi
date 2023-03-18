@@ -35,7 +35,17 @@ readonly script_dir src_dir tests_dir
 init || exit
 # shellcheck disable=2119
 tmpdir
+
+
+#
+# Globals
+#
+
+# Overall result.
 result=0
+
+# Number of skipped tests.
+nskipped=0
 
 
 #
@@ -235,10 +245,7 @@ check -s1 -e'$PATH_TRANSLATED not set.'	 main			|| result=70
 check -s1 -e'$PATH_TRANSLATED is empty.' PATH_TRANSLATED= main	|| result=70
 
 # $PATH_TRANSLATED is too long.
-if maybemusl
-then check -s1		PATH_TRANSLATED="$scrsan_hugepath" main	|| result=70
-else check -s1 -e'long'	PATH_TRANSLATED="$scrsan_hugepath" main	|| result=70
-fi
+check -s1 -e'long'	PATH_TRANSLATED="$scrsan_hugepath" main	|| result=70
 
 # Path to script is too long after having been resolved.
 check -s1 -e'long'	PATH_TRANSLATED="$scrsan_hugelink" main	|| result=70
@@ -259,11 +266,18 @@ esac
 check -s1 -e"$scrsan_err" PATH_TRANSLATED="$scrsan_script" main || result=70
 
 # $PATH_TRANSLATED is valid despite its long name.
-case $uid in
-(0) scrsan_err="$scrsan_longpath is owned by privileged user root." ;;
-(*) scrsan_err='seteuid: Operation not permitted.' ;;
-esac
-check -s1 -e"$scrsan_err" PATH_TRANSLATED="$scrsan_longpath" main || result=70
+if maybemusl
+	nskipped=$((nskipped + 1))
+then
+	case $uid in
+	(0) scrsan_err="$scrsan_longpath is owned by privileged user root." ;;
+	(*) scrsan_err='seteuid: Operation not permitted.' ;;
+	esac
+
+	check -s1 -e"$scrsan_err" PATH_TRANSLATED="$scrsan_longpath" main ||
+	result=70
+fi
+
 
 # Cleanup.
 unset scrsan_err scrsan_longpath scrsan_script scrsan_wrongftype
@@ -331,9 +345,6 @@ unset usrval_script usrval_uid usrval_lowuid usrval_highuid \
 #
 # Common setup for privileged tests
 #
-
-# Number of skipped tests.
-nskipped=0
 
 # Search for a regular user.
 reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")"
