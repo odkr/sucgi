@@ -39,8 +39,8 @@ readonly shells='sh bash dash ksh mksh oksh posh yash zsh'
 # Be quiet?
 quiet=
 
-# Store a log in the current working directory?
-storelogs=y
+# Be verbose?
+verbose=
 
 
 #
@@ -77,7 +77,7 @@ mrproper() {
 
 OPTIND=1 OPTARG='' opt=''
 # shellcheck disable=2034
-while getopts Dhlq opt; do
+while getopts Dhqv opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF
@@ -90,8 +90,8 @@ Operands:
     SH  A shell.
 
 Options:
-    -l  Do not log failed runs.
     -q  Be more quiet.
+    -v  Be verbose, but do not log runs.
     -h  Show this help screen.
 
 Must be called from a directory with a makefile.
@@ -100,7 +100,7 @@ EOF
 	    ;;
 	(D) set -x ;;
 	(q) quiet=y ;;
-	(l) storelogs= ;;
+	(v) verbose=y ;;
 	(*) exit 1
 	esac
 done
@@ -126,13 +126,11 @@ do
 	command -v "$shell" >/dev/null 2>&1 || continue
 
 	warn -n 'checking %s ... ' "$shell"
+	[ "$verbose" ] && echo >&2
 
 	logfile="$TMPDIR/checkshell-$shell.log"
 	if (
-		if [ "$storelogs" ]
-		then exec >"$logfile" 2>&1
-		else exec >/dev/null 2>&1
-		fi
+		[ "$verbose" ] && exec >"$logfile" 2>&1
 
 		mrproper
 
@@ -150,15 +148,18 @@ do
 		     -exec make check SHELL="$shell" checks='{}' ';'
 	)
 	then
-		printf '%s\n' pass >&2
+		[ "$verbose" ] && printf '%s\n' pass >&2
 	else
-		printf '%s\n' fail >&2
-		[ "$storelogs" ] && [ -e "$logfile" ] && mv "$logfile" .
+		if ! [ "$verbose" ]
+		then printf '%s\n' fail >&2
+		elif [ -e "$logfile" ]
+		then mv "$logfile" .
+		fi
 		failures="$failures $shell"
 	fi
 done
 
 if [ "$failures" ]
 then err -s70 'failures: %s' "${failures# }"
-else warn -q 'all tests passed.'
+else warn -q 'all shells passed.'
 fi
