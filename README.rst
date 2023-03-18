@@ -42,10 +42,10 @@ Please take the time to read and evaluate the source code.
 
 You may need to install:
 
-* A C compiler (e.g., GCC_ or LLVM_).
+* A C compiler (preferably GCC_ or LLVM_).
 * The header files of your system's standard library.
 * The so-called "binary utilities" (i.e., ``ar``, ``ld``, and ``as``).
-* GNU Make
+* Make (preferably `GNU Make`_)
 * M4
 
 On many systems you can do so by::
@@ -150,6 +150,8 @@ GitHub: https://github.com/odkr/sucgi
 .. _GCC: https://gcc.gnu.org/
 
 .. _glibc: https://www.gnu.org/software/libc/
+
+.. _`GNU Make`: https://www.gnu.org/software/make/
 
 .. _LLVM: https://clang.llvm.org/
 
