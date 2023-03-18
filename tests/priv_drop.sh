@@ -91,4 +91,6 @@ else
 	esac
 fi
 
+# Unreachable.
+# shellcheck disable=2317
 exit 69

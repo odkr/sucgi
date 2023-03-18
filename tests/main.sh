@@ -43,6 +43,7 @@ result=0
 #
 
 # Delete every segment of $path up to $stop. Should ignore PATH_MAX.
+# shellcheck disable=2317
 rmtree() (
 	path="${1:?}" stop="${2:?}"
 
