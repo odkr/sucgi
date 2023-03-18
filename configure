@@ -343,7 +343,7 @@ then
 					continue
 				esac
 
-				testflags -E "$flag" /dev/null &
+				testflags "$flag" &
 
 				njobs=$((njobs + 1)) jobs="$jobs$! "
 				eval "flag_$!"='$flag'
@@ -404,7 +404,7 @@ fi
 printf 'getgrouplist group ID type: '
 
 : "${SC_GETGRPLST_T=}"
-if ! [ "$SC_GETGRPLST_T" ]
+if ! [ "$SC_GETGRPLST_T" ] && testflags -Wconversion
 then
 	types=gid_t
 	for base in 'int' 'short' 'long' 'long long'
