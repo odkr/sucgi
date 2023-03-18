@@ -211,7 +211,7 @@ fi
 
 
 #
-# Check if gcc, clang, or icc are available.
+# Check if gcc, clang, tcc, or icc are available.
 #
 
 printf 'C compiler: '
@@ -221,7 +221,7 @@ if ! [ "$CC" ]
 then
 	for cc in $compilers
 	do
-		if	command -v "$cc" >/dev/null &&
+		if	command -v "$cc" >/dev/null 2>&1 &&
 			"$cc" -v 2>&1 | grep -q "$cc"
 		then
 			CC="$cc"
@@ -233,7 +233,7 @@ then
 	then
 		for cc in c99 cc
 		do
-			if command -v "$cc" >/dev/null
+			if command -v "$cc" >/dev/null 2>&1
 			then
 				CC="$cc"
 				break
@@ -362,11 +362,11 @@ then
 	else archivers="$comptype-ar"
 	fi
 
-	for ar in $archivers
+	for archiver in $archivers
 	do
-		if command -v "$ar" >/dev/null 2>&1
+		if command -v "$archiver" >/dev/null 2>&1
 		then
-			AR="$ar"
+			AR="$archiver"
 			break
 		fi
 	done
