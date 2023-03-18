@@ -91,13 +91,14 @@ testcc() (
 
 	case "$(basename "${CC:?}")" in
 	(clang|clang-*|musl-clang|musl-clang-*|gcc|gcc-*|musl-gcc|musl-gcc-*)
-		"$CC" -xc -Wall -Werror -pedantic -pipe -o/dev/null "$@"
+		"$CC" -xc -Wall -Werror "$@"
 		;;
 	(tcc|tcc-*)
-		"$CC" -xc -Wall -Werror -pedantic -o/dev/null "$@"
+		"$CC" -xc -Wall -Wunsupported -Werror "$@"
 		;;
 	(icc|icc-*)
-		"$CC" -xc -w3 -Wcheck -Werror-all -o/dev/null "$@"
+		"$CC" -xc -Wcheck -Werror-all \
+		      -diag-enable=10006,10148 -diag-error=10006,10148 "$@"
 		;;
 	(*)
 		return 1
@@ -320,8 +321,7 @@ then
 					continue
 				esac
 
-				printf 'int main(void) { return 0; }\n' |
-				testcc "$flag" - &
+				testcc -E "$flag" /dev/null &
 
 				njobs=$((njobs + 1)) jobs="$jobs$! "
 				eval "flag_$!"='$flag'
