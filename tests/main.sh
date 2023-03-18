@@ -267,8 +267,9 @@ check -s1 -e"$scrsan_err" PATH_TRANSLATED="$scrsan_script" main || result=70
 
 # $PATH_TRANSLATED is valid despite its long name.
 if maybemusl
-	nskipped=$((nskipped + 1))
 then
+	nskipped=$((nskipped + 1))
+else
 	case $uid in
 	(0) scrsan_err="$scrsan_longpath is owned by privileged user root." ;;
 	(*) scrsan_err='seteuid: Operation not permitted.' ;;
