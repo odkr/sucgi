@@ -85,28 +85,6 @@ addflags() {
 	esac
 }
 
-# Test compiler flags.
-testflags() (
-	exec >/dev/null 2>&1
-
-	case "$(basename "${CC:?}")" in
-	(clang|clang-*|musl-clang|musl-clang-*|gcc|gcc-*|musl-gcc|musl-gcc-*)
-		"$CC" -xc -c -Wall -Werror "$@" /dev/null
-		;;
-	(tcc|tcc-*)
-		"$CC" -xc -c -Wall -Wunsupported -Werror "$@" \
-		      -o "$TMDIR/a.out" /dev/null
-		;;
-	(icc|icc-*)
-		"$CC" -diag-enable=10006,10148 -diag-error=10006,10148 \
-		      -xc -c -Wcheck -Werror-all "$@" /dev/null
-		;;
-	(*)
-		return 1
-		;;
-	esac
-)
-
 # Test compilation.
 testcomp() (
 	exec >/dev/null 2>&1
@@ -117,10 +95,11 @@ testcomp() (
 		;;
 	(tcc|tcc-*)
 		# TCC unlinks /dev/null when given -o/dev/null.
-		"$CC" -xc -Wall -Werror -pedantic -pipe -o"$TMPDIR/a.out" "$@"
+		"$CC" -xc -Wall -Werror -Wunsupported -pipe -o"$TMPDIR/a.out" "$@"
 		;;
 	(icc|icc-*)
-		"$CC" -xc -w3 -Wcheck -Werror-all -o/dev/null "$@"
+		"$CC" -diag-enable=10006,10148 -diag-error=10006,10148 \
+		      -xc -Wall -Werror -o/dev/null "$@"
 		;;
 	(*)
 		return 1
@@ -128,6 +107,11 @@ testcomp() (
 	esac
 )
 
+# Test compiler flags.
+testflags() {
+	printf 'int main(void) {return 0;}\n' |
+	testcomp "$@" -
+}
 
 
 #
