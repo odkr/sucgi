@@ -47,8 +47,7 @@ ifnempty(`__LDLIBS', `LDLIBS = __LDLIBS
 #
 
 hdrs = cattr.h compat.h macros.h max.h types.h
-objs = funcs.a(env.o) funcs.a(error.o) funcs.a(file.o) funcs.a(handler.o) \
-	funcs.a(path.o) funcs.a(priv.o) funcs.a(str.o) funcs.a(userdir.o)
+objs = env.o error.o file.o handler.o path.o priv.o str.o userdir.o
 
 #
 # Build
@@ -56,28 +55,51 @@ objs = funcs.a(env.o) funcs.a(error.o) funcs.a(file.o) funcs.a(handler.o) \
 
 sucgi: main.c build.h config.h testing.h $(hdrs) funcs.a
 
-funcs.a: $(objs)
+funcs.a: funcs.a($(objs))
 
-funcs.a(env.o): env.c env.h funcs.a(str.o)
+funcs.a(env.o): env.o funcs.a(str.o)
 
-funcs.a(error.o): error.c error.h
+funcs.a(error.o): error.o
 
-funcs.a(file.o): file.c file.h funcs.a(str.o)
+funcs.a(file.o): file.o funcs.a(str.o)
 
-funcs.a(path.o): path.c path.h funcs.a(file.o) funcs.a(str.o)
+funcs.a(path.o): path.o funcs.a(file.o) funcs.a(str.o)
 
-funcs.a(priv.o): priv.c priv.h
+funcs.a(priv.o): priv.o
 
-funcs.a(handler.o): handler.c handler.h funcs.a(path.o)
+funcs.a(handler.o): handler.o funcs.a(path.o)
 
-funcs.a(str.o): str.c str.h
+funcs.a(str.o): str.o
 
-funcs.a(userdir.o): userdir.c userdir.h
+funcs.a(userdir.o): userdir.o
+
+env.o: env.c env.h
+
+error.o: error.c error.h
+
+filo.o: file.c file.h
+
+path.o: path.c path.h
+
+priv.o: priv.c priv.h
+
+handler.o: handler.c handler.h
+
+str.o: str.c str.h
+
+userdir.o: userdir.c userdir.h
 
 $(objs): $(hdrs)
 
 sucgi:
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ main.c funcs.a $(LDLIBS)
+
+# funcs.a:
+# 	$(AR) crsu $@ $?
+
+funcs.a($(objs)):
+	# $@
+	$(AR) crsu funcs.a $%
 
 
 #
@@ -139,7 +161,7 @@ macro_check_bins = tests/ISSIGNED tests/MIN tests/NELEMS tests/SIGNEDMAX
 
 other_check_bins = tests/env_is_name tests/env_restore tests/error \
 	tests/file_is_exe tests/file_is_wexcl \
-	tests/handler_lookup tests/main tests/path_check_wexcl \
+	tests/handler_lookup tests/path_check_wexcl \
 	tests/path_check_in tests/path_suffix tests/priv_drop \
 	tests/priv_suspend tests/str_cp tests/str_split \
 	tests/userdir_resolve
@@ -151,7 +173,7 @@ tool_bins = tools/badenv tools/badexec tools/ids tools/runpara tools/runas
 
 runpara_flags =	-ci75 -j8
 
-check: tools/runpara checks
+check: tools/runpara $(checks)
 
 checks: $(checks)
 
@@ -214,11 +236,14 @@ scripts/funcs.sh: tools/ids
 check:
 	tools/runpara $(runpara_flags) $(checks)
 
+tests/main:
+	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ main.c funcs.a $(LDLIBS)
+
 $(macro_check_bins):
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $< $(LDLIBS)
+	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c $(LDLIBS)
 
 $(other_check_bins):
-	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $< funcs.a $(LDLIBS)
+	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c funcs.a $(LDLIBS)
 
 
 #
@@ -319,16 +344,16 @@ ifhascmd(`rats',
 # Cleanup
 #
 
-bins = sucgi $(tool_bins) $(macro_check_bins) $(other_check_bins)
+bins = sucgi $(tool_bins) tests/main $(macro_check_bins) $(other_check_bins)
 
 clean:
 	rm -f funcs.a $(bins) $(dist_name).*
 	rm -rf tmp-* $(dist_name)
 	find . '(' \
-           -name '*.o'							\
-        -o -name '*.c.*'	-o -name 'a--.*'	-o -name '-.*'	\
-        -o -name '*.ctu-info'	-o -name '*.dump'			\
-        -o -name '*.gcda'	-o -name '*.gcno'			\
-        -o -name '*.dSYM'						\
-        -o -name '*.log'	-o -name '*.lock'			\
-       ')' -exec rm -rf '{}' +
+		-name '*.o'					\
+		-o -name '*.c.*'	-o -name 'a--.*'	\
+		-o -name '-.*'		-o -name '*.dSYM'	\
+		-o -name '*.ctu-info'	-o -name '*.dump'	\
+		-o -name '*.gcda'	-o -name '*.gcno'	\
+        	-o -name '*.log'	-o -name '*.lock'	\
+	')' -exec rm -rf '{}' +
