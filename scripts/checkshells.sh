@@ -164,7 +164,7 @@ do
 		     -exec make check SHELL="$shell" checks='{}' ';'
 	)
 	then
-		[ "$verbose" ] && printf '%s\n' pass >&2
+		[ "$verbose" ] || printf '%s\n' pass >&2
 	else
 		if ! [ "$verbose" ]
 		then printf '%s\n' fail >&2
