@@ -191,7 +191,7 @@ printf 'Machine type: '
 
 if machine="$(uname -m)" && [ "$machine" ]
 then printf '%s\n' "$machine"
-else printf '%s\n' 'detection failed.'
+else printf 'detection failed.\a\n'
 fi
 
 
@@ -206,7 +206,7 @@ if   [ "$os" ] && [ "$osvers" ]
 then printf '%s v%s\n' "$os" "$osvers"
 elif [ "$os" ]
 then printf '%s\n' "$os"
-else printf 'detection failed.\n'
+else printf 'detection failed.\a\n'
 fi
 
 
@@ -429,7 +429,7 @@ then
 
 	if [ "${SC_GETGRPLST_T-}" ]
 	then printf '%s\n' "$SC_GETGRPLST_T"
-	else printf 'guess at compile-time\a\n'
+	else printf 'guess at compile-time.\a\n'
 	fi
 else
 	printf '%s\n' "$SC_GETGRPLST_T"
@@ -494,7 +494,7 @@ fi
 
 if [ "${SC_SETGRPNUM_T-}" ]
 	then printf '%s\n' "$SC_SETGRPNUM_T"
-	else printf 'guess at compile-time\a\n'
+	else printf 'guess at compile-time.\a\n'
 fi
 
 
