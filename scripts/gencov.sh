@@ -89,7 +89,7 @@ logged() (
 
 OPTIND=1 OPTARG='' opt=''
 # shellcheck disable=2034
-while getopts C:G:H:L:hq opt; do
+while getopts DC:G:H:L:hq opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF
@@ -109,6 +109,7 @@ Options:
     Use a dash as DIR or FILE to skip generation.
 EOF
 	    ;;
+	(D) set -x ;;
 	(C) comp="$OPTARG" ;;
 	(G) gcovdir="$OPTARG" ;;
 	(H) htmldir="$OPTARG" ;;

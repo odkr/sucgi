@@ -48,7 +48,7 @@ init || exit
 
 OPTIND=1 OPTARG='' opt=''
 # shellcheck disable=2034
-while getopts h opt; do
+while getopts Dh opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF
@@ -64,6 +64,7 @@ Must be called from a directory with a makefile.
 The makefile must provide the standard Autoconf targets.
 EOF
 	    ;;
+	(D) set -x ;;
 	(*) exit 1
 	esac
 done

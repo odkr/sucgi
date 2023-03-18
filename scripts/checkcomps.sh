@@ -82,7 +82,7 @@ mrproper() {
 
 OPTIND=1 OPTARG='' opt=''
 # shellcheck disable=2034
-while getopts hqv opt; do
+while getopts Dhqv opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF
@@ -103,6 +103,7 @@ Must be called from a directory with a makefile.
 The makefile must provide the standard Autoconf targets.
 EOF
 	    ;;
+	(D) set -x ;;
 	(q) quiet=y ;;
 	(v) verbose=y ;;
 	(*) exit 1

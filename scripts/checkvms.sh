@@ -66,7 +66,7 @@ tmpdir
 
 OPTIND=1 OPTARG='' opt=''
 # shellcheck disable=2034
-while getopts b:c:d:hq opt; do
+while getopts Db:c:d:hq opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF
@@ -85,6 +85,7 @@ Options:
     -h         Show this help screen.
 EOF
 	    ;;
+	(D) set -x ;;
 	(b) branch="$OPTARG" ;;
 	(c) check="$OPTARG" ;;
 	(d) dir="$OPTARG" ;;
