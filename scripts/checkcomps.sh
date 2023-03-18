@@ -185,5 +185,5 @@ done
 
 if [ "$failures" ]
 then err -s70 'failures: %s' "${failures# }"
-else warn -q 'all tests passed.'
+else warn -q 'all compilers passed.'
 fi
