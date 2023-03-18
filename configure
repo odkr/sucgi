@@ -85,26 +85,48 @@ addflags() {
 	esac
 }
 
-# Test compiler features.
-testcc() (
+# Test compiler flags.
+testflags() (
 	exec >/dev/null 2>&1
 
 	case "$(basename "${CC:?}")" in
 	(clang|clang-*|musl-clang|musl-clang-*|gcc|gcc-*|musl-gcc|musl-gcc-*)
-		"$CC" -xc -Wall -Werror "$@"
+		"$CC" -xc -Wall -Werror -E "$@" /dev/null
 		;;
 	(tcc|tcc-*)
-		"$CC" -xc -Wall -Wunsupported -Werror "$@"
+		"$CC" -xc -Wall -Wunsupported -Werror -E "$@" /dev/null
 		;;
 	(icc|icc-*)
-		"$CC" -xc -Wcheck -Werror-all \
-		      -diag-enable=10006,10148 -diag-error=10006,10148 "$@"
+		"$CC" -diag-enable=10006,10148 -diag-error=10006,10148 \
+		      -xc -Wcheck -Werror-all -E "$@" /dev/null
 		;;
 	(*)
 		return 1
 		;;
 	esac
 )
+
+# Test compilation.
+testcomp() (
+	exec >/dev/null 2>&1
+
+	case "$(basename "${CC:?}")" in
+	(clang|clang-*|musl-clang|musl-clang-*|gcc|gcc-*|musl-gcc|musl-gcc-*)
+		"$CC" -xc -Wall -Werror -pedantic -pipe -o/dev/null "$@"
+		;;
+	(tcc|tcc-*)
+		# TCC unlinks /dev/null when given -o/dev/null.
+		"$CC" -xc -Wall -Werror -pedantic -o"$TMPDIR/a.out" "$@"
+		;;
+	(icc|icc-*)
+		"$CC" -xc -w3 -Wcheck -Werror-all -o/dev/null "$@"
+		;;
+	(*)
+		return 1
+		;;
+	esac
+)
+
 
 
 #
@@ -321,7 +343,7 @@ then
 					continue
 				esac
 
-				testcc -E "$flag" /dev/null &
+				testflags -E "$flag" /dev/null &
 
 				njobs=$((njobs + 1)) jobs="$jobs$! "
 				eval "flag_$!"='$flag'
@@ -419,7 +441,7 @@ then
 	IFS=:
 	for type in $types
 	do
-		if testcc -DGETGRPLST_T="$type" "$src"
+		if testcomp -DGETGRPLST_T="$type" "$src"
 		then
 			SC_GETGRPLST_T="$type"
 			break
@@ -443,9 +465,7 @@ fi
 printf 'setgroups count type: '
 
 : "${SC_SETGRPNUM_T=}"
-if	! [ "$SC_SETGRPNUM_T" ] &&
-	printf 'int main(void) { return 0; }\n' |
-	testcc -Wconversion -
+if ! [ "$SC_SETGRPNUM_T" ] && testflags -Wconversion
 then
 	types=size_t
 	for base in 'int' 'short' 'long' 'long long'
@@ -482,7 +502,7 @@ then
 	IFS=:
 	for type in $types
 	do
-		if testcc -DSETGRPNUM_T="$type" -Wconversion "$src"
+		if testcomp -DSETGRPNUM_T="$type" -Wconversion "$src"
 		then
 			SC_SETGRPNUM_T="$type"
 			break
