@@ -49,56 +49,38 @@ ifnempty(`__LDLIBS', `LDLIBS = __LDLIBS
 hdrs = cattr.h compat.h macros.h max.h types.h
 objs = env.o error.o file.o handler.o path.o priv.o str.o userdir.o
 
+
 #
 # Build
 #
 
-sucgi: main.c build.h config.h testing.h $(hdrs) funcs.a
-
 funcs.a: funcs.a($(objs))
 
-funcs.a(env.o): env.o funcs.a(str.o)
+funcs.a(env.o): env.c env.h funcs.a(str.o)
 
-funcs.a(error.o): error.o
+funcs.a(error.o): error.c error.h
 
-funcs.a(file.o): file.o funcs.a(str.o)
+funcs.a(file.o): file.c file.h funcs.a(str.o)
 
-funcs.a(path.o): path.o funcs.a(file.o) funcs.a(str.o)
+funcs.a(path.o): path.c path.h funcs.a(file.o) funcs.a(str.o)
 
-funcs.a(priv.o): priv.o
+funcs.a(priv.o): priv.c priv.h
 
-funcs.a(handler.o): handler.o funcs.a(path.o)
+funcs.a(handler.o): handler.c handler.h funcs.a(path.o)
 
-funcs.a(str.o): str.o
+funcs.a(str.o): str.c str.h
 
-funcs.a(userdir.o): userdir.o
+funcs.a(userdir.o): userdir.c userdir.h
 
-env.o: env.c env.h
+funcs.a($(objs)): $(hdrs)
 
-error.o: error.c error.h
-
-filo.o: file.c file.h
-
-path.o: path.c path.h
-
-priv.o: priv.c priv.h
-
-handler.o: handler.c handler.h
-
-str.o: str.c str.h
-
-userdir.o: userdir.c userdir.h
-
-$(objs): $(hdrs)
+sucgi: main.c build.h config.h testing.h $(hdrs) funcs.a
 
 sucgi:
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ main.c funcs.a $(LDLIBS)
 
-# funcs.a:
-# 	$(AR) crsu $@ $?
-
 funcs.a($(objs)):
-	# $@
+	$(CC) $(LDFLAGS) $(CFLAGS) -c $*.c $(LDLIBS)
 	$(AR) crsu funcs.a $%
 
 
@@ -349,7 +331,7 @@ bins = sucgi $(tool_bins) tests/main $(macro_check_bins) $(other_check_bins)
 clean:
 	rm -f funcs.a $(bins) $(dist_name).*
 	rm -rf tmp-* $(dist_name)
-	find . '(' \
+	find . '('
 		-name '*.o'					\
 		-o -name '*.c.*'	-o -name 'a--.*'	\
 		-o -name '-.*'		-o -name '*.dSYM'	\
