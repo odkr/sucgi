@@ -134,7 +134,7 @@ do
 
 		mrproper
 
-		"$shell" ./configure
+		"$shell" ./configure -c'posix.env'
 
 		for file in $files
 		do
