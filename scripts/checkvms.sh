@@ -26,7 +26,7 @@
 #
 
 # Virtual machines to test.
-readonly vms='diotima'
+readonly vms='aristides diotima euthyphro'
 
 # Branch to run tests on.
 branch=devel
@@ -40,9 +40,11 @@ dir='repos/sucgi'
 # Be more quiet?
 quiet=
 
-# Store a log in the current working directory?
-storelogs=y
+# Be verbose?
+verbose=
 
+# How many seconds to wait for a VM to become reachable.
+timeout=60
 
 
 #
@@ -66,7 +68,7 @@ tmpdir
 
 OPTIND=1 OPTARG='' opt=''
 # shellcheck disable=2034
-while getopts Db:c:d:hq opt; do
+while getopts Db:c:d:hqt:v opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF
@@ -82,6 +84,9 @@ Options:
     -b BRANCH  Branch to checkout (default: $branch).
     -c CHECK   Check to run (default: $check).
     -d DIR     Repository directory on VM (default: $dir).
+    -t N       Wait at most N seconds for VM to boot (default: $timeout).
+    -q         Be more quiet.
+    -v         Be verbose, but do not log runs.
     -h         Show this help screen.
 EOF
 	    ;;
@@ -89,7 +94,9 @@ EOF
 	(b) branch="$OPTARG" ;;
 	(c) check="$OPTARG" ;;
 	(d) dir="$OPTARG" ;;
+	(t) timeout="$OPTARG" ;;
 	(q) quiet=y ;;
+	(v) verbose=y ;;
 	(*) exit 1
 	esac
 done
@@ -99,7 +106,7 @@ unset opt
 [ $# -eq 0 ] && set -- $vms
 
 readonly comm="
-	set -e
+	set -ex
 	cd \"$dir\"
 	git stash
 	git pull
@@ -140,6 +147,7 @@ failures=
 for vm
 do
 	warn -n 'testing with %s ... ' "$vm"
+	[ "$verbose" ] && echo >&2
 
 	started=
 	if [ "$(utmctl status "$vm")" = stopped ]
@@ -148,28 +156,34 @@ do
 		started="$vm"
 	fi
 
-	i=0
-	while [ "$i" -lt 5 ]
+	# FIXME: make timeout configurable.
+
+	trap 'catch ALRM' ALRM
+	pid="$$"
+	( sleep "$timeout" & wait $! && kill -s ALRM "$pid"; ) & alarm=$!
+
+	while ! [ "$caught" ]
 	do
 		ssh "$vm" true >/dev/null 2>&1 && break
-		i=$((i + 1))
 	done
-	[ "$i" -eq 5 ] && err 'connection failure.'
+
+	[ "$caught" = ALRM ] && err 'connection failure.'
+	kill "$alarm"
 
 	logfile="$TMPDIR/checkvm-$vm.log"
 	if (
-		if [ "$storelogs" ]
-		then exec >"$logfile" 2>&1
-		else exec >/dev/null 2>&1
-		fi
+		[ "$verbose" ] || exec >"$logfile" 2>&1
 
 		ssh "$vm" "$comm"
 	)
 	then
-		printf 'pass\n' >&2
+		[ "$verbose" ] || printf '%s\n' pass >&2
 	else
-		printf '%s\n' fail >&2
-		[ "$storelogs" ] && [ -e "$logfile" ] && mv "$logfile" .
+		if ! [ "$verbose" ]
+		then
+			printf '%s\n' fail >&2
+			[ -e "$logfile" ] && mv "$logfile" .
+		fi
 		failures="$failures $vm"
 	fi
 

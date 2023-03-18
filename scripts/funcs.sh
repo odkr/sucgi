@@ -87,16 +87,20 @@ check() (
 	return "$rc"
 )
 
-# Exit with status $signo + 128 if $catch is set.
-# Otherwise set $caught to $signo.
+# Re-raise $signal if $catch is set.
+# Otherwise set $caught to $signal.
 catch() {
-	signo="${1:?}"
-	sig="$(kill -l "$signo")"
-	printf '%*s\r' 80 '' >&2
-	warn 'caught %s.' "$sig"
-	[ "${catch-}" ] && exit "$((signo + 128))"
+	signal="${1:?}"
+	printf '\r' >&2
+	tput el >&2
+	warn 'caught %s.' "$signal"
+	if [ "${catch-}" ]
+	then
+		trap - "$signal"
+		kill -s "$signal" "$$"
+	fi
 	# shellcheck disable=2034
-	caught="$signo"
+	caught="$signal"
 }
 
 # Terminate all children, eval $cleanup and exit with status $?.
@@ -185,11 +189,11 @@ init() {
 
 	# Signal handling.
 	catch=x caught=
-	trap 'catch 1' HUP
-	trap 'catch 2' INT
-	trap 'catch 15' TERM
+	trap 'catch HUP' HUP
+	trap 'catch INT' INT
+	trap 'catch TERM' TERM
 	trap cleanup EXIT
-	[ "$caught" ] && exit "$((caught + 128))"
+	[ "$caught" ] && kill -s"$caught" "$$"
 
 	# Permission mask.
 	umask 022
@@ -369,7 +373,7 @@ tmpdir() {
 	mkdir -m 0700 "$__tmpdir_tmpdir" || exit
 	cleanup="rm -rf \"\$__tmpdir_tmpdir\"; ${cleanup-}"
 	catch=x
-	[ "${caught-}" ] && exit $((caught + 128))
+	[ "${caught-}" ] && kill -s"$caught" "$$"
 	# shellcheck disable=2031
 	export TMPDIR="$__tmpdir_tmpdir"
 }

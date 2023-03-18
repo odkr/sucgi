@@ -175,9 +175,9 @@ do
 		[ "$verbose" ] || printf '%s\n' pass >&2
 	else
 		if ! [ "$verbose" ]
-		then printf '%s\n' fail >&2
-		elif [ -e "$logfile" ]
-		then mv "$logfile" .
+		then
+			printf '%s\n' fail >&2
+			[ -e "$logfile" ] && mv "$logfile" .
 		fi
 		failures="$failures $cc"
 	fi
