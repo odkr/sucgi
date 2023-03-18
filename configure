@@ -72,6 +72,9 @@ force=
 # Be quiet?
 quiet=
 
+# Flags for testing compiling features.
+compflags=
+
 
 #
 # Functions
@@ -91,15 +94,16 @@ testcomp() (
 
 	case "$(basename "${CC:?}")" in
 	(clang|clang-*|musl-clang|musl-clang-*|gcc|gcc-*|musl-gcc|musl-gcc-*)
-		"$CC" -xc -Wall -Werror -pedantic -pipe -o/dev/null "$@"
+		"$CC" -xc -Wall -Werror $compflags -o/dev/null "$@"
 		;;
 	(tcc|tcc-*)
 		# TCC unlinks /dev/null when given -o/dev/null.
-		"$CC" -xc -Wall -Werror -Wunsupported -pipe -o"$TMPDIR/a.out" "$@"
+		"$CC" -Wunsupported \
+		      -xc -Wall -Werror $compflags -o"$TMPDIR/a.out" "$@"
 		;;
 	(icc|icc-*)
 		"$CC" -diag-enable=10006,10148 -diag-error=10006,10148 \
-		      -xc -Wall -Werror -o/dev/null "$@"
+		      -xc -Wall -Werror $compflags -o/dev/null "$@"
 		;;
 	(*)
 		return 1
@@ -109,8 +113,7 @@ testcomp() (
 
 # Test compiler flags.
 testflags() {
-	printf 'int main(void) {return 0;}\n' |
-	testcomp "$@" -
+	printf 'int main(void) {return 0;}\n' | testcomp "$@" -
 }
 
 
@@ -294,7 +297,12 @@ elif [ "${compname#"$comptype"-}" != "$compname" ]
 then
 	compmajor="${compname#"$comptype"-}"
 fi
-readonly compcmd compname compvers compmajor
+
+for flag in -pedantic -pipe
+do testflags $flag && compflags="$compflags $flag"
+done
+
+readonly compcmd compname compvers compmajor compflags
 
 
 #
@@ -426,18 +434,19 @@ then
 	IFS=:
 	for type in $types
 	do
+		unset IFS
 		if testcomp -DGETGRPLST_T="$type" "$src"
 		then
 			SC_GETGRPLST_T="$type"
 			break
 		fi
 	done
-	unset IFS src
+	unset src
 fi
 
 if [ "${SC_GETGRPLST_T-}" ]
-	then printf '%s\n' "$SC_GETGRPLST_T"
-	else printf 'guess at compile-time.\a\n'
+then printf '%s\n' "$SC_GETGRPLST_T"
+else printf 'guess at compile-time.\a\n'
 fi
 
 
@@ -485,6 +494,7 @@ then
 	IFS=:
 	for type in $types
 	do
+		unset IFS
 		if testcomp -DSETGRPNUM_T="$type" -Wconversion "$src"
 		then
 			SC_SETGRPNUM_T="$type"
@@ -492,12 +502,12 @@ then
 		fi
 	done
 
-	unset IFS src
+	unset src
 fi
 
 if [ "${SC_SETGRPNUM_T-}" ]
-	then printf '%s\n' "$SC_SETGRPNUM_T"
-	else printf 'guess at compile-time.\a\n'
+then printf '%s\n' "$SC_SETGRPNUM_T"
+else printf 'guess at compile-time.\a\n'
 fi
 
 
