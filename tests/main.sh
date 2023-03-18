@@ -613,9 +613,6 @@ do
 		continue
 	fi
 
-	warn 'checking PATH_TRANSLATED=%s [...] main ...' \
-	     "$envcln_script"
-
 	envcln_logfile="$envcln_script.log"
 
 	PATH_TRANSLATED="$envcln_script"		\
@@ -673,7 +670,8 @@ do
 	do
 		if ! grep -Eq "^$envcln_var$" "$envcln_logfile"
 		then
-			warn '$%s: not set.' "$envcln_var"
+			warn 'PATH_TRANSLATED=%s [...] main: $%s: not set.' \
+	     		     "$envcln_script" "$envcln_var"
 			result=70
 		fi
 	done
@@ -690,7 +688,8 @@ do
 	do
 		if grep -Eq "^$envcln_var" "$envcln_logfile"
 		then
-			warn '$%s: set.' "${envcln_var%=}"
+			warn 'PATH_TRANSLATED=%s [...] main: $%s: set.' \
+	     		     "$envcln_script" "$envcln_var"
 			result=70
 		fi
 	done
