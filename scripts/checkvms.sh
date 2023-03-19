@@ -32,7 +32,14 @@ readonly vms='aristides diotima euthyphro'
 branch=devel
 
 # Check command to run.
-check="scripts/checkall.sh"
+check="
+	if command -v sudo >/dev/null
+	then sudo scripts/checkall.sh
+	elif command -v doas >/dev/null
+	then doas scripts/checkall.sh
+	else scripts/checkall.sh
+	fi
+"
 
 # Repository directory on the virtual machine.
 dir='repos/sucgi'
@@ -103,6 +110,7 @@ done
 shift $((OPTIND - 1))
 unset opt
 
+# shellcheck disable=2086
 [ $# -eq 0 ] && set -- $vms
 
 readonly comm="
@@ -149,6 +157,8 @@ do
 	warn -n 'testing with %s ... ' "$vm"
 	[ "$verbose" ] && echo >&2
 
+	warn -q 'waiting for %s to boot ...' "$vm"
+
 	started=
 	if [ "$(utmctl status "$vm")" = stopped ]
 	then
@@ -156,15 +166,12 @@ do
 		started="$vm"
 	fi
 
-	# FIXME: make timeout configurable.
-
 	trap 'catch ALRM' ALRM
 	pid="$$"
 	( sleep "$timeout" & wait $! && kill -s ALRM "$pid"; ) & alarm=$!
 
 	while ! [ "$caught" ]
-	do
-		ssh "$vm" true >/dev/null 2>&1 && break
+	do ssh "$vm" true >/dev/null 2>&1 && break
 	done
 
 	[ "$caught" = ALRM ] && err 'connection failure.'
@@ -174,6 +181,7 @@ do
 	if (
 		[ "$verbose" ] || exec >"$logfile" 2>&1
 
+		# shellcheck disable=2029
 		ssh "$vm" "$comm"
 	)
 	then
