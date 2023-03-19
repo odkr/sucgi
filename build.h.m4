@@ -45,6 +45,10 @@ include(`macros.m4')dnl
 #if !defined(BUILD_H)
 #define BUILD_H
 
+/*
+ * This is to include features.h in a round-about way,
+ * in case it isn't there.
+ */
 #include <limits.h>
 
 #include "macros.h"
