@@ -292,7 +292,6 @@
  * See syslog(3) for details.
  */
 #define LOGGING_MASK LOG_UPTO(LOG_ERR)
-)
 
 /*
  * Syslog options.
