@@ -25,7 +25,7 @@
 # Initialisation
 #
 
-set -Cefu
+set -Cefux
 script_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
 src_dir="$(cd -P "$script_dir/.." && pwd)"
 tests_dir="$src_dir/tests"
