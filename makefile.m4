@@ -81,7 +81,7 @@ sucgi:
 
 funcs.a($(objs)):
 	$(CC) $(LDFLAGS) $(CFLAGS) -c $*.c $(LDLIBS)
-	$(AR) crsu funcs.a $%
+	$(AR) -crsu funcs.a $%
 
 
 #
