@@ -25,13 +25,12 @@
 #
 
 set -Ceu
-
 src_dir="$(dirname "$0")" || exit
 readonly src_dir
 cd "$src_dir" || exit
 . ./scripts/funcs.sh || exit
 init
-tmpdir conf .
+tmpdir tmp .
 
 
 #
@@ -41,11 +40,28 @@ tmpdir conf .
 # Variables to set as M4 Macros.
 readonly macros='
 	CC CFLAGS AR ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
-	SC_GETGRPLST_T SC_SETGRPNUM_T SC_CGI_DIR SC_WWW_GRP
-	machine os osvers compvers compmajor
+	SC_GETGRPLST_T SC_SETGRPNUM_T SC_SETGRPNUM_T SC_CGI_DIR SC_WWW_GRP
 '
 
+# Where to save the configuration.
 readonly confsave=config.status
+
+# Colon-separated list of integer types used for group IDs and sizes.
+inttypes=
+for base in 'int' 'long' 'long long'
+do
+	for prefix in '' 'unsigned '
+	do inttypes="$inttypes:$prefix$base"
+	done
+done
+unset base
+readonly inttypes
+
+# Colon-separated list of possible data types for group IDs.
+readonly grouptypes="gid_t:$inttypes"
+
+# Colon-separated list of possible data types for sizes.
+readonly sizetypes="size_t:$inttypes"
 
 
 #
@@ -69,7 +85,7 @@ files='build.h compat.h makefile'
 
 # Number of child processes to spawn.
 maxnjobs=4
-# FIXME: The Almquist shell may crash when using multiple jobs.
+# The Almquist shell tends to crash when running jobs in parallel.
 [ "$(basename "${SHELL-}")" = ash ] && maxnjobs=1
 
 # Overwrite existing files?
@@ -90,24 +106,29 @@ compflags=
 addflags() {
 	case ${1:?} in
 	(-*) cflags="${cflags-} $*" ;;
-	(*)  eval "cflags_$1"="\"\${cflags_$1-} \$*\"" ;;
+	(*)  eval "cflags_$1"="\"\${cflags_$1-} \${*#\"$1\"}\"" ;;
 	esac
 }
 
 # Test compilation.
 testcomp() (
+	: "${compname:?}"
+
 	exec >/dev/null 2>&1
 
-	case "$(basename "${CC:?}")" in
-	(clang|clang[!a-z]*|musl-clang|musl-clang[!a-z]|gcc|gcc[!a-z]|musl-gcc|musl-gcc[!a-z])
+	case $compname in
+	(clang|gcc)
+		# shellcheck disable=2086
 		"$CC" -xc -Wall -Werror $compflags -o/dev/null "$@"
 		;;
-	(tcc|tcc[!a-z])
+	(tcc)
 		# TCC unlinks /dev/null when given -o/dev/null.
+		# shellcheck disable=2086
 		"$CC" -Wunsupported \
 		      -xc -Wall -Werror $compflags -o"$TMPDIR/a.out" "$@"
 		;;
-	(icc|icc[!a-z])
+	(icc)
+		# shellcheck disable=2086
 		"$CC" -diag-enable=10006,10148 -diag-error=10006,10148 \
 		      -xc -Wall -Werror $compflags -o/dev/null "$@"
 		;;
@@ -119,7 +140,8 @@ testcomp() (
 
 # Test compiler flags.
 testflags() {
-	printf 'int main(void) {return 0;}\n' | testcomp "$@" -
+	printf 'int main(void) {return 0;}\n' |
+	testcomp "$@" -
 }
 
 
@@ -201,33 +223,6 @@ readonly conf force quiet maxnjobs nfiles
 
 
 #
-# Architecture
-#
-
-printf 'Machine type: '
-
-if machine="$(uname -m)" && [ "$machine" ]
-then printf '%s\n' "$machine"
-else printf 'detection failed.\a\n'
-fi
-
-
-#
-# Operating system
-#
-
-printf 'Operating system: '
-
-os="$(uname -s)" osvers="$(uname -r)" || :
-if   [ "$os" ] && [ "$osvers" ]
-then printf '%s v%s\n' "$os" "$osvers"
-elif [ "$os" ]
-then printf '%s\n' "$os"
-else printf 'detection failed.\a\n'
-fi
-
-
-#
 # Check if gcc, clang, tcc, or icc are available.
 #
 
@@ -261,33 +256,41 @@ then
 	unset cc
 fi
 
-if [ "$CC" ]
+if ! [ "$CC" ]
 then
-	printf '%s\n' "$CC"
-else
-	printf 'none found.\a\n'
+	printf 'none found\a\n'
 	exit 2
 fi
 
+# Compiler path.
+set -- "$CC"
+comppath="${1:?}"
+readonly comppath
 
-#
-# Compiler information
-#
+# Compiler executable.
+compexec="$(basename "${comppath:?}}")"
+readonly compexec
 
-compcmd="$(basename "$CC")"
-compname="${compcmd%% *}"
+# Compiler name.
+case $compexec in
+(musl-*) compname="${compexec##musl-}"
+esac
+compname="${compexec%%[!a-z]*}"
+readonly compname
 
+# Compiler command prefix.
 case $compname in
-(clang|clang-*)	comptype=llvm ;;
-(musl-*)	comptype=musl_${compname#*-} ;;
-(*)		comptype="${compname%%-*}" ;;
+(clang)	compprefix=llvm ;;
+(*)	compprefix="$compname" ;;
 esac
 
+# Compiler version.
 compvers="$(
 	"$CC" -v 2>&1 |
 	awk '{
 		for (i = 1; i <= NF; i++) {
 			if ($i ~ /^v?[0-9]+\.[0-9]+\./) {
+				gsub("[^0-9\.]", "", $i);
 				print $i;
 				exit;
 			}
@@ -297,18 +300,31 @@ compvers="$(
 
 if [ "$compvers" ]
 then
-	compvers="${compvers#v}"
 	compmajor="${compvers%%.*}"
-elif [ "${compname#"$comptype"-}" != "$compname" ]
-then
-	compmajor="${compname#"$comptype"-}"
+else
+	case $compexec in
+	(*[0-9]*) compmajor="${compexec##*[!0-9]}" ;;
+	(*)       compmajor= ;;
+	esac
 fi
+readonly compvers compmajor
 
-for flag in -pedantic -pipe
+# Compiler flags useful for testing.
+for flag in -Wextra -Wpedantic -pedantic -pipe
 do testflags $flag && compflags="$compflags $flag"
 done
+readonly compflags
 
-readonly compcmd compname compvers compmajor compflags
+# Does the compiler support conversion warnings?
+wconvflags='-Wincompatible-pointer-types -Wconversion -Wsign-conversion'
+# shellcheck disable=2086
+if testflags $wconvflags
+then compwconv=y
+else compwconv=
+fi
+
+# Output.
+printf '%s\n' "$CC"
 
 
 #
@@ -324,7 +340,7 @@ then
 		CFLAGS="-O2 -s"
 		printf ' %s\n' "$CFLAGS"
 	else
-		eval specflags="\${cflags_$comptype-}"
+		eval specflags="\${cflags_$compprefix-}"
 
 		# shellcheck disable=2086,SC2154
 		set -- $cflags $specflags
@@ -365,7 +381,7 @@ then
 		echo
 	fi
 else
-	printf -- ' %s\a\n' "${CFLAGS:-none given.}"
+	printf -- ' %s\a\n' "${CFLAGS:-none given}"
 fi
 unset cflags flag jobs job
 
@@ -380,11 +396,11 @@ if [ "${AR-x}" = x ] && ! [ "${AR-}" = x ]
 then
 	if [ "${compmajor-}" ]
 	then archivers="
-		$comptype-ar-$compmajor
-		$comptype-ar$compmajor
-		$comptype-ar
+		$compprefix-ar-$compmajor
+		$compprefix-ar$compmajor
+		$compprefix-ar
 	"
-	else archivers="$comptype-ar"
+	else archivers="$compprefix-ar"
 	fi
 
 	for archiver in $archivers
@@ -404,21 +420,12 @@ fi
 # Check what data type getgrouplist returns GIDs as.
 #
 
-printf 'getgrouplist group ID type: '
+printf 'getgrouplist GID type: '
 
 : "${SC_GETGRPLST_T=}"
-if ! [ "$SC_GETGRPLST_T" ] && testflags -Wconversion
+if	[ "$compwconv" ] && ! [ "$SC_GETGRPLST_T" ]
 then
-	types=gid_t
-	for base in 'int' 'short' 'long' 'long long'
-	do
-		for prefix in '' 'unsigned '
-		do
-			types="$types:$prefix$base"
-		done
-	done
-
-	src="$TMPDIR/getgrouplist.c"
+	src="$TMPDIR/getgroups.c"
 	cat <<-'EOF' >"$src"
 		#define _BSD_SOURCE
 		#define _DARWIN_C_SOURCE
@@ -442,12 +449,13 @@ then
 	EOF
 
 	IFS=:
-	for type in $types
+	for grptype in $grouptypes
 	do
 		unset IFS
-		if testcomp -DGETGRPLST_T="$type" "$src"
+		# shellcheck disable=2086
+		if testcomp $wconvflags -DGETGRPLST_T="$grptype" "$src"
 		then
-			SC_GETGRPLST_T="$type"
+			SC_GETGRPLST_T="$grptype"
 			break
 		fi
 	done
@@ -456,28 +464,17 @@ fi
 
 if [ "${SC_GETGRPLST_T-}" ]
 then printf '%s\n' "$SC_GETGRPLST_T"
-else printf 'guess at compile-time.\a\n'
+else printf 'guess at compile-time\a\n'
 fi
 
 
 #
-# Check what type setgroups takes the groups size as.
+# Check what data types setgroups takes the group size as.
 #
 
-printf 'setgroups count type: '
-
 : "${SC_SETGRPNUM_T=}"
-if ! [ "$SC_SETGRPNUM_T" ] && testflags -Wconversion
+if 	[ "$compwconv" ] && ! [ "$SC_SETGRPNUM_T" ]
 then
-	types=size_t
-	for base in 'int' 'short' 'long' 'long long'
-	do
-		for prefix in '' 'unsigned '
-		do
-			types="$types:$prefix$base"
-		done
-	done
-
 	src="$TMPDIR/setgroups.c"
 	cat <<-'EOF' >"$src"
 		#define _BSD_SOURCE
@@ -501,23 +498,30 @@ then
 		}
 	EOF
 
+	if [ "${SC_SETGRPLST_T-}" ]
+	then grplstflag="-DSETGRPLST_T=$SC_SETGRPLST_T"
+	else grplstflag=
+	fi
+
 	IFS=:
-	for type in $types
+	for sizetype in $sizetypes
 	do
 		unset IFS
-		if testcomp -DSETGRPNUM_T="$type" -Wconversion "$src"
+		# shellcheck disable=2086
+		if 	testcomp $wconvflags $grplstflag 	\
+			         -DSETGRPNUM_T="$sizetype" "$src"
 		then
-			SC_SETGRPNUM_T="$type"
+			SC_SETGRPNUM_T="$sizetype"
 			break
 		fi
 	done
-
 	unset src
 fi
 
+printf 'setgroups count type: '
 if [ "${SC_SETGRPNUM_T-}" ]
 then printf '%s\n' "$SC_SETGRPNUM_T"
-else printf 'guess at compile-time.\a\n'
+else printf 'guess at compile-time\a\n'
 fi
 
 
