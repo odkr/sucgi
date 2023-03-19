@@ -119,10 +119,9 @@ readonly comm="
 	git stash
 	git pull
 	git checkout \"$branch\"
-	if [ -e makefile ]
-	then make distclean
-	fi
+	[ -e makefile ] && make distclean
 	$check
+	[ -e makefile ] && make distclean
 "
 
 
