@@ -331,7 +331,7 @@ bins = sucgi $(tool_bins) tests/main $(macro_check_bins) $(other_check_bins)
 clean:
 	rm -f funcs.a $(bins) $(dist_name).*
 	rm -rf tmp-* $(dist_name)
-	find . '('
+	find . '('						\
 		-name '*.o'					\
 		-o -name '*.c.*'	-o -name 'a--.*'	\
 		-o -name '-.*'		-o -name '*.dSYM'	\
