@@ -91,7 +91,7 @@ ifnempty(`__LDLIBS', `dnl
 #elif defined(__TINYC__) && __TINYC__
 #define COMP "TinyCC"
 #elif defined(__clang__) && __clang__
-#define COMP "LLVM"
+#define COMP "Clang"
 #elif defined(__GNUC__) && __GNUC__
 #define COMP "GCC"
 ifnempty(`__CC', `dnl
