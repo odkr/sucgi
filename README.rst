@@ -20,10 +20,11 @@ user, cleans the environment, and then runs the script.
 Requirements
 ============
 
-suCGI requires a system that is compatible with `4.4BSD`_ and compliant
-with `POSIX.1-2008`_, including the X/Open System Interface extension.
-Any Unix-like operating system that has been released since 2018 and that
-does *not* target embedded systems should meet these requirements.
+suCGI should compile on any non-ancient Unix-like system.
+
+More precisely, suCGI should compile on any operating system that is
+compatible with `4.4BSD`_ and compliant with `POSIX.1-2008`_,
+including the X/Open System Interface extension.
 
 
 Installation
@@ -42,11 +43,11 @@ Please take the time to read and evaluate the source code.
 
 You may need to install:
 
-* A C compiler (preferably GCC_ or LLVM_).
+* A C compiler.
 * The header files of your system's standard library.
-* The so-called "binary utilities" (i.e., ``ar``, ``ld``, and ``as``).
-* Make (preferably `GNU Make`_)
-* M4 (e.g., `GNU M4`_)
+* So-called "binary utilities".
+* Make
+* M4
 
 On many systems you can do so by::
 
@@ -146,16 +147,6 @@ GitHub: https://github.com/odkr/sucgi
 .. _Apache: https://httpd.apache.org/
 
 .. _`docs/build.rst`: docs/build.rst
-
-.. _GCC: https://gcc.gnu.org/
-
-.. _glibc: https://www.gnu.org/software/libc/
-
-.. _`GNU M4`: https://www.gnu.org/software/m4/
-
-.. _`GNU Make`: https://www.gnu.org/software/make/
-
-.. _LLVM: https://clang.llvm.org/
 
 .. _mod_action: https://httpd.apache.org/docs/2.4/mod/mod_actions.html
 
