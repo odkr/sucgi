@@ -117,8 +117,6 @@
  *
  * The list of permitted variables has been adopted from:
  *
- *     - POSIX.1-2018, sec. 8.1
- *       <https://pubs.opengroup.org/onlinepubs/9699919799>
  *     - RFC 3876 "The Common Gateway Interface (CGI) Version 1.1"
  *       <https://datatracker.ietf.org/doc/html/rfc3875>
  *     - Kira Matrejek, CGI Programming 101, chap. 3
@@ -280,7 +278,6 @@
 
 /*
  * Secure file permission mask. Unsigned integer.
- * The given mask is or-ed with the current mask.
  */
 #define UMASK (S_ISUID | S_ISGID | S_ISVTX | S_IRWXG | S_IRWXO)
 
