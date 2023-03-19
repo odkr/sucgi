@@ -16,9 +16,9 @@ jobs:
     - name: make all tools checks
       run: make all tools checks
     - name: sudo make check
-      run: 'sudo make check runpara_flags="-Si75"'
+      run: sudo make check runpara_flags=-Si75
     - name: make distcheck
-      run: make distcheck
+      run: make distcheck runpara_flags="-Si75
     - name: sudo make install
       run: sudo make wwwgrp=staff cgidir=/tmp install
     - name: sudo make uninstall
