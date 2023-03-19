@@ -25,7 +25,7 @@
 # Initialisation
 #
 
-set -Cefux
+set -Cefu
 script_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
 src_dir="$(cd -P "$script_dir/.." && pwd)"
 tests_dir="$src_dir/tests"
@@ -348,9 +348,7 @@ unset usrval_script usrval_uid usrval_lowuid usrval_highuid \
 #
 
 # Search for a regular user.
-reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")"
-
-if ! [ "$reguser" ]
+if ! reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")"
 then
 	case $result in
 	(0) err -s75 'no regular user found.' ;;
