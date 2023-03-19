@@ -268,7 +268,7 @@ comppath="${1:?}"
 readonly comppath
 
 # Compiler executable.
-compexec="$(basename "${comppath:?}}")"
+compexec="$(basename "${comppath:?}")"
 readonly compexec
 
 # Compiler name.
@@ -295,7 +295,7 @@ compvers="$(
 				exit;
 			}
 		}
-	}'
+	}' 2>/dev/null
 )"
 
 if [ "$compvers" ]
@@ -303,8 +303,13 @@ then
 	compmajor="${compvers%%.*}"
 else
 	case $compexec in
-	(*[0-9]*) compmajor="${compexec##*[!0-9]}" ;;
-	(*)       compmajor= ;;
+	(*[0-9]*)
+		prefix="${compexec%%[0-9]*}"
+	        compmajor="${compexec#"$prefix"}"
+		;;
+	(*)
+		compmajor=
+		;;
 	esac
 fi
 readonly compvers compmajor
