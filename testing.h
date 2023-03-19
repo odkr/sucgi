@@ -50,19 +50,14 @@
 #undef HANDLERS
 #define HANDLERS {{".sh", "sh"}, {".empty", ""}}
 
-#undef LOGGING_LEVEL
-#define LOGGING_LEVEL (                             \
-    LOG_MASK(LOG_EMERG)   | LOG_MASK(LOG_ALERT)  |  \
-    LOG_MASK(LOG_CRIT)    | LOG_MASK(LOG_ERR)    |  \
-    LOG_MASK(LOG_WARNING) | LOG_MASK(LOG_NOTICE) |  \
-    LOG_MASK(LOG_INFO)    | LOG_MASK(LOG_DEBUG)     \
-)
+#undef LOGGING_MASK
+#define LOGGING_MASK LOG_UPTO(LOG_DEBUG)
 
 #undef LOGGING_OPTIONS
 #ifdef LOG_PERROR
-#define LOGGING_OPTIONS ( LOG_CONS | LOG_PERROR )
+#define LOGGING_OPTIONS (LOG_CONS | LOG_PERROR)
 #else
-#define LOGGING_OPTIONS ( LOG_CONS )
+#define LOGGING_OPTIONS LOG_CONS
 #endif
 
 #endif /* !defined(TESTING_H) */

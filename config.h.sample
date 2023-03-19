@@ -291,7 +291,7 @@
  * Priorities to log.
  * See syslog(3) for details.
  */
-#define LOGGING_LEVEL LOG_UPTO(LOG_WARNING)
+#define LOGGING_MASK LOG_UPTO(LOG_ERR)
 )
 
 /*
@@ -299,9 +299,9 @@
  * See syslog(3) for details.
  */
 #if defined(LOG_PERROR)
-#define LOGGING_OPTIONS ( LOG_CONS | LOG_PERROR )
+#define LOGGING_OPTIONS (LOG_CONS | LOG_PERROR)
 #else
-#define LOGGING_OPTIONS ( LOG_CONS )
+#define LOGGING_OPTIONS LOG_CONS
 #endif
 
 

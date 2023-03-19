@@ -181,7 +181,7 @@ config(void)
     (void) printf("\"\n");
 
     (void) printf("LOGGING_FACILITY=%d\n", LOGGING_FACILITY);
-    (void) printf("LOGGING_LEVEL=%d\n", LOGGING_LEVEL);
+    (void) printf("LOGGING_MASK=%d\n", LOGGING_MASK);
     (void) printf("LOGGING_OPTIONS=%d\n", LOGGING_OPTIONS);
 
     (void) printf("PATH=\"%s\"\n", PATH);
@@ -373,7 +373,7 @@ main(int argc, char **argv) {
         error("atexit: %m");
     }
 
-    (void) setlogmask(LOGGING_LEVEL);
+    (void) setlogmask(LOGGING_MASK);
 
 
     /*
