@@ -2,7 +2,7 @@ name: macOS build
 
 on:
   push:
-    branches: [ "main", "release-*" ]
+    branches: [ "devel", "main", "release-*" ]
   pull_request:
     branches: [ "main", "release-*" ]
 
