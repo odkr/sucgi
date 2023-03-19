@@ -40,11 +40,4 @@
 /* Calculate the maximum signed value that a given integer TYPE can hold. */
 #define SIGNEDMAX(type) ((1UL << ((size_t) CHAR_BIT * sizeof(type) - 1UL)) - 1UL)
 
-/* Stringify the literal "LIT". */
-#define STRLIT(lit) #lit
-
-/* Stringify the value of MACRO. */
-#define STRVAL(macro) STRLIT(macro)
-
-
 #endif /* !defined(MACROS_H) */

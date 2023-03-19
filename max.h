@@ -41,7 +41,7 @@
  * including the NUL-terminator. Unsigned integer.
  */
 #if !defined(MAX_ERRMSG_LEN)
-#define MAX_ERRMSG_LEN 128U
+#define MAX_ERRMSG_LEN 256U
 #endif
 
 /*

@@ -49,7 +49,7 @@ include(`macros.m4')dnl
 ifnempty(`__SC_GETGRPLST_T', `dnl
 #define GETGRPLST_T __SC_GETGRPLST_T
 ', `dnl
-#if __APPLE__
+#if defined(__APPLE__) && __APPLE__
 #define GETGRPLST_T int
 #else
 #define GETGRPLST_T gid_t
@@ -60,7 +60,7 @@ ifnempty(`__SC_GETGRPLST_T', `dnl
 ifnempty(`__SC_SETGRPNUM_T', `dnl
 #define SETGRPNUM_T __SC_SETGRPNUM_T
 ', `dnl
-#if __linux__
+#if defined(__linux__) && __linux__
 #define SETGRPNUM_T size_t
 #else
 #define SETGRPNUM_T int
