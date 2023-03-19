@@ -36,10 +36,15 @@ readonly icc_flags='-diag-disable=10441 -std=c99 -O2 -s'
 
 # Compilers to test.
 readonly compilers='
-	gcc-12 gcc-11 gcc-10 gcc-9 gcc-8 gcc musl-gcc
-	clang-16 clang-15 clang-14 clang-13 clang-12
-	clang-11 clang-10 clang-9 clang musl-clang
-	tcc icc c99 cc
+	gcc-12 gcc-11 gcc-10 gcc-9 gcc-8
+	gcc12 gcc11 gcc10 gcc9 gcc8
+	gcc musl-gcc
+	clang-16 clang-15 clang-14 clang-13
+	clang-12 clang-11 clang-10 clang-9
+	clang16 clang15 clang14 clang13
+	clang12 clang11 clang10 clang9
+	clang musl-clang
+	tcc icx icc c99 cc
 '
 
 # Be more quiet?
