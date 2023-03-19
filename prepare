@@ -5,7 +5,31 @@
 # Initialisation
 #
 
-set -Cefu
+set -Ceu
+src_dir="$(dirname "$0")" || exit
+readonly src_dir
+cd "$src_dir" || exit
+. ./scripts/funcs.sh || exit
+init
+
+
+#
+# Functions
+#
+
+hasall() (
+	for cmd
+	do command -v "$cmd" >/dev/null || return
+	done
+	return 0
+)
+
+hasany() (
+	for cmd
+	do command -v "$cmd" >/dev/null && return
+	done
+	return 1
+)
 
 
 #
@@ -16,7 +40,7 @@ OPTIND=1 OPTARG='' opt=''
 while getopts h opt; do
 	case $opt in
 	(h) exec cat <<EOF ;;
-prepare - Prepare the system for building suCGI
+prepare - Install the C build toolchain.
 
 Usage:       prepare
              prepare -h
@@ -45,35 +69,67 @@ fi
 # Main
 #
 
-case $(uname) in
+hascomp='' hashdrs=''
+for cc in cc c99 gcc clang tcc
+do
+	if command -v "$cc" >/dev/null
+	then
+		hascomp=y
+
+		find * -name '*.c' -o -name '*.h'	|
+		xargs sed -n '/^#include </p' 		|
+		sort -u					|
+		"$cc" -xc -E - >/dev/null 2>&1		&&
+		hashdrs=y
+
+		break
+	fi
+done
+
+missing=
+[ "$hascomp" ]			|| missing="$missing gcc"
+hasall ar as ld			|| missing="$missing binutils"
+hasany make gmake pmake	bsdmake	|| missing="$missing make"
+hasany m4			|| missing="$missing m4"
+
+if ! [ "$missing" ] && [ "$hashdrs" ]
+then err -s0 'complete toolchain available; nothing to do.'
+fi
+
+os="$(uname)"
+
+case $os in
 (Darwin)
 	exec xcode-select --install
 	;;
-(FreeBSD)
-	exec cat <<-EOF
-	FreeBSD ships with C build tools.
-	Nothing to do.
-	EOF
-	;;
 (Linux)
-	[ -e /etc/alpine-release ] &&
-		exec apk add binutils fortify-headers gcc libc-dev make m4
-	[ -e /etc/arch-release ] &&
-		exec pacman -S --needed binutils gcc libtool make m4
-	[ -e /etc/debian_version ] &&
-		exec apt-get install binutils gcc libc-dev make m4
-	[ -e /etc/fedora-release ] &&
-		exec dnf install binutils gcc glibc-devel make m4
+	if	[ -e /etc/alpine-release ]
+	then
+		[ "$hashdrs" ] || missing="$missing libc-dev fortify-headers"
+		exec apk add $missing
+	elif	[ -e /etc/arch-release ]
+	then
+		exec pacman -S --needed $missing
+	elif	[ -e /etc/debian_version ]
+	then
+		[ "$hashdrs" ] || missing="$missing libc-dev"
+		exec apt-get install $missing
+	elif	[ -e /etc/fedora-release ]
+	then
+		[ "$hashdrs" ] || missing="$missing glibc-devel"
+		exec dnf install $missing
+	fi
 	;;
 esac
 
-cat <<-EOF >&2
-$0 does not support your operating system. Please install:
-    * A C compiler (e.g., gcc or clang).
-    * The header files of your system's standard library.
-    * The so-called "binary utilities" (i.e., ar, ld, and as).
-    * GNU Make
-    * M4
-EOF
+warn '%s is unsupported by %s.' "$os" "$prog_name"
+warn 'suCGI will compile nonetheless, but you need to install:'
+
+inlist = gcc      $missing && warn '    * A C compiler (e.g., gcc or clang)'
+inlist = binutils $missing && warn '    * Binary utilits (i.e., ar, ld, as)'
+inlist = make     $missing && warn '    * Make'
+inlist = m4       $missing && warn '    * M4'
+
+[ "$hashdrs" ] || warn "    * The headers of your system's standard library"
 
 exit 8
