@@ -174,7 +174,7 @@ static volatile sig_atomic_t waitpiderr = 0;
 static volatile sig_atomic_t unknownpid = 0;
 
 /* Maximum number of jobs to run in parallel. */
-static long max_nrun = 4;
+static long maxnrun = 4;
 
 /* Signal set that contains only SIGCHLD. */
 static sigset_t chldsig;
@@ -208,7 +208,8 @@ cleanup(void)
              rem = grace - (long) difftime(time(NULL), now))
         {
             clearln(stderr);
-            warnx("waiting %lds for %d job(s) to terminate ...", rem, nrun);
+            warnx("waiting %lds for %ld job(s) to terminate ...",
+                  rem, (long) nrun);
             rewindln(stderr);
             (void) sleep(1);
         }
@@ -217,7 +218,7 @@ cleanup(void)
         if (nrun > 0) {
             int nkilled;    /* Number of processes killed. */
 
-            warnx("killing %d remaining job(s) ...", nrun);
+            warnx("killing %ld remaining job(s) ...", (long) nrun);
             nkilled = signaljobs(SIGKILL);
             warnx("%d job(s) killed", nkilled);
         } else {
@@ -255,7 +256,7 @@ collect(const int signo __attribute__((unused)))
             break;
         }
 
-        for (i = 0; i < max_nrun; ++i) {
+        for (i = 0; i < maxnrun; ++i) {
             Job *job = &jobs[i];  /* Shorthand. */
 
             if (job->exited == 0 && pid == job->pid) {
@@ -266,7 +267,7 @@ collect(const int signo __attribute__((unused)))
             }
         }
 
-        if (i == max_nrun) {
+        if (i == maxnrun) {
             /* Should be unreachable. */
             unknownpid = pid;
             break;
@@ -287,7 +288,7 @@ signaljobs(const int signo)
     int njobs;       /* Number of jobs signalled. */
 
     njobs = 0;
-    for (int i = 0; i < max_nrun; ++i) {
+    for (int i = 0; i < maxnrun; ++i) {
         Job *job = &jobs[i];
 
         if (job->pid > 0 && job->exited == 0) {
@@ -419,7 +420,7 @@ PROGNAME " - run jobs in parallel\n\n"
 "Copyright 2023 Odin Kroeger.\n"
 "Released under the GNU General Public License.\n"
 "This programme comes with ABSOLUTELY NO WARRANTY.\n",
-                grace, max_nrun, timeout);
+                grace, maxnrun, timeout);
             return EXIT_SUCCESS;
         case 'c':
             cont = true;
@@ -428,7 +429,7 @@ PROGNAME " - run jobs in parallel\n\n"
             grace = opttonum(0, SHRT_MAX);
             break;
         case 'j':
-            max_nrun = opttonum(1, NELEMS(jobs));
+            maxnrun = opttonum(1, NELEMS(jobs));
             break;
         case 'i':
             statusmask[opttonum(0, NELEMS(statusmask) - 1U)] = true;
@@ -516,7 +517,7 @@ PROGNAME " - run jobs in parallel\n\n"
     (void) alarm((unsigned int) timeout);
 
     do {
-        for (long i = 0; i < max_nrun; ++i) {
+        for (long i = 0; i < maxnrun; ++i) {
             Job *job = &jobs[i];
 
             /* Report exit status of finished jobs. */
@@ -609,7 +610,7 @@ PROGNAME " - run jobs in parallel\n\n"
         if (nrun > 0) {
             if (nfork == argc && !quiet) {
                 clearln(stderr);
-                warnx("waiting for %d job(s) to complete ...", nrun);
+                warnx("waiting for %ld job(s) to complete ...", (long) nrun);
                 rewindln(stderr);
             }
 
