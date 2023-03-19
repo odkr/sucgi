@@ -202,14 +202,14 @@ config(void)
     (void) printf("\n#\n# Debugging\n#\n\n");
 
 #if defined(NDEBUG)
-    (void) printf("NDEBUG=on\n");
+    (void) printf("NDEBUG=%d\n", NDEBUG);
 #else
-    (void) printf("# NDEBUG is undefined.\n");
+    (void) printf("# NDEBUG=\n");
 #endif
 #if defined(CHECK) && CHECK
     (void) printf("CHECK=%d\n", CHECK);
 #else
-    (void) printf("# CHECK is undefined.\n");
+    (void) printf("# CHECK=\n");
 #endif
 
     (void) printf("\n#\n# Toolchain\n#\n\n");
@@ -217,84 +217,46 @@ config(void)
 #if defined(CC)
     (void) printf("CC=\"%s\"\n", CC);
 #else
-    (void) printf("# Using the default C compiler.\n");
+    (void) printf("# CC=\n");
 #endif
 
 #if defined(CFLAGS)
     (void) printf("CFLAGS=\"%s\"\n", CFLAGS);
 #else
-    (void) printf("# No compiler flags given.\n");
+    (void) printf("# CFLAGS=\n");
 #endif
 
 #if defined(AR)
     (void) printf("AR=\"%s\"\n", AR);
 #else
-    (void) printf("# Using the default C compiler.\n");
+    (void) printf("# AR=\n");
 #endif
 
 #if defined(ARFLAGS)
     (void) printf("ARLAGS=\"%s\"\n", ARFLAGS);
 #else
-    (void) printf("# No archiver flags given.\n");
+    (void) printf("# ARLAGS=\n");
 #endif
 
 #if defined(LDFLAGS)
     (void) printf("LDFLAGS=\"%s\"\n", LDFLAGS);
 #else
-    (void) printf("# No linker flags given.\n");
+    (void) printf("# LDFLAGS=\n");
 #endif
 
 #if defined(LDLIBS)
     (void) printf("LDLIBS=\"%s\"\n", LDLIBS);
 #else
-    (void) printf("# No libraries given.\n");
+    (void) printf("# LDLIBS=\n");
 #endif
 
     (void) printf("\n#\n# System\n#\n\n");
 
-
-#if defined(MACHINE)
-    (void) printf("MACHINE=\"%s\"\n", MACHINE);
-#else
-    (void) printf("# Unknown machine type.\n");
-#endif
-
-#if defined(OS)
-    (void) printf("OS=\"%s\"\n", OS);
-#else
-    (void) printf("# Unknown operating system.\n");
-#endif
-
-#if defined(OSVERS)
-    (void) printf("OSVERS=\"%s\"\n", OSVERS);
-#else
-    (void) printf("# Unknown operating system version.\n");
-#endif
-
-#if defined(COMP)
-    (void) printf("COMP=\"%s\"\n", COMP);
-#else
-    (void) printf("# Unknown compiler.\n");
-#endif
-
-#if defined(COMPVERS)
-    (void) printf("COMPVERS=\"%s\"\n", COMPVERS);
-#else
-    (void) printf("# Unknown compiler version.\n");
-#endif
-
 #if defined(LIBC)
     (void) printf("LIBC=\"%s\"\n", LIBC);
 #else
-    (void) printf("# Unknown standard library.\n");
+    (void) printf("# LIBC=?\n");
 #endif
-
-#if defined(LIBCVERS)
-    (void) printf("LIBCVERS=\"%s\"\n", LIBCVERS);
-#else
-    (void) printf("# Unknown standard library version.\n");
-#endif
-
 }
 
 static void
@@ -448,14 +410,12 @@ main(int argc, char **argv) {
         if (err != 0) {
             /* RATS: ignore; regerror respects the size of errmsg. */
             char errmsg[MAX_ERRMSG_LEN];
-            size_t errmsglen;
 
-            errmsglen = regerror(err, &pregs[i], errmsg, sizeof(errmsg));
-            if (errmsglen > sizeof(errmsg)) {
-                /* RATS: ignore; message is short and a literal. */
-                syslog(LOG_NOTICE, "regular expression error truncated.");
-            }
-
+            /*
+             * TODO: Document that regular expression error
+             *       messages may get truncated.
+             */
+            (void) regerror(err, &pregs[i], errmsg, sizeof(errmsg));
             error("regcomp: %s", errmsg);
         }
     }
@@ -528,7 +488,7 @@ main(int argc, char **argv) {
     }
 
     if ((script_stat.st_mode & S_IFREG) == 0) {
-        error("%s is not a regular file.", script_log);
+        error("script %s: not a regular file.", script_log);
     }
 
 
@@ -547,7 +507,7 @@ main(int argc, char **argv) {
     if (owner == NULL) {
         /* cppcheck-suppress misra-c2012-22.10; getpwuid may set errno. */
         if (errno == 0) {
-            error("%s has no owner.", script_log);
+            error("script %s: no owner.", script_log);
         } else {
             error("getpwuid: %m.");
         }
@@ -556,8 +516,7 @@ main(int argc, char **argv) {
     assert(owner->pw_uid == script_stat.st_uid);
 
     if (owner->pw_uid < MIN_UID || owner->pw_uid > MAX_UID) {
-        error("%s is owned by privileged user %s.",
-              script_log, owner->pw_name);
+        error("script %s: owned by privileged user.", script_log);
     }
 
     logname = owner->pw_name;
@@ -590,7 +549,7 @@ main(int argc, char **argv) {
                      /* cppcheck-suppress misra-c2012-11.3; see above. */
                      (GETGRPLST_T *) groups, &ngroups) < 0)
     {
-        error("user %s belongs to too many groups.", logname);
+        error("user %s: belongs to too many groups.", logname);
     }
 
     for (int i = 0; i < ngroups; ++i) {
@@ -607,10 +566,10 @@ main(int argc, char **argv) {
                  * the time getgrouplist returned and getgrgid was called.
                  */
                 if (ISSIGNED(gid_t)) {
-                    error("user %s belongs to non-existing group %lld.",
+                    error("user %s: belongs to non-existing group %lld.",
                           logname, (long long) groups[i]);
                 } else {
-                    error("user %s belongs to non-existing group %llu.",
+                    error("user %s: belongs to non-existing group %llu.",
                           logname, (unsigned long long) groups[i]);
                 }
             } else {
@@ -619,13 +578,13 @@ main(int argc, char **argv) {
         }
 
         if (grp->gr_gid < MIN_GID || grp->gr_gid > MAX_GID) {
-            error("user %s belongs to privileged group %s.",
+            error("user %s: belongs to privileged group %s.",
                   logname, grp->gr_name);
         }
 
         for (size_t j = 0; j < NELEMS(deny_groups); ++j) {
             if (fnmatch(deny_groups[j], grp->gr_name, 0) == 0) {
-                error("user %s belongs to denied group %s.",
+                error("user %s: belongs to denied group %s.",
                       logname, grp->gr_name);
             }
         }
@@ -638,7 +597,7 @@ main(int argc, char **argv) {
     }
 
     if (!allowed) {
-        error("user %s does not belong to group %s.", logname, ALLOW_GROUP);
+        error("user %s: does not belong to group %s.", logname, ALLOW_GROUP);
     }
 
 
@@ -779,8 +738,7 @@ main(int argc, char **argv) {
     case OK:
         break;
     case ERR_WEXCL:
-        error("script %s: writable by users other than %s.",
-              script_log, logname);
+        error("script %s: writable by non-owner.", script_log);
     case ERR_SYS_STAT:
         error("stat %s: %m.", script_log);
     default:

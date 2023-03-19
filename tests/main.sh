@@ -251,7 +251,7 @@ check -s1 -e'long'	PATH_TRANSLATED="$scrsan_hugepath" main	|| result=70
 check -s1 -e'long'	PATH_TRANSLATED="$scrsan_hugelink" main	|| result=70
 
 # Script is of the wrong type.
-check -s1 -e"$scrsan_wrongftype is not a regular file." \
+check -s1 -e"script $scrsan_wrongftype: not a regular file." \
 	PATH_TRANSLATED="$scrsan_wrongftype" main	|| result=70
 
 # Script does not exist.
@@ -260,7 +260,7 @@ check -s1 -e"realpath $TMPDIR/<nosuchfile>: No such file or directory." \
 
 # PATH_TRANSLATED is valid.
 case $uid in
-(0) scrsan_err="$scrsan_script is owned by privileged user root." ;;
+(0) scrsan_err="script $scrsan_script: owned by privileged user." ;;
 (*) scrsan_err='seteuid: Operation not permitted.' ;;
 esac
 check -s1 -e"$scrsan_err" PATH_TRANSLATED="$scrsan_script" main || result=70
@@ -271,7 +271,7 @@ then
 	nskipped=$((nskipped + 1))
 else
 	case $uid in
-	(0) scrsan_err="$scrsan_longpath is owned by privileged user root." ;;
+	(0) scrsan_err="script $scrsan_longpath: owned by privileged user." ;;
 	(*) scrsan_err='seteuid: Operation not permitted.' ;;
 	esac
 
@@ -325,7 +325,7 @@ usrval_highuid="$(
 
 # Owned by non-existing user.
 chown "$usrval_unallocuid" "$usrval_script"
-check -s1 -e"$usrval_script has no owner." \
+check -s1 -e"script $usrval_script: no owner." \
       PATH_TRANSLATED="$usrval_script" main || result=70
 
 # Owned by a privileged user
@@ -334,7 +334,7 @@ do
 	[ "$usrval_uid" ] || continue
 
 	chown "$usrval_uid" "$usrval_script"
-	check -s1 -e"$usrval_script is owned by privileged user" \
+	check -s1 -e"script $usrval_script: owned by privileged user" \
 		PATH_TRANSLATED="$usrval_script" main || result=70
 done
 
@@ -497,12 +497,12 @@ exclw_no="u=r,g=w,o= u=r,g=,o=w u=rw,g=w,o= u=rw,g=,o=w u=rw,go=w u=rw,go=w"
 for exclw_mode in $exclw_no
 do
 	chmod "$exclw_mode" "$exclw_shallow"
-	check -s1 -e"script $exclw_shallow: writable by users other than $reguser" \
+	check -s1 -e"script $exclw_shallow: writable by non-owner" \
 	      PATH_TRANSLATED="$exclw_shallow" main || result=70
 
 	chmod "$exclw_mode" "$exclw_subdir"
 	chmod u+x "$exclw_subdir"
-	check -s1 -e"script $exclw_deeper: writable by users other than $reguser" \
+	check -s1 -e"script $exclw_deeper: writable by non-owner" \
 	      PATH_TRANSLATED="$exclw_deeper" main || result=70
 done
 
@@ -522,11 +522,11 @@ do
 	      PATH_TRANSLATED="$exclw_deeper" main || result=70
 
 	chmod g+w,o= "$exclw_deeper"
-	check -s1 -e"script $exclw_deeper: writable by users other than $reguser" \
+	check -s1 -e"script $exclw_deeper: writable by non-owner" \
 	      PATH_TRANSLATED="$exclw_deeper" main || result=70
 
 	chmod g=,o+w "$exclw_deeper"
-	check -s1 -e"script $exclw_deeper: writable by users other than $reguser" \
+	check -s1 -e"script $exclw_deeper: writable by non-owner" \
 	      PATH_TRANSLATED="$exclw_deeper" main || result=70
 done
 

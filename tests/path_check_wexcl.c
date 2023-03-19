@@ -69,8 +69,7 @@ main (int argc, char **argv)
     case ERR_BASEDIR:
         errx(EXIT_FAILURE, "file %s: not within %s", fname, basedir);
     case ERR_WEXCL:
-        errx(EXIT_FAILURE, "file %s: writable by users other than %s",
-             fname, user->pw_name);
+        errx(EXIT_FAILURE, "file %s: writable by non-owner", fname);
     case ERR_SYS_STAT:
         err(EXIT_FAILURE, "stat %s", fname);
     default:

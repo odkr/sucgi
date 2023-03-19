@@ -142,12 +142,12 @@ no="u=r,g=w,o= u=r,g=,o=w u=rw,g=w,o= u=rw,g=,o=w u=rw,go=w u=rw,go=w"
 for mode in $no
 do
 	chmod "$mode" "$shallow"
-	check -s1 -e"file $shallow: writable by users other than $user" \
+	check -s1 -e"file $shallow: writable by non-owner" \
 	      path_check_wexcl "$user" "$TMPDIR" "$shallow"	|| result=70
 
 	chmod "$mode" "$basedir"
 	chmod u+x "$basedir"
-	check -s1 -e"file $deeper: writable by users other than $user" \
+	check -s1 -e"file $deeper: writable by non-owner" \
 	      path_check_wexcl "$user" "$TMPDIR" "$deeper"	|| result=70
 done
 
@@ -165,7 +165,7 @@ do
 	check path_check_wexcl "$user" "$TMPDIR" "$shallow"	|| result=70
 	if [ "$uid" -ne 0 ]
 	then
-		check -s1 -e"file $deeper: writable by users other than $user" \
+		check -s1 -e"file $deeper: writable by non-owner" \
 		      path_check_wexcl "$user" / "$deeper"	|| result=70
 	fi
 
@@ -174,11 +174,11 @@ do
 	check path_check_wexcl "$user" "$TMPDIR" "$deeper"	|| result=70
 
 	chmod g+w,o= "$deeper"
-	check -s1 -e"file $deeper: writable by users other than $user" \
+	check -s1 -e"file $deeper: writable by non-owner" \
 	      path_check_wexcl "$user" "$TMPDIR" "$deeper"	|| result=70
 
 	chmod g=,o+w "$deeper"
-	check -s1 -e"file $deeper: writable by users other than $user" \
+	check -s1 -e"file $deeper: writable by non-owner" \
 	      path_check_wexcl "$user" "$TMPDIR" "$deeper"	|| result=70
 done
 
