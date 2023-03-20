@@ -285,7 +285,7 @@ ifhascmd(`rats', `define(`__rats', `findcmd(`rats')')')dnl
 ifhascmd(`shellcheck', `define(`__shellcheck', `findcmd(`shellcheck')')')dnl
 
 inspect	= *.h *.c
-scripts = configure prepare scripts/*.sh tests/*.sh
+scripts = configure prepare scripts/* tests/*.sh
 
 ifnempty(`__clang_tidy', `dnl
 clang_tidy_flags = --config-file=clang-tidy.yaml
