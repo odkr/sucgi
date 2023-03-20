@@ -38,8 +38,10 @@
 #include "max.h"
 
 /* message cannot be a literal. */
+#if defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
 
 void
 error(const char *const message, ...)
@@ -57,5 +59,6 @@ error(const char *const message, ...)
     exit(EXIT_FAILURE);
 }
 
+#if defined(__GNUC__)
 #pragma GCC diagnostic pop
-
+#endif

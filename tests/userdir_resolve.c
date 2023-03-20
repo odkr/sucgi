@@ -136,10 +136,15 @@ main(void)
 
         (void) memset(dir, '\0', MAX_FNAME_LEN);
 
+/* FIXME: explain use of pragmas. */
+#if defined(__GNUC__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
+#endif
         ret = userdir_resolve(args.s, args.user, dir);
+#if defined(__GNUC__)
 #pragma GCC diagnostic pop
+#endif
 
         if (ret != args.ret) {
             warnx("(%s, %s, -> %s) -> %u [!]",
