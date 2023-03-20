@@ -40,7 +40,7 @@ OPTIND=1 OPTARG='' opt=''
 while getopts h opt; do
 	case $opt in
 	(h) exec cat <<EOF ;;
-prepare - Install the C build toolchain.
+prepare - Install a C build toolchain.
 
 Usage:       prepare
              prepare -h
@@ -125,10 +125,10 @@ esac
 warn '%s is unsupported by %s.' "$os" "$prog_name"
 warn 'suCGI will compile nonetheless, but you need to install:'
 
-inlist = gcc      $missing && warn '    * A C compiler (e.g., gcc or clang)'
-inlist = binutils $missing && warn '    * Binary utilits (i.e., ar, ld, as)'
-inlist = make     $missing && warn '    * Make'
-inlist = m4       $missing && warn '    * M4'
+inlist '=' gcc      $missing && warn '    * A C compiler (e.g., gcc or clang)'
+inlist '=' binutils $missing && warn '    * Binary utilits (i.e., ar, ld, as)'
+inlist '=' make     $missing && warn '    * Make'
+inlist '=' m4       $missing && warn '    * M4'
 
 [ "$hashdrs" ] || warn "    * The headers of your system's standard library"
 
