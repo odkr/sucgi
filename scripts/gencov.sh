@@ -158,23 +158,24 @@ distdir="$TMPDIR/dist"
 owner="$(owner "$src_dir")"
 group="$(id -g "$owner")"
 
-warn -q 'copying source files ...'
-logged make dist_name="$distdir" "$distdir"
+
+#
+# Main
+#
+
+warn -q 'copying sources ...'
+m4 makefile.m4 > "$TMPDIR/makefile"
+logged make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir"
 cd -P "$distdir" || exit
 
-warn -q 'generating build configuration ... '
-CC="$comp" logged ./configure
+warn -q 'configuring build ... '
+CC="$comp" logged ./configure -cposix.env
 
 warn -q 'compiling tools ...'
 logged make tools
 
 warn -q 'compiling tests ...'
 logged make CFLAGS='-O2 --coverage' all checks
-
-
-#
-# Environment
-#
 
 warn -q 'adapting environment ...'
 
@@ -191,11 +192,6 @@ reggroup="$(id -gn "$reguser")"
 chown -R "$reguser:$reggroup" "$TMPDIR"
 chmod -R ugo+r "$TMPDIR"
 find "$TMPDIR" -type d -exec chmod ug+s,o+x '{}' +
-
-
-#
-# Main
-#
 
 warn -q 'collecting coverage data ...'
 find tests -type f '(' -perm +=x -o -name '*.sh' ')' ! -name 'lib.*' |
