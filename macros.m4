@@ -18,6 +18,7 @@ dnl You should have received a copy of the GNU General Public License along
 dnl with suCGI. If not, see <https://www.gnu.org/licenses>.
 changecom()dnl
 define(`default', `ifdef(`$1', `ifelse(`$1', `', `$2', `$1')', `$2')')dnl
+define(`findcmd', `syscmd(`printf %s $(command -v "$1" 2>/dev/null)')')dnl
 define(`hascmd', `syscmd(`command -v "$1" >/dev/null 2>&1')sysval')dnl
 define(`ifnempty', `ifdef(`$1', `ifelse(`$1', `', `$3', `$2')', `$3')')dnl
 define(`ifhascmd', `ifelse(hascmd(`$1'), `0', `$2', `$3')')dnl
