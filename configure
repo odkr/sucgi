@@ -72,15 +72,9 @@ readonly sizetypes="size_t:$inttypes"
 conf=prod.env
 
 # Compilers to test for. Space-separated list of commands.
-compilers='
-gcc-12 gcc-11 gcc-10 gcc-9 gcc-8 gcc12 gcc11 gcc10 gcc9 gcc8 gcc musl-gcc
-clang-16 clang-15 clang-14 clang-13 clang-12 clang-11 clang-10 clang-9
-clang16 clang15 clang14 clang13 clang12 clang11 clang10 clang9 clang
-musl-clang
-tcc icx icc c99 cc
-'
+compilers='gcc clang tcc icx icc c99 cc'
 
-# Files to generate.
+# Files to generate. Space-separated list.
 files='build.h compat.h makefile'
 
 # Number of child processes to spawn.
@@ -96,6 +90,9 @@ quiet=
 
 # Flags for testing compiling features.
 compflags=
+
+# Directories to add to $PATH when searching utilities. Colon-separated list.
+utilpath=
 
 
 #
@@ -531,6 +528,25 @@ fi
 
 
 #
+# Extend $PATH for utilities.
+#
+
+if [ "$utilpath" ]
+then
+	IFS=:
+	for dir in $utilpath
+	do
+		unset IFS
+		case $PATH in
+		("$dir":|:"$dir"|:"$dir":) : ;;
+		(*) [ -e "$dir" ] && PATH="$dir:$PATH"
+		esac
+	done
+	export PATH
+fi
+
+
+#
 # Generate M4 command line.
 #
 
@@ -562,7 +578,7 @@ if [ "$prog_name" != "$confsave" ]
 then
 	if [ "$exists" ] && ! [ "$force" ]
 	then
-		warn -q '%s exists.' "$confsave"
+		err '%s exists, give -f to overwrite.' "$confsave"
 	else
 		swap="$TMPDIR/$confsave"
 
