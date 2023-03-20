@@ -23,7 +23,7 @@
 #define CATTR_H
 
 /* Excise function attributes unless the compiler understands GNU C. */
-#if !defined(__GNUC__) || !__GNUC__
+#if !defined(__GNUC__) || defined(NATTR) && NATTR
 #define __attribute__(attr)
 #endif
 
