@@ -220,33 +220,6 @@ inlist() (
 	return 1
 )
 
-# Create a lock file
-lock() {
-	__lock="${1:?}"
-	readonly __lock
-
-	cleanup="unlock \"\$__lock\"; ${cleanup-}"
-
-	while true
-	do
-		if ( set -C && printf '%d\n' "$$" >"$__lock" 2>/dev/null; )
-		then return 0
-		elif ! unlock "$__lock"
-		then err '%s exists.' "$__lock"
-		fi
-	done
-}
-
-# Remove a lock file.
-unlock() {
-	: "${1?}"
-
-	if [ "$1" ] && [ -e "$1" ] && [ "$(cat "$1")" -eq $$ ] 2>/dev/null
-	then rm -f "$1"
-	else return 1
-	fi
-}
-
 # Create a path that is $len characters long in $basepath.
 mklongpath() (
 	basepath="${1:?}" len="${2:?}" max=99999

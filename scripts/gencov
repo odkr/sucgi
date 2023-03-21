@@ -22,30 +22,6 @@
 
 
 #
-# Initialiation
-#
-
-set -Ceu
-scripts_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
-src_dir="$(dirname -- "$scripts_dir")"
-# shellcheck disable=2034
-readonly scripts_dir src_dir
-# shellcheck disable=1091
-. "$src_dir/scripts/funcs.sh" || exit
-init || exit
-tmpdir cov .
-
-
-#
-# Constants
-#
-
-# Current working directory.
-cwd="$(pwd)"
-readonly cwd
-
-
-#
 # Defaults
 #
 
@@ -61,6 +37,29 @@ lcovinfo=-
 # Where to store the LCov report.
 htmldir=cov
 
+
+#
+# Initialiation
+#
+
+set -Ceu
+scripts_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+src_dir="$(dirname -- "$scripts_dir")"
+# shellcheck disable=2034
+readonly scripts_dir src_dir
+# shellcheck disable=1091
+. "$src_dir/scripts/funcs.sh" || exit
+init || exit
+tmpdir tmp .
+
+
+#
+# Constants
+#
+
+# Current working directory.
+cwd="$(pwd)"
+readonly cwd
 
 
 #
@@ -146,25 +145,20 @@ readonly htmldir
 
 
 #
-# Setup
+# Main
 #
 
 cd -P "$src_dir" || exit
 
 uid="$(id -u)"
 [ "$uid" -eq 0 ] || err 'not invoked by the superuser.'
-distdir="$TMPDIR/dist"
 
 owner="$(owner "$src_dir")"
 group="$(id -g "$owner")"
 
-
-#
-# Main
-#
-
 warn -q 'copying sources ...'
 m4 makefile.m4 > "$TMPDIR/makefile"
+distdir="$TMPDIR/dist"
 logged make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir"
 cd -P "$distdir" || exit
 

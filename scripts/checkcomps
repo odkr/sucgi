@@ -22,15 +22,6 @@
 
 
 #
-# Constants
-#
-
-# Default options for icc
-# shellcheck disable=2034
-readonly icc_flags='-diag-disable=10441 -std=c99 -O2 -s'
-
-
-#
 # Defaults
 #
 
@@ -67,6 +58,15 @@ readonly tools_dir src_dir
 . "$tools_dir/funcs.sh" || exit
 init || exit
 tmpdir
+
+
+#
+# Constants
+#
+
+# Default options for icc
+# shellcheck disable=2034
+readonly icc_flags='-diag-disable=10441 -std=c99 -O2 -s'
 
 
 #
@@ -126,9 +126,12 @@ unset opt
 #
 
 cd -P "$src_dir" || exit
-lock check.lock
-# shellcheck disable=2034
-cleanup="mrproper; ${cleanup-}"
+
+warn -q 'copying sources ...'
+m4 makefile.m4 > "$TMPDIR/makefile"
+distdir="$TMPDIR/dist"
+make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir" >/dev/null
+cd -P "$distdir" || exit
 
 failures=
 for cc

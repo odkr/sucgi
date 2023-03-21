@@ -20,6 +20,38 @@
 
 # shellcheck disable=1091,2015
 
+
+#
+# Defaults
+#
+
+# Build configuration.
+conf=prod.env
+
+# Compilers to look for. Space-separated list of commands.
+compilers='gcc clang tcc icx icc c99 cc'
+
+# Files to generate. Space-separated list.
+files='build.h compat.h makefile'
+
+# Number of child processes to spawn.
+maxnjobs=4
+# The Almquist shell tends to crash when running jobs in parallel.
+[ "$(basename "${SHELL-}")" = ash ] && maxnjobs=1
+
+# Overwrite existing files?
+force=
+
+# Be quiet?
+quiet=
+
+# Flags for testing compiling features.
+compflags=
+
+# Directories to add to $PATH when searching utilities. Colon-separated list.
+utilpath=
+
+
 #
 # Initialisation
 #
@@ -62,37 +94,6 @@ readonly grouptypes="gid_t:$inttypes"
 
 # Colon-separated list of possible data types for sizes.
 readonly sizetypes="size_t:$inttypes"
-
-
-#
-# Defaults
-#
-
-# Build configuration.
-conf=prod.env
-
-# Compilers to test for. Space-separated list of commands.
-compilers='gcc clang tcc icx icc c99 cc'
-
-# Files to generate. Space-separated list.
-files='build.h compat.h makefile'
-
-# Number of child processes to spawn.
-maxnjobs=4
-# The Almquist shell tends to crash when running jobs in parallel.
-[ "$(basename "${SHELL-}")" = ash ] && maxnjobs=1
-
-# Overwrite existing files?
-force=
-
-# Be quiet?
-quiet=
-
-# Flags for testing compiling features.
-compflags=
-
-# Directories to add to $PATH when searching utilities. Colon-separated list.
-utilpath=
 
 
 #

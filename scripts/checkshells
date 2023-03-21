@@ -22,14 +22,6 @@
 
 
 #
-# Constants
-#
-
-# Files that ./configure should create.
-readonly files='config.status makefile build.h compat.h'
-
-
-#
 # Defaults
 #
 
@@ -55,7 +47,15 @@ readonly tools_dir src_dir
 # shellcheck disable=1091
 . "$tools_dir/funcs.sh" || exit
 init || exit
-tmpdir
+tmpdir tmp .
+
+
+#
+# Constants
+#
+
+# Files that ./configure should create.
+readonly files='config.status makefile build.h compat.h'
 
 
 #
@@ -132,9 +132,12 @@ fi
 #
 
 cd -P "$src_dir" || exit
-lock check.lock
-# shellcheck disable=2034
-cleanup="mrproper; ${cleanup-}"
+
+warn -q 'copying sources ...'
+m4 makefile.m4 > "$TMPDIR/makefile"
+distdir="$TMPDIR/dist"
+make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir" >/dev/null
+cd -P "$distdir" || exit
 
 failures=
 for shell
@@ -161,7 +164,7 @@ do
 		done
 
 		find ./tests -name '*.sh' ! -name funcs.sh \
-		     -exec make check SHELL="$shell" checks='{}' ';'
+		     -exec make -e check SHELL="$shell" checks='{}' ';'
 	)
 	then
 		[ "$verbose" ] || printf '%s\n' pass >&2
