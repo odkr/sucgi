@@ -1,7 +1,7 @@
 #!/bin/sh
 # Run checks using different compilers.
 #
-# Copyright 2022 Odin Kroeger.
+# Copyright 2023 Odin Kroeger.
 #
 # This file is part of suCGI.
 #
@@ -68,6 +68,10 @@ tmpdir
 # shellcheck disable=2034
 readonly icc_flags='-diag-disable=10441 -std=c99 -O2 -s'
 
+# Current working directory
+cwd="$(pwd)" || exit
+readonly cwd
+
 
 #
 # Functions
@@ -128,7 +132,7 @@ unset opt
 cd -P "$src_dir" || exit
 
 warn -q 'copying sources ...'
-m4 makefile.m4 > "$TMPDIR/makefile"
+m4 makefile.m4 >"$TMPDIR/makefile"
 distdir="$TMPDIR/dist"
 make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir" >/dev/null
 cd -P "$distdir" || exit
@@ -138,11 +142,10 @@ for cc
 do
 	command -v "$cc" >/dev/null || continue
 
-	warn -n 'checking %s ... ' "$cc"
-	[ "$verbose" ] && echo >&2
+	warn 'checking with %s ... ' "$cc"
 
-	logfile="$TMPDIR/checkcomp-$cc.log"
-	if (
+	logfile="$TMPDIR/check$cc.log"
+	if ! (
 		[ "$verbose" ] || exec >"$logfile" 2>&1
 
 		name="${cc%-*}"
@@ -180,12 +183,11 @@ do
 		done
 	)
 	then
-		[ "$verbose" ] || printf '%s\n' pass >&2
-	else
 		if ! [ "$verbose" ]
 		then
-			printf '%s\n' fail >&2
-			[ -e "$logfile" ] && mv "$logfile" .
+			warn 'testing with %s failed.' "$vm"
+			warn 'see %s for details.' "$logfile"
+			[ -e "$logfile" ] && mv "$logfile" "$cwd"
 		fi
 		failures="$failures $cc"
 	fi

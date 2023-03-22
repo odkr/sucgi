@@ -81,6 +81,8 @@ unset opt
 
 cd -P "$src_dir/scripts" || exit
 
-./checkshells.sh
-./checkcomps.sh
+./checkcomps
+./checkmakes
+./checkshells
+
 

@@ -1,7 +1,7 @@
 #!/bin/sh
-# Run checks using different compilers.
+# Check different shells.
 #
-# Copyright 2022 Odin Kroeger.
+# Copyright 2023 Odin Kroeger.
 #
 # This file is part of suCGI.
 #
@@ -56,6 +56,10 @@ tmpdir tmp .
 
 # Files that ./configure should create.
 readonly files='config.status makefile build.h compat.h'
+
+# Current working directory
+cwd="$(pwd)" || exit
+readonly cwd
 
 
 #
@@ -134,7 +138,7 @@ fi
 cd -P "$src_dir" || exit
 
 warn -q 'copying sources ...'
-m4 makefile.m4 > "$TMPDIR/makefile"
+m4 makefile.m4 >"$TMPDIR/makefile"
 distdir="$TMPDIR/dist"
 make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir" >/dev/null
 cd -P "$distdir" || exit
@@ -144,11 +148,10 @@ for shell
 do
 	command -v "$shell" >/dev/null 2>&1 || continue
 
-	warn -n 'checking %s ... ' "$shell"
-	[ "$verbose" ] && echo >&2
+	warn 'checking %s ... ' "$shell"
 
-	logfile="$TMPDIR/checkshell-$shell.log"
-	if (
+	logfile="$TMPDIR/check$shell.log"
+	if ! (
 		[ "$verbose" ] || exec >"$logfile" 2>&1
 
 		mrproper
@@ -167,12 +170,11 @@ do
 		     -exec make -e check SHELL="$shell" checks='{}' ';'
 	)
 	then
-		[ "$verbose" ] || printf '%s\n' pass >&2
-	else
 		if ! [ "$verbose" ]
 		then
-			printf '%s\n' fail >&2
-			[ -e "$logfile" ] && mv "$logfile" .
+			warn '%s failed.' "$shell"
+			warn 'see %s for details.' "$(basename "$logfile")"
+			[ -e "$logfile" ] && mv "$logfile" "$cwd"
 		fi
 		failures="$failures $shell"
 	fi

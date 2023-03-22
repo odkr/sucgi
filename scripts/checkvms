@@ -1,7 +1,7 @@
 #!/bin/sh
 # Run checks using different virtual machines.
 #
-# Copyright 2022 Odin Kroeger.
+# Copyright 2023 Odin Kroeger.
 #
 # This file is part of suCGI.
 #
@@ -34,10 +34,10 @@ branch=devel
 # Check command to run.
 check="
 	if command -v sudo >/dev/null
-	then sudo scripts/checkall.sh
+	then sudo scripts/checkall
 	elif command -v doas >/dev/null
-	then doas scripts/checkall.sh
-	else scripts/checkall.sh
+	then doas scripts/checkall
+	else scripts/checkall
 	fi
 "
 
@@ -51,7 +51,7 @@ quiet=
 verbose=
 
 # How many seconds to wait for a VM to become reachable.
-timeout=60
+timeout=120
 
 
 #
@@ -67,6 +67,78 @@ readonly tools_dir src_dir
 . "$tools_dir/funcs.sh" || exit
 init || exit
 tmpdir
+
+
+#
+# Constants
+#
+
+# Current working directory
+cwd="$(pwd)" || exit
+readonly cwd
+
+
+#
+# Functions
+#
+
+utmquit() {
+	utmstoplastvm
+	if command -v osascript >/dev/null 2>&1
+	then osascript -e 'tell application "UTM" to quit'
+	else killall UTM
+	fi
+}
+
+utmquitatexit() {
+	if [ "${utmpid-x}" = x ] && [ "${utmpid-}" != x ]
+	then
+		utmpid="$(
+			ps -xo pid=,comm= |
+			awk '$2 ~ /\/UTM$/ {print $1; exit}'
+		)"
+		readonly utmpid
+	fi
+
+	if ! [ "$utmpid" ]
+	then
+		case $cleanup in
+		(*utmquit*) : ;;
+		(*) cleanup="utmquit; ${cleanup-}"
+		esac
+	fi
+}
+
+utmstatus() {
+	utmquitatexit
+	utmctl status "${1:?}"
+}
+
+
+utmstoplastvm() {
+	if	[ "${lastvm-}" ]			&&
+		[ "$(utmstatus "$lastvm")" = started ]	>/dev/null 2>&1
+	then
+		catch=
+		utmctl stop "$lastvm"
+		lastvm=
+		catch=x
+		if [ "$caught" ]
+		then kill -s "$caught" "$$"
+		fi
+	fi
+}
+
+utmstartvm() {
+	utmquitatexit
+	if	status="$(utmstatus "${1:?}")"	&&
+		[ "$status" = stopped ]
+	then
+		lastvm="$1"
+		utmctl start "$1"
+	fi
+}
+
 
 
 #
@@ -119,9 +191,7 @@ readonly comm="
 	git stash
 	git pull
 	git checkout \"$branch\"
-	[ -e makefile ] && make distclean
 	$check
-	[ -e makefile ] && make distclean
 "
 
 
@@ -129,41 +199,16 @@ readonly comm="
 # Main
 #
 
-utmpid="$(ps -xo pid=,comm= | awk '$2 ~ /\/UTM$/ {print $1; exit}')"
-
-if ! [ "$utmpid" ]
-then
-	cleanup="osascript -e 'tell application \"UTM\" to quit'; ${cleanup-}"
-	osascript -e 'tell application "UTM" to start'
-fi
-
-cleanup="
-	warn 'shutting down ...'
-	if
-		[ \"\${vm-}\" ]					&&
-		[ \"\${started-}\" = \"\$vm\" ]			&&
-		[ \"\$(utmctl status \"\$vm\")\" = started ]
-	then
-		utmctl stop \"\$vm\"
-	fi
-	${cleanup-}
-"
-
+cleanup="warn 'shutting down ...'; ${cleanup-}"
 
 failures=
 for vm
 do
-	warn -n 'testing with %s ... ' "$vm"
-	[ "$verbose" ] && echo >&2
+	warn 'checking with %s ... ' "$vm"
 
-	warn -q 'waiting for %s to boot ...' "$vm"
+	[ "$verbose" ] && warn -q 'waiting for %s to reply ...' "$vm"
 
-	started=
-	if [ "$(utmctl status "$vm")" = stopped ]
-	then
-		utmctl start "$vm"
-		started="$vm"
-	fi
+	utmstartvm "$vm"
 
 	trap 'catch ALRM' ALRM
 	pid="$$"
@@ -176,25 +221,24 @@ do
 	[ "$caught" = ALRM ] && err 'connection failure.'
 	kill "$alarm"
 
-	logfile="$TMPDIR/checkvm-$vm.log"
-	if (
+	logfile="$TMPDIR/check$vm.log"
+	if ! (
 		[ "$verbose" ] || exec >"$logfile" 2>&1
 
 		# shellcheck disable=2029
 		ssh "$vm" "$comm"
 	)
 	then
-		[ "$verbose" ] || printf '%s\n' pass >&2
-	else
 		if ! [ "$verbose" ]
 		then
-			printf '%s\n' fail >&2
-			[ -e "$logfile" ] && mv "$logfile" .
+			warn 'testing with %s failed.' "$vm"
+			warn 'see %s for details.' "$(basename "$logfile")"
+			[ -e "$logfile" ] && mv "$logfile" "$cwd"
 		fi
 		failures="$failures $vm"
 	fi
 
-	[ "$started" ] && utmctl stop "$vm"
+	utmstoplastvm
 done
 
 if [ "$failures" ]
