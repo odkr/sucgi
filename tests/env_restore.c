@@ -106,14 +106,27 @@ static char longname[MAX_VAR_LEN] = {'\0'};
 static char hugename[MAX_VAR_LEN] = {'\0'};
 
 /*
- * FIXME: Explain why this is needed.
+ * I am mixing string literals, arrays, and pointers for convenience;
+ * or else I would have to define a lot of struct types.
  */
+#if defined(__GNUC__)
 #pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
+#if __GNUC__ > 5 || (__GNUC__ == 5 && __GNUC_MINOR__ >= 1)
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
-#if defined(__INTEL_COMPILER) && __INTEL_COMPILER
-#pragma warning(disable: 2330 2331 3179)
 #endif
+#if __GNUC__ > 6 || (__GNUC__ == 6 && __GNUC_MINOR__ >= 1)
+#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
+#endif
+#endif /* defined(__GNUC__) */
+#if defined(__clang__)
+#pragma clang diagnostic push
+#if __clang_major__ >= 4
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types-discards-qualifiers"
+#endif
+#endif /* defined(__clang__) */
+#if defined(__INTEL_COMPILER)
+#pragma warning(disable: 2330 2331 3179)
+#endif /* defined(__INTEL_COMPILER) */
 
 /* Test cases. */
 static const Args cases[] = {
@@ -347,7 +360,12 @@ static const Args cases[] = {
 	}
 };
 
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
+#if defined(__GNUC__)
 #pragma GCC diagnostic pop
+#endif
 
 
 /*

@@ -53,7 +53,7 @@
 
 /* A mapping of arguments to return values. */
 typedef struct {
-    const char *const s;
+    const char *const str;
     const struct passwd *const user;
     const char *const dir;
     const Error ret;
@@ -136,25 +136,25 @@ main(void)
 
         (void) memset(dir, '\0', MAX_FNAME_LEN);
 
-/* FIXME: explain use of pragmas. */
-#if defined(__GNUC__)
+/* args.str is not a literal. */
+#if defined(__GNUC__) && __GNUC__ >= 3
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 #endif
-        ret = userdir_resolve(args.s, args.user, dir);
+        ret = userdir_resolve(args.str, args.user, dir);
 #if defined(__GNUC__)
 #pragma GCC diagnostic pop
 #endif
 
         if (ret != args.ret) {
             warnx("(%s, %s, -> %s) -> %u [!]",
-                  args.s, args.user->pw_name, args.dir, ret);
+                  args.str, args.user->pw_name, args.dir, ret);
             result = TEST_FAILED;
         }
 
         if (ret == OK && strcmp(args.dir, dir) != 0) {
             warnx("(%s, %s, -> %s [!]) -> %u",
-                  args.s, args.user->pw_name, dir, args.ret);
+                  args.str, args.user->pw_name, dir, args.ret);
             result = TEST_FAILED;
         }
     }

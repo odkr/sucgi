@@ -22,9 +22,13 @@
 #if !defined(CATTR_H)
 #define CATTR_H
 
-/* Excise function attributes unless the compiler understands GNU C. */
-#if !defined(__GNUC__) || defined(NATTR) && NATTR
+/*
+ * Excise function attributes if the compiler does not
+ * understand GNU C or attributes have been disabled.
+ */
+#if !defined(__GNUC__) || __GNUC__ < 3 || defined(NATTR) && NATTR
 #define __attribute__(attr)
 #endif
+
 
 #endif /* !defined(CATTR_H) */
