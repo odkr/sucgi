@@ -70,7 +70,7 @@ compat.h: compat.h.m4
 
 .m4:
 ifhasfile(`config.status', `dnl
-	$(SHELL) ./config.status $@
+	./config.status $@
 ', `dnl
 	m4 $@.m4 >$@
 ')dnl
