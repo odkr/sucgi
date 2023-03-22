@@ -46,8 +46,8 @@ include(`macros.m4')dnl
 #define BUILD_H
 
 /*
- * This is to include features.h in a round-about way,
- * in case it isn't there.
+ * This is to include features.h -- which is used by many standard libraries
+ * to define constants, but is also non-standard -- in a round-about way.
  */
 #include <limits.h>
 
