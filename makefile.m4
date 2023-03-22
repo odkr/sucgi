@@ -32,9 +32,7 @@ all: sucgi
 ifnempty(`__CC', `dnl
 CC = __CC
 ')dnl
-ifnempty(`__CFLAGS', `dnl
-CFLAGS = __CFLAGS
-')dnl
+CFLAGS = default(`__CFLAGS', `-O1')
 ifnempty(`__ARFLAGS', `dnl
 ARFLAGS = __ARFLAGS
 ')dnl
@@ -56,6 +54,26 @@ LDLIBS = __LDLIBS
 hdrs = cattr.h compat.h macros.h max.h types.h
 objs = funcs.a(env.o)  funcs.a(error.o) funcs.a(file.o) funcs.a(handler.o) \
        funcs.a(path.o) funcs.a(priv.o)  funcs.a(str.o)  funcs.a(userdir.o)
+
+
+#
+# Build configuration
+#
+
+.SUFFIXES: .m4
+
+makefile: makefile.m4
+
+build.h: build.h.m4
+
+compat.h: compat.h.m4
+
+.m4:
+ifhasfile(`config.status', `dnl
+	$(SHELL) ./config.status $@
+', `dnl
+	m4 $@.m4 >$@
+')dnl
 
 
 #
@@ -111,22 +129,6 @@ install: $(libexec)/sucgi $(cgidir)/sucgi
 
 uninstall:
 	rm -f $(cgidir)/sucgi $(libexec)/sucgi
-
-
-#
-# Build configuration
-#
-
-.SUFFIXES: .m4
-
-makefile: makefile.m4
-
-build.h: build.h.m4
-
-compat.h: compat.h.m4
-
-.m4:
-	$(SHELL) ./config.status $@
 
 
 #
