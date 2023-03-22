@@ -185,7 +185,7 @@ do
 	then
 		if ! [ "$verbose" ]
 		then
-			warn 'testing with %s failed.' "$vm"
+			warn 'testing with %s failed.' "$cc"
 			warn 'see %s for details.' "$logfile"
 			[ -e "$logfile" ] && mv "$logfile" "$cwd"
 		fi
