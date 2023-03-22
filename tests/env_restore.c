@@ -69,10 +69,10 @@
 
 /* Mapping of constant inputs to constant outputs. */
 typedef struct {
-    char **vars;					/* Variables to set. */
+    char **vars;                    /* Variables to set. */
     size_t npatterns;               /* Number of patterns. */
     char **patterns;                /* Patterns. */
-    char *env[MAX_TEST_NVARS];      /* Resulting environmnet. */
+    char *env[MAX_TEST_NVARS];		/* Resulting environmnet. */
     Error ret;                      /* Return value. */
 } Args;
 
