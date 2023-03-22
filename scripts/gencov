@@ -50,6 +50,7 @@ readonly scripts_dir src_dir
 # shellcheck disable=1091
 . "$src_dir/scripts/funcs.sh" || exit
 init || exit
+cd -P "$src_dir" || exit
 tmpdir tmp .
 
 
@@ -147,8 +148,6 @@ readonly htmldir
 #
 # Main
 #
-
-cd -P "$src_dir" || exit
 
 uid="$(id -u)"
 [ "$uid" -eq 0 ] || err 'not invoked by the superuser.'

@@ -57,7 +57,8 @@ readonly tools_dir src_dir
 # shellcheck disable=1091
 . "$tools_dir/funcs.sh" || exit
 init || exit
-tmpdir
+cd "$src_dir" || exit
+tmpdir tmp .
 
 
 #
@@ -128,8 +129,6 @@ unset opt
 #
 # Main
 #
-
-cd -P "$src_dir" || exit
 
 warn -q 'copying sources ...'
 m4 makefile.m4 >"$TMPDIR/makefile"
