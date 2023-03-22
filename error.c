@@ -38,7 +38,7 @@
 #include "max.h"
 
 /* message cannot be a literal. */
-#if defined(__GNUC__)
+#if defined(__GNUC__) && __GNUC__ >= 3
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 #endif

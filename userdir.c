@@ -40,7 +40,7 @@
  * Only one format string is a non-literal, and
  * that string can only be set by the system administrator.
  */
-#if defined(__GNUC__)
+#if defined(__GNUC__) && __GNUC__ >= 3
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 #endif
