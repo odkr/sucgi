@@ -137,10 +137,29 @@ distdir="$TMPDIR/dist"
 make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir" >/dev/null
 cd -P "$distdir" || exit
 
-failures=
+n=0 failures=
 for cc
 do
-	command -v "$cc" >/dev/null || continue
+	absfname="$(command -v "$cc" 2>/dev/null)" || continue
+
+	if [ "$cc" != c99 ]
+	then
+		i=0
+		while [ "$i" -lt "$n" ]
+		do
+			eval seenabs="\${absfname_$i}" seencc="\${cc_$i}"
+			if cmp "${absfname:?}" "${seenabs:?}" >/dev/null 2>&1
+			then
+				warn '%s has already been checked as %s.' \
+				     "$cc" "$seencc"
+				continue 2
+			fi
+			i=$((i + 1))
+		done
+
+		eval "absfname_$n"='$absfname' "cc_$n"='$cc'
+		n=$((n + 1))
+	fi
 
 	warn 'checking with %s ... ' "$cc"
 
