@@ -230,7 +230,7 @@ then
 	do
 		dir="$(dirname "$fname")"
 		mkdir -p "$gcovdir/$dir"
-		mv "$fname" "$gcovdir/$dir"
+		mv -f "$fname" "$gcovdir/$dir"
 	done
 
 	chown -R "$owner:$group" "$gcovdir"
@@ -246,6 +246,6 @@ fi
 if [ "$lcovinfo" ] && [ "$lcovinfo" != - ]
 then
 	warn -q 'saving data to %s ...' "$lcovinfo"
-	mv lcov.info "$lcovinfo"
+	mv -f lcov.info "$lcovinfo"
 	chown -R "$owner:$group" "$lcovinfo"
 fi

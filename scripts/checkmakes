@@ -149,7 +149,7 @@ do
 		then
 			warn '%s failed.' "$make"
 			warn 'see %s for details.' "$(basename "$logfile")"
-			[ -e "$logfile" ] && mv "$logfile" "$cwd"
+			[ -e "$logfile" ] && mv -f "$logfile" "$cwd"
 		fi
 		failures="$failures $make"
 	fi

@@ -204,8 +204,8 @@ do
 		if ! [ "$verbose" ]
 		then
 			warn 'testing with %s failed.' "$cc"
-			warn 'see %s for details.' "$logfile"
-			[ -e "$logfile" ] && mv "$logfile" "$cwd"
+			warn 'see %s for details.' "$(basename "$logfile")"
+			[ -e "$logfile" ] && mv -f "$logfile" "$cwd"
 		fi
 		failures="$failures $cc"
 	fi

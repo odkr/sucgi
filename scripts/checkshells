@@ -173,7 +173,7 @@ do
 		then
 			warn '%s failed.' "$shell"
 			warn 'see %s for details.' "$(basename "$logfile")"
-			[ -e "$logfile" ] && mv "$logfile" "$cwd"
+			[ -e "$logfile" ] && mv -f "$logfile" "$cwd"
 		fi
 		failures="$failures $shell"
 	fi

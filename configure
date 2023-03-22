@@ -606,7 +606,7 @@ then
 
 		chmod +x "$swap"
 
-		mv "$swap" "$confsave"
+		mv -f "$swap" "$confsave"
 
 		if [ "$exists" ]
 			then warn -q 'updated %s.' "$confsave"
@@ -640,7 +640,7 @@ do
 	swap="$TMPDIR/$file"
 	if m4 "$@" "$template" >"$swap" 2>/dev/null
 	then
-		mv "$swap" "$file"
+		mv -f "$swap" "$file"
 		if [ "$exists" ]
 		then warn -q 'updated %s.' "$file"
 		else warn -q 'generated %s.' "$file"

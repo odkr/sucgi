@@ -26,7 +26,7 @@
 #
 
 # Virtual machines to test.
-readonly vms='aristides diotima euthyphro'
+readonly vms='aristides diotima'
 
 # Branch to run tests on.
 branch=devel
@@ -111,7 +111,7 @@ utmquitatexit() {
 
 utmstatus() {
 	utmquitatexit
-	utmctl status "${1:?}"
+	utmctl status "${1:?}" 2>/dev/null
 }
 
 
@@ -131,7 +131,7 @@ utmstoplastvm() {
 
 utmstartvm() {
 	utmquitatexit
-	if	status="$(utmstatus "${1:?}")"	&&
+	if	status="$(utmstatus "${1:?}")" &&
 		[ "$status" = stopped ]
 	then
 		lastvm="$1"
@@ -233,7 +233,7 @@ do
 		then
 			warn 'testing with %s failed.' "$vm"
 			warn 'see %s for details.' "$(basename "$logfile")"
-			[ -e "$logfile" ] && mv "$logfile" "$cwd"
+			[ -e "$logfile" ] && mv -f "$logfile" "$cwd"
 		fi
 		failures="$failures $vm"
 	fi
