@@ -52,17 +52,6 @@ nskipped=0
 # Functions
 #
 
-# Check if suCGI might have been compiled against musl.
-maybemusl() {
-	[ "${LIBC-}" ] && return 1;
-
-	case ${CC-} in (musl-*)
-		return 0
-	esac
-
-	[ "${OS-}" = Linux ]
-}
-
 # Delete every segment of $path up to $stop. Should ignore PATH_MAX.
 # shellcheck disable=2317
 rmtree() (
@@ -266,10 +255,8 @@ esac
 check -s1 -e"$scrsan_err" PATH_TRANSLATED="$scrsan_script" main || result=70
 
 # $PATH_TRANSLATED is valid despite its long name.
-if maybemusl
+if [ "${LIBC-}" ]
 then
-	nskipped=$((nskipped + 1))
-else
 	case $uid in
 	(0) scrsan_err="script $scrsan_longpath: owned by privileged user." ;;
 	(*) scrsan_err='seteuid: Operation not permitted.' ;;
@@ -277,6 +264,9 @@ else
 
 	check -s1 -e"$scrsan_err" PATH_TRANSLATED="$scrsan_longpath" main ||
 	result=70
+else
+	# The libc may be musl. And musl truncates long syslog messages.
+	nskipped=$((nskipped + 1))
 fi
 
 
