@@ -622,25 +622,25 @@ PROGNAME " - run jobs in parallel\n\n"
 
     if (waitpiderr > 0) {
         /* Should be unreachable. */
-        errx(EXIT_FAILURE, "waitpid: %s", strerror(waitpiderr));
+        errx(EXIT_FAILURE, "waitpid: %s", strerror((int) waitpiderr));
     }
 
     if (unknownpid > 0) {
         /* Should be unreachable. */
-        errx(EXIT_FAILURE, "forgot about process %d", unknownpid);
+        errx(EXIT_FAILURE, "forgot about process %ld", (long) unknownpid);
     }
 
     if (caught > 0) {
         clearln(stderr);
-	warnx("%s", strsignal(caught));
+        warnx("%s", strsignal((int) caught));
 
         cleanup();
 
-        (void) sigaction(caught, &defhdl, NULL);
-        (void) raise(caught);
+        (void) sigaction((int) caught, &defhdl, NULL);
+        (void) raise((int) caught);
 
         /* Should be unreachable. */
-        return caught + 128;
+        return (int) caught + 128;
     }
 
     if (!quiet) {

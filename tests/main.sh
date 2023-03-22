@@ -150,7 +150,11 @@ unset envsan_var envsan_varname envsan_vars
 # Missing argv[0]
 #
 
-check -s1 -e'empty argument vector' badexec main	|| result=70
+case $(uname) in
+(FreeBSD) : ;; # FreeBSD's execvp insists on a non-NULL argument.
+(*) check -s1 -e'empty argument vector' badexec main	|| result=70
+esac
+
 check -s1 -e'empty argument vector' badexec main ''	|| result=70
 
 
