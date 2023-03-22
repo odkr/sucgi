@@ -120,6 +120,8 @@ fi
 # Main
 #
 
+cd -P "$src_dir" || exit
+
 warn -q 'copying sources ...'
 m4 makefile.m4 >"$TMPDIR/makefile"
 distdir="$TMPDIR/dist"
