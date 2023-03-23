@@ -28,6 +28,7 @@
 #include <err.h>
 #include <errno.h>
 #include <regex.h>
+#include <search.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -82,6 +83,12 @@ typedef enum {
 	WRONG_ENVIRON
 } ErrType;
 
+/* Constant string. */
+typedef const char *ConstStr;
+
+/* Array of strings. */
+typedef char *StrArr[];
+
 
 /*
  * Module variables
@@ -131,144 +138,144 @@ static char hugename[MAX_VAR_LEN] = {'\0'};
 /* Test cases. */
 static const Args cases[] = {
     /* Null tests. */
-    {(char *[]) {NULL}, 0, (char *[]) {NULL}, {NULL}, OK},
-    {(char *[]) {NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+    {(StrArr) {NULL}, 0, (StrArr) {NULL}, {NULL}, OK},
+    {(StrArr) {NULL}, 1, (StrArr) {"."}, {NULL}, OK},
 
 	/* Too many variables. */
-	{toomanyvars, 1, (char *[]) {"."}, {NULL}, ERR_LEN},
+	{toomanyvars, 1, (StrArr) {"."}, {NULL}, ERR_LEN},
 
 	/* Overly long variables should be ignored. */
-    {(char *[]) {longvar, NULL}, 1, (char *[]) {"."}, {longvar, NULL}, OK},
-    {(char *[]) {hugevar, NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+    {(StrArr) {longvar, NULL}, 1, (StrArr) {"."}, {longvar, NULL}, OK},
+    {(StrArr) {hugevar, NULL}, 1, (StrArr) {"."}, {NULL}, OK},
 
 	/* Variables with overly long should be ignored, too. */
-    {(char *[]) {longname, NULL}, 1, (char *[]) {"."}, {longname, NULL}, OK},
-	{(char *[]) {hugename, NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+    {(StrArr) {longname, NULL}, 1, (StrArr) {"."}, {longname, NULL}, OK},
+	{(StrArr) {hugename, NULL}, 1, (StrArr) {"."}, {NULL}, OK},
 
     /* Simple tests. */
     {
-        (char *[]) {"foo=foo", NULL},
-        1, (char *[]) {"."},
+        (StrArr) {"foo=foo", NULL},
+        1, (StrArr) {"."},
         {"foo=foo", NULL}, OK
     },
     {
-        (char *[]) {"foo=foo", "bar=bar", NULL},
-        1, (char *[]) {"^foo$"},
+        (StrArr) {"foo=foo", "bar=bar", NULL},
+        1, (StrArr) {"^foo$"},
         {"foo=foo", NULL}, OK
     },
     {
-        (char *[]) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
-        1, (char *[]) {"^foo"},
+        (StrArr) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
+        1, (StrArr) {"^foo"},
         {"foo=foo", "foobar=foobar", NULL}, OK
     },
     {
-        (char *[]) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
-        1, (char *[]) {"foo"},
+        (StrArr) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
+        1, (StrArr) {"foo"},
         {"foo=foo", "foobar=foobar", NULL}, OK
     },
     {
-        (char *[]) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
-        1, (char *[]) {"bar$"},
+        (StrArr) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
+        1, (StrArr) {"bar$"},
         {"bar=bar", "foobar=foobar", NULL}, OK
     },
     {
-        (char *[]) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
-        1, (char *[]) {"bar"},
+        (StrArr) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
+        1, (StrArr) {"bar"},
         {"bar=bar", "foobar=foobar", NULL}, OK
     },
     {
-       (char *[])  {"foo=foo", "bar=bar", "baz=baz", NULL},
-        0, (char *[]) {NULL},
+       (StrArr)  {"foo=foo", "bar=bar", "baz=baz", NULL},
+        0, (StrArr) {NULL},
         {NULL}, OK
     },
     {
-        (char *[]) {"foo=foo", "bar=bar", "baz=baz", NULL},
-        1, (char *[]) {"^$"},
+        (StrArr) {"foo=foo", "bar=bar", "baz=baz", NULL},
+        1, (StrArr) {"^$"},
         {NULL}, OK
     },
 
     /* Syntax errors. */
-    {(char *[]) {"", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
-    {(char *[]) {"foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
-    {(char *[]) {"=foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+    {(StrArr) {"", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
+    {(StrArr) {"foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
+    {(StrArr) {"=foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
 
     /* Illegal names. */
-    {(char *[]) {" foo=foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
-    {(char *[]) {"0foo=foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
-    {(char *[]) {"*=foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
-    {(char *[]) {"foo =foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
-    {(char *[]) {"$(foo)=foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
-    {(char *[]) {"`foo`=foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+    {(StrArr) {" foo=foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
+    {(StrArr) {"0foo=foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
+    {(StrArr) {"*=foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
+    {(StrArr) {"foo =foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
+    {(StrArr) {"$(foo)=foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
+    {(StrArr) {"`foo`=foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
 
     /* More realistic tests. */
     {
-        (char *[]) {"bar=bar", "foo_0=foo", NULL},
-        1, (char *[]) {"^foo_[0-9]+$"},
+        (StrArr) {"bar=bar", "foo_0=foo", NULL},
+        1, (StrArr) {"^foo_[0-9]+$"},
         {"foo_0=foo", NULL}, OK
     },
     {
-        (char *[]) {"bar=bar", "foo_0=foo", NULL},
-        1, (char *[]) {"^foo_(0|[1-9][0-9]*)$"},
+        (StrArr) {"bar=bar", "foo_0=foo", NULL},
+        1, (StrArr) {"^foo_(0|[1-9][0-9]*)$"},
         {"foo_0=foo", NULL}, OK
     },
     {
-        (char *[]) {"foo_0=foo", "foo_01=foo", NULL},
-        1, (char *[]) {"^foo_(0|[1-9][0-9]*)$"},
+        (StrArr) {"foo_0=foo", "foo_01=foo", NULL},
+        1, (StrArr) {"^foo_(0|[1-9][0-9]*)$"},
         {"foo_0=foo", NULL}, OK
     },
 
     /* Simple tests with real patterns. */
     {
-        (char *[]) {"foo=foo", NULL},
+        (StrArr) {"foo=foo", NULL},
         NELEMS(envpatterns), envpatterns,
         {NULL}, OK
     },
     {
-        (char *[]) {"PATH_TRANSLATED=foo", NULL},
+        (StrArr) {"PATH_TRANSLATED=foo", NULL},
         NELEMS(envpatterns), envpatterns,
         {"PATH_TRANSLATED=foo", NULL}, OK
     },
     {
-        (char *[]) {"PATH_TRANSLATED=foo", "foo=foo", NULL},
+        (StrArr) {"PATH_TRANSLATED=foo", "foo=foo", NULL},
         NELEMS(envpatterns), envpatterns,
         {"PATH_TRANSLATED=foo", NULL}, OK
     },
 
     /* Illegal names. */
     {
-    	(char *[]) {" IPV6=foo", NULL},
+    	(StrArr) {" IPV6=foo", NULL},
     	NELEMS(envpatterns), envpatterns,
     	{NULL}, OK
     },
     {
-    	(char *[]) {"0IPV6=foo", NULL},
+    	(StrArr) {"0IPV6=foo", NULL},
     	NELEMS(envpatterns), envpatterns,
     	{NULL}, OK
     },
     {
-    	(char *[]) {"*=foo", NULL},
+    	(StrArr) {"*=foo", NULL},
     	NELEMS(envpatterns), envpatterns,
     	{NULL}, OK
     },
     {
-    	(char *[]) {"IPV6 =foo", NULL},
+    	(StrArr) {"IPV6 =foo", NULL},
     	NELEMS(envpatterns), envpatterns,
     	{NULL}, OK
     },
     {
-    	(char *[]) {"$(IPV6)=foo", NULL},
+    	(StrArr) {"$(IPV6)=foo", NULL},
     	NELEMS(envpatterns), envpatterns,
     	{NULL}, OK
     },
     {
-    	(char *[]) {"`IPV6`=foo", NULL},
+    	(StrArr) {"`IPV6`=foo", NULL},
     	NELEMS(envpatterns), envpatterns,
     	{NULL}, OK
     },
 
     /* Odd but legal values. */
     {
-    	(char *[]) {
+    	(StrArr) {
         	"SSL_CLIENT_S_DN_C_0=", "SSL_CLIENT_S_DN_C_1==",
             "SSL_CLIENT_S_DN_C_2= ", "SSL_CLIENT_S_DN_C_3=\t",
             "SSL_CLIENT_S_DN_C_4=\n", NULL
@@ -283,7 +290,7 @@ static const Args cases[] = {
 
     /* Real-world tests. */
     {
-        (char *[]) {
+        (StrArr) {
             "CLICOLOR=x",
             "EDITOR=vim",
             "HOME=/home/jdoe",
@@ -303,7 +310,7 @@ static const Args cases[] = {
         {NULL}, OK
     },
     {
-        (char *[]) {
+        (StrArr) {
 			"CLICOLOR=x",
 			"DOCUMENT_ROOT=/home/jdoe/public_html",
 			"EDITOR=vim",
@@ -411,27 +418,82 @@ static void joinstrs(size_t nstrs, char **strs, char *sep,
 
 
 /*
+ * Return the index of KEY within ARR or -1 if KEY cannot be found.
+ * ARR must be NULL-terminated.
+ */
+__attribute__((nonnull(1, 2), warn_unused_result))
+static int findstrel(const char *key, char const *const *arr);
+
+
+/*
  * Functions
  */
+
+static void
+report(const Args *const args, const Error ret, const ErrType errtype)
+{
+	char varstr[MAX_TEST_STR_LEN];
+	char patstr[MAX_TEST_STR_LEN];
+	char envstr[MAX_TEST_STR_LEN];
+	char environstr[MAX_TEST_STR_LEN];
+
+/* See above. */
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#if __GNUC__ > 6 || (__GNUC__ == 6 && __GNUC_MINOR__ >= 1)
+#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
+#endif
+#endif /* defined(__GNUC__) */
+#if defined(__clang__)
+#pragma clang diagnostic push
+#if __clang_major__ >= 4
+#pragma clang diagnostic ignored "-Wincompatible-pointer-types-discards-qualifiers"
+#endif
+#endif /* defined(__clang__) */
+
+	JOINSTRS(MAX_TEST_NVARS, args->vars, ", ", varstr);
+	JOINSTRS(args->npatterns, args->patterns, ", ", patstr);
+	JOINSTRS(MAX_TEST_NVARS, args->env, " ", envstr);
+	JOINSTRS(MAX_TEST_NVARS, environ, " ", environstr);
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
+	switch (errtype) {
+	case WRONG_RETVAL:
+		warnx("({%s}, %zu, {%s}) -> %u [!] => %s",
+			  varstr, args->npatterns, patstr, ret, envstr);
+		break;
+	case WRONG_ENVIRON:
+		warnx("({%s}, %zu, {%s}) -> %u => %s [!]",
+			  varstr, args->npatterns, patstr, ret, environstr);
+		break;
+	default:
+		/* Unreachable. */
+		abort();
+	}
+}
 
 static bool
 cmpenv(char *const vars[MAX_TEST_NVARS])
 {
-    for (size_t i = 0; i < MAX_TEST_NVARS; ++i) {
-        if (environ[i] == NULL && vars[i] == NULL) {
-            return true;
-        }
+	for (size_t i = 0; vars[i]; ++i) {
+		if (findstrel((ConstStr) vars[i], (const ConstStr *) environ) < 0) {
+			return false;
+		}
+	}
 
-        if (environ[i] == NULL || vars[i] == NULL) {
-            return false;
-        }
+	for (size_t i = 0; environ[i]; ++i) {
+		if (findstrel((ConstStr) environ[i], (const ConstStr *) vars) < 0) {
+			return false;
+		}
+	}
 
-        if (strncmp(environ[i], vars[i], MAX_TEST_STR_LEN) != 0) {
-            return false;
-        }
-    }
-
-    return false;
+	return true;
 }
 
 static void
@@ -472,38 +534,23 @@ joinstrs(const size_t nstrs, char **const strs, char *const sep,
     }
 }
 
-static void
-report(const Args *const args, const Error ret, const ErrType errtype)
+static int
+findstrel(const char *const key, const char *const *const arr)
 {
-	char varstr[MAX_TEST_STR_LEN];
-	char patstr[MAX_TEST_STR_LEN];
-	char envstr[MAX_TEST_STR_LEN];
-	char environstr[MAX_TEST_STR_LEN];
+	size_t len;
+	size_t size;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdiscarded-qualifiers"
-#if defined(__clang__) && __clang__
-#pragma GCC diagnostic ignored "-Wincompatible-pointer-types-discards-qualifiers"
-#endif
-	JOINSTRS(MAX_TEST_NVARS, args->vars, ", ", varstr);
-	JOINSTRS(args->npatterns, args->patterns, ", ", patstr);
-	JOINSTRS(MAX_TEST_NVARS, args->env, " ", envstr);
-	JOINSTRS(MAX_TEST_NVARS, environ, " ", environstr);
-#pragma GCC diagnostic pop
+	len = strnlen(key, MAX_TEST_STR_LEN);
+	assert(len < MAX_TEST_STR_LEN);
 
-	switch (errtype) {
-	case WRONG_RETVAL:
-		warnx("({%s}, %zu, {%s}) -> %u [!] => %s",
-			  varstr, args->npatterns, patstr, ret, envstr);
-		break;
-	case WRONG_ENVIRON:
-		warnx("({%s}, %zu, {%s}) -> %u => %s [!]",
-			  varstr, args->npatterns, patstr, ret, environstr);
-		break;
-	default:
-		/* Unreachable. */
-		abort();
+	size = len + 1U;
+	for (int i = 0; arr[i]; ++i) {
+		if (strncmp(key, arr[i], size) == 0) {
+			return i;
+		}
 	}
+
+	return -1;
 }
 
 
