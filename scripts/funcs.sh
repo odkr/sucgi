@@ -278,7 +278,6 @@ pad() (
 	return $rc
 )
 
-
 # Find a user whose UID is between $minuid and $maxuid and who
 # only belongs to groups with GIDs between $mingid and $maxgid.
 reguser() (
