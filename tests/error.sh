@@ -58,8 +58,12 @@ for format in - foo bar baz %s foo%s bar%s baz%s
 do
 	for arg in - foo bar baz
 	do
-		# shellcheck disable=2059
-		message="$(printf -- "$format" "$arg")"
+		case $format in
+		(*%s*)	# shellcheck disable=2059
+			message="$(printf -- "$format" "$arg")" ;;
+		(*)	# shellcheck disable=2059
+			message="$(printf -- "$format")" ;;
+		esac
 		check -s1 -e"$message" error "$format" "$arg" || result=70
 	done
 done
