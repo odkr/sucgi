@@ -176,7 +176,7 @@ tests/file_is_wexcl: tests/file_is_wexcl.c funcs.a(file.o)
 
 tests/handler_lookup: tests/handler_lookup.c funcs.a(handler.o)
 
-tests/main: main.c build.h testing.h config.h funcs.a
+tests/main: main.c build.h config.h testing.h $(hdrs) $(objs)
 
 tests/path_check_wexcl: tests/path_check_wexcl.c funcs.a(path.o)
 
