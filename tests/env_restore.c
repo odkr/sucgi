@@ -73,21 +73,18 @@ typedef struct {
     char **vars;                    /* Variables to set. */
     size_t npatterns;               /* Number of patterns. */
     char **patterns;                /* Patterns. */
-    char *env[MAX_TEST_NVARS];		/* Resulting environmnet. */
+    char *env[MAX_TEST_NVARS];        /* Resulting environmnet. */
     Error ret;                      /* Return value. */
 } Args;
 
 /* Types of test errors. */
 typedef enum {
-	WRONG_RETVAL,
-	WRONG_ENVIRON
+    WRONG_RETVAL,
+    WRONG_ENVIRON
 } ErrType;
 
 /* Constant string. */
 typedef const char *ConstStr;
-
-/* Array of strings. */
-typedef char *StrArr[];
 
 
 /*
@@ -138,151 +135,151 @@ static char hugename[MAX_VAR_LEN] = {'\0'};
 /* Test cases. */
 static const Args cases[] = {
     /* Null tests. */
-    {(StrArr) {NULL}, 0, (StrArr) {NULL}, {NULL}, OK},
-    {(StrArr) {NULL}, 1, (StrArr) {"."}, {NULL}, OK},
+    {(char *[]) {NULL}, 0, (char *[]) {NULL}, {NULL}, OK},
+    {(char *[]) {NULL}, 1, (char *[]) {"."}, {NULL}, OK},
 
-	/* Too many variables. */
-	{toomanyvars, 1, (StrArr) {"."}, {NULL}, ERR_LEN},
+    /* Too many variables. */
+    {toomanyvars, 1, (char *[]) {"."}, {NULL}, ERR_LEN},
 
-	/* Overly long variables should be ignored. */
-    {(StrArr) {longvar, NULL}, 1, (StrArr) {"."}, {longvar, NULL}, OK},
-    {(StrArr) {hugevar, NULL}, 1, (StrArr) {"."}, {NULL}, OK},
+    /* Overly long variables should be ignored. */
+    {(char *[]) {longvar, NULL}, 1, (char *[]) {"."}, {longvar, NULL}, OK},
+    {(char *[]) {hugevar, NULL}, 1, (char *[]) {"."}, {NULL}, OK},
 
-	/* Variables with overly long should be ignored, too. */
-    {(StrArr) {longname, NULL}, 1, (StrArr) {"."}, {longname, NULL}, OK},
-	{(StrArr) {hugename, NULL}, 1, (StrArr) {"."}, {NULL}, OK},
+    /* Variables with overly long should be ignored, too. */
+    {(char *[]) {longname, NULL}, 1, (char *[]) {"."}, {longname, NULL}, OK},
+    {(char *[]) {hugename, NULL}, 1, (char *[]) {"."}, {NULL}, OK},
 
     /* Simple tests. */
     {
-        (StrArr) {"foo=foo", NULL},
-        1, (StrArr) {"."},
+        (char *[]) {"foo=foo", NULL},
+        1, (char *[]) {"."},
         {"foo=foo", NULL}, OK
     },
     {
-        (StrArr) {"foo=foo", "bar=bar", NULL},
-        1, (StrArr) {"^foo$"},
+        (char *[]) {"foo=foo", "bar=bar", NULL},
+        1, (char *[]) {"^foo$"},
         {"foo=foo", NULL}, OK
     },
     {
-        (StrArr) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
-        1, (StrArr) {"^foo"},
+        (char *[]) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
+        1, (char *[]) {"^foo"},
         {"foo=foo", "foobar=foobar", NULL}, OK
     },
     {
-        (StrArr) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
-        1, (StrArr) {"foo"},
+        (char *[]) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
+        1, (char *[]) {"foo"},
         {"foo=foo", "foobar=foobar", NULL}, OK
     },
     {
-        (StrArr) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
-        1, (StrArr) {"bar$"},
+        (char *[]) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
+        1, (char *[]) {"bar$"},
         {"bar=bar", "foobar=foobar", NULL}, OK
     },
     {
-        (StrArr) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
-        1, (StrArr) {"bar"},
+        (char *[]) {"foo=foo", "bar=bar", "baz=baz", "foobar=foobar", NULL},
+        1, (char *[]) {"bar"},
         {"bar=bar", "foobar=foobar", NULL}, OK
     },
     {
-       (StrArr)  {"foo=foo", "bar=bar", "baz=baz", NULL},
-        0, (StrArr) {NULL},
+       (char *[])  {"foo=foo", "bar=bar", "baz=baz", NULL},
+        0, (char *[]) {NULL},
         {NULL}, OK
     },
     {
-        (StrArr) {"foo=foo", "bar=bar", "baz=baz", NULL},
-        1, (StrArr) {"^$"},
+        (char *[]) {"foo=foo", "bar=bar", "baz=baz", NULL},
+        1, (char *[]) {"^$"},
         {NULL}, OK
     },
 
     /* Syntax errors. */
-    {(StrArr) {"", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
-    {(StrArr) {"foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
-    {(StrArr) {"=foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
+    {(char *[]) {"", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+    {(char *[]) {"foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+    {(char *[]) {"=foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
 
     /* Illegal names. */
-    {(StrArr) {" foo=foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
-    {(StrArr) {"0foo=foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
-    {(StrArr) {"*=foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
-    {(StrArr) {"foo =foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
-    {(StrArr) {"$(foo)=foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
-    {(StrArr) {"`foo`=foo", NULL}, 1, (StrArr) {"."}, {NULL}, OK},
+    {(char *[]) {" foo=foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+    {(char *[]) {"0foo=foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+    {(char *[]) {"*=foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+    {(char *[]) {"foo =foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+    {(char *[]) {"$(foo)=foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
+    {(char *[]) {"`foo`=foo", NULL}, 1, (char *[]) {"."}, {NULL}, OK},
 
     /* More realistic tests. */
     {
-        (StrArr) {"bar=bar", "foo_0=foo", NULL},
-        1, (StrArr) {"^foo_[0-9]+$"},
+        (char *[]) {"bar=bar", "foo_0=foo", NULL},
+        1, (char *[]) {"^foo_[0-9]+$"},
         {"foo_0=foo", NULL}, OK
     },
     {
-        (StrArr) {"bar=bar", "foo_0=foo", NULL},
-        1, (StrArr) {"^foo_(0|[1-9][0-9]*)$"},
+        (char *[]) {"bar=bar", "foo_0=foo", NULL},
+        1, (char *[]) {"^foo_(0|[1-9][0-9]*)$"},
         {"foo_0=foo", NULL}, OK
     },
     {
-        (StrArr) {"foo_0=foo", "foo_01=foo", NULL},
-        1, (StrArr) {"^foo_(0|[1-9][0-9]*)$"},
+        (char *[]) {"foo_0=foo", "foo_01=foo", NULL},
+        1, (char *[]) {"^foo_(0|[1-9][0-9]*)$"},
         {"foo_0=foo", NULL}, OK
     },
 
     /* Simple tests with real patterns. */
     {
-        (StrArr) {"foo=foo", NULL},
+        (char *[]) {"foo=foo", NULL},
         NELEMS(envpatterns), envpatterns,
         {NULL}, OK
     },
     {
-        (StrArr) {"PATH_TRANSLATED=foo", NULL},
+        (char *[]) {"PATH_TRANSLATED=foo", NULL},
         NELEMS(envpatterns), envpatterns,
         {"PATH_TRANSLATED=foo", NULL}, OK
     },
     {
-        (StrArr) {"PATH_TRANSLATED=foo", "foo=foo", NULL},
+        (char *[]) {"PATH_TRANSLATED=foo", "foo=foo", NULL},
         NELEMS(envpatterns), envpatterns,
         {"PATH_TRANSLATED=foo", NULL}, OK
     },
 
     /* Illegal names. */
     {
-    	(StrArr) {" IPV6=foo", NULL},
-    	NELEMS(envpatterns), envpatterns,
-    	{NULL}, OK
+        (char *[]) {" IPV6=foo", NULL},
+        NELEMS(envpatterns), envpatterns,
+        {NULL}, OK
     },
     {
-    	(StrArr) {"0IPV6=foo", NULL},
-    	NELEMS(envpatterns), envpatterns,
-    	{NULL}, OK
+        (char *[]) {"0IPV6=foo", NULL},
+        NELEMS(envpatterns), envpatterns,
+        {NULL}, OK
     },
     {
-    	(StrArr) {"*=foo", NULL},
-    	NELEMS(envpatterns), envpatterns,
-    	{NULL}, OK
+        (char *[]) {"*=foo", NULL},
+        NELEMS(envpatterns), envpatterns,
+        {NULL}, OK
     },
     {
-    	(StrArr) {"IPV6 =foo", NULL},
-    	NELEMS(envpatterns), envpatterns,
-    	{NULL}, OK
+        (char *[]) {"IPV6 =foo", NULL},
+        NELEMS(envpatterns), envpatterns,
+        {NULL}, OK
     },
     {
-    	(StrArr) {"$(IPV6)=foo", NULL},
-    	NELEMS(envpatterns), envpatterns,
-    	{NULL}, OK
+        (char *[]) {"$(IPV6)=foo", NULL},
+        NELEMS(envpatterns), envpatterns,
+        {NULL}, OK
     },
     {
-    	(StrArr) {"`IPV6`=foo", NULL},
-    	NELEMS(envpatterns), envpatterns,
-    	{NULL}, OK
+        (char *[]) {"`IPV6`=foo", NULL},
+        NELEMS(envpatterns), envpatterns,
+        {NULL}, OK
     },
 
     /* Odd but legal values. */
     {
-    	(StrArr) {
-        	"SSL_CLIENT_S_DN_C_0=", "SSL_CLIENT_S_DN_C_1==",
+        (char *[]) {
+            "SSL_CLIENT_S_DN_C_0=", "SSL_CLIENT_S_DN_C_1==",
             "SSL_CLIENT_S_DN_C_2= ", "SSL_CLIENT_S_DN_C_3=\t",
             "SSL_CLIENT_S_DN_C_4=\n", NULL
         },
         NELEMS(envpatterns), envpatterns,
         {
-        	"SSL_CLIENT_S_DN_C_0=", "SSL_CLIENT_S_DN_C_1==",
+            "SSL_CLIENT_S_DN_C_0=", "SSL_CLIENT_S_DN_C_1==",
             "SSL_CLIENT_S_DN_C_2= ", "SSL_CLIENT_S_DN_C_3=\t",
             "SSL_CLIENT_S_DN_C_4=\n", NULL
         }, OK
@@ -290,7 +287,7 @@ static const Args cases[] = {
 
     /* Real-world tests. */
     {
-        (StrArr) {
+        (char *[]) {
             "CLICOLOR=x",
             "EDITOR=vim",
             "HOME=/home/jdoe",
@@ -310,61 +307,61 @@ static const Args cases[] = {
         {NULL}, OK
     },
     {
-        (StrArr) {
-			"CLICOLOR=x",
-			"DOCUMENT_ROOT=/home/jdoe/public_html",
-			"EDITOR=vim",
-			"HOME=/home/jdoe",
-			"HTTP_HOST=www.foo.example",
-			"HTTP_REFERER=https://www.bar.example",
-			"HTTP_USER_AGENT=FakeZilla/1",
-			"HTTPS=on",
-			"IFS=",
-			"LANG=en_GB.UTF-8",
-			"LOGNAME=jdoe",
-			"OLDPWD=/home",
-			"PAGER=less",
-			"PATH_TRANSLATED=/home/jdoe/public_html/index.php",
-			"PATH=/bin:/usr/bin",
-			"PWD=/home/jdoe",
-			"QUERY_STRING=foo=bar&bar=baz",
-			"REMOTE_ADDR=100::1:2:3",
-			"REMOTE_HOST=100::1:2:3",
-			"REMOTE_PORT=50000",
-			"REQUEST_METHOD=GET"
-			"REQUEST_URI=/index.php",
-			"SCRIPT_NAME=index.php",
-			"SERVER_ADMIN=admin@foo.example",
-			"SERVER_NAME=www.foo.example",
-			"SERVER_PORT=443",
-			"SERVER_SOFTWARE=Apache v2.4",
-			"SHELL=/bin/zsh",
-			"TMPDIR=/tmp/user/1000",
-			"USER=jdoe",
-			"VISUAL=vim",
-			NULL
+        (char *[]) {
+            "CLICOLOR=x",
+            "DOCUMENT_ROOT=/home/jdoe/public_html",
+            "EDITOR=vim",
+            "HOME=/home/jdoe",
+            "HTTP_HOST=www.foo.example",
+            "HTTP_REFERER=https://www.bar.example",
+            "HTTP_USER_AGENT=FakeZilla/1",
+            "HTTPS=on",
+            "IFS=",
+            "LANG=en_GB.UTF-8",
+            "LOGNAME=jdoe",
+            "OLDPWD=/home",
+            "PAGER=less",
+            "PATH_TRANSLATED=/home/jdoe/public_html/index.php",
+            "PATH=/bin:/usr/bin",
+            "PWD=/home/jdoe",
+            "QUERY_STRING=foo=bar&bar=baz",
+            "REMOTE_ADDR=100::1:2:3",
+            "REMOTE_HOST=100::1:2:3",
+            "REMOTE_PORT=50000",
+            "REQUEST_METHOD=GET"
+            "REQUEST_URI=/index.php",
+            "SCRIPT_NAME=index.php",
+            "SERVER_ADMIN=admin@foo.example",
+            "SERVER_NAME=www.foo.example",
+            "SERVER_PORT=443",
+            "SERVER_SOFTWARE=Apache v2.4",
+            "SHELL=/bin/zsh",
+            "TMPDIR=/tmp/user/1000",
+            "USER=jdoe",
+            "VISUAL=vim",
+            NULL
         },
         NELEMS(envpatterns), envpatterns,
         {
-			"HTTP_HOST=www.foo.example",
-			"HTTP_REFERER=https://www.bar.example",
-			"HTTP_USER_AGENT=FakeZilla/1",
-			"HTTPS=on",
-			"PATH_TRANSLATED=/home/jdoe/public_html/index.php",
-			"QUERY_STRING=foo=bar&bar=baz",
-			"REMOTE_ADDR=100::1:2:3",
-			"REMOTE_HOST=100::1:2:3",
-			"REMOTE_PORT=50000",
-			"REQUEST_METHOD=GET"
-			"REQUEST_URI=/index.php",
-			"SCRIPT_NAME=index.php",
-			"SERVER_ADMIN=admin@foo.example",
-			"SERVER_NAME=www.foo.example",
-			"SERVER_PORT=443",
-			"SERVER_SOFTWARE=Apache v2.4",
-			NULL
+            "HTTP_HOST=www.foo.example",
+            "HTTP_REFERER=https://www.bar.example",
+            "HTTP_USER_AGENT=FakeZilla/1",
+            "HTTPS=on",
+            "PATH_TRANSLATED=/home/jdoe/public_html/index.php",
+            "QUERY_STRING=foo=bar&bar=baz",
+            "REMOTE_ADDR=100::1:2:3",
+            "REMOTE_HOST=100::1:2:3",
+            "REMOTE_PORT=50000",
+            "REQUEST_METHOD=GET"
+            "REQUEST_URI=/index.php",
+            "SCRIPT_NAME=index.php",
+            "SERVER_ADMIN=admin@foo.example",
+            "SERVER_NAME=www.foo.example",
+            "SERVER_PORT=443",
+            "SERVER_SOFTWARE=Apache v2.4",
+            NULL
         }, OK
-	}
+    }
 };
 
 #if defined(__clang__)
@@ -432,10 +429,10 @@ static int findstrel(const char *key, char const *const *arr);
 static void
 report(const Args *const args, const Error ret, const ErrType errtype)
 {
-	char varstr[MAX_TEST_STR_LEN];
-	char patstr[MAX_TEST_STR_LEN];
-	char envstr[MAX_TEST_STR_LEN];
-	char environstr[MAX_TEST_STR_LEN];
+    char varstr[MAX_TEST_STR_LEN];
+    char patstr[MAX_TEST_STR_LEN];
+    char envstr[MAX_TEST_STR_LEN];
+    char environstr[MAX_TEST_STR_LEN];
 
 /* See above. */
 #if defined(__GNUC__)
@@ -451,10 +448,10 @@ report(const Args *const args, const Error ret, const ErrType errtype)
 #endif
 #endif /* defined(__clang__) */
 
-	JOINSTRS(MAX_TEST_NVARS, args->vars, ", ", varstr);
-	JOINSTRS(args->npatterns, args->patterns, ", ", patstr);
-	JOINSTRS(MAX_TEST_NVARS, args->env, " ", envstr);
-	JOINSTRS(MAX_TEST_NVARS, environ, " ", environstr);
+    JOINSTRS(MAX_TEST_NVARS, args->vars, ", ", varstr);
+    JOINSTRS(args->npatterns, args->patterns, ", ", patstr);
+    JOINSTRS(MAX_TEST_NVARS, args->env, " ", envstr);
+    JOINSTRS(MAX_TEST_NVARS, environ, " ", environstr);
 
 #if defined(__clang__)
 #pragma clang diagnostic pop
@@ -463,37 +460,37 @@ report(const Args *const args, const Error ret, const ErrType errtype)
 #pragma GCC diagnostic pop
 #endif
 
-	switch (errtype) {
-	case WRONG_RETVAL:
-		warnx("({%s}, %zu, {%s}) -> %u [!] => %s",
-			  varstr, args->npatterns, patstr, ret, envstr);
-		break;
-	case WRONG_ENVIRON:
-		warnx("({%s}, %zu, {%s}) -> %u => %s [!]",
-			  varstr, args->npatterns, patstr, ret, environstr);
-		break;
-	default:
-		/* Unreachable. */
-		abort();
-	}
+    switch (errtype) {
+    case WRONG_RETVAL:
+        warnx("({%s}, %zu, {%s}) -> %u [!] => %s",
+              varstr, args->npatterns, patstr, ret, envstr);
+        break;
+    case WRONG_ENVIRON:
+        warnx("({%s}, %zu, {%s}) -> %u => %s [!]",
+              varstr, args->npatterns, patstr, ret, environstr);
+        break;
+    default:
+        /* Unreachable. */
+        abort();
+    }
 }
 
 static bool
 cmpenv(char *const vars[MAX_TEST_NVARS])
 {
-	for (size_t i = 0; vars[i]; ++i) {
-		if (findstrel((ConstStr) vars[i], (const ConstStr *) environ) < 0) {
-			return false;
-		}
-	}
+    for (size_t i = 0; vars[i]; ++i) {
+        if (findstrel((const char *) vars[i], (const char *const *) environ) < 0) {
+            return false;
+        }
+    }
 
-	for (size_t i = 0; environ[i]; ++i) {
-		if (findstrel((ConstStr) environ[i], (const ConstStr *) vars) < 0) {
-			return false;
-		}
-	}
+    for (size_t i = 0; environ[i]; ++i) {
+        if (findstrel((const char *) environ[i], (const char *const *) vars) < 0) {
+            return false;
+        }
+    }
 
-	return true;
+    return true;
 }
 
 static void
@@ -537,20 +534,20 @@ joinstrs(const size_t nstrs, char **const strs, char *const sep,
 static int
 findstrel(const char *const key, const char *const *const arr)
 {
-	size_t len;
-	size_t size;
+    size_t len;
+    size_t size;
 
-	len = strnlen(key, MAX_TEST_STR_LEN);
-	assert(len < MAX_TEST_STR_LEN);
+    len = strnlen(key, MAX_TEST_STR_LEN);
+    assert(len < MAX_TEST_STR_LEN);
 
-	size = len + 1U;
-	for (int i = 0; arr[i]; ++i) {
-		if (strncmp(key, arr[i], size) == 0) {
-			return i;
-		}
-	}
+    size = len + 1U;
+    for (int i = 0; arr[i]; ++i) {
+        if (strncmp(key, arr[i], size) == 0) {
+            return i;
+        }
+    }
 
-	return -1;
+    return -1;
 }
 
 
@@ -563,36 +560,36 @@ main (void) {
     char *null = NULL;
     int result = TEST_PASSED;
 
-	for (size_t i = 0; i < NELEMS(toomanyvars); ++i) {
-		char *var;
-		int nbytes;
+    for (size_t i = 0; i < NELEMS(toomanyvars); ++i) {
+        char *var;
+        int nbytes;
 
-		errno = 0;
-		var = malloc(MAX_VAR_LEN);
-		if (var == NULL) {
-			err(EXIT_FAILURE, "malloc");
-		}
+        errno = 0;
+        var = malloc(MAX_VAR_LEN);
+        if (var == NULL) {
+            err(EXIT_FAILURE, "malloc");
+        }
 
-		errno = 0;
-		nbytes = snprintf(var, MAX_VAR_LEN, "var%zu=", i);
-		if (nbytes < 1) {
-			err(EXIT_FAILURE, "snprintf");
-		}
+        errno = 0;
+        nbytes = snprintf(var, MAX_VAR_LEN, "var%zu=", i);
+        if (nbytes < 1) {
+            err(EXIT_FAILURE, "snprintf");
+        }
 
-		toomanyvars[i] = var;
-	}
+        toomanyvars[i] = var;
+    }
 
-	(void) memset(longvar, 'x', sizeof(longvar) - 1U);
-	(void) str_cp(4, "var=", longvar);
+    (void) memset(longvar, 'x', sizeof(longvar) - 1U);
+    (void) str_cp(4, "var=", longvar);
 
-	(void) memset(hugevar, 'x', sizeof(hugevar) - 1U);
-	(void) str_cp(4, "var=", longvar);
+    (void) memset(hugevar, 'x', sizeof(hugevar) - 1U);
+    (void) str_cp(4, "var=", longvar);
 
-	(void) memset(longname, 'x', sizeof(longname) - 1U);
-	longname[MAX_VARNAME_LEN - 1U] = '=';
+    (void) memset(longname, 'x', sizeof(longname) - 1U);
+    longname[MAX_VARNAME_LEN - 1U] = '=';
 
-	(void) memset(hugename, 'x', sizeof(hugename) - 1U);
-	hugename[MAX_VARNAME_LEN] = '=';
+    (void) memset(hugename, 'x', sizeof(hugename) - 1U);
+    hugename[MAX_VARNAME_LEN] = '=';
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
@@ -622,12 +619,12 @@ main (void) {
         ret = env_restore(args.vars, args.npatterns, pregs);
 
         if (ret != args.ret) {
-        	report(&args, ret, WRONG_RETVAL);
+            report(&args, ret, WRONG_RETVAL);
             result = TEST_FAILED;
         }
 
         if (ret == OK && !cmpenv(args.env)) {
-        	report(&args, ret, WRONG_ENVIRON);
+            report(&args, ret, WRONG_ENVIRON);
             result = TEST_FAILED;
         }
     }
