@@ -52,6 +52,7 @@ nskipped=0
 # Functions
 #
 
+
 # Delete every segment of $path up to $stop. Should ignore PATH_MAX.
 # shellcheck disable=2317
 rmtree() (
@@ -82,7 +83,8 @@ eval "$(main -C | grep -vE '^PATH=')"
 # Common setup for non-privileged tests
 #
 
-# User ID.
+# Current user.
+logname="$(id -un)"
 uid="$(id -u)"
 
 
@@ -251,21 +253,41 @@ check -s1 -e"script $scrsan_wrongftype: not a regular file." \
 check -s1 -e"realpath $TMPDIR/<nosuchfile>: No such file or directory." \
 	PATH_TRANSLATED="$TMPDIR/<nosuchfile>" main	|| result=70
 
-# PATH_TRANSLATED is valid.
+# Error is system-dependent.
 case $uid in
-(0) scrsan_err="script $scrsan_script: owned by privileged user." ;;
-(*) scrsan_err='seteuid: Operation not permitted.' ;;
+(0)
+	scrsan_err="owned by privileged user."
+	;;
+(*)
+	isreguser=x logname="$(id -un)"
+	if [ "$uid" -lt "$MIN_UID" ] || [ "$uid" -gt "$MAX_UID" ]
+	then
+		isreguser=
+	else
+		for gid in $(id -G "$logname")
+		do
+			if [ "$gid" -lt "$MIN_GID" ] || [ "$gid" -gt "$MAX_GID" ]
+			then
+				isreguser=
+				break
+			fi
+		done
+	fi
+	unset gid
+
+	if [ "$isreguser" ]
+	then scrsan_err='seteuid: Operation not permitted.'
+	else scrsan_err="user $logname: belongs to privileged group"
+	fi
+	;;
 esac
+
+# PATH_TRANSLATED is valid.
 check -s1 -e"$scrsan_err" PATH_TRANSLATED="$scrsan_script" main || result=70
 
 # $PATH_TRANSLATED is valid despite its long name.
 if [ "${LIBC-}" ]
 then
-	case $uid in
-	(0) scrsan_err="script $scrsan_longpath: owned by privileged user." ;;
-	(*) scrsan_err='seteuid: Operation not permitted.' ;;
-	esac
-
 	check -s1 -e"$scrsan_err" PATH_TRANSLATED="$scrsan_longpath" main ||
 	result=70
 else
