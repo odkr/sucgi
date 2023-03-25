@@ -82,6 +82,18 @@ logged() (
 	fi
 )
 
+# Print the owner of $fname.
+owner() (
+	fname="${1:?}"
+	pipe="${TMPDIR:-/tmp}/owner-$$.fifo" rc=0
+	mkfifo -m 0700 "$pipe"
+	ls -ld "$fname" >"$pipe" & ls=$!
+	awk '{print $3}' <"$pipe" || rc=$?
+	wait $ls                  || rc=$?
+	rm -f "$pipe"
+	return $rc
+)
+
 
 #
 # Options
@@ -151,7 +163,6 @@ readonly htmldir
 
 uid="$(id -u)"
 [ "$uid" -eq 0 ] || err 'not invoked by the superuser.'
-
 owner="$(owner "$src_dir")"
 group="$(id -g "$owner")"
 
@@ -171,7 +182,6 @@ warn -q 'compiling tests ...'
 logged make CFLAGS='-O2 --coverage' all checks
 
 warn -q 'adapting environment ...'
-
 export PATH="$distdir/tools:$distdir/tests:$PATH"
 eval "$("$distdir/tests/main" -C | grep -vE '^PATH=')"
 reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")"
