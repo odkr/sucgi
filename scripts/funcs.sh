@@ -262,18 +262,6 @@ mklongpath() (
 	printf '%s\n' "$fname"
 )
 
-# Print the owner of $fname.
-owner() (
-	fname="${1:?}"
-	pipe="${TMPDIR:-/tmp}/owner-$$.fifo" rc=0
-	mkfifo -m 0700 "$pipe"
-	ls -ld "$fname" >"$pipe" & ls=$!
-	awk '{print $3}' <"$pipe" || rc=$?
-	wait $ls                  || rc=$?
-	rm -f "$pipe"
-	return $rc
-)
-
 # Pad $str with $ch up to length $n.
 pad() (
 	str="${1?}" n="${2:?}" ch="${3:-x}" side="${4:-l}"
@@ -291,39 +279,40 @@ pad() (
 )
 
 
-
 # Find a user whose UID is between $minuid and $maxuid and who
 # only belongs to groups with GIDs between $mingid and $maxgid.
 reguser() (
 	minuid="${1:?}" maxuid="${2:?}" mingid="${3:?}" maxgid="${4:?}"
-
-	pipe="${TMPDIR:-/tmp}/ids-$$.fifo" rc=0
+	pipe="${TMPDIR:-/tmp}/ids-$$.fifo" rc=0 reguser=
 	mkfifo -m 700 "$pipe"
 
 	ids >"$pipe" & ids=$!
 	while read -r uid user
 	do
-		[ "$uid" -lt "$minuid" ] || [ "$uid" -gt "$maxuid" ] &&
-			continue
-
 		case $user in (*[!A-Za-z0-9_]*)
 			continue
 		esac
 
+		if [ "$uid" -lt "$minuid" ] || [ "$uid" -gt "$maxuid" ]
+		then continue
+		fi
+
 		for gid in $(id -G "$user")
 		do
-			[ "$gid" -lt "$mingid" ] || [ "$gid" -gt "$maxgid" ] &&
-				continue 2
+			if [ "$gid" -lt "$mingid" ] || [ "$gid" -gt "$maxgid" ]
+			then continue 2
+			fi
 		done
 
+		reguser="$user"
 		break
 	done <"$pipe"
 
 	wait $ids || rc=$?
 	rm -f "$pipe"
-	[ "$rc" -eq 0 ] && [ "$user" ] || return 1
+	[ "$rc" -eq 0 ] && [ "$reguser" ] || return 1
 
-	printf '%s\n' "$user"
+	printf '%s\n' "$reguser"
 )
 
 # Move to the beginning of the previous line of terminal $fd.
