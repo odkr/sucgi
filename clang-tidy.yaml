@@ -12,6 +12,6 @@ CheckOptions:
     - key: bugprone-easily-swappable-parameters.IgnoredParameterNames
       value: uid;gid
     - key: readability-function-cognitive-complexity.Threshold
-      value: 30
+      value: 26
     - key: readability-function-cognitive-complexity.DescribeBasicIncrements
       value: false

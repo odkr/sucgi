@@ -55,10 +55,10 @@ typedef struct {
 /* Test cases. */
 static const Args cases[] = {
     /* Simple errors. */
-    {"file", "<n/a>", ERR_SEARCH},
-    {".", "<n/a>", ERR_SEARCH},
-    {".sh", "<n/a>", ERR_SEARCH},
-    {".py", "<n/a>", ERR_SEARCH},
+    {"file", "<n/a>", ERR_SUFFIX},
+    {".", "<n/a>", ERR_SUFFIX},
+    {".sh", "<n/a>", ERR_SUFFIX},
+    {".py", "<n/a>", ERR_SUFFIX},
     {"file.null", "<n/a>", ERR_BAD},
     {"file.empty", "<n/a>", ERR_BAD},
     {"file.py", "<n/a>", ERR_SEARCH},
@@ -66,10 +66,10 @@ static const Args cases[] = {
     {"long.suffix-0123456789abcdef", "<n/a>", ERR_LEN},
 
     /* Empty string shenanigans. */
-    {" ", "<n/a>", ERR_SEARCH},
-    {". ", "<n/a>", ERR_SEARCH},
-    {".sh ", "<n/a>", ERR_SEARCH},
-    {".py ", "<n/a>", ERR_SEARCH},
+    {" ", "<n/a>", ERR_SUFFIX},
+    {". ", "<n/a>", ERR_SUFFIX},
+    {".sh ", "<n/a>", ERR_SUFFIX},
+    {".py ", "<n/a>", ERR_SUFFIX},
     {" .null", "<n/a>", ERR_BAD},
     {" .empty", "<n/a>", ERR_BAD},
     {" .py", "<n/a>", ERR_SEARCH},
@@ -77,10 +77,10 @@ static const Args cases[] = {
     {" . ", "<n/a>", ERR_SEARCH},
 
     /* Unicode shenanigans. */
-    {"𝕗ïḻę", "<n/a>", ERR_SEARCH},
-    {".", "<n/a>", ERR_SEARCH},
-    {".sh", "<n/a>", ERR_SEARCH},
-    {".py", "<n/a>", ERR_SEARCH},
+    {"𝕗ïḻę", "<n/a>", ERR_SUFFIX},
+    {".", "<n/a>", ERR_SUFFIX},
+    {".sh", "<n/a>", ERR_SUFFIX},
+    {".py", "<n/a>", ERR_SUFFIX},
     {"𝕗ïḻę.null", "<n/a>", ERR_BAD},
     {"𝕗ïḻę.empty", "<n/a>", ERR_BAD},
     {"𝕗ïḻę.py", "<n/a>", ERR_SEARCH},
@@ -99,7 +99,8 @@ static const Pair db[] = {
     {".sh", "sh"},
     {".null", NULL},
     {".empty", ""},
-    {".pre", "pre"}
+    {".pre", "pre"},
+    {".suffix-0123456789abcdef", "<unreachable>"}
 };
 
 

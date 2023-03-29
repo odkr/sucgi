@@ -30,42 +30,40 @@
 
 #include "handler.h"
 #include "max.h"
+#include "pair.h"
 #include "path.h"
 #include "types.h"
 
 Error
-handler_lookup(const size_t nelems, const Pair *const handlerdb,
+handler_lookup(const size_t nhandlers, const Pair *const handlerdb,
                const char *const script, const char **const handler)
 {
     const char *suffix;
+    Error ret;
 
-    assert(handlerdb);
-    assert(script);
-    assert(strnlen(script, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
+    assert(handlerdb != NULL);
+    assert(script != NULL);
     assert(*script != '\0');
-    assert(handler);
+    assert(strnlen(script, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
+    assert(handler != NULL);
 
-    if (path_suffix(script, &suffix) == OK) {
-        size_t len;
-
-        len = strnlen(suffix, MAX_SUFFIX_LEN);
-        if (len >= MAX_SUFFIX_LEN) {
-            return ERR_LEN;
-        }
-
-        for (size_t i = 0; i < nelems; ++i) {
-            const Pair *ent = &handlerdb[i];
-
-            if (strncmp(suffix, ent->key, len + 1U) == 0) {
-                if (ent->value == NULL || *ent->value == '\0') {
-                    return ERR_BAD;
-                }
-
-                *handler = ent->value;
-                return OK;
-            }
-        }
+    ret = path_suffix(script, &suffix);
+    if (ret != OK) {
+        return ret;
     }
 
-    return ERR_SEARCH;
+    if (strnlen(suffix, MAX_SUFFIX_LEN) >= MAX_SUFFIX_LEN) {
+        return ERR_LEN;
+    }
+
+    ret = pair_lookup(nhandlers, handlerdb, suffix, handler);
+    if (ret != OK) {
+        return ret;
+    }
+
+    if (*handler == NULL || **handler == '\0') {
+        return ERR_BAD;
+    }
+
+    return OK;
 }

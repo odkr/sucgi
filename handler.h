@@ -31,17 +31,18 @@
 /*
  * Search for the handler that matches the filename suffix of SCRIPT
  * in the array of filename suffix-handler pairs HANDLERDB and return
- * it in HANDLER. HANDLERDB must contain at least NELEMS elements;
+ * it in HANDLER. HANDLERDB must contain at least NHANDLERS elements;
  * supernumery elements are ignored.
  *
  * Return value:
  *     OK             Success.
- *     ERR_BAD        Matching handler is NULL or the empty string.
+ *     ERR_BAD        Handler is NULL or the empty string.
  *     ERR_LEN        Filename suffix is too long.
- *     ERR_SEARCH   No handler found.
+ *     ERR_SEARCH     No handler found.
+ *     ERR_SUFFIX     Filename has no suffix.
  */
 __attribute__((nonnull(2, 3, 4), warn_unused_result))
-Error handler_lookup(size_t nelems, const Pair *handlerdb,
+Error handler_lookup(size_t nhandlers, const Pair *handlerdb,
                      const char *script, const char **handler);
 
 #endif /* !defined(HANDLER_H) */
