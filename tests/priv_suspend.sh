@@ -26,13 +26,14 @@
 #
 
 set -Cefu
-script_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
-src_dir="$(cd -P "$script_dir/.." && pwd)"
-readonly script_dir src_dir
+tests_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+src_dir="$(cd -P "$tests_dir/.." && pwd)"
+readonly script_dir tests_dir
 # shellcheck disable=1091
 . "$src_dir/scripts/funcs.sh" || exit
 init || exit
 tmpdir chk
+cd "$tests_dir" || exit
 
 
 #
