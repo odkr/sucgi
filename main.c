@@ -438,6 +438,7 @@ main(int argc, char **argv) {
      * Get the script's filename and filesystem metadata.
      */
 
+    /* RATS: ignore; str_cp is bounded by MAX_FNAME_LEN. */
     char script_log[MAX_FNAME_LEN];
     const char *script_phys;
     const char *script_env;
@@ -464,9 +465,6 @@ main(int argc, char **argv) {
     switch (ret) {
     case OK:
         break;
-    case ERR_LEN:
-        /* Should be unreachable. FIXME: Remove branch. */
-        error("$PATH_TRANSLATED is too long.");
     default:
         /* Should be unreachable. */
         error("%d: str_cp returned %d.", __LINE__, ret);
@@ -484,6 +482,7 @@ main(int argc, char **argv) {
     }
 
     if (stat(script_phys, &script_stat) != 0) {
+        /* Only reachable if the script was deleted after realpath. */
         error("stat %s: %m.", script_log);
     }
 
@@ -675,7 +674,7 @@ main(int argc, char **argv) {
         error("%d: userdir_resolve returned %d.", __LINE__, ret);
     }
 
-    assert(userdir_log);
+    assert(userdir_log != NULL);
     assert(*userdir_log != '\0');
     assert(strnlen(userdir_log, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
 
@@ -740,6 +739,7 @@ main(int argc, char **argv) {
     case ERR_WEXCL:
         error("script %s: writable by non-owner.", script_log);
     case ERR_SYS_STAT:
+        /* Only reachable if the script was deleted after realpath. */
         error("stat %s: %m.", script_log);
     default:
         /* Should be unreachable. */
@@ -837,12 +837,14 @@ main(int argc, char **argv) {
             error("script %s: filename suffix too long.", script_log);
         case ERR_SEARCH:
             error("script %s: no handler found.", script_log);
+        case ERR_SUFFIX:
+            error("script %s: not executable.", script_log);
         default:
             /* Should be unreachable. */
             error("%d: handler_lookup returned %d.", __LINE__, ret);
         }
 
-        assert(handler);
+        assert(handler != NULL);
         assert(*handler != '\0');
         assert(strnlen(handler, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
 
