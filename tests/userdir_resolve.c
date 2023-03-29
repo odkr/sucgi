@@ -65,13 +65,13 @@ typedef struct {
  */
 
 /* A long relative filename. */
-char long_rel_fname[MAX_FNAME_LEN];
+char longrelfname[MAX_FNAME_LEN];
 
 /* A long absolute filename. */
-char long_abs_fname[MAX_FNAME_LEN];
+char longabsname[MAX_FNAME_LEN];
 
 /* A long user directory pattern. */
-char long_pattern[MAX_FNAME_LEN];
+char longpattern[MAX_FNAME_LEN];
 
 /* A fake login name. */
 char logname[MAX_LOGNAME_LEN] = "jdoe";
@@ -103,9 +103,9 @@ static const Args cases[] = {
     {"/𝘴ȑṽ/𝙬𝙬𝙬/%s/𝒽𝚝ṃḹ", &user, "/𝘴ȑṽ/𝙬𝙬𝙬/jdoe/𝒽𝚝ṃḹ", OK},
 
     /* Long filenames. */
-    {long_rel_fname, &user, NULL, ERR_LEN},
-    {long_abs_fname, &user, NULL, ERR_LEN},
-    {long_pattern, &user, NULL, ERR_LEN},
+    {longrelfname, &user, NULL, ERR_LEN},
+    {longabsname, &user, NULL, ERR_LEN},
+    {longpattern, &user, NULL, ERR_LEN},
 };
 
 
@@ -118,16 +118,16 @@ main(void)
 {
     int result = TEST_PASSED;
 
-    (void) memset(long_rel_fname, 'x', sizeof(long_rel_fname));
-    long_rel_fname[sizeof(long_rel_fname) - 1] = '\0';
+    (void) memset(longrelfname, 'x', sizeof(longrelfname));
+    longrelfname[sizeof(longrelfname) - 1] = '\0';
 
-    (void) memset(long_abs_fname, 'x', sizeof(long_abs_fname));
-    long_abs_fname[sizeof(long_abs_fname) - 1] = '\0';
-    long_abs_fname[0] = '/';
+    (void) memset(longabsname, 'x', sizeof(longabsname));
+    longabsname[sizeof(longabsname) - 1] = '\0';
+    longabsname[0] = '/';
 
-    (void) memset(long_pattern, 'x', sizeof(long_pattern));
-    (void) str_cp(4, "/%s", &long_pattern[sizeof(long_pattern) - 4]);
-    long_pattern[0] = '/';
+    (void) memset(longpattern, 'x', sizeof(longpattern));
+    (void) str_cp(4, "/%s", &longpattern[sizeof(longpattern) - 4]);
+    longpattern[0] = '/';
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
