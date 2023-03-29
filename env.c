@@ -44,7 +44,7 @@ bool
 /* cppcheck-suppress misra-c2012-8.7; external linkage needed for testing. */
 env_is_name(const char *str)
 {
-    assert(str);
+    assert(str != NULL);
     assert(strnlen(str, MAX_VARNAME_LEN) < MAX_VARNAME_LEN);
 
     if (isdigit(*str) || *str == '\0') {
@@ -63,16 +63,18 @@ env_is_name(const char *str)
 Error
 env_restore(char *const *vars, const size_t npregs, regex_t *const pregs)
 {
-    size_t varidx;
+    assert(vars != NULL);
+    assert(pregs != NULL);
 
-    assert(vars);
-    assert(pregs);
-
-    for (varidx = 0; varidx < MAX_NVARS && vars[varidx]; ++varidx) {
+    for (size_t varidx = 0; vars[varidx]; ++varidx) {
         /* RATS: ignore; str_split respects MAX_VARNAME_LEN. */
         char name[MAX_VARNAME_LEN];
         const char *value;
         const char *var;
+
+        if (varidx >= MAX_NVARS) {
+            return ERR_LEN;
+        }
 
         var = vars[varidx];
 
@@ -104,15 +106,11 @@ env_restore(char *const *vars, const size_t npregs, regex_t *const pregs)
                 }
             }
 
-            if (pregidx == npregs) {
+            if (pregidx >= npregs) {
                 /* RATS: ignore; format is short and a literal. */
                 syslog(LOG_INFO, "discarding $%s.", name);
             }
         }
-    }
-
-    if (varidx == MAX_NVARS) {
-        return ERR_LEN;
     }
 
     return OK;
