@@ -199,8 +199,6 @@ readonly comm="
 # Main
 #
 
-cleanup="warn 'shutting down ...'; ${cleanup-}"
-
 failures=
 for vm
 do
