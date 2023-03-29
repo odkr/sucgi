@@ -25,31 +25,34 @@
 # Defaults
 #
 
-# Build configuration.
-conf=prod.env
+# Search static code analysers?
+searchstat=
 
 # Compilers to look for. Space-separated list of commands.
 compilers='gcc clang tcc icx icc c99 cc'
 
+# Flags for testing compiling features.
+compflags=
+
+# Configuration file.
+conf=prod.env
+
 # Files to generate. Space-separated list.
 files='build.h compat.h makefile'
-
-# Number of child processes to spawn.
-maxnjobs=4
-# The Almquist shell tends to crash when running jobs in parallel.
-[ "$(basename "${SHELL-}")" = ash ] && maxnjobs=1
 
 # Overwrite existing files?
 force=
 
+# Maximum number of child processes to spawn.
+maxnjobs=4
+# The Almquist shell tends to crash when running jobs in parallel.
+[ "$(basename "${SHELL-}")" = ash ] && maxnjobs=1
+
 # Be quiet?
 quiet=
 
-# Flags for testing compiling features.
-compflags=
-
 # Directories to add to $PATH when searching utilities. Colon-separated list.
-utilpath=
+statpath=
 
 
 #
@@ -73,6 +76,8 @@ tmpdir tmp .
 readonly macros='
 	CC CFLAGS AR ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
 	SC_GETGRPLST_T SC_SETGRPNUM_T SC_SETGRPNUM_T SC_CGI_DIR SC_WWW_GRP
+	SC_FEATURES_H
+	SC_CLANG_TIDY SC_CPPCHECK SC_FLAWFINDER SC_RATS SC_SHELLCHECK
 '
 
 # Where to save the configuration.
@@ -142,19 +147,25 @@ testflags() {
 	testcomp "$@" -
 }
 
+# Test whether a header file is available.
+testhdr() {
+	printf '#include <%s>\n' "${1:?}" |
+	testcomp -E -
+}
+
 
 #
 # Options
 #
 
 OPTIND=1 OPTARG='' opt=''
-while getopts Dc:dfj:qh opt; do
+while getopts Dc:dfhj:p:qs opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF >&2
 $prog_name - generate a build configuration
 
-Usage:       $prog_name [-cFILE|-d] [-f] [-q] [FILE ...]
+Usage:       $prog_name [-cFILE|-d] [-f] [-jN] [-pDIR] [-q] [-s] [FILE ...]
              $prog_name -h
 
 Operands:
@@ -165,6 +176,8 @@ Options:
     -d       Short for -c devel.env.
     -f       Overwrite existing files. config.h is never overwritten.
     -j N     Run N configuration tests in parallel (default: $maxnjobs).
+    -p DIR   Add DIR to the search path for static analysers.
+    -s       Search for static code analysers.
     -q       Be quiet.
     -h       Show this help screen.
 
@@ -180,7 +193,9 @@ EOF
 	(d) conf=devel.env ;;
 	(f) force=x ;;
 	(j) maxnjobs="$OPTARG" ;;
+	(p) statpath="$statpath:$OPTARG" ;;
 	(q) quiet=x ;;
+	(s) searchstat=x ;;
 	(*) exit 1
 	esac
 done
@@ -472,7 +487,7 @@ fi
 
 
 #
-# Check what data types setgroups takes the group size as.
+# Check what data type setgroups takes the group size as.
 #
 
 : "${SC_SETGRPNUM_T=}"
@@ -529,21 +544,86 @@ fi
 
 
 #
-# Extend $PATH for utilities.
+# Check if the standard library has features.h
 #
 
-if [ "$utilpath" ]
+# FIXME: is features.h the right name?
+printf 'features.h: '
+: "${SC_HAVE_FEATURES_H=}"
+if [ "${SC_HAVE_FEATURES_H-x}" = x ] && ! [ "${SC_HAVE_FEATURES_H-}" = x ]
 then
-	IFS=:
-	for dir in $utilpath
-	do
-		unset IFS
-		case $PATH in
-		("$dir":|:"$dir"|:"$dir":) : ;;
-		(*) [ -e "$dir" ] && PATH="$dir:$PATH"
-		esac
-	done
-	export PATH
+	if testhdr features.h
+	then SC_FEATURES_H=1
+	else SC_FEATURES_H=
+	fi
+fi
+
+if [ "${SC_FEATURES_H-0}" -eq 1 ]
+then printf 'present\n'
+else printf 'not present\n'
+fi
+
+
+#
+# Static Code Analysers
+#
+
+if [ "$searchstat" ]
+then
+	# Extend $PATH for search analysers.
+	if [ "$statpath" ]
+	then
+		IFS=:
+		for dir in $statpath
+		do
+			unset IFS
+			case $PATH in
+			("$dir":|:"$dir"|:"$dir":) : ;;
+			(*) [ -e "$dir" ] && PATH="$dir:$PATH"
+			esac
+		done
+		export PATH
+	fi
+
+	# Clang-tidy
+	printf 'Clang-Tidy: '
+	: "${SC_CLANG_TIDY=$(command -v clang-tidy 2>/dev/null)}"
+	if [ "$SC_CLANG_TIDY" ]
+	then printf '%s\n' "$SC_CLANG_TIDY"
+	else printf 'not found\n'
+	fi
+
+	# Cppcheck
+	printf 'Cppcheck: '
+	: "${SC_CPPCHECK=$(command -v cppcheck 2>/dev/null)}"
+	if [ "$SC_CPPCHECK" ]
+	then printf '%s\n' "$SC_CPPCHECK"
+	else printf 'not found\n'
+	fi
+
+	# Flawfinder
+	printf 'Flawfinder: '
+	: "${SC_FLAWFINDER=$(command -v flawfinder 2>/dev/null)}"
+	if [ "$SC_FLAWFINDER" ]
+	then printf '%s\n' "$SC_FLAWFINDER"
+	else printf 'not found\n'
+	fi
+
+	# RATS
+	printf 'RATS: '
+	: "${SC_RATS=$(command -v rats 2>/dev/null)}"
+	if [ "$SC_RATS" ]
+	then printf '%s\n' "$SC_RATS"
+	else printf 'not found\n'
+	fi
+
+	# ShellCheck
+	printf 'ShellCheck: '
+	: "${SC_SHELLCHECK=$(command -v shellcheck 2>/dev/null)}"
+	if [ "$SC_SHELLCHECK" ]
+	then printf '%s\n' "$SC_SHELLCHECK"
+	else printf 'not found\n'
+	fi
 fi
 
 

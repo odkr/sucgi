@@ -45,13 +45,10 @@ include(`macros.m4')dnl
 #if !defined(BUILD_H)
 #define BUILD_H
 
-/*
- * This is to include features.h -- which is used by many standard libraries
- * to define constants, but is also non-standard -- in a round-about way.
- */
-#include <limits.h>
+ifnempty(`__HAVE_FEATURES_H', `dnl
+#include <features.h>
 
-#include "macros.h"
+')dnl
 
 /* Toolchain. */
 ifnempty(`__CC', `dnl
