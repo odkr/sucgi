@@ -527,12 +527,12 @@ do
 	chmod go-w "$exclw_subdir" "$exclw_shallow" "$exclw_deeper"
 
 	chmod "$exclw_mode" "$exclw_shallow"
-	check -s1 -e"script $exclw_shallow: no handler found." \
+	check -s1 -e"script $exclw_shallow: not executable." \
 	      PATH_TRANSLATED="$exclw_shallow" main || result=70
 
 	chmod "$exclw_mode" "$exclw_subdir"
 	chmod u+wx,go= "$exclw_subdir"
-	check -s1 -e"script $exclw_deeper: no handler found." \
+	check -s1 -e"script $exclw_deeper: not executable." \
 	      PATH_TRANSLATED="$exclw_deeper" main || result=70
 
 	chmod g+w,o= "$exclw_deeper"
@@ -626,16 +626,17 @@ check -s1 -e"script $hdl_emptyhandler: bad handler." \
 check -s1 -e"script $hdl_hugesuffix: filename suffix too long." \
 	PATH_TRANSLATED="$hdl_hugesuffix" main || result=70
 
-# No known suffix.
-for hdl_script in "$hdl_nosuffix" "$hdl_unknownsuffix"
-do
-	check -s1 -e"script $hdl_script: no handler found." \
-		PATH_TRANSLATED="$hdl_script" main || result=70
-done
+# Unknown suffix.
+check -s1 -e"script $hdl_unknownsuffix: no handler found." \
+	PATH_TRANSLATED="$hdl_unknownsuffix" main || result=70
+
+# Not executable.
+check -s1 -e"script $hdl_nosuffix: not executable." \
+	PATH_TRANSLATED="$hdl_nosuffix" main || result=70
 
 # Cleanup.
 unset hdl_nosuffix hdl_unknownsuffix hdl_emptyhandler \
-      hdl_suffix hdl_hugesuffix hdl_script
+      hdl_suffix hdl_hugesuffix
 
 
 #
