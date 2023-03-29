@@ -24,7 +24,6 @@
 #define _DEFAULT_SOURCE
 #define _GNU_SOURCE
 
-#include <assert.h>
 #include <err.h>
 #include <math.h>
 #include <stdio.h>
