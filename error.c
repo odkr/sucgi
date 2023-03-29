@@ -48,9 +48,9 @@ error(const char *const message, ...)
 {
     va_list argp;
 
-    assert(message);
-    assert(strnlen(message, MAX_ERRMSG_LEN) < MAX_STR_LEN);
+    assert(message != NULL);
     assert(*message != '\0');
+    assert(strnlen(message, MAX_ERRMSG_LEN) < MAX_STR_LEN);
 
     va_start(argp, message);
     vsyslog(LOG_ERR, message, argp);
@@ -59,6 +59,6 @@ error(const char *const message, ...)
     exit(EXIT_FAILURE);
 }
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) && __GNUC__ >= 3
 #pragma GCC diagnostic pop
 #endif

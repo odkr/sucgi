@@ -51,11 +51,11 @@ userdir_resolve(const char *const str, const struct passwd *const user,
 {
     int nchars;
 
-    assert(str);
+    assert(str != NULL);
     assert(*str != '\0');
     assert(strnlen(str, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
-    assert(user);
-    assert(dir);
+    assert(user != NULL);
+    assert(dir != NULL);
 
     /* Some versions of snprintf fail to NUL-terminate strings. */
     (void) memset(dir, '\0', MAX_FNAME_LEN);
@@ -81,6 +81,6 @@ userdir_resolve(const char *const str, const struct passwd *const user,
     return OK;
 }
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) && __GNUC__ >= 3
 #pragma GCC diagnostic pop
 #endif
