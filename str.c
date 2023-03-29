@@ -40,9 +40,9 @@ str_cp(const size_t nbytes, const char *const src, char *const dest)
     char *end;
     size_t len;
 
-    assert(src);
+    assert(src != NULL);
     assert(strnlen(src, MAX_STR_LEN) < MAX_STR_LEN);
-    assert(dest);
+    assert(dest != NULL);
 
     end = stpncpy(dest, src, nbytes);
     /* cppcheck-suppress [misra-c2012-10.8, misra-c2012-18.4];
@@ -64,13 +64,13 @@ str_split(const char *const str, const char *const sep,
 {
     size_t len;
 
-    assert(str);
+    assert(str != NULL);
     assert(strnlen(str, MAX_STR_LEN) < MAX_STR_LEN);
-    assert(sep);
+    assert(sep != NULL);
     assert(strnlen(sep, MAX_STR_LEN) < MAX_STR_LEN);
     assert(size > 0U);
-    assert(head);
-    assert(tail);
+    assert(head != NULL);
+    assert(tail != NULL);
 
     *tail = strpbrk(str, sep);
     if (*tail == NULL) {
