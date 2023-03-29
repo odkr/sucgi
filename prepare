@@ -70,7 +70,7 @@ fi
 #
 
 hascomp='' hashdrs=''
-for cc in cc c99 gcc clang tcc
+for cc in c99 gcc clang tcc cc
 do
 	if command -v "$cc" >/dev/null
 	then
