@@ -91,22 +91,26 @@ path_check_wexcl(const uid_t uid, const char *const basedir,
                  const char *const fname)
 {
     const char *pos;
+    Error ret;
 
-    assert(basedir);
-    assert(strnlen(basedir, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
+    assert(basedir != NULL);
     assert(*basedir == '/');
-    assert(fname);
-    assert(strnlen(fname, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
+    assert(strnlen(basedir, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
+    assert(fname != NULL);
     assert(*fname == '/');
+    assert(strnlen(fname, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
 
-    if (path_check_in(basedir, fname) != OK) {
-        return ERR_BASEDIR;
+    ret = path_check_in(basedir, fname);
+    if (ret != OK) {
+        return ret;
     }
 
     /* cppcheck-suppress misra-c2012-18.4; basedir is shorter than fname. */
     pos = fname + strnlen(basedir, MAX_FNAME_LEN);
     do {
-	char cur[MAX_FNAME_LEN];
+	    /* RATS: ignore; path_check_in would have errored out if
+	       basedir or fname were longer than MAX_FNAME_LEN. */
+	    char cur[MAX_FNAME_LEN];
         struct stat fstatus;
 
         /* cppcheck-suppress [misra-c2012-10.8, misra-c2012-18.4];
@@ -137,10 +141,10 @@ path_check_wexcl(const uid_t uid, const char *const basedir,
 Error
 path_suffix(const char *const fname, const char **const suffix)
 {
-    assert(fname);
+    assert(fname != NULL);
     assert(*fname != '\0');
     assert(strnlen(fname, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
-    assert(suffix);
+    assert(suffix != NULL);
 
     *suffix = strrchr(fname, '.');
     /* cppcheck-suppress misra-c2012-18.4;
