@@ -61,15 +61,13 @@ objs = funcs.a(env.o)  funcs.a(error.o) funcs.a(file.o) funcs.a(handler.o) \
 # Build configuration
 #
 
-.SUFFIXES: .m4
-
 makefile: makefile.m4
 
 build.h: build.h.m4
 
 compat.h: compat.h.m4
 
-.m4:
+makefile build.h compat.h:
 ifhasfile(`config.status', `dnl
 	./config.status $@
 ', `dnl
