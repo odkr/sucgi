@@ -83,9 +83,6 @@ typedef enum {
     WRONG_ENVIRON
 } ErrType;
 
-/* Constant string. */
-typedef const char *ConstStr;
-
 
 /*
  * Module variables
