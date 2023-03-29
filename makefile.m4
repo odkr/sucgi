@@ -53,7 +53,8 @@ LDLIBS = __LDLIBS
 
 hdrs = cattr.h compat.h macros.h max.h types.h
 objs = funcs.a(env.o)  funcs.a(error.o) funcs.a(file.o) funcs.a(handler.o) \
-       funcs.a(path.o) funcs.a(priv.o)  funcs.a(str.o)  funcs.a(userdir.o)
+       funcs.a(pair.o) funcs.a(path.o)  funcs.a(priv.o) funcs.a(str.o)     \
+       funcs.a(userdir.o)
 
 
 #
@@ -86,11 +87,13 @@ funcs.a(error.o): error.c error.h
 
 funcs.a(file.o): file.c file.h funcs.a(str.o)
 
+funcs.a(pair.o): pair.c pair.h
+
 funcs.a(path.o): path.c path.h funcs.a(file.o) funcs.a(str.o)
 
 funcs.a(priv.o): priv.c priv.h
 
-funcs.a(handler.o): handler.c handler.h funcs.a(path.o)
+funcs.a(handler.o): handler.c handler.h funcs.a(pair.o) funcs.a(path.o)
 
 funcs.a(str.o): str.c str.h
 
@@ -137,17 +140,16 @@ uninstall:
 
 checks = $(macro_check_bins) $(check_scripts) tests/env_is_name \
 	tests/env_restore tests/file_is_exe tests/file_is_wexcl \
-	tests/handler_lookup tests/path_check_in tests/path_suffix \
-	tests/str_cp tests/str_split tests/userdir_resolve
+	tests/handler_lookup tests/pair_lookup tests/path_check_in \
+	tests/path_suffix tests/str_cp tests/str_split tests/userdir_resolve
 
 macro_check_bins = tests/ISSIGNED tests/MIN tests/NELEMS tests/SIGNEDMAX
 
 other_check_bins = tests/env_is_name tests/env_restore tests/error \
-	tests/file_is_exe tests/file_is_wexcl \
-	tests/handler_lookup tests/path_check_wexcl \
-	tests/path_check_in tests/path_suffix tests/priv_drop \
-	tests/priv_suspend tests/str_cp tests/str_split \
-	tests/userdir_resolve
+	tests/file_is_exe tests/file_is_wexcl tests/handler_lookup \
+	tests/pair_lookup tests/path_check_wexcl tests/path_check_in \
+	tests/path_suffix tests/priv_drop tests/priv_suspend tests/str_cp \
+	tests/str_split tests/userdir_resolve
 
 check_scripts =	tests/error.sh tests/main.sh tests/path_check_wexcl.sh \
 	tests/priv_drop.sh tests/priv_suspend.sh
@@ -177,6 +179,8 @@ tests/file_is_wexcl: tests/file_is_wexcl.c funcs.a(file.o)
 tests/handler_lookup: tests/handler_lookup.c funcs.a(handler.o)
 
 tests/main: main.c build.h config.h testing.h $(hdrs) $(objs)
+
+tests/pair_lookup: tests/pair_lookup.c funcs.a(pair.o)
 
 tests/path_check_wexcl: tests/path_check_wexcl.c funcs.a(path.o)
 
@@ -280,54 +284,49 @@ distcheck: dist
 # Static code analysis
 #
 
-ifhascmd(`clang-tidy', `define(`__clang_tidy', `findcmd(`clang-tidy')')')dnl
-ifhascmd(`cppcheck', `define(`__cppcheck', `findcmd(`cppcheck')')')dnl
-ifhascmd(`flawfinder', `define(`__flawfinder', `findcmd(`flawfinder')')')dnl
-ifhascmd(`rats', `define(`__rats', `findcmd(`rats')')')dnl
-ifhascmd(`shellcheck', `define(`__shellcheck', `findcmd(`shellcheck')')')dnl
-
 inspect	= *.h *.c
 scripts = configure prepare scripts/* tests/*.sh
 
-ifnempty(`__clang_tidy', `dnl
+ifnempty(`__SC_CLANG_TIDY', `dnl
 clang_tidy_flags = --config-file=clang-tidy.yaml
 
 ')dnl
-ifnempty(`__cppcheck', `dnl
+ifnempty(`__SC_CPPCHECK', `dnl
 cppcheck_flags = --quiet --force --language=c --std=c99 \
 	--project=cppcheck/sucgi.cppcheck --library=posix \
 	--library=cppcheck/bsd.cfg --library=cppcheck/funcs.cfg \
 	--suppressions-list=cppcheck/suppr.txt --inline-suppr \
+	-UCC -UCFLAGS -UAR -UARFLAGS -ULDFLAGS -ULDLIBS -UNDEBUG -ULIBC \
 	--enable=all --addon=cppcheck/cert.py --addon=misra.py
 
 ')dnl
-ifnempty(`__flawfinder', `dnl
+ifnempty(`__SC_FLAWFINDER', `dnl
 flawfinder_flags = --falsepositive --dataonly --quiet
 
 ')dnl
-ifnempty(`__rats', `dnl
+ifnempty(`__SC_RATS', `dnl
 rats_flags = --resultsonly --quiet --warning 3
 
 ')dnl
 analysis:
 	! grep -i FIXME $(inspect)
-ifnempty(`__clang_tidy', `dnl
-	__clang_tidy $(clang_tidy_flags) $(inspect) -- -std=c99
+ifnempty(`__SC_CLANG_TIDY', `dnl
+	__SC_CLANG_TIDY $(clang_tidy_flags) $(inspect) -- -std=c99
 ')dnl
-ifnempty(`__cppcheck', `dnl
-	__cppcheck $(cppcheck_flags) $(inspect)
+ifnempty(`__SC_CPPCHECK', `dnl
+	__SC_CPPCHECK $(cppcheck_flags) $(inspect)
 ')dnl
-ifnempty(`__flawfinder', `dnl
-	__flawfinder $(flawfinder_flags) $(inspect)
+ifnempty(`__SC_FLAWFINDER', `dnl
+	__SC_FLAWFINDER $(flawfinder_flags) $(inspect)
 ')dnl
-ifnempty(`__rats', `dnl
-	__rats $(rats_flags) $(inspect)
+ifnempty(`__SC_RATS', `dnl
+	__SC_RATS $(rats_flags) $(inspect)
 ')dnl
 
 shellcheck:
 	! grep -i FIXME $(scripts)
-ifnempty(`__shellcheck', `dnl
-	__shellcheck -x $(scripts)
+ifnempty(`__SC_SHELLCHECK', `dnl
+	__SC_SHELLCHECK -x $(scripts)
 ')dnl
 
 
