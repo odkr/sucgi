@@ -77,7 +77,7 @@ then
 	gid="$(id -g "$reguser")"
 
 	check -s1 -e'Operation not permitted' \
-		runas "$reguser" priv_drop "$reguser" || result=70
+		runas "$reguser" ./priv_drop "$reguser" || result=70
 	check -s0 -o"euid=$uid egid=$gid ruid=$uid rgid=$gid" \
 		priv_drop "$reguser" || result=70
 
