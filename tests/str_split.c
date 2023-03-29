@@ -24,7 +24,6 @@
 #define _DEFAULT_SOURCE
 #define _GNU_SOURCE
 
-#include <assert.h>
 #include <err.h>
 #include <limits.h>
 #include <math.h>
@@ -42,11 +41,8 @@
  * Constants
  */
 
-/* Maximum length of dynamically created pre- and suffixes. */
-#define SUB_STR_LEN 2U
-
-/* Maximum length of dynamically created filenames. */
-#define STR_LEN (SUB_STR_LEN * 3U + 1U)
+/* Arbitrary maximum string length for testing. */
+#define MAX_LEN 32U
 
 
 /*
@@ -67,25 +63,25 @@ typedef struct {
  * Module variables
  */
 
-/* A string just within limits. */
-static char long_str[MAX_FNAME_LEN] = {'\0'};
+/* A string just within MAX_LEN. */
+static char longstr[MAX_LEN] = {'\0'};
 
-/* A string w/o a delimiter that exceeds MAX_STR_LEN. */
-static char huge_str[MAX_FNAME_LEN + 1U] = {'\0'};
+/* A string w/o a delimiter that exceeds MAX_LEN. */
+static char hugestr[MAX_LEN + 1U] = {'\0'};
 
-/* A pair w/ a head that exceeds MAX_STR_LEN. */
-static char huge_head[MAX_FNAME_LEN + 32U] = {'\0'};
+/* A pair w/ a head that exceeds MAX_LEN. */
+static char hugehead[MAX_LEN + 32U] = {'\0'};
 
 /* Test cases. */
 static const Args cases[] = {
     /* Overly long string. */
-    {huge_str, ",", long_str, NULL, ERR_LEN},
+    {hugestr, ",", longstr, NULL, ERR_LEN},
 
     /* Overly long head. */
-    {huge_head, ",", NULL, ",foo", ERR_LEN},
+    {hugehead, ",", NULL, ",foo", ERR_LEN},
 
     /* Barely fitting string. */
-    {long_str, ",", long_str, NULL, OK},
+    {longstr, ",", longstr, NULL, OK},
 
     /* Simple test. */
     {"a,b", ",", "a", "b", OK},
@@ -113,29 +109,29 @@ main(void)
 {
     int result = TEST_PASSED;
 
-    (void) memset(long_str, 'x', sizeof(long_str));
-    long_str[sizeof(long_str) - 1] = '\0';
+    (void) memset(longstr, 'x', sizeof(longstr));
+    longstr[sizeof(longstr) - 1U] = '\0';
 
-    (void) memset(huge_str, 'x', sizeof(huge_str));
-    huge_str[sizeof(huge_str) - 1] = '\0';
+    (void) memset(hugestr, 'x', sizeof(hugestr));
+    hugestr[sizeof(hugestr) - 1U] = '\0';
 
-    (void) memset(huge_head, 'x', sizeof(huge_head));
-    (void) strncpy(&huge_head[MAX_FNAME_LEN], ",foo", 5);
+    (void) memset(hugehead, 'x', sizeof(hugehead));
+    (void) strncpy(&hugehead[MAX_LEN], ",foo", 5U);
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
-        char head[MAX_FNAME_LEN];
+        char head[MAX_LEN];
         const char *tail;
         Error ret;
 
-        (void) memset(head, '\0', MAX_FNAME_LEN);
+        (void) memset(head, '\0', MAX_LEN);
 
-        ret = str_split(args.str, args.sep, MAX_FNAME_LEN, head, &tail);
+        ret = str_split(args.str, args.sep, MAX_LEN, head, &tail);
 
         if (ret != args.ret)
         {
-            warnx("(%s, %s, %d, -> %s, -> %s) -> %u [!]",
-                  args.str, args.sep, MAX_FNAME_LEN,
+            warnx("(%s, %s, %u, -> %s, -> %s) -> %u [!]",
+                  args.str, args.sep, MAX_LEN,
                   args.head, args.tail, ret);
             result = TEST_FAILED;
         }
@@ -143,8 +139,8 @@ main(void)
         if (!(args.head == NULL ||
               strncmp(args.head, head, MAX_STR_LEN) == 0))
         {
-            warnx("(%s, %s, %d, -> %s [!], -> %s) -> %u",
-                  args.str, args.sep, MAX_FNAME_LEN,
+            warnx("(%s, %s, %u, -> %s [!], -> %s) -> %u",
+                  args.str, args.sep, MAX_LEN,
                   head, args.tail, args.ret);
             result = TEST_FAILED;
         }
@@ -152,8 +148,8 @@ main(void)
         if (!(args.tail == tail ||
               strncmp(args.tail, tail, MAX_STR_LEN) == 0))
         {
-            warnx("(%s, %s, %d, -> %s, -> %s [!]) -> %u",
-                  args.str, args.sep, MAX_FNAME_LEN,
+            warnx("(%s, %s, %u, -> %s, -> %s [!]) -> %u",
+                  args.str, args.sep, MAX_LEN,
                   args.head, tail, args.ret);
             result = TEST_FAILED;
         }
