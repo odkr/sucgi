@@ -96,6 +96,7 @@ catch() {
 	warn 'caught %s.' "$signal"
 	if [ "${catch-}" ]
 	then
+		cleanup
 		trap - "$signal"
 		kill -s "$signal" "$$"
 	fi
@@ -112,7 +113,7 @@ cleanup() {
 	kill -- $(jobs -p 2>/dev/null) -$$ >/dev/null 2>&1
 	wait
 	eval "${cleanup-}"
-	exit "$rc"
+	return "$rc"
 }
 
 # Clear the current line of terminal $fd.
@@ -292,15 +293,13 @@ reguser() (
 			continue
 		esac
 
-		if [ "$uid" -lt "$minuid" ] || [ "$uid" -gt "$maxuid" ]
-		then continue
-		fi
+		[ "$uid" -lt "$minuid" ] && continue
+		[ "$uid" -gt "$maxuid" ] && continue
 
 		for gid in $(id -G "$user")
 		do
-			if [ "$gid" -lt "$mingid" ] || [ "$gid" -gt "$maxgid" ]
-			then continue 2
-			fi
+			[ "$gid" -lt "$mingid" ] && continue 2
+			[ "$gid" -gt "$maxgid" ] && continue 2
 		done
 
 		reguser="$user"
