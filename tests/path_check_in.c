@@ -24,7 +24,6 @@
 #define _DEFAULT_SOURCE
 #define _GNU_SOURCE
 
-#include <assert.h>
 #include <err.h>
 #include <math.h>
 #include <stdbool.h>
@@ -77,8 +76,20 @@ typedef struct {
  * Module variables
  */
 
+/* A filename just within MAX_FNAME_LEN. */
+static char longfname[MAX_FNAME_LEN] = {'\0'};
+
+/* A filename that exceeds MAX_FNAME_LEN. */
+static char hugefname[MAX_FNAME_LEN + 1U] = {'\0'};
+
 /* Static test cases. */
 static const Args cases[] = {
+    /* Long filenames. */
+    {"foo", longfname, ERR_BASEDIR},
+    {longfname, "foo", ERR_BASEDIR},
+    {"foo", hugefname, ERR_LEN},
+    {hugefname, "foo", ERR_LEN},
+
     /* Absolute paths. */
     {"/", "/", ERR_BASEDIR},
     {"/", "/foo", OK},
@@ -152,6 +163,12 @@ int
 main(void)
 {
     int result = TEST_PASSED;
+
+    (void) memset(longfname, 'x', sizeof(longfname));
+    longfname[sizeof(longfname) - 1U] = '\0';
+
+    (void) memset(hugefname, 'x', sizeof(hugefname));
+    hugefname[sizeof(hugefname) - 1U] = '\0';
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];

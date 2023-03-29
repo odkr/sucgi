@@ -126,7 +126,6 @@ main(void)
         const Args args = cases[i];
         bool ret;
 
-
         ret = file_is_wexcl(args.uid, args.fstatus);
         if (ret != args.ret) {
             warnx("(%d, {%d, 0%03o})) -> %d [!]",
