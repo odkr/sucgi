@@ -113,7 +113,8 @@ static void config(void);
 /* Print version. */
 static void version(void);
 
-/* Print usage information to stderr. */
+/* Print usage information to stderr and exit with EXIT_FAILURE. */
+__attribute__((noreturn))
 static void usage(void);
 
 
@@ -274,6 +275,8 @@ static void
 usage(void)
 {
     (void) fputs("usage: sucgi [-c|-V|-h]\n", stderr);
+    /* cppcheck-suppress misra-c2012-21.8; exit is the least bad option. */
+    exit(EXIT_FAILURE);
 }
 
 
@@ -303,10 +306,9 @@ main(int argc, char **argv) {
     ERRORIF(sizeof(PATH) >= (size_t) MAX_FNAME_LEN);
     ERRORIF(sizeof(ALLOW_GROUP) < 1U);
     ERRORIF(sizeof(ALLOW_GROUP) >= MAX_GRPNAME_LEN);
-    ERRORIF((uint64_t) MAX_UID > SIGNEDMAX(uid_t));
-    /* NOLINTNEXTLINE(bugprone-branch-clone); GETGRPLST_T may be gid_t. */
-    ERRORIF((uint64_t) MAX_GID > MIN(SIGNEDMAX(gid_t),
-                                     SIGNEDMAX(GETGRPLST_T)));
+    ERRORIF((uint64_t) MAX_UID > (uint64_t) SIGNEDMAX(uid_t));
+    ERRORIF((uint64_t) MAX_GID > (uint64_t) SIGNEDMAX(gid_t));
+    ERRORIF((uint64_t) MAX_GID > (uint64_t) SIGNEDMAX(GETGRPLST_T));
 
 
     /*
@@ -382,15 +384,11 @@ main(int argc, char **argv) {
         } else if (strncmp(argv[1], "-V", 3) == 0) {
             version();
         } else {
-            /* cppcheck-suppress [misra-c2012-15.1, misra-c2012-15.3];
-               least bad solution. */
-            goto usage;
+            usage();
         }
         return EXIT_SUCCESS;
     default:
-        usage:
-            usage();
-            return EXIT_FAILURE;
+        usage();
     }
     /* NOLINTEND(bugprone-not-null-terminated-result) */
 
@@ -536,16 +534,23 @@ main(int argc, char **argv) {
     allowed = strncmp(ALLOW_GROUP, "", 1) == 0;
 
     /*
-     * getgrouplist may take and return group IDs as int's or as gid_t's.
-     * GETGRPLST_T refers to the respective type. A compile-time error is
-     * raised if int and GETGRPLST_T are of different sizes, if MIN_GID is
-     * outside the range 1 to MAX_GID, or if MAX_GID is outside the range
-     * MIN_GID to INT_MAX. A run-time error is raised if a group ID is
-     * outside the range MIN_GID to MAX_GID. So coercing group IDs to
-     * GETGRPLST_T is safe.
+     * GETGRPLST_T refers to the type that getgrouplist takes
+     * and returns GIDs as; that type may be int or gid_t.
+     *
+     * Casting gid_t to GETGRPLST_T is guaranteed to be safe because:
+     * (1) a run-time error is raised above if
+     *     a GID is outside the range MIN_GID to MAX_GID;
+     * (2) gid_t and GETGRPLST_T represent values
+     *     within that range in the same way.
+     *
+     * gid_t and GETGRPLST_T are guaranteed to represent values within that
+     * range in the same way because a compile-time error is raised if:
+     * (1) GETGRPLST_T and gid_t are of different sizes;
+     * (2) MIN_GID < 1 (no negative GIDs);
+     * (3) MAX_GID > the maximum signed value that both
+     *     gid_t and GETGRPLST_T can hold (no overflow).
      */
     if (getgrouplist(logname, (GETGRPLST_T) gid,
-                     /* cppcheck-suppress misra-c2012-11.3; see above. */
                      (GETGRPLST_T *) groups, &ngroups) < 0)
     {
         error("user %s: belongs to too many groups.", logname);
