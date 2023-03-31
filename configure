@@ -109,13 +109,17 @@ readonly sizetypes="size_t:$inttypes"
 
 # Check if the given compiler supports the given flags.
 addflags() {
-	if ! [ "${CFLAGS-}" ]
-	then
-		case ${1:?} in
-		(-*) cflags="${cflags-} $*" ;;
-		(*)  eval "cflags_$1"="\"\${cflags_$1-} \${*#\"$1\"}\"" ;;
-		esac
-	fi
+	case ${1:?} in
+	(-*)
+		cflags="${cflags-} $*"
+		;;
+	(*)
+		__addflags_var="cflags_$1"
+		shift
+		eval "$__addflags_var"="\"\${$__addflags_var-} \$*\""
+		unset __addflags_var
+		;;
+	esac
 }
 
 # Print the value of $macro from $CFLAGS.
