@@ -405,6 +405,7 @@ then
 
 				njobs=$((njobs + 1)) jobs="$jobs$! "
 				eval "flag_$!"='$flag'
+				unset flag
 			done
 
 			# Collect the job on top of the pile.
@@ -423,11 +424,12 @@ then
 		[ "${CFLAGS-}" ] || printf ' none detected'
 
 		echo
+		unset jobs specflags
 	fi
 else
 	printf -- ' %s\a\n' "${CFLAGS:-none given}"
 fi
-unset cflags flag jobs
+unset cflags
 
 
 #
