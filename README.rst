@@ -46,8 +46,8 @@ You may need to install:
 * A C compiler (GCC_ and Clang_ are known to work)
 * The header files of your system's standard library
 * The so-called "binary utilities"
-* Make (`GNU Make`_, FreeBSD Make, and bmake_ are known to work)
-* M4 (`GNU M4`_ and FreeBSD M4 are known to work)
+* Make (`GNU Make`_, FreeBSD's Make, and bmake_ are known to work)
+* M4 (`GNU M4`_ and FreeBSD's M4 are known to work)
 
 On many systems you can do so by::
 
@@ -86,11 +86,21 @@ recently than the binary that has just been built.
 You can uninstall suCGI by ``sudo make uninstall``.
 
 
-Apache Configuration for PHP
-============================
+Configuration
+=============
 
-Set up Apache_ and PHP_, enable mod_userdir_ and mod_action_, install suCGI
-and then add the following lines to your Apache configuration::
+If you are are using Apache_ and want to enable users to run their PHP_
+scripts under their own user and group IDs.
+
+Enable mod_userdir_::
+
+	a2enmod userdir
+
+Enable mod_action_::
+
+	a2enmod action
+
+Add the following lines to your Apache configuration::
 
     <Directory "/home">
         Action application/x-httpd-php /cgi-bin/sucgi
