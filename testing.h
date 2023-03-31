@@ -1,5 +1,5 @@
 /*
- * Build configurations for testing.
+ * Build configuration for testing.
  *
  * Copyright 2022 and 2023 Odin Kroeger
  *
@@ -19,8 +19,10 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(TESTING_H) && defined(CHECK) && CHECK
+#if !defined(TESTING_H)
 #define TESTING_H
+
+#if defined(CHECK) && CHECK
 
 #if !defined(CONFIG_H)
 #error config.h must be included before testing.h.
@@ -60,4 +62,5 @@
 #define LOGGING_OPTIONS LOG_CONS
 #endif
 
+#endif /* defined(CHECK) && CHECK */
 #endif /* !defined(TESTING_H) */
