@@ -48,11 +48,8 @@ force=
 
 # Maximum number of child processes to spawn.
 maxnjobs=4
-# The Almquist and FreeBSD's Korn shell tend
-# to crash when running jobs in parallel.
-case $(basename "${SHELL-}") in
-(ash|ksh) maxnjobs=1
-esac
+# The Almquist shell tends to crash when running jobs in parallel.
+[ "$(basename "${SHELL-}")" = ash ] && maxnjobs=1
 
 # Be quiet?
 quiet=
