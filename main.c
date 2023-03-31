@@ -187,7 +187,7 @@ config(void)
     (void) printf("PATH=\"%s\"\n", PATH);
     (void) printf("UMASK=0%o\n", (unsigned int) UMASK);
 
-    (void) printf("\n#\n# Limits\n#\n\n");
+    (void) printf("\n\n#\n# Limits\n#\n\n");
 
     (void) printf("MAX_STR_LEN=%u\n", MAX_STR_LEN);
     (void) printf("MAX_ERRMSG_LEN=%u\n", MAX_ERRMSG_LEN);
@@ -199,63 +199,63 @@ config(void)
     (void) printf("MAX_NGROUPS=%u\n", MAX_NGROUPS);
     (void) printf("MAX_NVARS=%u\n", MAX_NVARS);
 
-    (void) printf("\n#\n# Debugging\n#\n\n");
+    (void) printf("\n\n#\n# Debugging\n#\n\n");
 
 #if defined(NDEBUG)
     (void) printf("NDEBUG=%d\n", NDEBUG);
 #else
-    (void) printf("# NDEBUG=\n");
+    (void) printf("#NDEBUG=\n");
 #endif
 #if defined(CHECK) && CHECK
     (void) printf("CHECK=%d\n", CHECK);
 #else
-    (void) printf("# CHECK=\n");
+    (void) printf("#CHECK=\n");
 #endif
 
-    (void) printf("\n#\n# Toolchain\n#\n\n");
+    (void) printf("\n\n#\n# Toolchain\n#\n\n");
 
 #if defined(CC)
     (void) printf("CC=\"%s\"\n", CC);
 #else
-    (void) printf("# CC=\n");
+    (void) printf("#CC=\n");
 #endif
 
 #if defined(CFLAGS)
     (void) printf("CFLAGS=\"%s\"\n", CFLAGS);
 #else
-    (void) printf("# CFLAGS=\n");
+    (void) printf("#CFLAGS=\n");
 #endif
 
 #if defined(AR)
     (void) printf("AR=\"%s\"\n", AR);
 #else
-    (void) printf("# AR=\n");
+    (void) printf("#AR=\n");
 #endif
 
 #if defined(ARFLAGS)
     (void) printf("ARLAGS=\"%s\"\n", ARFLAGS);
 #else
-    (void) printf("# ARLAGS=\n");
+    (void) printf("#ARLAGS=\n");
 #endif
 
 #if defined(LDFLAGS)
     (void) printf("LDFLAGS=\"%s\"\n", LDFLAGS);
 #else
-    (void) printf("# LDFLAGS=\n");
+    (void) printf("#LDFLAGS=\n");
 #endif
 
 #if defined(LDLIBS)
     (void) printf("LDLIBS=\"%s\"\n", LDLIBS);
 #else
-    (void) printf("# LDLIBS=\n");
+    (void) printf("#LDLIBS=\n");
 #endif
 
-    (void) printf("\n#\n# System\n#\n\n");
+    (void) printf("\n\n#\n# System\n#\n\n");
 
 #if defined(LIBC)
     (void) printf("LIBC=\"%s\"\n", LIBC);
 #else
-    (void) printf("# LIBC=?\n");
+    (void) printf("#LIBC=?\n");
 #endif
 }
 
