@@ -43,11 +43,11 @@ Please take the time to read and evaluate the source code.
 
 You may need to install:
 
-* A C compiler.
-* The header files of your system's standard library.
-* So-called "binary utilities".
-* Make
-* M4
+* A C compiler (GCC_ and Clang_ are known to work)
+* The header files of your system's standard library
+* The so-called "binary utilities"
+* Make (`GNU Make`_, FreeBSD Make, and bmake_ are known to work)
+* M4 (`GNU M4`_ and FreeBSD M4 are known to work)
 
 On many systems you can do so by::
 
@@ -57,7 +57,7 @@ On many systems you can do so by::
 
 ----
 
-Generate the *makefile*, *build.h*, *compat.h*, and *config.h* by::
+Generate the *makefile*, *build.h*, and *config.h* by::
 
     ./configure
 
@@ -79,9 +79,9 @@ Install suCGI by::
 
     sudo make install
 
-``sudo make install`` will do nothing if suCGI is already installed and
-the file modification time of the installed binary is more recent than
-that of the binary that has just been built.
+``sudo make install`` will do nothing if suCGI has already been
+installed and the installed binary was created or modified more
+recently than the binary that has just been built.
 
 You can uninstall suCGI by ``sudo make uninstall``.
 
@@ -122,7 +122,7 @@ If there's something wrong with suCGI, please
 License
 =======
 
-Copyright 2022 Odin Kroeger
+Copyright 2022 and 2023 Odin Kroeger
 
 suCGI is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -146,7 +146,17 @@ GitHub: https://github.com/odkr/sucgi
 
 .. _Apache: https://httpd.apache.org/
 
+.. _bmake: https://www.crufty.net/help/sjg/bmake.html
+
+.. _Clang: https://clang.llvm.org/
+
 .. _`docs/build.rst`: docs/build.rst
+
+.. _GCC: https://gcc.gnu.org/
+
+.. _`GNU M4`: https://www.gnu.org/software/m4/
+
+.. _`GNU Make`: https://www.gnu.org/software/make/
 
 .. _mod_action: https://httpd.apache.org/docs/2.4/mod/mod_actions.html
 
