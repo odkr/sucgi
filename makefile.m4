@@ -65,9 +65,7 @@ makefile: makefile.m4
 
 build.h: build.h.m4
 
-compat.h: compat.h.m4
-
-makefile build.h compat.h:
+makefile build.h:
 ifhasfile(`config.status', `dnl
 	./config.status $@
 ', `dnl
@@ -253,7 +251,7 @@ dist_files = *.c *.h *.env *.excl *.m4 *.sample README.rst LICENSE.txt \
 	clang-tidy.yaml configure prepare cppcheck docs tests tools scripts
 
 distclean: clean
-	rm -f build.h compat.h makefile *.log *.lock *.status *.tgz
+	rm -f build.h makefile *.log *.lock *.status *.tgz
 	rm -rf tmp-* $(dist_name)
 
 $(dist_name):

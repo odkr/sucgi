@@ -45,10 +45,22 @@ include(`macros.m4')dnl
 #if !defined(BUILD_H)
 #define BUILD_H
 
-ifnempty(`__HAVE_FEATURES_H', `dnl
+#if defined(HAVE_FEATURES_H) && HAVE_FEATURES_H
 #include <features.h>
+#endif
 
-')dnl
+/* Libc. */
+#if defined(__GLIBC__)
+#define LIBC "glibc"
+#elif defined(__GNU_LIBRARY__)
+#define LIBC "glibc"
+#elif defined(__KLIBC__)
+#define LIBC "klibc"
+#elif defined(__UCLIBC__)
+#define LIBC "uClibc"
+#elif defined(__APPLE__)
+#define LIBC "Apple"
+#endif
 
 /* Toolchain. */
 ifnempty(`__CC', `dnl
@@ -70,17 +82,5 @@ ifnempty(`__LDLIBS', `dnl
 #define LDFLAGS "__LDLIBS"'
 )dnl
 
-/* Libc. */
-#if defined(__GLIBC__)
-#define LIBC "glibc"
-#elif defined(__GNU_LIBRARY__)
-#define LIBC "glibc"
-#elif defined(__KLIBC__)
-#define LIBC "klibc"
-#elif defined(__UCLIBC__)
-#define LIBC "uClibc"
-#elif defined(__APPLE__)
-#define LIBC "Apple"
-#endif
 
 #endif /* !defined(BUILD_H) */

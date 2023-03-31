@@ -28,17 +28,20 @@
 # Search static code analysers?
 searchstat=
 
+# Compiler flags to test for.
+cflags=
+
 # Compilers to look for. Space-separated list of commands.
 compilers='gcc clang tcc icx icc c99 cc'
 
-# Flags for testing compiling features.
+# Flags used for testing compiling features.
 compflags=
 
 # Configuration file.
 conf=prod.env
 
 # Files to generate. Space-separated list.
-files='build.h compat.h makefile'
+files='build.h makefile'
 
 # Overwrite existing files?
 force=
@@ -75,8 +78,7 @@ tmpdir tmp .
 # Variables to set as M4 Macros.
 readonly macros='
 	CC CFLAGS AR ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
-	SC_GETGRPLST_T SC_SETGRPNUM_T SC_SETGRPNUM_T SC_CGI_DIR SC_WWW_GRP
-	SC_FEATURES_H
+	SC_CGI_DIR SC_WWW_GRP
 	SC_CLANG_TIDY SC_CPPCHECK SC_FLAWFINDER SC_RATS SC_SHELLCHECK
 '
 
@@ -107,10 +109,13 @@ readonly sizetypes="size_t:$inttypes"
 
 # Check if the given compiler supports the given flags.
 addflags() {
-	case ${1:?} in
-	(-*) cflags="${cflags-} $*" ;;
-	(*)  eval "cflags_$1"="\"\${cflags_$1-} \${*#\"$1\"}\"" ;;
-	esac
+	if ! [ "${CFLAGS-}" ]
+	then
+		case ${1:?} in
+		(-*) cflags="${cflags-} $*" ;;
+		(*)  eval "cflags_$1"="\"\${cflags_$1-} \${*#\"$1\"}\"" ;;
+		esac
+	fi
 }
 
 # Test compilation.
@@ -395,7 +400,8 @@ then
 			unset job
 		done
 
-		[ "${CFLAGS-}" ] || printf ' none detected.\a'
+		[ "${CFLAGS-}" ] || printf -- -
+
 		echo
 	fi
 else
@@ -435,133 +441,152 @@ fi
 
 
 #
+# Check if features.h is available.
+#
+
+printf 'Headers: '
+
+case ${CFLAGS-} in
+(*-DHAVE_FEATURES_H=0*)
+	printf -- '-\n'
+	;;
+(*-DHAVE_FEATURES_H=*)
+	printf -- 'features.h\n'
+	;;
+(*)
+	if testhdr features.h
+	then
+		CFLAGS="-DHAVE_FEATURES_H=1 $CFLAGS"
+		printf 'features.h\n'
+	else
+		CFLAGS="-DHAVE_FEATURES_H=0 $CFLAGS"
+		printf -- '-\n'
+	fi
+	;;
+esac
+
+
+#
 # Check what data type getgrouplist returns GIDs as.
 #
 
 printf 'getgrouplist GID type: '
 
-: "${SC_GETGRPLST_T=}"
-if	[ "$compwconv" ] && ! [ "$SC_GETGRPLST_T" ]
-then
-	src="$TMPDIR/getgroups.c"
-	cat <<-'EOF' >"$src"
-		#define _BSD_SOURCE
-		#define _DARWIN_C_SOURCE
-		#define _DEFAULT_SOURCE
-		#define _GNU_SOURCE
+case ${CFLAGS-} in
+(*-DGETGRPLST_T=*)
+	rem="${CFLAGS##*-DGETGRPLST_T=}"
+	grouptype="${rem%% *}"
+	printf '%s\n' "$grouptype"
+	;;
+(*)
+	if [ "$compwconv" ]
+	then
+		src="$TMPDIR/getgroups.c"
+		cat <<-'EOF' >"$src"
+			#define _BSD_SOURCE
+			#define _DARWIN_C_SOURCE
+			#define _DEFAULT_SOURCE
+			#define _GNU_SOURCE
 
-		#include <grp.h>
-		#include <unistd.h>
+			#include <grp.h>
+			#include <unistd.h>
 
-		int
-		main(void)
-		{
-			GETGRPLST_T basegid = 0;
-			GETGRPLST_T groups[1] = {0};
-			int n = 1;
+			int
+			main(void)
+			{
+				GETGRPLST_T basegid = 0;
+				GETGRPLST_T groups[1] = {0};
+				int n = 1;
 
-			getgrouplist("dummy", basegid, groups, &n);
+				getgrouplist("dummy", basegid, groups, &n);
 
-			return 0;
-		}
-	EOF
+				return 0;
+			}
+		EOF
 
-	IFS=:
-	for grptype in $grouptypes
-	do
-		unset IFS
-		# shellcheck disable=2086
-		if testcomp $wconvflags -DGETGRPLST_T="$grptype" "$src"
-		then
-			SC_GETGRPLST_T="$grptype"
-			break
-		fi
-	done
-	unset src
-fi
+		IFS=:
+		for grouptype in $grouptypes
+		do
+			unset IFS
+			# shellcheck disable=2086
+			if	testcomp $wconvflags \
+				         -DGETGRPLST_T="$grouptype" "$src"
+			then
+				CFLAGS="-DGETGRPLST_T='$grouptype' $CFLAGS"
+				printf '%s\n' "$grouptype"
+				break
+			fi
+		done
+		unset src
+	fi
+esac
 
-if [ "${SC_GETGRPLST_T-}" ]
-then printf '%s\n' "$SC_GETGRPLST_T"
-else printf 'guess at compile-time\a\n'
-fi
+case ${CFLAGS-} in
+(*-DGETGRPLST_T=*)	: ;;
+(*)			printf 'guess at compile-time\n' ;;
+esac
 
 
 #
 # Check what data type setgroups takes the group size as.
 #
 
-: "${SC_SETGRPNUM_T=}"
-if 	[ "$compwconv" ] && ! [ "$SC_SETGRPNUM_T" ]
-then
-	src="$TMPDIR/setgroups.c"
-	cat <<-'EOF' >"$src"
-		#define _BSD_SOURCE
-		#define _DARWIN_C_SOURCE
-		#define _DEFAULT_SOURCE
-		#define _GNU_SOURCE
-
-		#include <sys/types.h>
-		#include <grp.h>
-		#include <unistd.h>
-
-		int
-		main(void)
-		{
-			SETGRPNUM_T ngroups = 0;
-			gid_t gidset[1] = {0};
-
-			(void) setgroups(ngroups, gidset);
-
-			return 0;
-		}
-	EOF
-
-	if [ "${SC_SETGRPLST_T-}" ]
-	then grplstflag="-DSETGRPLST_T=$SC_SETGRPLST_T"
-	else grplstflag=
-	fi
-
-	IFS=:
-	for sizetype in $sizetypes
-	do
-		unset IFS
-		# shellcheck disable=2086
-		if 	testcomp $wconvflags $grplstflag 	\
-			         -DSETGRPNUM_T="$sizetype" "$src"
-		then
-			SC_SETGRPNUM_T="$sizetype"
-			break
-		fi
-	done
-	unset src
-fi
-
 printf 'setgroups count type: '
-if [ "${SC_SETGRPNUM_T-}" ]
-then printf '%s\n' "$SC_SETGRPNUM_T"
-else printf 'guess at compile-time\a\n'
-fi
 
+case ${CFLAGS-} in
+(*-DSETGRPNUM_T=*)
+	rem="${CFLAGS##*-DSETGRPNUM_T=}"
+	sizetype="${rem%% *}"
+	printf '%s\n' "$sizetype"
+	;;
+(*)
+	if [ "$compwconv" ]
+	then
+		src="$TMPDIR/setgroups.c"
+		cat <<-'EOF' >"$src"
+			#define _BSD_SOURCE
+			#define _DARWIN_C_SOURCE
+			#define _DEFAULT_SOURCE
+			#define _GNU_SOURCE
 
-#
-# Check if the standard library has features.h
-#
+			#include <sys/types.h>
+			#include <grp.h>
+			#include <unistd.h>
 
-# FIXME: is features.h the right name?
-printf 'features.h: '
-: "${SC_HAVE_FEATURES_H=}"
-if [ "${SC_HAVE_FEATURES_H-x}" = x ] && ! [ "${SC_HAVE_FEATURES_H-}" = x ]
-then
-	if testhdr features.h
-	then SC_FEATURES_H=1
-	else SC_FEATURES_H=
+			int
+			main(void)
+			{
+				SETGRPNUM_T ngroups = 0;
+				gid_t gidset[1] = {0};
+
+				(void) setgroups(ngroups, gidset);
+
+				return 0;
+			}
+		EOF
+
+		IFS=:
+		for sizetype in $sizetypes
+		do
+			unset IFS
+			# shellcheck disable=2086
+			if 	testcomp $wconvflags \
+					 -DSETGRPNUM_T="$sizetype" "$src"
+			then
+				CFLAGS="-DSETGRPNUM_T='$sizetype' $CFLAGS"
+				printf '%s\n' "$sizetype"
+				break
+			fi
+		done
+		unset src
 	fi
-fi
+	;;
+esac
 
-if [ "${SC_FEATURES_H-0}" -eq 1 ]
-then printf 'present\n'
-else printf 'not present\n'
-fi
+case ${CFLAGS-} in
+(*-DSETGRPNUM_T=*)	: ;;
+(*)			printf 'guess at compile-time\n' ;;
+esac
 
 
 #
