@@ -118,6 +118,22 @@ addflags() {
 	fi
 }
 
+# Print the value of $macro from $CFLAGS.
+getmacroval() (
+	macro="${1:?}"
+
+	eval "set -- $CFLAGS"
+	for flag
+	do
+		case $flag in (-D$macro=*)
+			printf '%s\n' "${flag##-D$macro=}"
+			return 0
+		esac
+	done
+
+	return 1
+)
+
 # Test compilation.
 testcomp() (
 	: "${compname:?}"
@@ -400,7 +416,7 @@ then
 			unset job
 		done
 
-		[ "${CFLAGS-}" ] || printf -- -
+		[ "${CFLAGS-}" ] || printf ' none detected'
 
 		echo
 	fi
@@ -456,11 +472,11 @@ case ${CFLAGS-} in
 (*)
 	if testhdr features.h
 	then
-		CFLAGS="-DHAVE_FEATURES_H=1 $CFLAGS"
+		CFLAGS="-DHAVE_FEATURES_H=1 ${CFLAGS-}"
 		printf 'features.h\n'
 	else
-		CFLAGS="-DHAVE_FEATURES_H=0 $CFLAGS"
-		printf -- '-\n'
+		CFLAGS="-DHAVE_FEATURES_H=0 ${CFLAGS-}"
+		printf 'none detected\n'
 	fi
 	;;
 esac
@@ -474,11 +490,10 @@ printf 'getgrouplist GID type: '
 
 case ${CFLAGS-} in
 (*-DGETGRPLST_T=*)
-	rem="${CFLAGS##*-DGETGRPLST_T=}"
-	grouptype="${rem%% *}"
-	printf '%s\n' "$grouptype"
+	getmacroval GETGRPLST_T
 	;;
 (*)
+	found=
 	if [ "$compwconv" ]
 	then
 		src="$TMPDIR/getgroups.c"
@@ -513,17 +528,16 @@ case ${CFLAGS-} in
 				         -DGETGRPLST_T="$grouptype" "$src"
 			then
 				CFLAGS="-DGETGRPLST_T='$grouptype' $CFLAGS"
+				found=x
 				printf '%s\n' "$grouptype"
 				break
 			fi
 		done
-		unset src
+		unset src grouptype
 	fi
-esac
 
-case ${CFLAGS-} in
-(*-DGETGRPLST_T=*)	: ;;
-(*)			printf 'guess at compile-time\n' ;;
+	[ "$found" ] || printf 'guess at compile-time\n'
+	unset found
 esac
 
 
@@ -535,11 +549,10 @@ printf 'setgroups count type: '
 
 case ${CFLAGS-} in
 (*-DSETGRPNUM_T=*)
-	rem="${CFLAGS##*-DSETGRPNUM_T=}"
-	sizetype="${rem%% *}"
-	printf '%s\n' "$sizetype"
+	getmacroval SETGRPNUM_T
 	;;
 (*)
+	found=
 	if [ "$compwconv" ]
 	then
 		src="$TMPDIR/setgroups.c"
@@ -574,18 +587,16 @@ case ${CFLAGS-} in
 					 -DSETGRPNUM_T="$sizetype" "$src"
 			then
 				CFLAGS="-DSETGRPNUM_T='$sizetype' $CFLAGS"
+				found=x
 				printf '%s\n' "$sizetype"
 				break
 			fi
 		done
-		unset src
+		unset src sizetype
 	fi
-	;;
-esac
 
-case ${CFLAGS-} in
-(*-DSETGRPNUM_T=*)	: ;;
-(*)			printf 'guess at compile-time\n' ;;
+	[ "$found" ] || printf 'guess at compile-time\n'
+	unset found
 esac
 
 
