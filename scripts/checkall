@@ -84,5 +84,3 @@ cd -P "$src_dir/scripts" || exit
 ./checkcomps
 ./checkmakes
 ./checkshells
-
-
