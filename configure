@@ -427,7 +427,7 @@ then
 else
 	printf -- ' %s\a\n' "${CFLAGS:-none given}"
 fi
-unset cflags flag jobs job
+unset cflags flag jobs
 
 
 #
@@ -526,7 +526,10 @@ case ${CFLAGS-} in
 		IFS=:
 		for grouptype in $grouptypes
 		do
-			unset IFS
+			unset IFS || :
+
+			[ "$grouptype" ] || continue
+
 			# shellcheck disable=2086
 			if	testcomp $wconvflags \
 				         -DGETGRPLST_T="$grouptype" "$src"
@@ -585,7 +588,10 @@ case ${CFLAGS-} in
 		IFS=:
 		for sizetype in $sizetypes
 		do
-			unset IFS
+			unset IFS || :
+
+			[ "$sizetype" ] || continue
+
 			# shellcheck disable=2086
 			if 	testcomp $wconvflags \
 					 -DSETGRPNUM_T="$sizetype" "$src"
