@@ -134,7 +134,7 @@ uninstall:
 # Tests
 #
 
-checks = $(macro_check_bins) $(check_scripts) tests/env_is_name \
+checks = $(check_scripts) $(macro_check_bins) tests/env_is_name \
 	tests/env_restore tests/file_is_exe tests/file_is_wexcl \
 	tests/handler_lookup tests/pair_lookup tests/path_check_in \
 	tests/path_suffix tests/str_cp tests/str_split tests/userdir_resolve
@@ -155,8 +155,6 @@ tool_bins = tools/badenv tools/badexec tools/ids tools/runpara tools/runas
 runpara_flags =	-ci75 -j8
 
 tests/ISSIGNED: tests/ISSIGNED.c
-
-#tests/MIN: tests/MIN.c
 
 tests/NELEMS: tests/NELEMS.c
 

@@ -31,9 +31,6 @@
 /* Check whether a given integer TYPE is signed. */
 #define ISSIGNED(type) ((type) -1 < (type) 1)
 
-/* Return the lesser of two integer values A and B. */
-//#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-
 /* Calculate the number of elements in ARRAY. */
 #define NELEMS(array) (sizeof((array)) / sizeof(*(array)))
 
