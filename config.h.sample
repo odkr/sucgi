@@ -135,7 +135,6 @@
  *     - HOME
  *     - PATH
  *     - SCRIPT_FILENAME
- *     - USER
  *     - USER_NAME
  *
  * There should be no need to adapt this list.
