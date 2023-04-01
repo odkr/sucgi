@@ -34,10 +34,10 @@ branch=devel
 # Check command to run.
 check="
 	if command -v sudo >/dev/null
-	then sudo scripts/checkall
+	then sudo scripts/checkall -v
 	elif command -v doas >/dev/null
-	then doas scripts/checkall
-	else scripts/checkall
+	then doas scripts/checkall -v
+	else scripts/checkall -v
 	fi
 "
 
