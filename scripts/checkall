@@ -27,6 +27,9 @@
 # Shells to test.
 readonly shells='sh bash dash ksh mksh oksh posh sash yash zsh'
 
+# Arguments for check*.
+args=
+
 
 #
 # Initialiation
@@ -48,23 +51,28 @@ init || exit
 
 OPTIND=1 OPTARG='' opt=''
 # shellcheck disable=2034
-while getopts Dh opt; do
+while getopts Dhqv opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF
 $prog_name - run shell and compiler checks
 
-Usage:  $prog_name
+Usage:  $prog_name [-D] [-v]
         $prog_name -h
 
 Options:
+    -D  Show debugging information.
+    -q  Be quieter.
+    -v  Be verbose, but do not log runs.
     -h  Show this help screen.
 
 Must be called from a directory with a makefile.
 The makefile must provide the standard Autoconf targets.
 EOF
 	    ;;
-	(D) set -x ;;
+	(D) args="$args -D" ;;
+	(q) args="$args -q" ;;
+	(v) args="$args -v" ;;
 	(*) exit 1
 	esac
 done
@@ -81,6 +89,6 @@ unset opt
 
 cd -P "$src_dir/scripts" || exit
 
-./checkcomps
-./checkmakes
-./checkshells
+./checkcomps $args
+./checkmakes $args
+./checkshells $args
