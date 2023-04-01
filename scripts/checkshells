@@ -96,7 +96,7 @@ Operands:
 
 Options:
     -c CC  Use CC as C compiler.
-    -q     Be more quiet.
+    -q     Be quieter.
     -v     Be verbose, but do not log runs.
     -h     Show this help screen.
 

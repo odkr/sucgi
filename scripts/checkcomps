@@ -38,7 +38,7 @@ readonly compilers='
 	tcc icx icc c99 cc
 '
 
-# Be more quiet?
+# Be quieter?
 quiet=
 
 # Be verbose?
@@ -105,7 +105,7 @@ Operands:
     CC  A compiler to test.
 
 Options:
-    -q  Be more quiet.
+    -q  Be quieter.
     -v  Be verbose, but do not log runs.
     -h  Show this help screen.
 

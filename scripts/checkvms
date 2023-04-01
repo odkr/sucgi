@@ -44,7 +44,7 @@ check="
 # Repository directory on the virtual machine.
 dir='repos/sucgi'
 
-# Be more quiet?
+# Be quieter?
 quiet=
 
 # Be verbose?
@@ -164,7 +164,7 @@ Options:
     -c CHECK   Check to run (default: $check).
     -d DIR     Repository directory on VM (default: $dir).
     -t N       Wait at most N seconds for VM to boot (default: $timeout).
-    -q         Be more quiet.
+    -q         Be quieter.
     -v         Be verbose, but do not log runs.
     -h         Show this help screen.
 EOF
