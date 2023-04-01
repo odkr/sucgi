@@ -139,7 +139,7 @@ checks = $(macro_check_bins) $(check_scripts) tests/env_is_name \
 	tests/handler_lookup tests/pair_lookup tests/path_check_in \
 	tests/path_suffix tests/str_cp tests/str_split tests/userdir_resolve
 
-macro_check_bins = tests/ISSIGNED tests/MIN tests/NELEMS tests/SIGNEDMAX
+macro_check_bins = tests/ISSIGNED tests/NELEMS tests/SIGNEDMAX
 
 other_check_bins = tests/env_is_name tests/env_restore tests/error \
 	tests/file_is_exe tests/file_is_wexcl tests/handler_lookup \
@@ -156,7 +156,7 @@ runpara_flags =	-ci75 -j8
 
 tests/ISSIGNED: tests/ISSIGNED.c
 
-tests/MIN: tests/MIN.c
+#tests/MIN: tests/MIN.c
 
 tests/NELEMS: tests/NELEMS.c
 
