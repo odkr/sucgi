@@ -495,8 +495,8 @@ esac
 printf 'getgrouplist GID type: '
 
 case ${CFLAGS-} in
-(*-DGETGRPLST_T=*)
-	getmacroval GETGRPLST_T
+(*-DGRP_T=*)
+	getmacroval GRP_T
 	;;
 (*)
 	found=
@@ -515,8 +515,8 @@ case ${CFLAGS-} in
 			int
 			main(void)
 			{
-				GETGRPLST_T basegid = 0;
-				GETGRPLST_T groups[1] = {0};
+				GRP_T basegid = 0;
+				GRP_T groups[1] = {0};
 				int n = 1;
 
 				getgrouplist("dummy", basegid, groups, &n);
@@ -534,9 +534,9 @@ case ${CFLAGS-} in
 
 			# shellcheck disable=2086
 			if	testcomp $wconvflags \
-				         -DGETGRPLST_T="$grouptype" "$src"
+				         -DGRP_T="$grouptype" "$src"
 			then
-				CFLAGS="-DGETGRPLST_T='$grouptype' $CFLAGS"
+				CFLAGS="-DGRP_T='$grouptype' $CFLAGS"
 				found=x
 				printf '%s\n' "$grouptype"
 				break
@@ -557,8 +557,8 @@ esac
 printf 'setgroups count type: '
 
 case ${CFLAGS-} in
-(*-DSETGRPNUM_T=*)
-	getmacroval SETGRPNUM_T
+(*-DNGRPS_T=*)
+	getmacroval NGRPS_T
 	;;
 (*)
 	found=
@@ -578,7 +578,7 @@ case ${CFLAGS-} in
 			int
 			main(void)
 			{
-				SETGRPNUM_T ngroups = 0;
+				NGRPS_T ngroups = 0;
 				gid_t gidset[1] = {0};
 
 				(void) setgroups(ngroups, gidset);
@@ -596,9 +596,9 @@ case ${CFLAGS-} in
 
 			# shellcheck disable=2086
 			if 	testcomp $wconvflags \
-					 -DSETGRPNUM_T="$sizetype" "$src"
+					 -DNGRPS_T="$sizetype" "$src"
 			then
-				CFLAGS="-DSETGRPNUM_T='$sizetype' $CFLAGS"
+				CFLAGS="-DNGRPS_T='$sizetype' $CFLAGS"
 				found=x
 				printf '%s\n' "$sizetype"
 				break

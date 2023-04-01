@@ -23,21 +23,21 @@
 #define COMPAT_H
 
 /* Type that getgrouplist takes and returns group IDs as. */
-#if !defined(GETGRPLST_T)
+#if !defined(GRP_T)
 #if defined(__APPLE__) && __APPLE__
-#define GETGRPLST_T int
+#define GRP_T int
 #else
-#define GETGRPLST_T gid_t
+#define GRP_T gid_t
 #endif
-#endif /* !defined(GETGRPLST_T) */
+#endif /* !defined(GRP_T) */
 
 /* Type that setgroups takes the number of groups as. */
-#if !defined(SETGRPNUM_T)
+#if !defined(NGRPS_T)
 #if defined(__linux__) && __linux__
-#define SETGRPNUM_T size_t
+#define NGRPS_T size_t
 #else
-#define SETGRPNUM_T int
+#define NGRPS_T int
 #endif
-#endif /* !defined(SETGRPNUM_T) */
+#endif /* !defined(NGRPS_T) */
 
 #endif /* !defined(COMPAT_H) */

@@ -293,8 +293,8 @@ main(int argc, char **argv) {
      * Check system-dependent types.
      */
 
-    ERRORIF(sizeof(GETGRPLST_T) != sizeof(gid_t));
-    ERRORIF(SIGNEDMAX(SETGRPNUM_T) < SIGNEDMAX(int));
+    ERRORIF(sizeof(GRP_T) != sizeof(gid_t));
+    ERRORIF(SIGNEDMAX(NGRPS_T) < SIGNEDMAX(int));
 
 
     /*
@@ -308,7 +308,7 @@ main(int argc, char **argv) {
     ERRORIF(sizeof(ALLOW_GROUP) >= MAX_GRPNAME_LEN);
     ERRORIF((uint64_t) MAX_UID > (uint64_t) SIGNEDMAX(uid_t));
     ERRORIF((uint64_t) MAX_GID > (uint64_t) SIGNEDMAX(gid_t));
-    ERRORIF((uint64_t) MAX_GID > (uint64_t) SIGNEDMAX(GETGRPLST_T));
+    ERRORIF((uint64_t) MAX_GID > (uint64_t) SIGNEDMAX(GRP_T));
 
 
     /*
@@ -522,41 +522,68 @@ main(int argc, char **argv) {
 
 
     /*
-     * Check if the owner is a member of a privileged group.
+     * Check the owner's group memberships.
      */
 
-    const char *const deny_groups[] = DENY_GROUPS;
     gid_t groups[MAX_NGROUPS];
     int ngroups;
-    bool allowed;
-
-    ngroups = MAX_NGROUPS;
-    allowed = strncmp(ALLOW_GROUP, "", 1) == 0;
 
     /*
-     * GETGRPLST_T refers to the type that getgrouplist takes
-     * and returns GIDs as; that type may be int or gid_t.
+     * GRP_T refers to the type that getgrouplist takes and returns GIDs as;
+     * namely, int (on older systems and macOS) or gid_t (modern systems).
      *
-     * Casting gid_t to GETGRPLST_T is guaranteed to be safe because:
-     * (1) a run-time error is raised above if
-     *     a GID is outside the range MIN_GID to MAX_GID;
-     * (2) gid_t and GETGRPLST_T represent values
-     *     within that range in the same way.
+     * Casting gid_t to GRP_T is guaranteed to be safe because:
+     * (1) a compile-time error is raised if sizeof(GRP_T) != sizeof(gid_t)
+     *     (so GRP_T[i] and gid_t[i] always refer to the same address).
+     * (2) gid_t and GRP_T use the same integer representation for any value
+     *     in [MIN_GID .. MAX_GID] (so type-casting cannot change values).
+     * (3) a run-time error is raised if a GID falls outside that range.
      *
-     * gid_t and GETGRPLST_T are guaranteed to represent values within that
-     * range in the same way because a compile-time error is raised if:
-     * (1) GETGRPLST_T and gid_t are of different sizes;
-     * (2) MIN_GID < 1 (no negative GIDs);
-     * (3) MAX_GID > the maximum signed value that both
-     *     gid_t and GETGRPLST_T can hold (no overflow).
+     * gid_t and GRP_T are guaranteed to use the same integer representation
+     * for any value in that range because a compile-time error is raised if:
+     * (1) MIN_GID < 1 (so values cannot change sign);
+     * (2) MAX_GID > the greatest signed value that gid_t and GRP_T could hold
+     *     if they were signed data types (so values cannot overflow).
      */
-    if (getgrouplist(logname, (GETGRPLST_T) gid,
-                     (GETGRPLST_T *) groups, &ngroups) < 0)
-    {
+    ngroups = MAX_NGROUPS;
+    if (getgrouplist(logname, (GRP_T) gid, (GRP_T *) groups, &ngroups) < 0) {
         error("user %s: belongs to too many groups.", logname);
     }
 
+    if (strncmp(ALLOW_GROUP, "", 1) != 0) {
+        struct group *allowedgrp;
+        gid_t allowedgid;
+        bool allowed;
+
+        errno = 0;
+        /* cppcheck-suppress getgrnamCalled; suCGI need not be async-safe. */
+        allowedgrp = getgrnam(ALLOW_GROUP);
+        if (allowedgrp == NULL) {
+            /* cppcheck-suppress misra-c2012-22.10; getgrnam may set errno. */
+            if (errno == 0) {
+                error("group %s: no such group.", ALLOW_GROUP);
+            } else {
+                error("getgrnam: %m.");
+            }
+        }
+        allowedgid = allowedgrp->gr_gid;
+
+        allowed = false;
+        for (int i = 0; i < ngroups; ++i) {
+            if (groups[i] == allowedgid) {
+                allowed = true;
+                break;
+            }
+        }
+
+        if (!allowed) {
+            error("user %s: does not belong to group %s.",
+                  logname, ALLOW_GROUP);
+        }
+    }
+
     for (int i = 0; i < ngroups; ++i) {
+        const char *const deniedgrps[] = DENY_GROUPS;
         struct group *grp;
 
         errno = 0;
@@ -586,22 +613,12 @@ main(int argc, char **argv) {
                   logname, grp->gr_name);
         }
 
-        for (size_t j = 0; j < NELEMS(deny_groups); ++j) {
-            if (fnmatch(deny_groups[j], grp->gr_name, 0) == 0) {
+        for (size_t j = 0; j < NELEMS(deniedgrps); ++j) {
+            if (fnmatch(deniedgrps[j], grp->gr_name, 0) == 0) {
                 error("user %s: belongs to denied group %s.",
                       logname, grp->gr_name);
             }
         }
-
-        if (!allowed &&
-            strncmp(grp->gr_name, ALLOW_GROUP, MAX_GRPNAME_LEN) == 0)
-        {
-            allowed = true;
-        }
-    }
-
-    if (!allowed) {
-        error("user %s: does not belong to group %s.", logname, ALLOW_GROUP);
     }
 
 
@@ -614,8 +631,8 @@ main(int argc, char **argv) {
     ngroups_max = sysconf(_SC_NGROUPS_MAX);
     if (-1L < ngroups_max && ngroups_max < ngroups) {
         /* RATS: ignore; message is short and a literal. */
-	syslog(LOG_NOTICE, "user %s: can only set %ld of %d groups.",
-           logname, ngroups_max, ngroups);
+        syslog(LOG_NOTICE, "user %s: can only set %ld of %d groups.",
+               logname, ngroups_max, ngroups);
 
         /* ngroups_max cannot be larger than INT_MAX. */
         ngroups = (int) ngroups_max;
@@ -631,12 +648,15 @@ main(int argc, char **argv) {
     }
 
     /*
-     * setgroups may take the number of groups as size_t or int.
-     * SETGRPNUM_T refers to the respective type. A compile-time error
-     * is raised if SETGRPNUM_T is too small to hold INT_MAX.
-     * So coercing ngroups to SETGRPNUM_T is safe.
+     * NGRPS_T refers to the data type that setgroups takes the number of
+     * groups as; that type may be size_t (Linux) or int (any other system).
+     *
+     * Casting int to NGRPS_T is guaranteed to be safe because:
+     * (1) ngroups cannot be negative (so values cannot change sign);
+     * (1) a compile-time error is raised if NGRPS_T is too small
+     *     to hold INT_MAX (so values cannot overflow).
      */
-    ret = priv_drop(uid, gid, (SETGRPNUM_T) ngroups, groups);
+    ret = priv_drop(uid, gid, (NGRPS_T) ngroups, groups);
     switch (ret) {
     case OK:
         break;
