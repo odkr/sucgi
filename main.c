@@ -550,6 +550,11 @@ main(int argc, char **argv) {
         error("user %s: belongs to too many groups.", logname);
     }
 
+    if (ngroups < 0) {
+        /* Should be unreachable. */
+        error("user %s: member of a negative number of groups.");
+    }
+
     if (strncmp(ALLOW_GROUP, "", 1) != 0) {
         struct group *allowedgrp;
         gid_t allowedgid;
