@@ -44,7 +44,7 @@
  */
 __attribute__((nonnull(4), warn_unused_result))
 Error priv_drop(uid_t uid, gid_t gid,
-                SETGRPNUM_T ngroups, const gid_t *groups);
+                NGRPS_T ngroups, const gid_t *groups);
 
 /*
  * Set the effective user, group, and supplementary groups IDs

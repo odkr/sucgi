@@ -41,7 +41,7 @@
 
 Error
 priv_drop(const uid_t uid, const gid_t gid,
-          const SETGRPNUM_T ngroups, const gid_t *const groups)
+          const NGRPS_T ngroups, const gid_t *const groups)
 {
     assert(uid > 0);
     assert(gid > 0);
