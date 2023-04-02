@@ -76,7 +76,8 @@ do
 	then
 		hascomp=y
 
-		find * -name '*.c' -o -name '*.h'	|
+		# shellcheck disable=2038
+		find ./* -name '*.c' -o -name '*.h'	|
 		xargs sed -n '/^#include </p' 		|
 		sort -u					|
 		"$cc" -xc -E - >/dev/null 2>&1		&&
@@ -106,17 +107,21 @@ case $os in
 	if	[ -e /etc/alpine-release ]
 	then
 		[ "$hashdrs" ] || missing="$missing libc-dev fortify-headers"
+		# shellcheck disable=2086
 		exec apk add $missing
 	elif	[ -e /etc/arch-release ]
 	then
+		# shellcheck disable=2086
 		exec pacman -S --needed $missing
 	elif	[ -e /etc/debian_version ]
 	then
 		[ "$hashdrs" ] || missing="$missing libc-dev"
+		# shellcheck disable=2086
 		exec apt-get install $missing
 	elif	[ -e /etc/fedora-release ]
 	then
 		[ "$hashdrs" ] || missing="$missing glibc-devel"
+		# shellcheck disable=2086
 		exec dnf install $missing
 	fi
 	;;
@@ -125,10 +130,14 @@ esac
 warn '%s is unsupported by %s.' "$os" "$prog_name"
 warn 'suCGI will compile nonetheless, but you need to install:'
 
-inlist '=' gcc      $missing && warn '    * A C compiler (e.g., gcc or clang)'
-inlist '=' binutils $missing && warn '    * Binary utilits (i.e., ar, ld, as)'
-inlist '=' make     $missing && warn '    * Make'
-inlist '=' m4       $missing && warn '    * M4'
+# shellcheck disable=2086
+inlist '=' gcc      $missing && warn '* A C compiler (e.g., gcc or clang)'
+# shellcheck disable=2086
+inlist '=' binutils $missing && warn '* The binary utilits (i.e., as and ls)'
+# shellcheck disable=2086
+inlist '=' make     $missing && warn '* Make'
+# shellcheck disable=2086
+inlist '=' m4       $missing && warn '* M4'
 
 [ "$hashdrs" ] || warn "    * The headers of your system's standard library"
 

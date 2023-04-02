@@ -122,6 +122,7 @@ utmstoplastvm() {
 		catch=
 		utmctl stop "$lastvm"
 		lastvm=
+		# shellcheck disable=2034
 		catch=x
 		if [ "$caught" ]
 		then kill -s "$caught" "$$"

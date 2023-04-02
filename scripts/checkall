@@ -89,6 +89,9 @@ unset opt
 
 cd -P "$src_dir/scripts" || exit
 
+# shellcheck disable=2086
 ./checkcomps $args
+# shellcheck disable=2086
 ./checkmakes $args
+# shellcheck disable=2086
 ./checkshells $args

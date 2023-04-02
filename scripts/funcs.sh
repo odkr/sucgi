@@ -91,8 +91,11 @@ check() (
 # Otherwise set $caught to $signal.
 catch() {
 	signal="${1:?}"
-	printf '\r' >&2
-	tput el >&2
+	if [ -t 2 ]
+	then
+		printf '\r' >&2
+		tput el >&2
+	fi
 	warn 'caught %s.' "$signal"
 	if [ "${catch-}" ]
 	then
@@ -106,6 +109,7 @@ catch() {
 
 # Terminate all children, eval $cleanup and exit with status $?.
 cleanup() {
+	# shellcheck disable=2319
 	rc=$?
 	set +e
 	trap '' EXIT HUP INT TERM

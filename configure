@@ -130,7 +130,7 @@ getmacroval() (
 	for flag
 	do
 		case $flag in (-D$macro=*)
-			printf '%s\n' "${flag##-D$macro=}"
+			printf '%s\n' "${flag##-D"$macro"=}"
 			return 0
 		esac
 	done
