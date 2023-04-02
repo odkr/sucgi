@@ -64,18 +64,6 @@ readonly cwd
 
 
 #
-# Functions
-#
-
-# make distclean if the makefile exists.
-mrproper() {
-	if [ -e makefile ]
-	then make distclean >/dev/null 2>&1
-	fi
-}
-
-
-#
 # Options
 #
 
@@ -153,7 +141,7 @@ do
 	if ! (
 		[ "$verbose" ] || exec >"$logfile" 2>&1
 
-		mrproper
+		rm -- $files
 
 		"$shell" ./configure -c'posix.env'
 
