@@ -41,7 +41,7 @@ Please take the time to read and evaluate the source code.
 
 You may need to install:
 
-* A C compiler (GCC_ and Clang_ are known to work)
+* A C99 compiler (GCC_ and Clang_ are known to work)
 * The header files of your system's standard library
 * An assembler and a linker; these are usually packaged as "binary utilities"
   (`GNU Binutils`_ and FreeBSD's binary utilities are known to work)
