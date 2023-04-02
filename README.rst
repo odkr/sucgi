@@ -41,11 +41,12 @@ Please take the time to read and evaluate the source code.
 
 You may need to install:
 
-* A C compiler (GCC_ and Clang_ should work)
+* A C compiler (GCC_ and Clang_ are known to work)
 * The header files of your system's standard library
-* The so-called "binary utilities"
-* Make (`GNU Make`_, FreeBSD's Make, and bmake_ should work)
-* M4 (`GNU M4`_ and FreeBSD's M4 should work)
+* An assembler and a linker; these are usually packaged as "binary utilities"
+* (the `GNU Binutils`_ and FreeBSD's assembler and linker are known to work)
+* Make (`GNU Make`_, FreeBSD's Make, and bmake_ are known to work)
+* M4 (`GNU M4`_ and FreeBSD's M4 are known to work)
 
 On many systems you can do so by::
 
@@ -161,6 +162,8 @@ GitHub: https://github.com/odkr/sucgi
 .. _`docs/build.rst`: docs/build.rst
 
 .. _GCC: https://gcc.gnu.org/
+
+.. _`GNU Binutils`: https://www.gnu.org/software/binutils/
 
 .. _`GNU M4`: https://www.gnu.org/software/m4/
 
