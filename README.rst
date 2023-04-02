@@ -13,18 +13,16 @@ Run CGI scripts with the permissions of their owner.
 
 suCGI checks whether a CGI script is owned by a regular user, sets the real
 and the effective UID, the real and the effective GID, and the supplementary
-groups of the current process to the UID, the GID, and the groups of that
-user, cleans the environment, and then runs the script.
+groups of the current process to the UID, the GID, and the supplementary
+groups of that user, cleans up the environment, and then runs the script.
 
 
 Requirements
 ============
 
-suCGI should compile on any non-ancient Unix-like system.
-
-More precisely, suCGI should compile on any operating system that is
-compatible with `4.4BSD`_ and compliant with `POSIX.1-2008`_,
-including the X/Open System Interface extension.
+suCGI should work on any system compatible with `4.4BSD`_ and compliant
+with `POSIX.1-2008`_, including the X/Open System Interface extension;
+any Unix-like system released since 2018 should meet those requirements.
 
 
 Installation
@@ -43,11 +41,11 @@ Please take the time to read and evaluate the source code.
 
 You may need to install:
 
-* A C compiler (GCC_ and Clang_ are known to work)
+* A C compiler (GCC_ and Clang_ should work)
 * The header files of your system's standard library
 * The so-called "binary utilities"
-* Make (`GNU Make`_, FreeBSD's Make, and bmake_ are known to work)
-* M4 (`GNU M4`_ and FreeBSD's M4 are known to work)
+* Make (`GNU Make`_, FreeBSD's Make, and bmake_ should work)
+* M4 (`GNU M4`_ and FreeBSD's M4 should work)
 
 On many systems you can do so by::
 
