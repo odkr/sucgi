@@ -41,7 +41,7 @@ compflags=
 conf=prod.env
 
 # Files to generate. Space-separated list.
-files='build.h makefile'
+files='build.h compat.h makefile'
 
 # Overwrite existing files?
 force=
@@ -78,7 +78,7 @@ tmpdir tmp .
 # Variables to set as M4 Macros.
 readonly macros='
 	CC CFLAGS AR ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
-	SC_CGI_DIR SC_WWW_GRP
+	SC_GRP_T SC_NGRPS_T SC_HAVE_FEATURES_H SC_CGI_DIR SC_WWW_GRP
 	SC_CLANG_TIDY SC_CPPCHECK SC_FLAWFINDER SC_RATS SC_SHELLCHECK
 '
 
@@ -468,24 +468,17 @@ fi
 
 printf 'Headers: '
 
-case ${CFLAGS-} in
-(*-DHAVE_FEATURES_H=0*)
-	printf -- '-\n'
-	;;
-(*-DHAVE_FEATURES_H=*|*"-DHAVE_FEATURES_H "*|*-DHAVE_FEATURES_H)
-	printf -- 'features.h\n'
-	;;
-(*)
-	if testhdr features.h
-	then
-		CFLAGS="-DHAVE_FEATURES_H=1 ${CFLAGS-}"
-		printf 'features.h\n'
-	else
-		CFLAGS="-DHAVE_FEATURES_H=0 ${CFLAGS-}"
-		printf 'none detected\n'
-	fi
-	;;
-esac
+if	[ "${SC_HAVE_FEATURES_H-x}" = x ] &&
+	[ "${SC_HAVE_FEATURES_H-}" != x ] &&
+	testhdr features.h
+then	SC_HAVE_FEATURES_H=y
+else	SC_HAVE_FEATURES_H=
+fi
+
+if [ "$SC_HAVE_FEATURES_H" ]
+then printf 'features.h\n'
+else printf 'none detected\n'
+fi
 
 
 #
@@ -494,12 +487,9 @@ esac
 
 printf 'getgrouplist GID type: '
 
-case ${CFLAGS-} in
-(*-DGRP_T=*)
-	getmacroval GRP_T
-	;;
-(*)
-	found=
+: "${SC_GRP_T=}"
+if ! [ "$SC_GRP_T" ]
+then
 	if [ "$compwconv" ]
 	then
 		src="$TMPDIR/getgroups.c"
@@ -536,18 +526,18 @@ case ${CFLAGS-} in
 			if	testcomp $wconvflags \
 				         -DGRP_T="$grouptype" "$src"
 			then
-				CFLAGS="-DGRP_T='$grouptype' $CFLAGS"
-				found=x
-				printf '%s\n' "$grouptype"
+				SC_GRP_T="$grouptype"
 				break
 			fi
 		done
 		unset src grouptype
 	fi
+fi
 
-	[ "$found" ] || printf 'guess at compile-time\n'
-	unset found
-esac
+if [ "$SC_GRP_T" ]
+then printf '%s\n' "$SC_GRP_T"
+else printf 'guess at compile-time\n'
+fi
 
 
 #
@@ -556,60 +546,53 @@ esac
 
 printf 'setgroups count type: '
 
-case ${CFLAGS-} in
-(*-DNGRPS_T=*)
-	getmacroval NGRPS_T
-	;;
-(*)
-	found=
-	if [ "$compwconv" ]
-	then
-		src="$TMPDIR/setgroups.c"
-		cat <<-'EOF' >"$src"
-			#define _BSD_SOURCE
-			#define _DARWIN_C_SOURCE
-			#define _DEFAULT_SOURCE
-			#define _GNU_SOURCE
+: "${SC_NGRPS_T=}"
+if ! [ "$SC_NGRPS_T" ] && [ "$compwconv" ]
+then
+	src="$TMPDIR/setgroups.c"
+	cat <<-'EOF' >"$src"
+		#define _BSD_SOURCE
+		#define _DARWIN_C_SOURCE
+		#define _DEFAULT_SOURCE
+		#define _GNU_SOURCE
 
-			#include <sys/types.h>
-			#include <grp.h>
-			#include <unistd.h>
+		#include <sys/types.h>
+		#include <grp.h>
+		#include <unistd.h>
 
-			int
-			main(void)
-			{
-				NGRPS_T ngroups = 0;
-				gid_t gidset[1] = {0};
+		int
+		main(void)
+		{
+			NGRPS_T ngroups = 0;
+			gid_t gidset[1] = {0};
 
-				(void) setgroups(ngroups, gidset);
+			(void) setgroups(ngroups, gidset);
 
-				return 0;
-			}
-		EOF
+			return 0;
+		}
+	EOF
 
-		IFS=:
-		for sizetype in $sizetypes
-		do
-			unset IFS || :
+	IFS=:
+	for sizetype in $sizetypes
+	do
+		unset IFS || :
 
-			[ "$sizetype" ] || continue
+		[ "$sizetype" ] || continue
 
-			# shellcheck disable=2086
-			if 	testcomp $wconvflags \
-					 -DNGRPS_T="$sizetype" "$src"
-			then
-				CFLAGS="-DNGRPS_T='$sizetype' $CFLAGS"
-				found=x
-				printf '%s\n' "$sizetype"
-				break
-			fi
-		done
-		unset src sizetype
-	fi
+		# shellcheck disable=2086
+		if testcomp $wconvflags -DNGRPS_T="$sizetype" "$src"
+		then
+			SC_NGRPS_T="$sizetype"
+			break
+		fi
+	done
+	unset src sizetype
+fi
 
-	[ "$found" ] || printf 'guess at compile-time\n'
-	unset found
-esac
+if [ "$SC_NGRPS_T" ]
+then printf '%s\n' "$SC_NGRPS_T"
+else printf 'guess at compile-time\n'
+fi
 
 
 #
