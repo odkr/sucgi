@@ -64,9 +64,12 @@ tmpdir tmp "$src_dir"
 # Constants
 #
 
-# Default options for icc
+# Default compiler flags.
+readonly compflags=-O1
+
+# Default options for icc.
 # shellcheck disable=2034
-readonly icc_flags='-diag-disable=10441 -std=c99 -O2 -s'
+readonly icc_flags='-diag-disable=161,10441 -std=c99 -O2 -s'
 
 # Current working directory
 cwd="$(pwd)" || exit
@@ -156,7 +159,7 @@ do
 		[ "$verbose" ] || exec >"$logfile" 2>&1
 
 		name="${cc%-*}"
-		eval cflags="\${${name}_flags-}"
+		eval "cflags=\${${name}_flags-\${compflags-}}"
 
 		for template in *.m4
 		do
