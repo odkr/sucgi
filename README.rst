@@ -44,7 +44,7 @@ You may need to install:
 * A C compiler (GCC_ and Clang_ are known to work)
 * The header files of your system's standard library
 * An assembler and a linker; these are usually packaged as "binary utilities"
-  (`GNU Binutils`_ and FreeBSD's assembler and linker are known to work)
+  (`GNU Binutils`_ and FreeBSD's binary utilities are known to work)
 * Make (`GNU Make`_, FreeBSD's Make, and bmake_ are known to work)
 * M4 (`GNU M4`_ and FreeBSD's M4 are known to work)
 
