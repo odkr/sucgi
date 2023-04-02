@@ -147,13 +147,14 @@ do
 
 		for file in $files
 		do
-			[ -e "$file" ] && continue
-
-			err '%s ./configure did not generate %s' \
-			    "$shell" "$file"
+			if ! [ -e "$file" ]
+			then
+				err '%s ./configure did not generate %s' \
+				    "$shell" "$file"
+			fi
 		done
 
-		find ./tests -name '*.sh' ! -name funcs.sh \
+		find tests -name '*.sh' ! -name funcs.sh \
 		     -exec make -e check SHELL="$shell" checks='{}' ';'
 	)
 	then
