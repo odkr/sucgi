@@ -330,7 +330,7 @@ tmpdir() {
 		err 'cd -P $__tmpdir_dir && pwd: exited with status %d.' $?
 	readonly __tmpdir_tmpdir="$__tmpdir_real/$__tmpdir_prefix-$$"
 	catch=
-	mkdir -m 0700 "$__tmpdir_tmpdir" || exit
+	mkdir -m 0755 "$__tmpdir_tmpdir" || exit
 	cleanup="rm -rf \"\$__tmpdir_tmpdir\"; ${cleanup-}"
 	catch=x
 	[ "${caught-}" ] && kill -s"$caught" "$$"

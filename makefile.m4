@@ -254,8 +254,7 @@ distclean: clean
 
 $(dist_name):
 	mkdir $(dist_name)
-	cp -r $(dist_files) $(dist_name)
-	chmod -R u+rw,go= $(dist_name)
+	cp -a $(dist_files) $(dist_name)
 
 $(dist_ar): distclean $(dist_name)
 	tar -X dist.excl -czf $(dist_ar) $(dist_name)
@@ -271,7 +270,8 @@ distcheck: dist
 	tar -xzf $(dist_ar)
 	$(dist_name)/configure
 	cd $(dist_name) && $(MAKE) -e all check dist
-	rm -rf $(dist_ar)
+	rm -rf $(dist_name)
+	rm -f $(dist_ar)
 
 
 #

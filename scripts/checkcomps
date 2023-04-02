@@ -57,8 +57,7 @@ readonly tools_dir src_dir
 # shellcheck disable=1091
 . "$tools_dir/funcs.sh" || exit
 init || exit
-cd "$src_dir" || exit
-tmpdir tmp .
+tmpdir tmp "$src_dir"
 
 
 #
@@ -72,18 +71,6 @@ readonly icc_flags='-diag-disable=10441 -std=c99 -O2 -s'
 # Current working directory
 cwd="$(pwd)" || exit
 readonly cwd
-
-
-#
-# Functions
-#
-
-# make distclean if the makefile exists.
-mrproper() {
-	if [ -e makefile ]
-	then make distclean >/dev/null 2>&1
-	fi
-}
 
 
 #
@@ -131,10 +118,11 @@ unset opt
 #
 
 warn -q 'copying sources ...'
+cd "$src_dir" || exit
 m4 makefile.m4 >"$TMPDIR/makefile"
 distdir="$TMPDIR/dist"
 make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir" >/dev/null
-cd -P "$distdir" || exit
+cd "$distdir" || exit
 
 n=0 failures=
 for cc
@@ -169,8 +157,6 @@ do
 		name="${cc%-*}"
 		eval cflags="\${${name}_flags-}"
 
-		mrproper
-
 		for template in *.m4
 		do
 			case $template in
@@ -178,6 +164,7 @@ do
 			('macros.m4')	continue ;;
 			esac
 
+			[ -e makefile ] && make distclean
 			# shellcheck disable=2154
 			m4 -D__CC="$cc" -D__CFLAGS="$cflags" \
 			   "$template" >"${template%.m4}"
