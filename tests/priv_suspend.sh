@@ -67,11 +67,11 @@ then
 	gid="$(id -g "$regular")"
 
 	check -s1 -o"euid=$uid egid=$gid ruid=$uid rgid=$gid" \
-		runas "$regular" ./priv_suspend || result=70
+		runas "$regular" "$tests_dir/priv_suspend" || result=70
 	check -s1 -e"seteuid: Operation not permitted" \
-		runas "$regular" ./priv_suspend || result=70
+		runas "$regular" "$tests_dir/priv_suspend" || result=70
 	check -o"euid=$uid egid=$gid ruid=$uid rgid=$gid" \
-		runas -r "$regular" ./priv_suspend || result=70
+		runas -r "$regular" "$tests_dir/priv_suspend" || result=70
 
 	exit "$result"
 else
