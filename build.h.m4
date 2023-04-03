@@ -45,7 +45,7 @@ include(`macros.m4')dnl
 #if !defined(BUILD_H)
 #define BUILD_H
 
-ifnempty(`__SC_HAVE_FEATURES_H', `dnl
+ifnempty(`__have_features_h', `dnl
 #include <features.h>
 
 ')dnl

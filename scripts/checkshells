@@ -141,6 +141,7 @@ do
 	if ! (
 		[ "$verbose" ] || exec >"$logfile" 2>&1
 
+		# shellcheck disable=2086
 		rm -- $files
 
 		"$shell" ./configure -c'posix.env'

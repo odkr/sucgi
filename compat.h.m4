@@ -46,8 +46,8 @@ include(`macros.m4')dnl
 #define COMPAT_H
 
 /* Type that getgrouplist takes and returns group IDs as. */
-ifnempty(`__SC_GRP_T', `dnl
-#define GRP_T __SC_GRP_T
+ifnempty(`__GRP_T', `dnl
+#define GRP_T __GRP_T
 ', `dnl
 #if defined(__APPLE__) && __APPLE__
 #define GRP_T int
@@ -57,8 +57,8 @@ ifnempty(`__SC_GRP_T', `dnl
 ')dnl
 
 /* Type that setgroups takes the number of groups as. */
-ifnempty(`__SC_NGRPS_T', `dnl
-#define NGRPS_T __SC_NGRPS_T
+ifnempty(`__NGRPS_T', `dnl
+#define NGRPS_T __NGRPS_T
 ', `dnl
 #if defined(__linux__) && __linux__
 #define NGRPS_T size_t

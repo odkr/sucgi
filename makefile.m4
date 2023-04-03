@@ -112,23 +112,23 @@ sucgi: main.c build.h config.h testing.h $(hdrs) $(objs)
 ifnempty(`__DESTDIR', `DESTDIR = __DESTDIR
 ')dnl
 PREFIX = default(`__PREFIX', `/usr/local')
-wwwgrp = default(`__SC_WWW_GRP', `www-data')
-cgidir = default(`__SC_CGI_DIR', `/usr/lib/cgi-bin')
+www_grp = default(`__www_grp', `www-data')
+cgi_dir = default(`__cgi_dir', `/usr/lib/cgi-bin')
 libexec = $(DESTDIR)$(PREFIX)/libexec
 
 $(libexec)/sucgi: sucgi
 	mkdir -p $(libexec)
 	cp sucgi $(libexec)
-	chown 0:$(wwwgrp) $(libexec)/sucgi
+	chown 0:$(www_grp) $(libexec)/sucgi
 	chmod u=rws,g=x,o= $(libexec)/sucgi
 
-$(cgidir)/sucgi: $(libexec)/sucgi
-	ln -s $(libexec)/sucgi $(cgidir)/sucgi
+$(cgi_dir)/sucgi: $(libexec)/sucgi
+	ln -s $(libexec)/sucgi $(cgi_dir)/sucgi
 
-install: $(libexec)/sucgi $(cgidir)/sucgi
+install: $(libexec)/sucgi $(cgi_dir)/sucgi
 
 uninstall:
-	rm -f $(cgidir)/sucgi $(libexec)/sucgi
+	rm -f $(cgi_dir)/sucgi $(libexec)/sucgi
 
 
 #
@@ -282,11 +282,11 @@ distcheck: dist
 inspect	= *.h *.c
 scripts = configure prepare scripts/* tests/*.sh
 
-ifnempty(`__SC_CLANG_TIDY', `dnl
+ifnempty(`__clang_tidy', `dnl
 clang_tidy_flags = --config-file=clang-tidy.yml
 
 ')dnl
-ifnempty(`__SC_CPPCHECK', `dnl
+ifnempty(`__cppcheck', `dnl
 cppcheck_flags = --quiet --force --language=c --std=c99 \
 	--project=cppcheck/sucgi.cppcheck --library=posix \
 	--library=cppcheck/bsd.cfg --library=cppcheck/funcs.cfg \
@@ -295,33 +295,33 @@ cppcheck_flags = --quiet --force --language=c --std=c99 \
 	--enable=all --addon=cppcheck/cert.py --addon=misra.py
 
 ')dnl
-ifnempty(`__SC_FLAWFINDER', `dnl
+ifnempty(`__flawfinder', `dnl
 flawfinder_flags = --falsepositive --dataonly --quiet
 
 ')dnl
-ifnempty(`__SC_RATS', `dnl
+ifnempty(`__rats', `dnl
 rats_flags = --resultsonly --quiet --warning 3
 
 ')dnl
 analysis:
 	! grep -i FIXME $(inspect)
-ifnempty(`__SC_CLANG_TIDY', `dnl
-	__SC_CLANG_TIDY $(clang_tidy_flags) $(inspect) -- -std=c99
+ifnempty(`__clang_tidy', `dnl
+	__clang_tidy $(clang_tidy_flags) $(inspect) -- -std=c99
 ')dnl
-ifnempty(`__SC_CPPCHECK', `dnl
-	__SC_CPPCHECK $(cppcheck_flags) $(inspect)
+ifnempty(`__cppcheck', `dnl
+	__cppcheck $(cppcheck_flags) $(inspect)
 ')dnl
-ifnempty(`__SC_FLAWFINDER', `dnl
-	__SC_FLAWFINDER $(flawfinder_flags) $(inspect)
+ifnempty(`__flawfinder', `dnl
+	__flawfinder $(flawfinder_flags) $(inspect)
 ')dnl
-ifnempty(`__SC_RATS', `dnl
-	__SC_RATS $(rats_flags) $(inspect)
+ifnempty(`__rats', `dnl
+	__rats $(rats_flags) $(inspect)
 ')dnl
 
 shellcheck:
 	! grep -i FIXME $(scripts)
-ifnempty(`__SC_SHELLCHECK', `dnl
-	__SC_SHELLCHECK -x $(scripts)
+ifnempty(`__shellcheck', `dnl
+	__shellcheck -x $(scripts)
 ')dnl
 
 

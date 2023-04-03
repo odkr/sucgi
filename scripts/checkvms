@@ -26,7 +26,7 @@
 #
 
 # Virtual machines to test.
-readonly vms='aristides diotima'
+readonly vms='aristides aristotle diotima phaedo phaedrus'
 
 # Branch to run tests on.
 branch=devel

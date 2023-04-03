@@ -187,6 +187,15 @@ init() {
 	[ "${ZSH_VERSION-}" ] && emulate sh 2>/dev/null
 	export BIN_SH=xpg4 NULLCMD=: POSIXLY_CORRECT=x CLICOLOR_FORCE=
 
+	# Unset environment variables that contain lowercase letters.
+	for var in $(env | sed 's/=.*//')
+	do
+		case $var in
+		(src_dir) : ;;
+		(*[a-z]*) unset "$var" ;;
+		esac
+	done
+
 	# Environment variables.
 	# shellcheck disable=2154
 	PATH="$src_dir/tests:$src_dir/tools:$PATH"
