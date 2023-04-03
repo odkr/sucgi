@@ -159,20 +159,12 @@ do
 		[ "$verbose" ] || exec >"$logfile" 2>&1
 
 		name="${cc%-*}"
-		eval "cflags=\${${name}_flags-\${compflags-}}"
+		eval "cflags=\${${name}_flags-}"
 
-		for template in *.m4
-		do
-			case $template in
-			('*.m4')   	break ;;
-			('macros.m4')	continue ;;
-			esac
+		[ -e makefile ] && make distclean
+		# shellcheck disable=2154
 
-			[ -e makefile ] && make distclean
-			# shellcheck disable=2154
-			m4 -D__CC="$cc" -D__CFLAGS="$cflags" \
-			   "$template" >"${template%.m4}"
-		done
+		m4 -D__CC="$cc" -D__CFLAGS="$cflags" makefile.m4 >makefile
 
 		make clean all check ||
 		err '%s failed w/o configuartion' "$cc"

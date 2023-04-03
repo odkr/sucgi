@@ -17,7 +17,5 @@ dnl
 dnl You should have received a copy of the GNU General Public License along
 dnl with suCGI. If not, see <https://www.gnu.org/licenses>.
 changecom()dnl
-define(`default', `ifdef(`$1', `ifelse(`$1', `', `$2', `$1')', `$2')')dnl
-define(`hasfile', `syscmd(`test -e "$1" >/dev/null 2>&1')sysval')dnl
-define(`ifnempty', `ifdef(`$1', `ifelse(`$1', `', `$3', `$2')', `$3')')dnl
-define(`ifhasfile', `ifelse(hasfile(`$1'), `0', `$2', `$3')')dnl
+define(`ifnempty', `ifdef(`$1', `ifelse(`$1', `', `ifdef(`$3', `$3', `')', `$2')', `$3')')dnl
+define(`default', `ifnempty(`$1', `$1', `$2')')dnl

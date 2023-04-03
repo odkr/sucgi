@@ -68,11 +68,7 @@ build.h: build.h.m4
 compat.h: compat.h.m4
 
 makefile build.h compat.h:
-ifhasfile(`config.status', `dnl
-	./config.status $@
-', `dnl
-	m4 $@.m4 >$@
-')dnl
+	[ -e config.status ] && ./config.status $@ || m4 $@.m4 >$@
 
 
 #
@@ -248,7 +244,7 @@ version = 0
 dist_name = $(package)-$(version)
 dist_ar = $(dist_name).tgz
 dist_files = *.c *.h *.env *.excl *.m4 *.sample README.rst LICENSE.txt \
-	clang-tidy.yaml configure prepare cppcheck docs tests tools scripts
+	clang-tidy.yml configure prepare cppcheck docs tests tools scripts
 
 distclean: clean
 	rm -f build.h compat.h makefile *.log *.lock *.status *.tgz
@@ -284,7 +280,7 @@ inspect	= *.h *.c
 scripts = configure prepare scripts/* tests/*.sh
 
 ifnempty(`__SC_CLANG_TIDY', `dnl
-clang_tidy_flags = --config-file=clang-tidy.yaml
+clang_tidy_flags = --config-file=clang-tidy.yml
 
 ')dnl
 ifnempty(`__SC_CPPCHECK', `dnl
