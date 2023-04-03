@@ -46,7 +46,6 @@
 #include <syslog.h>
 #include <unistd.h>
 
-#include "build.h"
 #include "compat.h"
 #include "config.h"
 #include "env.h"
@@ -212,47 +211,8 @@ config(void)
 #else
     (void) printf("#CHECK=\n");
 #endif
-#if 0
-    (void) printf("\n\n#\n# Toolchain\n#\n\n");
-
-#if defined(CC)
-    (void) printf("CC=\"%s\"\n", CC);
-#else
-    (void) printf("#CC=\n");
-#endif
-
-#if defined(CFLAGS)
-    (void) printf("CFLAGS=\"%s\"\n", CFLAGS);
-#else
-    (void) printf("#CFLAGS=\n");
-#endif
-
-#if defined(AR)
-    (void) printf("AR=\"%s\"\n", AR);
-#else
-    (void) printf("#AR=\n");
-#endif
-
-#if defined(ARFLAGS)
-    (void) printf("ARLAGS=\"%s\"\n", ARFLAGS);
-#else
-    (void) printf("#ARLAGS=\n");
-#endif
-
-#if defined(LDFLAGS)
-    (void) printf("LDFLAGS=\"%s\"\n", LDFLAGS);
-#else
-    (void) printf("#LDFLAGS=\n");
-#endif
-
-#if defined(LDLIBS)
-    (void) printf("LDLIBS=\"%s\"\n", LDLIBS);
-#else
-    (void) printf("#LDLIBS=\n");
-#endif
 
     (void) printf("\n\n#\n# System\n#\n\n");
-#endif
 
 #if defined(LIBC)
     (void) printf("LIBC=\"%s\"\n", LIBC);
