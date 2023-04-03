@@ -56,7 +56,7 @@ tmpdir tmp .
 #
 
 # Files that ./configure should create.
-readonly files='config.status makefile build.h'
+readonly files='config.status makefile compat.h'
 
 # Current working directory
 cwd="$(pwd)" || exit

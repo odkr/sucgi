@@ -63,14 +63,12 @@ objs = funcs.a(env.o)  funcs.a(error.o) funcs.a(file.o) funcs.a(handler.o) \
 
 makefile: makefile.m4
 
-build.h: build.h.m4
-
 compat.h: compat.h.m4
 
 config.h: config.h.sample
 	[ -e config.h ] || cp config.h.sample config.h
 
-makefile build.h compat.h:
+makefile compat.h:
 	[ -e config.status ] && ./config.status $@ || m4 $@.m4 >$@
 
 
@@ -101,7 +99,7 @@ $(objs): $(hdrs)
 	$(AR) $(ARFLAGS) funcs.a $%
 	rm -f $%
 
-sucgi: main.c build.h config.h testing.h $(hdrs) $(objs)
+sucgi: main.c config.h testing.h $(hdrs) $(objs)
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ main.c funcs.a $(LDLIBS)
 
 
@@ -173,7 +171,7 @@ tests/file_is_wexcl: tests/file_is_wexcl.c funcs.a(file.o)
 
 tests/handler_lookup: tests/handler_lookup.c funcs.a(handler.o)
 
-tests/main: main.c build.h config.h testing.h $(hdrs) $(objs)
+tests/main: main.c config.h testing.h $(hdrs) $(objs)
 
 tests/pair_lookup: tests/pair_lookup.c funcs.a(pair.o)
 
@@ -250,7 +248,7 @@ dist_files = *.c *.h *.env *.excl *.m4 *.sample README.rst LICENSE.txt \
 	clang-tidy.yml configure prepare cppcheck docs tests tools scripts
 
 distclean: clean
-	rm -f build.h compat.h makefile *.log *.lock *.status *.tgz
+	rm -f compat.h makefile *.log *.lock *.status *.tgz
 	rm -rf tmp-* $(dist_name)
 
 $(dist_name):

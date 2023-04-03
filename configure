@@ -35,7 +35,7 @@ compilers='gcc clang tcc icx icc c99 cc'
 conf=prod.env
 
 # Files to generate. Space-separated list.
-files='build.h compat.h makefile'
+files='compat.h makefile'
 
 # Overwrite existing files?
 force=
@@ -78,7 +78,7 @@ tmpdir tmp .
 # Variables to set as M4 Macros.
 readonly macros='
 	CC CFLAGS AR ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
-	GRP_T NGRPS_T have_features_h cgi_dir www_grp
+	GRP_T NGRPS_T features_h cgi_dir www_grp
 	clang_tidy cppcheck flawfinder rats shellcheck
 '
 
@@ -124,25 +124,25 @@ addflags() {
 
 # Test compilation.
 testcomp() (
-	: "${compname:?}" "${compflags?}"
+	: "${compname:?}" "${testflags?}"
 
 	exec >/dev/null 2>&1
 
 	case $compname in
 	(clang|gcc)
 		# shellcheck disable=2086
-		"$CC" -xc -Wall -Werror $compflags -o/dev/null "$@"
+		"$CC" -xc -Wall -Werror $testflags -o/dev/null "$@"
 		;;
 	(tcc)
 		# TCC unlinks /dev/null when given -o/dev/null.
 		# shellcheck disable=2086
 		"$CC" -Wunsupported \
-		      -xc -Wall -Werror $compflags -o"$TMPDIR/a.out" "$@"
+		      -xc -Wall -Werror $testflags -o"$TMPDIR/a.out" "$@"
 		;;
 	(icc)
 		# shellcheck disable=2086
 		"$CC" -diag-enable=10006,10148 -diag-error=10006,10148 \
-		      -xc -Wall -Werror $compflags -o/dev/null "$@"
+		      -xc -Wall -Werror $testflags -o/dev/null "$@"
 		;;
 	(*)
 		return 1
@@ -213,38 +213,6 @@ EOF
 done
 shift $((OPTIND - 1))
 unset opt
-
-[ "${GRP_T-}" ] && unset GRP_T
-[ "${NGRPS_T-}" ] && unset NGRPS_T
-
-while [ $# -gt 0 ]
-do
-	case $1 in
-	(*=*)
-		name="${1%%=*}" value="${1#*=}"
-
-		case $name in
-		('')
-			err 'macro name is the empty string.'
-			;;
-		([!A-Za-z_]*|*[!A-Za-z0-9_]*)
-			err '%s: bad macro name.' "$name"
-			;;
-		esac
-
-		# shellcheck disable=2086
-		if ! inlist '=' "$name" $macros
-		then err '%s: unknown macro.' "$name"
-		fi
-
-		eval "$name"='$value'
-		shift
-		;;
-	(*)
-		break
-		;;
-	esac
-done
 
 [ "$conf" ]	|| err '-c: no filename given.'
 [ -e "$conf" ]	|| err '%s: no such file.' "$conf"
@@ -343,15 +311,15 @@ esac
 readonly compprefix
 
 # Compiler flags useful for testing compiler features.
-compflags=
+testflags=
 if ! [ "${CFLAGS-}" ] || ! [ "${GRP_T-}" ] || ! [ "${NGRPS_T}" ]
 then
 	for flag in -Wextra -Wpedantic -pedantic -pipe
-	do testflags $flag && compflags="$compflags $flag"
+	do testflags $flag && testflags="$testflags $flag"
 	done
 	unset flag
 fi
-readonly compflags
+readonly testflags
 
 # Output.
 printf '%s\n' "$CC"
@@ -485,16 +453,16 @@ printf '%s\n' "${AR-default}"
 
 printf 'Headers: '
 
-if	[ "${have_features_h-x}" = x ] &&
-	[ "${have_features_h-}" != x ] &&
+if	[ "${features_h-x}" = x ] &&
+	[ "${features_h-}" != x ] &&
 	testhdr features.h
-then	have_features_h=y
-else	have_features_h=
+then	features_h=y
+else	features_h=
 fi
 
-if [ "$have_features_h" ]
+if [ "$features_h" ]
 then printf 'features.h\n'
-else printf 'none detected\n'
+else printf 'none found\n'
 fi
 
 
@@ -614,6 +582,10 @@ fi
 
 if [ "$statenable" ]
 then
+	printf 'Static analysers:'
+
+	nanalysers=0
+
 	# Extend $PATH for search analysers.
 	if [ "$statpath" ]
 	then
@@ -630,44 +602,47 @@ then
 	fi
 
 	# Clang-tidy
-	printf 'Clang-Tidy: '
 	: "${clang_tidy=$(command -v clang-tidy 2>/dev/null)}"
 	if [ "$clang_tidy" ]
-	then printf '%s\n' "$clang_tidy"
-	else printf 'not found\n'
+	then
+		nanalysers=$((nanalysers + 1))
+		printf ' clang-tidy'
 	fi
 
 	# Cppcheck
-	printf 'Cppcheck: '
 	: "${cppcheck=$(command -v cppcheck 2>/dev/null)}"
 	if [ "$cppcheck" ]
-	then printf '%s\n' "$cppcheck"
-	else printf 'not found\n'
+	then
+		nanalysers=$((nanalysers + 1))
+		printf ' cppcheck'
 	fi
 
 	# Flawfinder
-	printf 'Flawfinder: '
 	: "${flawfinder=$(command -v flawfinder 2>/dev/null)}"
 	if [ "$flawfinder" ]
-	then printf '%s\n' "$flawfinder"
-	else printf 'not found\n'
+	then
+		nanalysers=$((nanalysers + 1))
+		printf ' flawfinder'
 	fi
 
 	# RATS
-	printf 'RATS: '
 	: "${rats=$(command -v rats 2>/dev/null)}"
 	if [ "$rats" ]
-	then printf '%s\n' "$rats"
-	else printf 'not found\n'
+	then
+		nanalysers=$((nanalysers + 1))
+		printf ' rats'
 	fi
 
 	# ShellCheck
-	printf 'ShellCheck: '
 	: "${shellcheck=$(command -v shellcheck 2>/dev/null)}"
 	if [ "$shellcheck" ]
-	then printf '%s\n' "$shellcheck"
-	else printf 'not found\n'
+	then
+		printf ' shellcheck'
+		nanalysers=$((nanalysers + 1))
 	fi
+
+	[ "$nanalysers" -eq 0 ] && printf ' none found'
+	echo
 fi
 
 
@@ -711,7 +686,6 @@ then
 		#!/bin/sh
 		# Last configuration detected by ./configure.
 
-		set -- \
 		EOF
 
 		for key in $macros
@@ -719,12 +693,11 @@ then
 			eval "value=\"\${$key--}\""
 			[ "$value" = - ] && continue
 			# shellcheck disable=2016
-			printf '%s="%s" \\\n' "$key" "${value# }" >>"$swap"
+			printf ': "${%s="%s"}"\n' "$key" "${value# }" >>"$swap"
 		done
 		unset key value
 
 		cat <<-'EOF' >>"$swap"
-		"$@"
 
 		. ./configure
 		EOF

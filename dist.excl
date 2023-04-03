@@ -1,4 +1,3 @@
-build.h
 compat.h
 config.h
 local.env

@@ -57,7 +57,7 @@ On many systems you can do so by::
 
 ----
 
-Generate the *makefile*, *build.h*, *compat.h*, and *config.h* by::
+Generate the *makefile*, *compat.h*, and *config.h* by::
 
     ./configure
 

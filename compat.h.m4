@@ -45,6 +45,11 @@ include(`macros.m4')dnl
 #if !defined(COMPAT_H)
 #define COMPAT_H
 
+ifnempty(`__features_h', `dnl
+#include <features.h>
+
+')dnl
+
 /* Type that getgrouplist takes and returns group IDs as. */
 ifnempty(`__GRP_T', `dnl
 #define GRP_T __GRP_T
@@ -67,5 +72,17 @@ ifnempty(`__NGRPS_T', `dnl
 #endif
 ')dnl
 
+/* Libc compiled against. */
+#if defined(__GLIBC__)
+#define LIBC "glibc"
+#elif defined(__GNU_LIBRARY__)
+#define LIBC "glibc"
+#elif defined(__KLIBC__)
+#define LIBC "klibc"
+#elif defined(__UCLIBC__)
+#define LIBC "uClibc"
+#elif defined(__APPLE__)
+#define LIBC "Apple"
+#endif
 
 #endif /* !defined(COMPAT_H) */
