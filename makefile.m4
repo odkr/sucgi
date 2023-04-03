@@ -95,7 +95,7 @@ funcs.a(userdir.o): userdir.c userdir.h
 
 $(objs): $(hdrs)
 	$(CC) $(LDFLAGS) $(CFLAGS) -c $*.c $(LDLIBS)
-	$(AR) -crsu funcs.a $%
+	$(AR) $(ARFLAGS) funcs.a $%
 	rm -f $%
 
 sucgi: main.c build.h config.h testing.h $(hdrs) $(objs)
