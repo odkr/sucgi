@@ -21,7 +21,7 @@
 
 #define _XOPEN_SOURCE 700
 
-#if !defined(_FORTIFY_SOURCE)
+#if defined(__OPTIMIZE__) && !defined(_FORTIFY_SOURCE)
 #define _FORTIFY_SOURCE 3
 #endif
 
@@ -33,6 +33,7 @@
 #include "pair.h"
 #include "path.h"
 #include "types.h"
+
 
 Error
 handler_lookup(const size_t nhandlers, const Pair *const handlerdb,

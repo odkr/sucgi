@@ -24,7 +24,7 @@
 #define _DEFAULT_SOURCE
 #define _GNU_SOURCE
 
-#if !defined(_FORTIFY_SOURCE)
+#if defined(__OPTIMIZE__) && !defined(_FORTIFY_SOURCE)
 #define _FORTIFY_SOURCE 3
 #endif
 
