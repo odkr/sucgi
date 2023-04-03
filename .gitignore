@@ -23,6 +23,8 @@ local.env
 lcov.info
 makefile
 speed.env
+sucgi
+sucgi-*
 tests/*
 !tests/*.c
 !tests/*.h
@@ -31,5 +33,4 @@ tools/*
 !tools/*.c
 !tools/*.h
 !tools/*.sh
-sucgi
-sucgi-*
+tmp-*
