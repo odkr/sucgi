@@ -371,6 +371,9 @@ then
 	(*) err -s"$result" 'no regular user found.' ;;
 	esac
 fi
+
+runas "$reguser" main -C || err -s75 '%s cannot execute main.' "$reguser"
+
 reguid="$(id -u "$reguser")"
 reggid="$(id -g "$reguser")"
 

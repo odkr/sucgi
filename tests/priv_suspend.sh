@@ -63,6 +63,9 @@ then
 	regular="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")" ||
 		err -s75 'no regular user found.'
 
+	runas "$reguser" main -C ||
+		err -s75 '%s cannot execute main.' "$reguser"
+
 	uid="$(id -u "$regular")"
 	gid="$(id -g "$regular")"
 
