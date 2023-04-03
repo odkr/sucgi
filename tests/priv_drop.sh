@@ -73,15 +73,15 @@ then
 	reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")" ||
 		err -s75 "no regular user user found."
 
-	runas "$reguser" main -C ||
+	runas "$reguser" main -C >/dev/null 2>&1 ||
 		err -s75 '%s cannot execute main.' "$reguser"
 
-	uid="$(id -u "$reguser")"
-	gid="$(id -g "$reguser")"
+	reguid="$(id -u "$reguser")"
+	reggid="$(id -g "$reguser")"
 
 	check -s1 -e'Operation not permitted' \
 		runas "$reguser" "$tests_dir/priv_drop" "$reguser" || result=70
-	check -s0 -o"euid=$uid egid=$gid ruid=$uid rgid=$gid" \
+	check -s0 -o"euid=$reguid egid=$reggid ruid=$reguid rgid=$reggid" \
 		priv_drop "$reguser" || result=70
 
 	exit "$result"

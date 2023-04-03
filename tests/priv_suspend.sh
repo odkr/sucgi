@@ -60,21 +60,21 @@ result=0
 
 if [ "$uid" -eq 0 ]
 then
-	regular="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")" ||
+	reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")" ||
 		err -s75 'no regular user found.'
 
-	runas "$reguser" main -C ||
+	runas "$reguser" main -C >/dev/null 2>&1 ||
 		err -s75 '%s cannot execute main.' "$reguser"
 
-	uid="$(id -u "$regular")"
-	gid="$(id -g "$regular")"
+	reguid="$(id -u "$reguser")"
+	reggid="$(id -g "$reguser")"
 
-	check -s1 -o"euid=$uid egid=$gid ruid=$uid rgid=$gid" \
-		runas "$regular" "$tests_dir/priv_suspend" || result=70
+	check -s1 -o"euid=$reguid egid=$reggid ruid=$reguid rgid=$reggid" \
+		runas "$reguser" "$tests_dir/priv_suspend" || result=70
 	check -s1 -e"seteuid: Operation not permitted" \
-		runas "$regular" "$tests_dir/priv_suspend" || result=70
-	check -o"euid=$uid egid=$gid ruid=$uid rgid=$gid" \
-		runas -r "$regular" "$tests_dir/priv_suspend" || result=70
+		runas "$reguser" "$tests_dir/priv_suspend" || result=70
+	check -o"euid=$reguid egid=$reggid ruid=$reguid rgid=$reggid" \
+		runas -r "$reguser" "$tests_dir/priv_suspend" || result=70
 
 	exit "$result"
 else
