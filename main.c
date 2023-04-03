@@ -212,7 +212,7 @@ config(void)
 #else
     (void) printf("#CHECK=\n");
 #endif
-
+#if 0
     (void) printf("\n\n#\n# Toolchain\n#\n\n");
 
 #if defined(CC)
@@ -252,6 +252,7 @@ config(void)
 #endif
 
     (void) printf("\n\n#\n# System\n#\n\n");
+#endif
 
 #if defined(LIBC)
     (void) printf("LIBC=\"%s\"\n", LIBC);
