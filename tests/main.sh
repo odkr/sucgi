@@ -372,7 +372,8 @@ then
 	esac
 fi
 
-runas "$reguser" main -C || err -s75 '%s cannot execute main.' "$reguser"
+runas "$reguser" main -C >/dev/null 2>&1 ||
+	err -s75 '%s cannot execute main.' "$reguser"
 
 reguid="$(id -u "$reguser")"
 reggid="$(id -g "$reguser")"
