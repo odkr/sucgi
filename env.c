@@ -63,18 +63,16 @@ env_is_name(const char *str)
 Error
 env_restore(char *const *vars, const size_t npregs, regex_t *const pregs)
 {
+    size_t varidx;
+
     assert(vars != NULL);
     assert(pregs != NULL);
 
-    for (size_t varidx = 0; vars[varidx]; ++varidx) {
+    for (varidx = 0; vars[varidx]; ++varidx) {
         /* RATS: ignore; str_split respects MAX_VARNAME_LEN. */
         char name[MAX_VARNAME_LEN];
         const char *value;
         const char *var;
-
-        if (varidx >= MAX_NVARS) {
-            return ERR_LEN;
-        }
 
         var = vars[varidx];
 
@@ -111,6 +109,10 @@ env_restore(char *const *vars, const size_t npregs, regex_t *const pregs)
                 syslog(LOG_INFO, "discarding $%s.", name);
             }
         }
+    }
+
+    if (varidx >= MAX_NVARS) {
+        return ERR_LEN;
     }
 
     return OK;
