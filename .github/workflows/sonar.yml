@@ -20,11 +20,9 @@ jobs:
       - name: Create regular user
         run: |
           sudo useradd -m jdoe
-      - name: Configure build
-        run: |
-          CFLAGS="--coverage -O2" ./configure -f
       - name: Run tests
         run: |
+          ./configure -d
           make all tools checks
           sudo make check
       - name: Generate coverage reports
@@ -32,7 +30,9 @@ jobs:
           sudo scripts/gencov -D -Ggcov -H-
       - name: Run build-wrapper
         run: |
-          build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make
+          make distclean
+          ./configure -f
+          build-wrapper-linux-x86-64 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make all
       - name: Run sonar-scanner
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -41,5 +41,4 @@ jobs:
           sonar-scanner --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
                         --define sonar.cfamily.gcov.reportsPath="gcov" \
                         --define sonar.projectKey=odkr_sucgi \
-                        --define sonar.organization=odkr \
-                        -X
+                        --define sonar.organization=odkr
