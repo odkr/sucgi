@@ -75,22 +75,22 @@ typedef Entry *GetEnt(void);
 int
 main(int argc, char **argv)
 {
-    Entry *ent;             /* passwd or group entry. */
-    SetEnt *setent;         /* Pointer to setpwent or setgrent. */
-    EndEnt *endent;         /* Pointer to endpwent or endgrent. */
-    GetEnt *getent;         /* Pointer to getpwent or getgrent. */
-    const char *label;      /* "pw" or "gr". */
-    id_t *seen;             /* Seen IDs. */
-    size_t nseen;           /* Number of seen IDs. */
-    size_t max_nseen;       /* Current maximum number of seen IDs. */
-    int ch;                 /* An option character. */
+    Entry *ent;
+    SetEnt *setent;
+    EndEnt *endent;
+    GetEnt *getent;
+    const char *label;
+    id_t *seen;
+    size_t nseen;
+    size_t maxseen;
+    int ch;
 
     setent = setpwent;
     endent = endpwent;
     getent = (GetEnt *) getpwent;
     label = "pw";
     nseen = 0;
-    max_nseen = NIDS;
+    maxseen = NIDS;
 
     while ((ch = getopt(argc, argv, "gh")) != -1) {
         switch (ch) {
@@ -131,7 +131,7 @@ main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    seen = malloc(max_nseen * sizeof(*seen));
+    seen = malloc(maxseen * sizeof(*seen));
     if (seen == NULL) {
         err(EXIT_FAILURE, "malloc");
     }
@@ -158,14 +158,14 @@ main(int argc, char **argv)
             (void) printf("%" PRIu64 " %s\n", (uint64_t) id, name);
         }
 
-        if (nseen == max_nseen) {
-            max_nseen *= 2;
+        if (nseen == maxseen) {
+            maxseen *= 2;
 
-            if (SIZE_MAX / sizeof(*seen) > max_nseen) {
+            if (SIZE_MAX / sizeof(*seen) > maxseen) {
                 errx(EXIT_FAILURE, "too many entries");
             }
 
-            seen = realloc(seen, max_nseen * sizeof(*seen));
+            seen = realloc(seen, maxseen * sizeof(*seen));
             if (seen == NULL) {
                 err(EXIT_FAILURE, "realloc");
             }
