@@ -44,6 +44,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <syslog.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "compat.h"
@@ -490,6 +491,10 @@ main(int argc, char **argv) {
 
     if (owner->pw_uid < MIN_UID || owner->pw_uid > MAX_UID) {
         error("script %s: owned by privileged user.", script_log);
+    }
+
+    if (owner->pw_expire != 0 && difftime(time(NULL), owner->pw_expire) > 0) {
+        error("user %s: account has expired.", owner->pw_name);
     }
 
     logname = owner->pw_name;
