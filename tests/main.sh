@@ -279,7 +279,7 @@ case $uid in
 
 	if [ "$isreguser" ]
 	then scrsan_err='seteuid: Operation not permitted.'
-	else scrsan_err="user $logname: belongs to privileged group"
+	else scrsan_err="user $logname: member of privileged group"
 	fi
 	;;
 esac

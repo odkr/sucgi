@@ -540,7 +540,7 @@ main(int argc, char **argv) {
     ngroups = MAX_NGROUPS;
     /* cppcheck-suppress misra-c2012-11.3; see above. */
     if (getgrouplist(logname, (GRP_T) gid, (GRP_T *) groups, &ngroups) < 0) {
-        error("user %s: belongs to too many groups.", logname);
+        error("user %s: in too many groups.", logname);
     }
 
     if (ngroups < 0) {
@@ -575,8 +575,7 @@ main(int argc, char **argv) {
         }
 
         if (!allowed) {
-            error("user %s: does not belong to group %s.",
-                  logname, ALLOW_GROUP);
+            error("user %s: not a member of group %s.", logname, ALLOW_GROUP);
         }
     }
 
@@ -595,10 +594,10 @@ main(int argc, char **argv) {
                  * the time getgrouplist returned and getgrgid was called.
                  */
                 if (ISSIGNED(gid_t)) {
-                    error("user %s: belongs to non-existing group %lld.",
+                    error("user %s: member of non-existing group %lld.",
                           logname, (long long) groups[i]);
                 } else {
-                    error("user %s: belongs to non-existing group %llu.",
+                    error("user %s: member of non-existing group %llu.",
                           logname, (unsigned long long) groups[i]);
                 }
             } else {
@@ -607,13 +606,13 @@ main(int argc, char **argv) {
         }
 
         if (grp->gr_gid < MIN_GID || grp->gr_gid > MAX_GID) {
-            error("user %s: belongs to privileged group %s.",
+            error("user %s: member of privileged group %s.",
                   logname, grp->gr_name);
         }
 
         for (size_t j = 0; j < NELEMS(deniedgrps); ++j) {
             if (fnmatch(deniedgrps[j], grp->gr_name, 0) == 0) {
-                error("user %s: belongs to denied group %s.",
+                error("user %s: member of denied group %s.",
                       logname, grp->gr_name);
             }
         }
