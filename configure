@@ -607,24 +607,27 @@ printf 'struct passwd has pw_expire: '
 if ! [ "${pw_expire-}" ]
 then
 	if	cat <<-'EOF' |
+		#include <sys/types.h>
 		#include <pwd.h>
+		#include <stdio.h>
 
 		int main(void) {
-			struct passwd pwd;
+			struct passwd pwd = {.pw_expire = 0};
 
-			pwd.pw_expire = 0;
+			printf("%llu", (long long unsigned) pwd.pw_expire);
 			return 0;
 		}
 		EOF
-		testcomp
+		testcomp -
 	then	pw_expire=1
 	else	pw_expire=0
 	fi
 fi
 
 case $pw_expire in
-(0) printf 'yes\n' ;;
-(1) printf 'no\n' ;;
+(1) printf 'yes\n' ;;
+(0) printf 'no\n' ;;
+(*) err '$pw_expire: must be 0 or 1.'
 esac
 
 

@@ -56,7 +56,7 @@ ifelse(__features_h, `1', `dnl
 
 ')dnl
 ifelse(__pw_expire, `1', `dnl
-/* features.h is available. */
+/* struct passwd has .pw_expire. */
 #define HAVE_PW_EXPIRE
 
 ')dnl

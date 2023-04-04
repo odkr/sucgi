@@ -28,14 +28,6 @@
 #define _FORTIFY_SOURCE 3
 #endif
 
-#if defined(HAVE_SYS_PARAM_H)
-#include <sys/param.h>
-#endif
-
-#if defined(HAVE_FEATURES_H)
-#include <features.h>
-#endif
-
 #include <sys/stat.h>
 #include <assert.h>
 #include <errno.h>
@@ -68,6 +60,18 @@
 #include "testing.h"
 #include "types.h"
 #include "userdir.h"
+
+#if defined(HAVE_SYS_PARAM_H)
+#include <sys/param.h>
+#endif
+
+#if defined(HAVE_FEATURES_H)
+#include <features.h>
+#endif
+
+#if defined(HAVE_PW_EXPIRE)
+#include <time.h>
+#endif
 
 
 /*
