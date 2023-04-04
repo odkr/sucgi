@@ -540,7 +540,7 @@ main(int argc, char **argv) {
     }
 
     if (strncmp(ALLOW_GROUP, "", 1) != 0) {
-        struct group *allowedgrp;
+        const struct group *allowedgrp;
         gid_t allowedgid;
         bool allowed;
 
@@ -573,7 +573,7 @@ main(int argc, char **argv) {
 
     for (int i = 0; i < ngroups; ++i) {
         const char *const deniedgrps[] = DENY_GROUPS;
-        struct group *grp;
+        const struct group *grp;
 
         errno = 0;
         /* cppcheck-suppress getgrgidCalled; suCGI need not be async-safe. */
