@@ -10,11 +10,11 @@ jobs:
     name: Build and analyze
     runs-on: ubuntu-latest
     env:
-      BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory # Directory where build-wrapper output will be placed
+      BUILD_WRAPPER_OUT_DIR: build_wrapper_output_directory
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0
       - name: Install sonar-scanner and build-wrapper
         uses: SonarSource/sonarcloud-github-c-cpp@v1
       - name: Create regular user
@@ -41,4 +41,5 @@ jobs:
           sonar-scanner --define sonar.cfamily.build-wrapper-output="${{ env.BUILD_WRAPPER_OUT_DIR }}" \
                         --define sonar.cfamily.gcov.reportsPath="gcov" \
                         --define sonar.projectKey=odkr_sucgi \
-                        --define sonar.organization=odkr
+                        --define sonar.organization=odkr \
+                        -X
