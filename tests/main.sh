@@ -194,7 +194,7 @@ unset opthdl_args opthdl_var
 
 
 #
-# Script filename validation
+# Script filename sanitisation
 #
 
 # Create a path that is as long as suCGI permits.
@@ -260,13 +260,15 @@ case $uid in
 	;;
 (*)
 	isreguser=x logname="$(id -un)"
-	if [ "$uid" -lt "$MIN_UID" ] || [ "$uid" -gt "$MAX_UID" ]
+	if	[ "$uid" -lt "$MIN_UID" ] ||
+		[ "$uid" -gt "$MAX_UID" ]
 	then
 		isreguser=
 	else
 		for gid in $(id -G "$logname")
 		do
-			if [ "$gid" -lt "$MIN_GID" ] || [ "$gid" -gt "$MAX_GID" ]
+			if	[ "$gid" -lt "$MIN_GID" ] ||
+				[ "$gid" -gt "$MAX_GID" ]
 			then
 				isreguser=
 				break
@@ -294,7 +296,6 @@ else
 	# The libc may be musl. And musl truncates long syslog messages.
 	nskipped=$((nskipped + 1))
 fi
-
 
 # Cleanup.
 unset scrsan_err scrsan_longpath scrsan_script scrsan_wrongftype
@@ -471,12 +472,17 @@ dirval_outside="$tmpdir/dirval-outside.sh"
 touch "$dirval_outside"
 chown "$reguser" "$dirval_outside"
 
+# Pretend the script is inside using dots.
+dirval_dots="$userdir/../dirval-outside.sh"
+touch "$dirval_dots"
+chown "$reguser" "$dirval_dots"
+
 # Create a link from inside to outside the user directory.
 dirval_intoout="$userdir/in-to-out.sh"
 ln -s "$dirval_outside" "$dirval_intoout"
 
 # Forbidden location.
-for dirval_forb in "$dirval_outside" "$dirval_intoout"
+for dirval_forb in "$dirval_outside" "$dirval_dots" "$dirval_intoout"
 do
 	check -s1 -e"script $dirval_forb: not within $reguser's user directory." \
 	      PATH_TRANSLATED="$dirval_forb" main || result=70
