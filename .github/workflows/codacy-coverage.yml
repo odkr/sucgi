@@ -2,27 +2,28 @@ name: Codacy Coverage Reporter
 
 on:
   push:
-    branches: [ "main", "release-*" ]
+    branches: [ "devel", "main", "release-*" ]
 
 jobs:
   codacy-coverage-reporter:
     permissions:
       contents: read
       security-events: read
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     name: Codacy Coverage Reporter
     steps:
       - uses: actions/checkout@v3
+      - name: Create regular user
+        run: sudo useradd -m jdoe
       - name: Install LCOV
-        run: brew install lcov
-      - name: Build 
+        run: sudo apt-get install lcov
+      - name: Build
         run: |
             ./configure
-            cp config.h.sample config.h
-            make check
+            make all tools checks
             sudo make check
       - name: Generate coverage report
-        run: sudo make lcov.info
+        run: sudo scripts/gencov -Llcov.info
       - name: Run codacy-coverage-reporter
         uses: codacy/codacy-coverage-reporter-action@v1
         with:
