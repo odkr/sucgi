@@ -207,7 +207,7 @@ do
 	[ -e "$check.sh" ] && continue
 
 	basename="$(basename "$check")"
-	logfile="$basename.log" infofile="$basename.info"
+	logfile="$basename.log" infofile="${basename%.sh}.info"
 
 	set +e
 	"$check" >>"$logfile" 2>&1
