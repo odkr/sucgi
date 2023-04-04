@@ -1,8 +1,8 @@
 |codacy|
-|coverage|
 |security|
 |reliability|
 |maintainability|
+|coverage|
 
 
 =====
@@ -86,11 +86,12 @@ recently than the binary that has just been built.
 You can uninstall suCGI by ``sudo make uninstall``.
 
 
-Configuration
-=============
+Setup
+=====
 
 If you are are using Apache_ and want to enable users to run their PHP_
-scripts under their own user and group IDs.
+scripts under their own user and group IDs, you can do so by following
+these steps.
 
 Enable mod_userdir_::
 
@@ -111,9 +112,6 @@ The directory should correspond to *USER_DIR* in *config.h*.
 Restart Apache::
 
     apache2ctl -t && apache2ctl restart
-
-PHP scripts in */home* should now be run with the permissions of
-their respective owners.
 
 
 Documentation
@@ -181,8 +179,7 @@ GitHub: https://github.com/odkr/sucgi
 .. |codacy| image:: https://app.codacy.com/project/badge/Grade/cb67a3bad615449589dfb242876600ac
             :target: https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_source=github.com&amp;utm_content=odkr/sucgi
 
-.. |coverage| image:: https://app.codacy.com/project/badge/Coverage/cb67a3bad615449589dfb242876600ac
-              :target: https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_source=github.com&amp;utm_content=odkr/sucgi
+.. |coverage| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=coverage
 
 .. |security| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=security_rating
               :target: https://sonarcloud.io/summary/new_code?id=odkr_sucgi
