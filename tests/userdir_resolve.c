@@ -142,7 +142,7 @@ main(void)
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 #endif
         ret = userdir_resolve(args.str, args.user, dir);
-#if defined(__GNUC__)
+#if defined(__GNUC__) && __GNUC__ >= 3
 #pragma GCC diagnostic pop
 #endif
 
