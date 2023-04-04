@@ -36,6 +36,9 @@ jobs:
           curl -sSLo $HOME/.sonar/build-wrapper-macosx-x86.zip ${{ env.BUILD_WRAPPER_DOWNLOAD_URL }}
           unzip -o $HOME/.sonar/build-wrapper-macosx-x86.zip -d $HOME/.sonar/
           echo "$HOME/.sonar/build-wrapper-macosx-x86" >> $GITHUB_PATH
+      - name: Create regular user
+        run: |
+          useradd -m jdoe
       - name: Configure build
         run: |
           CFLAGS="--coverage -O2" ./configure -f
@@ -43,9 +46,9 @@ jobs:
         run: |
           make all tools checks
           sudo make check
-      - name: Generate coverage reports    
+      - name: Generate coverage reports
         run: |
-          sudo scripts/gencov -D -Ggcov -H-
+          sudo scripts/gencov -Ggcov -H-
       - name: Run build-wrapper
         run: |
           build-wrapper-macosx-x86 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make
