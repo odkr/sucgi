@@ -1,5 +1,3 @@
-|coverage|
-|codacy|
 |security|
 |reliability|
 |maintainability|
