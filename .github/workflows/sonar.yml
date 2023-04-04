@@ -2,7 +2,7 @@ name: SonarCloud
 
 on:
   push:
-    branches: [ "main", "release-*" ]
+    branches: [ "devel", "main", "release-*" ]
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
@@ -39,15 +39,13 @@ jobs:
       - name: Configure build
         run: |
 	  CFLAGS="--coverage -O2" ./configure -f
-	  cp config.h.sample config.h
       - name: Run tests
         run: |
-          make check 
+          make all tools checks
           sudo make check
-          sudo chmod -R o+r .
       - name: Generate coverage reports    
         run: |
-          sudo make gcov
+          sudo scripts/gencov
       - name: Run build-wrapper
         run: |
           build-wrapper-macosx-x86 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make
