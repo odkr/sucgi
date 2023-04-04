@@ -36,7 +36,7 @@
 
 /* Calculate the maximum signed value that a given integer TYPE can hold. */
 #define SIGNEDMAX(type) \
-	((1UL << ((size_t) CHAR_BIT * sizeof(type) - 1UL)) - 1UL)
+    ((1UL << ((size_t) CHAR_BIT * sizeof(type) - 1UL)) - 1UL)
 
 
 #endif /* !defined(MACROS_H) */
