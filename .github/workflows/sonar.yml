@@ -38,7 +38,7 @@ jobs:
           echo "$HOME/.sonar/build-wrapper-macosx-x86" >> $GITHUB_PATH
       - name: Create regular user
         run: |
-          sudo useradd -m jdoe
+          sudo adduser --disabled-password --gecos - jdoe
       - name: Configure build
         run: |
           CFLAGS="--coverage -O2" ./configure -f
