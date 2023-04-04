@@ -70,6 +70,7 @@
 #endif
 
 #if defined(HAVE_PW_EXPIRE)
+/* cppcheck-suppress misra-c2012-21.10; needed for checking account expiry. */
 #include <time.h>
 #endif
 
@@ -542,7 +543,6 @@ main(int argc, char **argv) {
      */
 
     ngroups = MAX_NGROUPS;
-    /* cppcheck-suppress misra-c2012-11.3; see above. */
     if (getgrouplist(logname, (GRP_T) gid, (GRP_T *) groups, &ngroups) < 0) {
         error("user %s: in too many groups.", logname);
     }

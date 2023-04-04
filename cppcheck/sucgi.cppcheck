@@ -30,8 +30,8 @@
 		<define name="MAX_VAR_LEN=1024"/>
 		<define name="MAX_VARNAME_LEN=64U"/>
 		<define name="MAX_NVARS=512U"/>
-		<define name="GETGRPLST_T=gid_t"/>
-		<define name="SETGRPNUM_T=int"/>
+		<define name="GRP_T=gid_t"/>
+		<define name="NGRPS_T=int"/>
 	</defines>
 	<platform>unix64</platform>
 	<analyze-all-vs-configs>true</analyze-all-vs-configs>
