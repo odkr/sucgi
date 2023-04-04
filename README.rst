@@ -180,12 +180,13 @@ GitHub: https://github.com/odkr/sucgi
             :target: https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_source=github.com&amp;utm_content=odkr/sucgi
 
 .. |coverage| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=coverage
+              :target: https://sonarcloud.io/component_measures?metric=Coverage&id=odkr_sucgi
 
 .. |security| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=security_rating
-              :target: https://sonarcloud.io/summary/new_code?id=odkr_sucgi
+              :target: https://sonarcloud.io/component_measures?metric=Security&id=odkr_sucgi
 
 .. |reliability| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=reliability_rating
-                 :target: https://sonarcloud.io/summary/new_code?id=odkr_sucgi
+                 :target: https://sonarcloud.io/component_measures?metric=Reliability&id=odkr_sucgi
 
 .. |maintainability| image:: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=sqale_rating
-                    :target: https://sonarcloud.io/summary/new_code?id=odkr_sucgi
+                     :target: https://sonarcloud.io/component_measures?metric=Maintainability&id=odkr_sucgi
