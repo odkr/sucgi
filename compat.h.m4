@@ -46,14 +46,22 @@ include(`macros.m4')dnl
 #define COMPAT_H
 
 ifelse(__sys_param_h, `1', `dnl
-#include <sys/param.h>
-')dnl
-ifelse(__features_h, `1', `dnl
-#include <features.h>
+/* sys/param.h is available. */
+#define HAVE_SYS_PARAM_H
 ')dnl
 
+ifelse(__features_h, `1', `dnl
+/* features.h is available. */
+#define HAVE_FEATURES_H
+')dnl
+
+ifelse(__pw_expire, `1', `dnl
+/* features.h is available. */
+#define HAVE_PW_EXPIRE
+')dnl
 
 /* Type that getgrouplist takes and returns group IDs as. */
+#if !defined(GRP_T)
 ifnempty(`__GRP_T', `dnl
 #define GRP_T __GRP_T
 ', `dnl
@@ -63,8 +71,10 @@ ifnempty(`__GRP_T', `dnl
 #define GRP_T gid_t
 #endif
 ')dnl
+#endif /* !defined(GRP_T) */
 
 /* Type that setgroups takes the number of groups as. */
+#if !defined(NGRPS_T)
 ifnempty(`__NGRPS_T', `dnl
 #define NGRPS_T __NGRPS_T
 ', `dnl
@@ -74,6 +84,7 @@ ifnempty(`__NGRPS_T', `dnl
 #define NGRPS_T int
 #endif
 ')dnl
+#endif /* !defined(NGRPS_T) */
 
 
 #endif /* !defined(COMPAT_H) */

@@ -81,7 +81,7 @@ tmpdir tmp .
 # Variables to set as M4 Macros.
 readonly macros='
 	CC CFLAGS AR ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
-	GRP_T NGRPS_T sys_param_h features_h cgi_dir www_grp
+	GRP_T NGRPS_T sys_param_h features_h pw_expire cgi_dir www_grp
 	clang_tidy cppcheck flawfinder rats shellcheck
 '
 
@@ -596,6 +596,36 @@ if [ "$NGRPS_T" ]
 then printf '%s\n' "$NGRPS_T"
 else printf 'guess at compile-time\n'
 fi
+
+
+#
+# Check whether struct passwd contains pw_expire.
+#
+
+printf 'struct passwd has pw_expire: '
+
+if ! [ "${pw_expire-}" ]
+then
+	if	cat <<-'EOF' |
+		#include <pwd.h>
+
+		int main(void) {
+			struct passwd pwd;
+
+			pwd.pw_expire = 0;
+			return 0;
+		}
+		EOF
+		testcomp
+	then	pw_expire=1
+	else	pw_expire=0
+	fi
+fi
+
+case $pw_expire in
+(0) printf 'yes\n' ;;
+(1) printf 'no\n' ;;
+esac
 
 
 #

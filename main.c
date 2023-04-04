@@ -28,6 +28,14 @@
 #define _FORTIFY_SOURCE 3
 #endif
 
+#if defined(HAVE_SYS_PARAM_H)
+#include <sys/param.h>
+#endif
+
+#if defined(HAVE_FEATURES_H)
+#include <features.h>
+#endif
+
 #include <sys/stat.h>
 #include <assert.h>
 #include <errno.h>
@@ -44,8 +52,6 @@
 #include <stdint.h>
 #include <string.h>
 #include <syslog.h>
-/* cppcheck-suppress misra-c2012-21.10; needed to check account expiration. */
-#include <time.h>
 #include <unistd.h>
 
 #include "compat.h"
@@ -494,9 +500,12 @@ main(int argc, char **argv) {
         error("script %s: owned by privileged user.", script_log);
     }
 
+/* FIXME: Check for PAM and use it instead, if available. */
+#if defined(HAVE_PW_EXPIRE)
     if (owner->pw_expire != 0 && difftime(time(NULL), owner->pw_expire) > 0) {
         error("user %s: account has expired.", owner->pw_name);
     }
+#endif
 
     logname = owner->pw_name;
     uid = owner->pw_uid;
