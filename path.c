@@ -108,9 +108,9 @@ path_check_wexcl(const uid_t uid, const char *const basedir,
     /* cppcheck-suppress misra-c2012-18.4; basedir is shorter than fname. */
     pos = fname + strnlen(basedir, MAX_FNAME_LEN);
     do {
-	    /* RATS: ignore; path_check_in would have errored out if
-	       basedir or fname were longer than MAX_FNAME_LEN. */
-	    char cur[MAX_FNAME_LEN];
+        /* RATS: ignore; path_check_in would have errored out if
+           basedir or fname were longer than MAX_FNAME_LEN. */
+        char cur[MAX_FNAME_LEN];
         struct stat fstatus;
 
         /* cppcheck-suppress [misra-c2012-10.8, misra-c2012-18.4];
