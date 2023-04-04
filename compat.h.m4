@@ -48,18 +48,18 @@ include(`macros.m4')dnl
 ifelse(__sys_param_h, `1', `dnl
 /* sys/param.h is available. */
 #define HAVE_SYS_PARAM_H
-')dnl
 
+')dnl
 ifelse(__features_h, `1', `dnl
 /* features.h is available. */
 #define HAVE_FEATURES_H
-')dnl
 
+')dnl
 ifelse(__pw_expire, `1', `dnl
 /* features.h is available. */
 #define HAVE_PW_EXPIRE
-')dnl
 
+')dnl
 /* Type that getgrouplist takes and returns group IDs as. */
 #if !defined(GRP_T)
 ifnempty(`__GRP_T', `dnl
