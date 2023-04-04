@@ -150,7 +150,7 @@ path_suffix(const char *const fname, const char **const suffix)
     /* cppcheck-suppress misra-c2012-18.4;
        the expression *suffix - 1 can only be reached if *suffix > fname. */
     if (*suffix != NULL && *suffix > fname && *(*suffix - 1) != '/') {
-        char *sep;
+        const char *sep;
 
         sep = strchr(*suffix, '/');
         if (sep == NULL) {

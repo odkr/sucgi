@@ -74,7 +74,7 @@ bool env_is_name(const char *str);
  *     Logs which variables are kept and which are discarded.
  */
 __attribute__((nonnull(1, 3), warn_unused_result))
-Error env_restore(char *const *vars, size_t npregs, regex_t *pregs);
+Error env_restore(char *const *vars, size_t npregs, const regex_t *pregs);
 
 
 #endif /* !defined(ENV_H) */

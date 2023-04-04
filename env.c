@@ -62,7 +62,7 @@ env_is_name(const char *const str)
 
 Error
 env_restore(char *const *const vars, const size_t npregs,
-            regex_t *const pregs)
+            const regex_t *const pregs)
 {
     size_t varidx;
 

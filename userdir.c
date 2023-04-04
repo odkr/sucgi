@@ -67,7 +67,7 @@ userdir_resolve(const char *const str, const struct passwd *const user,
         /* RATS: ignore; format is short and a literal. */
         nchars = snprintf(dir, MAX_FNAME_LEN, "%s/%s", str, user->pw_name);
     } else {
-    	/* RATS: ignore; str can only be set by the system administrator. */
+        /* RATS: ignore; str can only be set by the system administrator. */
         nchars = snprintf(dir, MAX_FNAME_LEN, str, user->pw_name);
     }
 

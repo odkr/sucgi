@@ -37,7 +37,7 @@
 Error
 str_cp(const size_t nbytes, const char *const src, char *const dest)
 {
-    char *end;
+    const char *end;
     size_t len;
 
     assert(src != NULL);
