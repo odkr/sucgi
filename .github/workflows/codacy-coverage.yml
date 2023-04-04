@@ -13,10 +13,10 @@ jobs:
     name: Codacy Coverage Reporter
     steps:
       - uses: actions/checkout@v3
-      - name: Create regular user
-        run: sudo useradd -m jdoe
       - name: Install LCOV
         run: sudo apt-get install lcov
+      - name: Create regular user
+        run: sudo useradd -m jdoe
       - name: Build
         run: |
             ./configure
