@@ -45,7 +45,7 @@ jobs:
           sudo make check
       - name: Generate coverage reports    
         run: |
-          sudo scripts/gencov
+          sudo scripts/gencov -D -Ggcov -H-
       - name: Run build-wrapper
         run: |
           build-wrapper-macosx-x86 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make
