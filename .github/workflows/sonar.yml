@@ -38,7 +38,7 @@ jobs:
           echo "$HOME/.sonar/build-wrapper-macosx-x86" >> $GITHUB_PATH
       - name: Configure build
         run: |
-	  CFLAGS="--coverage -O2" ./configure -f
+          CFLAGS="--coverage -O2" ./configure -f
       - name: Run tests
         run: |
           make all tools checks
