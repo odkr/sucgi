@@ -179,7 +179,7 @@ warn -q 'compiling tools ...'
 logged make tools
 
 warn -q 'compiling tests ...'
-logged make CFLAGS='-O2 --coverage' all checks
+logged make CFLAGS=--coverage all checks
 
 warn -q 'adapting environment ...'
 export PATH="$distdir/tools:$distdir/tests:$PATH"
@@ -218,6 +218,7 @@ do
 		mv "$logfile" "$cwd"
 		exit 8
 	esac
+	set -e
 
 	if	{ [ "$htmldir"  ] && [ "$htmldir"  != - ]; } ||
 		{ [ "$lcovinfo" ] && [ "$lcovinfo" != - ]; }
@@ -225,7 +226,8 @@ do
 		geninfo -q -o "$infofile"				\
 			--exclude '*/tests/*'				\
 			--exclude '/usr/*' --exclude '/Library/*'	\
-			"$distdir" 2>/dev/null				&&
+			"$distdir" 2>/dev/null
+
 		lcov -q -o lcov.info -a "$infofile"
 	fi
 done
