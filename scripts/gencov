@@ -201,7 +201,7 @@ chmod -R ugo+r "$TMPDIR"
 find "$TMPDIR" -type d -exec chmod ug+s,o+x '{}' +
 
 warn -q 'collecting coverage data ...'
-find tests -type f '(' -perm +=x -o -name '*.sh' ')' ! -name 'lib.*' |
+find tests -type f '(' -perm +=x -o -name '*.sh' ')' ! -name 'funcs.*' |
 while read -r check
 do
 	[ -e "$check.sh" ] && continue
