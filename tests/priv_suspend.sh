@@ -71,7 +71,7 @@ then
 
 	check -s1 -o"euid=$reguid egid=$reggid ruid=$reguid rgid=$reggid" \
 		runas "$reguser" "$tests_dir/priv_suspend" || result=70
-	check -s1 -e"seteuid: Operation not permitted" \
+	check -s1 -e'Operation not permitted' \
 		runas "$reguser" "$tests_dir/priv_suspend" || result=70
 	check -o"euid=$reguid egid=$reggid ruid=$reguid rgid=$reggid" \
 		runas -r "$reguser" "$tests_dir/priv_suspend" || result=70
@@ -83,7 +83,7 @@ else
 
 	check -s1 -o"euid=$uid egid=$gid ruid=$uid rgid=$gid" \
 		priv_suspend || result=70
-	check -s1 -e"seteuid: Operation not permitted" \
+	check -s1 -e'Operation not permitted' \
 		priv_suspend || result=70
 
 	case $result in

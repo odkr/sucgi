@@ -49,19 +49,19 @@ priv_drop(const uid_t uid, const gid_t gid,
 
     errno = 0;
     if (setgroups(ngroups, groups) != 0) {
-        return ERR_SYS_SETGROUPS;
+        return ERR_SYS;
     }
 
     errno = 0;
     if (setgid(gid) != 0) {
         /* Should be unreachable. */
-        return ERR_SYS_SETGID;
+        return ERR_SYS;
     }
 
     errno = 0;
     if (setuid(uid) != 0) {
         /* Should be unreachable. */
-        return ERR_SYS_SETUID;
+        return ERR_SYS;
     }
 
     if (setgroups(1, (gid_t [1]) {0}) != -1) {
@@ -92,20 +92,20 @@ priv_suspend(void)
         errno = 0;
         if (setgroups(1, (gid_t [1]) {gid}) != 0) {
             /* Should be unreachable. */
-            return ERR_SYS_SETGROUPS;
+            return ERR_SYS;
         }
     }
 
     errno = 0;
     if (setegid(gid) != 0) {
         /* Should be unreachable. */
-        return ERR_SYS_SETEGID;
+        return ERR_SYS;
     }
 
     errno = 0;
     if (seteuid(uid) != 0) {
         /* Should be unreachable. */
-        return ERR_SYS_SETEUID;
+        return ERR_SYS;
     }
 
     return OK;

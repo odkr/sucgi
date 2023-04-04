@@ -72,7 +72,7 @@ userdir_resolve(const char *const str, const struct passwd *const user,
     }
 
     if (nchars < 0) {
-        return ERR_SYS_SNPRINTF;
+        return ERR_SYS;
     }
     if ((size_t) nchars >= (size_t) MAX_FNAME_LEN) {
         return ERR_LEN;

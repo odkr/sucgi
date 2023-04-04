@@ -62,12 +62,8 @@ main (int argc, char **argv)
     switch (ret) {
     case OK:
         break;
-    case ERR_SYS_SETGROUPS:
-        err(EXIT_FAILURE, "setgroups");
-    case ERR_SYS_SETGID:
-        err(EXIT_FAILURE, "setgid");
-    case ERR_SYS_SETUID:
-        err(EXIT_FAILURE, "setuid");
+    case ERR_SYS:
+        err(EXIT_FAILURE, "privilege drop");
     case ERR_PRIV:
         errx(EXIT_FAILURE, "could resume superuser privileges.");
     default:

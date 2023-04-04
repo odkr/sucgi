@@ -408,7 +408,7 @@ main(int argc, char **argv) {
         break;
     case ERR_LEN:
         error("too many environment variables.");
-    case ERR_SYS_SETENV:
+    case ERR_SYS:
         error("setenv: %m.");
     default:
         /* Should be unreachable. */
@@ -657,8 +657,8 @@ main(int argc, char **argv) {
     switch (ret) {
     case OK:
         break;
-    case ERR_SYS_SETGROUPS:
-        error("setgroups: %m.");
+    case ERR_SYS:
+        error("privilege drop: %m.");
     default:
         /* Should be unreachable. */
         error("%d: priv_drop returned %d.", __LINE__, ret);
@@ -689,7 +689,7 @@ main(int argc, char **argv) {
         break;
     case ERR_LEN:
         error("user %s: user directory is too long.", logname);
-    case ERR_SYS_SNPRINTF:
+    case ERR_SYS:
         error("snprintf: %m.");
     default:
         /* Should be unreachable. */
@@ -760,7 +760,7 @@ main(int argc, char **argv) {
         break;
     case ERR_WEXCL:
         error("script %s: writable by non-owner.", script_log);
-    case ERR_SYS_STAT:
+    case ERR_SYS:
         /* Only reachable if the script was deleted after realpath. */
         error("stat %s: %m.", script_log);
     default:

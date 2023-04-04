@@ -118,7 +118,7 @@ path_check_wexcl(const uid_t uid, const char *const basedir,
         (void) str_cp((size_t) (pos - fname), fname, cur);
 
         if (stat(cur, &fstatus) != 0) {
-            return ERR_SYS_STAT;
+            return ERR_SYS;
         }
 
         if (!file_is_wexcl(uid, fstatus)) {

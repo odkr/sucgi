@@ -36,11 +36,9 @@
  * NGROUPS elements; supernumery elements are ignored.
  *
  * Return value:
- *     OK                 Success.
- *     ERR_SYS_SETUID     setuid failed.
- *     ERR_SYS_SETGID     setgid failed.
- *     ERR_SYS_SETGROUPS  setgroups failed.
- *     ERR_PRIV           Superuser privileges could be resumed.
+ *     OK        Success.
+ *     ERR_SYS   setuid/setgid/setgroups failed.
+ *     ERR_PRIV  Superuser privileges could be resumed.
  */
 __attribute__((nonnull(4), warn_unused_result))
 Error priv_drop(uid_t uid, gid_t gid, NGRPS_T ngroups, const gid_t *groups);
@@ -50,12 +48,10 @@ Error priv_drop(uid_t uid, gid_t gid, NGRPS_T ngroups, const gid_t *groups);
  * to the real user and group IDs respectively.
  *
  * Return value:
- *     OK                  Success.
- *     ERR_SYS_SETGROUPS*  setgroups failed.
- *     ERR_SYS_SETEUID*    seteuid failed.
- *     ERR_SYS_SETEGID*    setegid failed.
+ *     OK        Success.
+ *     ERR_SYS*  seteuid/setegid/setgroups failed.
  *
- *     * These errors should be unreachable.
+ *     * This error should be unreachable.
  */
 __attribute__((warn_unused_result))
 Error priv_suspend(void);

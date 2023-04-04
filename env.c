@@ -96,7 +96,7 @@ env_restore(char *const *const vars, const size_t npregs,
                 if (regexec(&pregs[pregidx], name, 0, NULL, 0) == 0) {
                     errno = 0;
                     if (setenv(name, value, true) != 0) {
-                        return ERR_SYS_SETENV;
+                        return ERR_SYS;
                     }
 
                     /* RATS: ignore; format is short and a literal. */

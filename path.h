@@ -49,7 +49,7 @@ Error path_check_in(const char *basedir, const char *fname);
  *     OK            UID has exclusive write access to FNAME.
  *     ERR_BASEDIR   FNAME is not within BASEDIR.
  *     ERR_WEXCL     UID does NOT have exclusive write access to FNAME.
- *     ERR_SYS_STAT  stat failed.
+ *     ERR_SYS       stat failed.
  */
 __attribute__((nonnull(2, 3), warn_unused_result))
 Error path_check_wexcl(uid_t uid, const char *basedir, const char *fname);

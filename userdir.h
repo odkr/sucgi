@@ -35,9 +35,9 @@
  * MAX_FNAME_LEN bytes, including the terminating NUL.
  *
  * Return value:
- *     OK                Success.
- *     ERR_LEN           Resolved directory is too long.
- *     ERR_SYS_SNPRINTF  snprintf failed.
+ *     OK       Success.
+ *     ERR_LEN  Resolved directory is too long.
+ *     ERR_SYS  snprintf failed.
  */
 __attribute__((nonnull(1, 2, 3), format(printf, 1, 0), warn_unused_result))
 Error userdir_resolve(const char *str, const struct passwd *user,

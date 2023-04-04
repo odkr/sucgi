@@ -66,9 +66,9 @@ bool env_is_name(const char *str);
  * the contents of that memory region into the environment.
  *
  * Return value:
- *     OK               Success.
- *     ERR_LEN          Too many environment variables.
- *     ERR_SYS_SETENV   setenv failed.
+ *     OK        Success.
+ *     ERR_LEN   Too many environment variables.
+ *     ERR_SYS   setenv failed.
  *
  * Side-effects:
  *     Logs which variables are kept and which are discarded.
