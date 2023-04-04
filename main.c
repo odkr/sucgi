@@ -349,18 +349,16 @@ main(int argc, char **argv) {
         error("empty argument vector.");
     }
 
-    /* NOLINTBEGIN(bugprone-not-null-terminated-result);
-       strncmp(argv[1], <option>, 3) is fine. */
     switch (argc) {
     case 1:
         break;
     case 2:
         /* Some getopt implementations are insecure. */
-        if        (strncmp(argv[1], "-h", 3) == 0) {
+        if        (strncmp(argv[1], "-h", sizeof("-h")) == 0) {
             help();
-        } else if (strncmp(argv[1], "-C", 3) == 0) {
+        } else if (strncmp(argv[1], "-C", sizeof("-C")) == 0) {
             config();
-        } else if (strncmp(argv[1], "-V", 3) == 0) {
+        } else if (strncmp(argv[1], "-V", sizeof("-V")) == 0) {
             version();
         } else {
             usage();
@@ -369,7 +367,6 @@ main(int argc, char **argv) {
     default:
         usage();
     }
-    /* NOLINTEND(bugprone-not-null-terminated-result) */
 
 
     /*
