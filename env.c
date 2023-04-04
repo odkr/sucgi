@@ -42,7 +42,7 @@
 
 bool
 /* cppcheck-suppress misra-c2012-8.7; external linkage needed for testing. */
-env_is_name(const char *str)
+env_is_name(const char *const str)
 {
     assert(str != NULL);
     assert(strnlen(str, MAX_VARNAME_LEN) < MAX_VARNAME_LEN);
@@ -52,7 +52,7 @@ env_is_name(const char *str)
     }
 
     for (const char *chr = str; *chr != '\0'; ++chr) {
-        if (!(isalpha(*chr) || isdigit(*chr) || (*chr == '_'))) {
+        if (!isalpha(*chr) && !isdigit(*chr) && *chr != '_') {
             return false;
         }
     }
@@ -61,7 +61,8 @@ env_is_name(const char *str)
 }
 
 Error
-env_restore(char *const *vars, const size_t npregs, regex_t *const pregs)
+env_restore(char *const *const vars, const size_t npregs,
+            regex_t *const pregs)
 {
     size_t varidx;
 
