@@ -38,10 +38,10 @@
 int
 main (int argc, char **argv)
 {
-    struct passwd *pwd;     /* The user. */
-    char **comm;            /* The command. */
-    bool real;              /* Set only the real user and group IDs? */
-    int ch;                 /* An option character. */
+    struct passwd *pwd;
+    char **comm;
+    bool real;
+    int ch;
 
     real = false;
 

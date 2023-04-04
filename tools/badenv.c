@@ -50,13 +50,13 @@ extern char **environ;
 int
 main (int argc, char **argv)
 {
-    char **cmd;         /* Command to run. */
-    char **vars;        /* New environment variables. */
-    long nenv;          /* Number of variables in the current environment. */
-    long nvars;         /* Number of variables given. */
-    bool inherit;       /* Copy current environment? */
-    bool count;         /* Count new variables? */
-    int ch;             /* Option character. */
+    char **cmd;
+    char **vars;
+    long nenv;
+    long nvars;
+    bool inherit;
+    bool count;
+    int ch;
 
     nenv = 0;
     nvars = 0;

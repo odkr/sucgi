@@ -33,7 +33,7 @@
 int
 main (int argc, char **argv)
 {
-    int ch;             /* Option character. */
+    int ch;
 
     while ((ch = getopt(argc, argv, "in:h")) != -1) {
         switch (ch) {

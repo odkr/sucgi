@@ -35,7 +35,6 @@
 #include "result.h"
 
 
-
 /*
  * Macros
  */

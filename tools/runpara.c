@@ -193,8 +193,8 @@ cleanup(void)
     (void) alarm(0);
 
     if (nrun > 0) {
-        sigset_t oldmask;   /* Old signal mask. */
-        time_t now;         /* Current point in time. */
+        sigset_t oldmask;
+        time_t now;
 
         errno = 0;
         if (sigprocmask(SIG_UNBLOCK, &chldsig, &oldmask) != 0) {
@@ -235,14 +235,14 @@ cleanup(void)
 static void
 collect(const int signo __attribute__((unused)))
 {
-    int olderr;   /* Old errno. */
+    int olderr;
 
     olderr = errno;
 
     do {
-        pid_t pid;      /* Process ID of job that has just finished. */
-        int status;     /* That job's exit status. */
-        int i;          /* Index. */
+        pid_t pid;
+        int status;
+        int i;
 
         do {
             errno = 0;
@@ -285,7 +285,7 @@ catch(const int signo) {
 static int
 signaljobs(const int signo)
 {
-    int njobs;       /* Number of jobs signalled. */
+    int njobs;
 
     njobs = 0;
     for (int i = 0; i < maxnrun; ++i) {
@@ -523,14 +523,14 @@ PROGNAME " - run jobs in parallel\n\n"
             /* Report exit status of finished jobs. */
             if (job->exited == 1) {
                 if (WIFSIGNALED(job->status)) {
-                    int signo;  /* Signal caught. */
+                    int signo;
 
                     signo = WTERMSIG(job->status);
                     clearln(stderr);
                     warnx("%s[%d]: %s", job->comm, job->pid, strsignal(signo));
                     return EXIT_FAILURE;
                 } else if (WIFEXITED(job->status)) {
-                    int status; /* Lower 8 bits of exit status. */
+                    int status;
 
                     status = WEXITSTATUS(job->status);
                     if (status > 0) {
@@ -574,7 +574,7 @@ PROGNAME " - run jobs in parallel\n\n"
                     }
                     err(EXIT_FAILURE, "fork");
                 } else if (job->pid == 0) {
-                    char **comm = comms[nfork].we_wordv;    /* Shorthand. */
+                    char **comm = comms[nfork].we_wordv;
 
                     for (size_t j = 0; j < NELEMS(traps); ++j) {
                         if (sigaction(traps[j].signo, &defhdl, NULL) != 0) {

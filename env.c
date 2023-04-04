@@ -52,7 +52,7 @@ env_is_name(const char *str)
     }
 
     for (const char *chr = str; *chr != '\0'; ++chr) {
-        if (!(isalpha(*chr) || isdigit(*chr) || ('_' == *chr))) {
+        if (!(isalpha(*chr) || isdigit(*chr) || (*chr == '_'))) {
             return false;
         }
     }
