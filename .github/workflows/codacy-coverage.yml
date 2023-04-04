@@ -9,26 +9,21 @@ jobs:
     permissions:
       contents: read
       security-events: read
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     name: Codacy Coverage Reporter
     steps:
       - uses: actions/checkout@v3
-      - name: Replace GCC with Clang
-        run: |
-            sudo apt-get remove --purge gcc
-            sudo apt-get autoremove --purge
-            sudo apt-get install clang
       - name: Install LCOV
-        run: sudo apt-get install lcov
+        run: brew install lcov
       - name: Create regular user
-        run: sudo useradd -m jdoe
+        run: sudo sysadminctl -addUser jdoe
       - name: Build
         run: |
             ./configure
             make all tools checks
             sudo make check
       - name: Generate coverage report
-        run: sudo scripts/gencov -D -Llcov.info -H-
+        run: sudo scripts/gencov -Llcov.info -H-
       - name: Run codacy-coverage-reporter
         uses: codacy/codacy-coverage-reporter-action@v1
         with:
