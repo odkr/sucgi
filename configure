@@ -460,9 +460,10 @@ nheaders=0
 for header in $headers
 do
 	headervar="$(printf '%s\n' "$header" | sed 's/[^a-z]/_/g')"
-	eval headeravailable="\${$headervar-}"
+	eval headeravail="\${$headervar-}"
 
-	case $headeravailable in
+	# shellcheck disable=2154
+	case $headeravail in
 	(0)
 		eval "$headervar=0"
 		;;
