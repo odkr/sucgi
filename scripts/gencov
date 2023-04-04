@@ -218,16 +218,14 @@ do
 		mv "$logfile" "$cwd"
 		exit 8
 	esac
-	set -e
-
-	geninfo -q -o "$infofile"				\
-		--exclude '*/tests/*'				\
-		--exclude '/usr/*' --exclude '/Library/*'	\
-		"$distdir" 2>/dev/null
 
 	if	{ [ "$htmldir"  ] && [ "$htmldir"  != - ]; } ||
 		{ [ "$lcovinfo" ] && [ "$lcovinfo" != - ]; }
 	then
+		geninfo -q -o "$infofile"				\
+			--exclude '*/tests/*'				\
+			--exclude '/usr/*' --exclude '/Library/*'	\
+			"$distdir" 2>/dev/null				&&
 		lcov -q -o lcov.info -a "$infofile"
 	fi
 done
