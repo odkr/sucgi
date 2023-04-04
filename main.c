@@ -214,8 +214,26 @@ config(void)
 
     (void) printf("\n\n#\n# System\n#\n\n");
 
-#if defined(LIBC)
-    (void) printf("LIBC=\"%s\"\n", LIBC);
+#if defined(__GLIBC__)
+    (void) printf("LIBC=glibc\n");
+#elif defined(__GNU_LIBRARY__)
+    (void) printf("LIBC=glibc\n");
+#elif defined(__KLIBC__)
+    (void) printf("LIBC=klibc\n");
+#elif defined(__UCLIBC__)
+    (void) printf("LIBC=uClibc\n");
+#elif defined(__bsdi__)
+    (void) printf("LIBC=BSDi\n");
+#elif defined(__DragonFly__)
+    (void) printf("LIBC=DragonFly\n");
+#elif defined(__FreeBSD__)
+    (void) printf("LIBC=FreeBSD\n");
+#elif defined(__NetBSD__)
+    (void) printf("LIBC=NetBSD\n");
+#elif defined(__OpenBSD__)
+    (void) printf("LIBC=OpenBSD\n");
+#elif defined(__APPLE__)
+    (void) printf("LIBC=Apple\n");
 #else
     (void) printf("#LIBC=?\n");
 #endif
@@ -506,14 +524,16 @@ main(int argc, char **argv) {
      * (2) MAX_GID > the greatest signed value that gid_t and GRP_T could hold
      *     if they were signed data types (so values cannot overflow).
      */
+
     ngroups = MAX_NGROUPS;
+    /* cppcheck-suppress misra-c2012-11.3; see above. */
     if (getgrouplist(logname, (GRP_T) gid, (GRP_T *) groups, &ngroups) < 0) {
         error("user %s: belongs to too many groups.", logname);
     }
 
     if (ngroups < 0) {
         /* Should be unreachable. */
-        error("user %s: member of a negative number of groups.");
+        error("user %s: member of a negative number of groups.", logname);
     }
 
     if (strncmp(ALLOW_GROUP, "", 1) != 0) {

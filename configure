@@ -40,6 +40,9 @@ files='compat.h makefile'
 # Overwrite existing files?
 force=
 
+# Headers to look for. Space-separated list of filenames.
+headers='sys/param.h features.h'
+
 # Maximum number of child processes to spawn.
 maxnjobs=4
 # The Almquist shell tends to crash when running jobs in parallel.
@@ -78,7 +81,7 @@ tmpdir tmp .
 # Variables to set as M4 Macros.
 readonly macros='
 	CC CFLAGS AR ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
-	GRP_T NGRPS_T features_h cgi_dir www_grp
+	GRP_T NGRPS_T sys_param_h features_h cgi_dir www_grp
 	clang_tidy cppcheck flawfinder rats shellcheck
 '
 
@@ -448,22 +451,40 @@ printf '%s\n' "${AR-default}"
 
 
 #
-# Check if features.h is available.
+# Check which headers are available.
 #
 
-printf 'Headers: '
+printf 'Headers:'
 
-if	[ "${features_h-x}" = x ] &&
-	[ "${features_h-}" != x ] &&
-	testhdr features.h
-then	features_h=y
-else	features_h=
-fi
+nheaders=0
+for header in $headers
+do
+	headervar="$(printf '%s\n' "$header" | sed 's/[^a-z]/_/g')"
+	eval headeravailable="\${$headervar-}"
 
-if [ "$features_h" ]
-then printf 'features.h\n'
-else printf 'none found\n'
-fi
+	case $headeravailable in
+	(0)
+		eval "$headervar=0"
+		;;
+	(1)
+		eval "$headervar=1"
+		;;
+	(*)
+		if testhdr "$header"
+		then
+			eval "$headervar=1"
+			nheaders=$((nheaders + 1))
+			printf ' %s' "$header"
+		else
+			eval "$headervar=0"
+		fi
+	esac
+done
+
+case $nheaders in
+(0) printf ' none found\n' ;;
+(*) printf '\n' ;;
+esac
 
 
 #

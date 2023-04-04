@@ -289,7 +289,6 @@ cppcheck_flags = --quiet --force --language=c --std=c99 \
 	--project=cppcheck/sucgi.cppcheck --library=posix \
 	--library=cppcheck/bsd.cfg --library=cppcheck/funcs.cfg \
 	--suppressions-list=cppcheck/suppr.txt --inline-suppr \
-	-UCC -UCFLAGS -UAR -UARFLAGS -ULDFLAGS -ULDLIBS -UNDEBUG -ULIBC \
 	--enable=all --addon=cppcheck/cert.py --addon=misra.py
 
 ')dnl
