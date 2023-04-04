@@ -44,6 +44,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <syslog.h>
+/* cppcheck-suppress misra-c2012-21.10; needed to check account expiration. */
 #include <time.h>
 #include <unistd.h>
 
