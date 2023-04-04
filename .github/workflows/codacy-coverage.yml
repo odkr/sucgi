@@ -13,6 +13,11 @@ jobs:
     name: Codacy Coverage Reporter
     steps:
       - uses: actions/checkout@v3
+      - name: Replace GCC with Clang
+        run: |
+	  sudo apt-get remove --purge gcc
+	  sudo apt-get autoremove --purge
+	  sudo apt-get install clang
       - name: Install LCOV
         run: sudo apt-get install lcov
       - name: Create regular user
