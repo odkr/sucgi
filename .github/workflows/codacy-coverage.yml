@@ -23,7 +23,7 @@ jobs:
             make all tools checks
             sudo make check
       - name: Generate coverage report
-        run: sudo scripts/gencov -Llcov.info
+        run: sudo scripts/gencov -D -Llcov.info -H-
       - name: Run codacy-coverage-reporter
         uses: codacy/codacy-coverage-reporter-action@v1
         with:
