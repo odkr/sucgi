@@ -45,20 +45,23 @@ include(`macros.m4')dnl
 #if !defined(COMPAT_H)
 #define COMPAT_H
 
-ifelse(__sys_param_h, `1', `dnl
+ifelse(__HAVE_SYS_PARAM_H, `1', `dnl
 /* sys/param.h is available. */
-#define HAVE_SYS_PARAM_H
+#include <sys/param.h>
 
+', `dnl
+#if defined(HAVE_SYS_PARAM_H)
+#include <sys/param.h>
+#endif
 ')dnl
-ifelse(__features_h, `1', `dnl
+ifelse(__HAVE_FEATURES_H, `1', `dnl
 /* features.h is available. */
-#define HAVE_FEATURES_H
+#include <features.h>
 
-')dnl
-ifelse(__pw_expire, `1', `dnl
-/* struct passwd has .pw_expire. */
-#define HAVE_PW_EXPIRE
-
+', `dnl
+#if defined(HAVE_FEATURES_H)
+#include <features.h>
+#endif
 ')dnl
 /* Type that getgrouplist takes and returns group IDs as. */
 #if !defined(GRP_T)

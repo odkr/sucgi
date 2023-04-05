@@ -61,19 +61,6 @@
 #include "types.h"
 #include "userdir.h"
 
-#if defined(HAVE_SYS_PARAM_H)
-#include <sys/param.h>
-#endif
-
-#if defined(HAVE_FEATURES_H)
-#include <features.h>
-#endif
-
-#if defined(HAVE_PW_EXPIRE)
-/* cppcheck-suppress misra-c2012-21.10; needed for checking account expiry. */
-#include <time.h>
-#endif
-
 
 /*
  * Configuration checks
@@ -266,7 +253,7 @@ version(void)
 static void
 usage(void)
 {
-    (void) fputs("usage: sucgi [-c|-V|-h]\n", stderr);
+    (void) fputs("usage: sucgi [-C|-V|-h]\n", stderr);
     /* cppcheck-suppress misra-c2012-21.8; exit is the least bad option. */
     exit(EXIT_FAILURE);
 }
@@ -505,13 +492,6 @@ main(int argc, char **argv) {
         error("script %s: owned by privileged user.", script_log);
     }
 
-/* FIXME: Check for PAM and use it instead, if available. */
-#if defined(HAVE_PW_EXPIRE)
-    if (owner->pw_expire != 0 && difftime(time(NULL), owner->pw_expire) > 0) {
-        error("user %s: account has expired.", owner->pw_name);
-    }
-#endif
-
     logname = owner->pw_name;
     uid = owner->pw_uid;
     gid = owner->pw_gid;
@@ -554,7 +534,6 @@ main(int argc, char **argv) {
 
     if (strncmp(ALLOW_GROUP, "", 1) != 0) {
         const struct group *allowedgrp;
-        gid_t allowedgid;
         bool allowed;
 
         errno = 0;
@@ -568,11 +547,10 @@ main(int argc, char **argv) {
                 error("getgrnam: %m.");
             }
         }
-        allowedgid = allowedgrp->gr_gid;
 
         allowed = false;
         for (int i = 0; i < ngroups; ++i) {
-            if (groups[i] == allowedgid) {
+            if (groups[i] == allowedgrp->gr_gid) {
                 allowed = true;
                 break;
             }

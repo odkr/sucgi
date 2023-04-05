@@ -81,7 +81,7 @@ tmpdir tmp .
 # Variables to set as M4 Macros.
 readonly macros='
 	CC CFLAGS AR ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
-	GRP_T NGRPS_T sys_param_h features_h pw_expire cgi_dir www_grp
+	GRP_T NGRPS_T HAVE_SYS_PARAM_H HAVE_FEATURES_H cgi_dir www_grp
 	clang_tidy cppcheck flawfinder rats shellcheck
 '
 
@@ -456,30 +456,60 @@ printf '%s\n' "${AR-default}"
 
 printf 'Headers:'
 
-nheaders=0
-for header in $headers
+# shellcheck disable=2086,SC2154
+set -- $headers
+nheaders=0 njobs=0 jobs=''
+while [ "$njobs" -gt 0 ] || [ $# -gt 0 ]
 do
-	headervar="$(printf '%s\n' "$header" | sed 's/[^a-z]/_/g')"
-	eval headeravail="\${$headervar-}"
+	# Start jobs.
+	while [ "$njobs" -lt "$maxnjobs" ] && [ $# -gt 0 ]
+	do
+		header="$1"
+		shift
 
-	# shellcheck disable=2154
-	case $headeravail in
-	(0)
-		eval "$headervar=0"
-		;;
-	(1)
-		eval "$headervar=1"
-		;;
-	(*)
-		if testhdr "$header"
-		then
+		headervar="HAVE_$(
+			printf '%s\n' "$header"	|
+			sed 's/[^a-z]/_/g'	|
+			tr '[a-z]' '[A-Z]'
+		)"
+		eval headeravail="\${$headervar-}"
+
+		# shellcheck disable=2154
+		case $headeravail in
+		(0)
+			eval "$headervar=0"
+			;;
+		(1)
 			eval "$headervar=1"
 			nheaders=$((nheaders + 1))
 			printf ' %s' "$header"
-		else
-			eval "$headervar=0"
-		fi
-	esac
+			;;
+		(*)
+			testhdr "$header" &
+			njobs=$((njobs + 1)) jobs="$jobs$! "
+			eval "header_$!"='$header'
+			eval "headervar_$!"='$headervar'
+		esac
+
+		unset header
+	done
+
+	# Collect the job on top of the pile.
+	job="${jobs%% *}"
+	eval header="\"\${header_$job-}\""
+	eval headervar="\"\${headervar_$job-}\""
+
+	if wait "$job"
+	then
+		eval "$headervar=1"
+		nheaders=$((nheaders + 1))
+		printf -- ' %s' "$header"
+	else
+		eval "$headervar=0"
+	fi
+
+	njobs=$((njobs - 1)) jobs="${jobs#* }"
+	unset "header_$job" "headervar_$job" header headervar job
 done
 
 case $nheaders in
@@ -596,39 +626,6 @@ if [ "$NGRPS_T" ]
 then printf '%s\n' "$NGRPS_T"
 else printf 'guess at compile-time\n'
 fi
-
-
-#
-# Check whether struct passwd contains pw_expire.
-#
-
-printf 'struct passwd has pw_expire: '
-
-if ! [ "${pw_expire-}" ]
-then
-	if	cat <<-'EOF' |
-		#include <sys/types.h>
-		#include <pwd.h>
-		#include <stdio.h>
-
-		int main(void) {
-			struct passwd pwd = {.pw_expire = 0};
-
-			printf("%llu", (long long unsigned) pwd.pw_expire);
-			return 0;
-		}
-		EOF
-		testcomp -
-	then	pw_expire=1
-	else	pw_expire=0
-	fi
-fi
-
-case $pw_expire in
-(1) printf 'yes\n' ;;
-(0) printf 'no\n' ;;
-(*) err '$pw_expire: must be 0 or 1.'
-esac
 
 
 #
