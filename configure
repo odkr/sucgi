@@ -501,22 +501,25 @@ do
 	done
 
 	# Collect the job on top of the pile.
-	job="${jobs%% *}"
-	eval header="\"\${header_$job-}\""
-	eval headervar="\"\${headervar_$job-}\""
-	unset "header_$job" "headervar_$job"
-
-	if wait "$job"
+	if [ "$njobs" -gt 0 ]
 	then
-		eval "$headervar=1"
-		nheaders=$((nheaders + 1))
-		printf -- ' %s' "$header"
-	else
-		eval "$headervar=0"
-	fi
+		job="${jobs%% *}"
+		eval header="\"\${header_$job-}\""
+		eval headervar="\"\${headervar_$job-}\""
+		unset "header_$job" "headervar_$job"
 
-	njobs=$((njobs - 1)) jobs="${jobs#* }"
-	unset header headervar job
+		if wait "$job"
+		then
+			eval "$headervar=1"
+			nheaders=$((nheaders + 1))
+			printf -- ' %s' "$header"
+		else
+			eval "$headervar=0"
+		fi
+
+		njobs=$((njobs - 1)) jobs="${jobs#* }"
+		unset header headervar job
+	fi
 done
 
 case $nheaders in
