@@ -65,9 +65,6 @@ makefile: makefile.m4
 
 compat.h: compat.h.m4
 
-config.h: config.h.sample
-	[ -e config.h ] || cp config.h.sample config.h
-
 makefile compat.h:
 	[ -e config.status ] && ./config.status $@ || m4 $@.m4 >$@
 
