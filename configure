@@ -497,13 +497,14 @@ do
 			eval "headervar_$!"='$headervar'
 		esac
 
-		unset header
+		unset header headervar headeravail
 	done
 
 	# Collect the job on top of the pile.
 	job="${jobs%% *}"
 	eval header="\"\${header_$job-}\""
 	eval headervar="\"\${headervar_$job-}\""
+	unset "header_$job" "headervar_$job"
 
 	if wait "$job"
 	then
@@ -515,7 +516,7 @@ do
 	fi
 
 	njobs=$((njobs - 1)) jobs="${jobs#* }"
-	unset "header_$job" "headervar_$job" header headervar job
+	unset header headervar job
 done
 
 case $nheaders in
