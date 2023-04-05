@@ -38,7 +38,7 @@
  *     ERR_LEN      BASEDIR is longer than MAX_FNAME_LEN - 1 bytes.
  */
 __attribute__((nonnull(1, 2), warn_unused_result))
-Error path_check_in(const char *basedir, const char *fname);
+Error pathchkloc(const char *basedir, const char *fname);
 
 /*
  * Check whether the user with the user ID UID has exclusive write access
@@ -52,7 +52,7 @@ Error path_check_in(const char *basedir, const char *fname);
  *     ERR_SYS       stat failed.
  */
 __attribute__((nonnull(2, 3), warn_unused_result))
-Error path_check_wexcl(uid_t uid, const char *basedir, const char *fname);
+Error pathchkperm(uid_t uid, const char *basedir, const char *fname);
 
 /*
  * Return a pointer to the filename suffix of FNAME in SUFFIX.
@@ -62,7 +62,7 @@ Error path_check_wexcl(uid_t uid, const char *basedir, const char *fname);
  *     ERR_SUFFIX  FNAME has no filename suffix.
  */
 __attribute__((nonnull(1, 2), warn_unused_result))
-Error path_suffix(const char *fname, const char **suffix);
+Error pathsuffix(const char *fname, const char **suffix);
 
 
 #endif /* !defined(PATH_H) */

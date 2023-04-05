@@ -1,5 +1,5 @@
 /*
- * Test priv_suspend.
+ * Test privsuspend.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -42,7 +42,7 @@ main (void)
 {
     Error ret;
 
-    ret = priv_suspend();
+    ret = privsuspend();
     switch (ret) {
     case OK:
         break;

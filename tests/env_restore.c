@@ -1,5 +1,5 @@
 /*
- * Test env_restore.
+ * Test envrestore.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -577,10 +577,10 @@ main (void) {
     }
 
     (void) memset(longvar, 'x', sizeof(longvar) - 1U);
-    (void) str_cp(4, "var=", longvar);
+    (void) strcp(4, "var=", longvar);
 
     (void) memset(hugevar, 'x', sizeof(hugevar) - 1U);
-    (void) str_cp(4, "var=", longvar);
+    (void) strcp(4, "var=", longvar);
 
     (void) memset(longname, 'x', sizeof(longname) - 1U);
     longname[MAX_VARNAME_LEN - 1U] = '=';
@@ -613,7 +613,7 @@ main (void) {
             }
         }
 
-        ret = env_restore(args.vars, args.npatterns, pregs);
+        ret = envrestore(args.vars, args.npatterns, pregs);
 
         if (ret != args.ret) {
             report(&args, ret, WRONG_RETVAL);

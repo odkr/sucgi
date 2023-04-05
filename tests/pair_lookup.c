@@ -1,5 +1,5 @@
 /*
- * Test handler_lookup.
+ * Test handlerfind.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -103,7 +103,7 @@ main(void)
         const char *value;
         Error ret;
 
-        ret = pair_lookup(NELEMS(pairs), pairs, args.key, &value);
+        ret = pairfind(NELEMS(pairs), pairs, args.key, &value);
 
         if (args.ret != ret) {
             warnx("(<pairs>, %s, -> %s) -> %u [!]",

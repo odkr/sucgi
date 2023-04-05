@@ -34,14 +34,14 @@
  * and the primary group ID GID can execute the corresponding file.
  */
 __attribute__((const, warn_unused_result))
-bool file_is_exe(uid_t uid, gid_t gid, struct stat fstatus);
+bool fileisexe(uid_t uid, gid_t gid, struct stat fstatus);
 
 /*
  * Check whether FSTATUS indicates that only the user with the
  * user ID UID has write access to the corresponding file.
  */
 __attribute__((const, warn_unused_result))
-bool file_is_wexcl(uid_t uid, struct stat fstatus);
+bool fileisxusrw(uid_t uid, struct stat fstatus);
 
 
 #endif /* !defined(FILE_H) */

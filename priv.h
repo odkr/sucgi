@@ -41,7 +41,7 @@
  *     ERR_PRIV  Superuser privileges could be resumed.
  */
 __attribute__((nonnull(4), warn_unused_result))
-Error priv_drop(uid_t uid, gid_t gid, NGRPS_T ngroups, const gid_t *groups);
+Error privdrop(uid_t uid, gid_t gid, NGRPS_T ngroups, const gid_t *groups);
 
 /*
  * Set the effective user, group, and supplementary groups IDs
@@ -54,7 +54,7 @@ Error priv_drop(uid_t uid, gid_t gid, NGRPS_T ngroups, const gid_t *groups);
  *     * This error should be unreachable.
  */
 __attribute__((warn_unused_result))
-Error priv_suspend(void);
+Error privsuspend(void);
 
 
 #endif /* !defined(PRIV_H) */

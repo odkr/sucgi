@@ -38,7 +38,7 @@
  *      ERR_LEN  Source is longer than LEN bytes.
  */
 __attribute__((nonnull(2, 3)))
-Error str_cp(size_t nbytes, const char *src, char *dest);
+Error strcp(size_t nbytes, const char *src, char *dest);
 
 /*
  * Split STR at the first occurence of any byte in SEP, copy the substring
@@ -55,7 +55,7 @@ Error str_cp(size_t nbytes, const char *src, char *dest);
  *      ERR_LEN  Head is too long.
  */
 __attribute__((nonnull(1, 2, 4, 5), warn_unused_result))
-Error str_split(const char *str, const char *sep,
+Error strsplit(const char *str, const char *sep,
                 size_t size, char *head, const char **tail);
 
 

@@ -1,5 +1,5 @@
 /*
- * Test handler_lookup.
+ * Test handlerfind.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -118,7 +118,7 @@ main(void)
         const char *hdl;
         Error ret;
 
-        ret = handler_lookup(NELEMS(db), db, args.script, &hdl);
+        ret = handlerfind(NELEMS(db), db, args.script, &hdl);
 
         if (args.ret != ret) {
             warnx("(db, %s, -> %s) -> %u [!]",

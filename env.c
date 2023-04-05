@@ -43,7 +43,7 @@
 
 bool
 /* cppcheck-suppress misra-c2012-8.7; external linkage needed for testing. */
-env_is_name(const char *const str)
+envisname(const char *const str)
 {
     assert(str != NULL);
     assert(strnlen(str, MAX_VARNAME_LEN) < MAX_VARNAME_LEN);
@@ -62,7 +62,7 @@ env_is_name(const char *const str)
 }
 
 Error
-env_restore(char *const *const vars, const size_t npregs,
+envrestore(char *const *const vars, const size_t npregs,
             const regex_t *const pregs)
 {
     size_t varidx;
@@ -71,7 +71,7 @@ env_restore(char *const *const vars, const size_t npregs,
     assert(pregs != NULL);
 
     for (varidx = 0; vars[varidx] != NULL; ++varidx) {
-        /* RATS: ignore; str_split respects MAX_VARNAME_LEN. */
+        /* RATS: ignore; strsplit respects MAX_VARNAME_LEN. */
         char name[MAX_VARNAME_LEN];
         const char *value;
         const char *var;
@@ -81,13 +81,13 @@ env_restore(char *const *const vars, const size_t npregs,
         if (strnlen(var, MAX_VAR_LEN) >= (size_t) MAX_VAR_LEN) {
             /* RATS: ignore; format is short and a literal. */
             syslog(LOG_INFO, "discarding overly long variable.");
-        } else if (str_split(var, "=", MAX_VARNAME_LEN, name, &value) != OK) {
+        } else if (strsplit(var, "=", MAX_VARNAME_LEN, name, &value) != OK) {
             /* RATS: ignore; format is short and a literal. */
             syslog(LOG_INFO, "discarding variable with overly long name.");
         } else if (value == NULL) {
             /* RATS: ignore; format is short and a literal. */
             syslog(LOG_INFO, "variable $%s: no value.", name);
-        } else if (!env_is_name(name)) {
+        } else if (!envisname(name)) {
             /* RATS: ignore; format is short and a literal. */
             syslog(LOG_INFO, "variable $%s: bad name.", name);
         } else {

@@ -1,5 +1,5 @@
 /*
- * Test userdir_resolve.
+ * Test userdirexp.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -126,7 +126,7 @@ main(void)
     longabsname[0] = '/';
 
     (void) memset(longpattern, 'x', sizeof(longpattern));
-    (void) str_cp(4, "/%s", &longpattern[sizeof(longpattern) - 4]);
+    (void) strcp(4, "/%s", &longpattern[sizeof(longpattern) - 4]);
     longpattern[0] = '/';
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
@@ -141,7 +141,7 @@ main(void)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 #endif
-        ret = userdir_resolve(args.str, args.user, dir);
+        ret = userdirexp(args.str, args.user, dir);
 #if defined(__GNUC__) && __GNUC__ >= 3
 #pragma GCC diagnostic pop
 #endif

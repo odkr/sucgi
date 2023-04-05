@@ -47,7 +47,7 @@ extern char **environ;
  * Check whether STR is a valid environment variable name.
  */
 __attribute__((nonnull(1), warn_unused_result))
-bool env_is_name(const char *str);
+bool envisname(const char *str);
 
 /*
  * Set every variable in VARS the name of which matches one of the regular
@@ -62,7 +62,7 @@ bool env_is_name(const char *str);
  *
  * Note, an attacker may populate the environment with variables that are
  * not NUL-terminated. If the memory area after such a variable contains
- * a NUL within MAX_VAR_LEN - 1 bytes, env_restore will overshoot and dump
+ * a NUL within MAX_VAR_LEN - 1 bytes, envrestore will overshoot and dump
  * the contents of that memory region into the environment.
  *
  * Return value:
@@ -74,7 +74,7 @@ bool env_is_name(const char *str);
  *     Logs which variables are kept and which are discarded.
  */
 __attribute__((nonnull(1, 3), warn_unused_result))
-Error env_restore(char *const *vars, size_t npregs, const regex_t *pregs);
+Error envrestore(char *const *vars, size_t npregs, const regex_t *pregs);
 
 
 #endif /* !defined(ENV_H) */

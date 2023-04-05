@@ -1,5 +1,5 @@
 /*
- * Test env_is_name.
+ * Test envisname.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -213,7 +213,7 @@ main (void)
         const Args args = cases[i];
         bool ret;
 
-        ret = env_is_name(args.s);
+        ret = envisname(args.s);
         if (ret != args.ret) {
             warnx("(%s) -> %d [!]", args.s, ret);
             result = TEST_FAILED;

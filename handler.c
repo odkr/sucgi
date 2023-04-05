@@ -36,7 +36,7 @@
 
 
 Error
-handler_lookup(const size_t nhandlers, const Pair *const handlerdb,
+handlerfind(const size_t nhandlers, const Pair *const handlerdb,
                const char *const script, const char **const handler)
 {
     const char *suffix;
@@ -48,7 +48,7 @@ handler_lookup(const size_t nhandlers, const Pair *const handlerdb,
     assert(strnlen(script, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
     assert(handler != NULL);
 
-    ret = path_suffix(script, &suffix);
+    ret = pathsuffix(script, &suffix);
     if (ret != OK) {
         return ret;
     }
@@ -57,7 +57,7 @@ handler_lookup(const size_t nhandlers, const Pair *const handlerdb,
         return ERR_LEN;
     }
 
-    ret = pair_lookup(nhandlers, handlerdb, suffix, handler);
+    ret = pairfind(nhandlers, handlerdb, suffix, handler);
     if (ret != OK) {
         return ret;
     }

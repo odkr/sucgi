@@ -1,5 +1,5 @@
 /*
- * Test path_check_in.
+ * Test pathchkloc.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -174,7 +174,7 @@ main(void)
         const Args args = cases[i];
         Error ret;
 
-        ret = path_check_in(args.basedir, args.fname);
+        ret = pathchkloc(args.basedir, args.fname);
         if (ret != args.ret) {
             warnx("checking (%s, %s) -> %u ... [!]",
                   args.basedir, args.fname, ret);

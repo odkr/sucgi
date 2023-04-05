@@ -40,7 +40,7 @@
 
 
 Error
-priv_drop(const uid_t uid, const gid_t gid,
+privdrop(const uid_t uid, const gid_t gid,
           const NGRPS_T ngroups, const gid_t *const groups)
 {
     assert(uid > 0);
@@ -83,7 +83,7 @@ priv_drop(const uid_t uid, const gid_t gid,
 }
 
 Error
-priv_suspend(void)
+privsuspend(void)
 {
     const uid_t uid = getuid();
     const gid_t gid = getgid();

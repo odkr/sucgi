@@ -1,5 +1,5 @@
 /*
- * Test path_check_wexcl.
+ * Test pathchkperm.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -44,7 +44,7 @@ main (int argc, char **argv)
     Error ret;
 
     if (argc != 4) {
-        fputs("usage: path_check_wexcl LOGNAME BASEDIR FNAME\n", stderr);
+        fputs("usage: pathchkperm LOGNAME BASEDIR FNAME\n", stderr);
         return EXIT_FAILURE;
     }
 
@@ -62,7 +62,7 @@ main (int argc, char **argv)
 	    }
     }
 
-    ret = path_check_wexcl(user->pw_uid, basedir, fname);
+    ret = pathchkperm(user->pw_uid, basedir, fname);
     switch (ret) {
     case OK:
         break;

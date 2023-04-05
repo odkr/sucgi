@@ -1,5 +1,5 @@
 /*
- * Test priv_drop.
+ * Test privdrop.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -44,7 +44,7 @@ main (int argc, char **argv)
     Error ret;
 
     if (argc != 2) {
-        fputs("usage: priv_drop LOGNAME\n", stderr);
+        fputs("usage: privdrop LOGNAME\n", stderr);
         return EXIT_FAILURE;
     }
 
@@ -58,7 +58,7 @@ main (int argc, char **argv)
         }
     }
 
-    ret = priv_drop(pwd->pw_uid, pwd->pw_gid, 1, (gid_t [1]) {pwd->pw_gid});
+    ret = privdrop(pwd->pw_uid, pwd->pw_gid, 1, (gid_t [1]) {pwd->pw_gid});
     switch (ret) {
     case OK:
         break;

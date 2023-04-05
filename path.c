@@ -39,7 +39,7 @@
 #include "types.h"
 
 Error
-path_check_in(const char *const basedir, const char *const fname)
+pathchkloc(const char *const basedir, const char *const fname)
 {
     assert(basedir);
     assert(*basedir != '\0');
@@ -84,7 +84,7 @@ path_check_in(const char *const basedir, const char *const fname)
 }
 
 Error
-path_check_wexcl(const uid_t uid, const char *const basedir,
+pathchkperm(const uid_t uid, const char *const basedir,
                  const char *const fname)
 {
     const char *pos;
@@ -97,7 +97,7 @@ path_check_wexcl(const uid_t uid, const char *const basedir,
     assert(*fname == '/');
     assert(strnlen(fname, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
 
-    ret = path_check_in(basedir, fname);
+    ret = pathchkloc(basedir, fname);
     if (ret != OK) {
         return ret;
     }
@@ -105,20 +105,20 @@ path_check_wexcl(const uid_t uid, const char *const basedir,
     /* cppcheck-suppress misra-c2012-18.4; basedir is shorter than fname. */
     pos = fname + strnlen(basedir, MAX_FNAME_LEN);
     do {
-        /* RATS: ignore; path_check_in would have errored out if
+        /* RATS: ignore; pathchkloc would have errored out if
            basedir or fname were longer than MAX_FNAME_LEN. */
         char cur[MAX_FNAME_LEN];
         struct stat fstatus;
 
         /* cppcheck-suppress [misra-c2012-10.8, misra-c2012-18.4];
            cast is safe and portable, pos always points to a char in fname. */
-        (void) str_cp((size_t) (pos - fname), fname, cur);
+        (void) strcp((size_t) (pos - fname), fname, cur);
 
         if (stat(cur, &fstatus) != 0) {
             return ERR_SYS;
         }
 
-        if (!file_is_wexcl(uid, fstatus)) {
+        if (!fileisxusrw(uid, fstatus)) {
             return ERR_WEXCL;
         }
 
@@ -136,7 +136,7 @@ path_check_wexcl(const uid_t uid, const char *const basedir,
 }
 
 Error
-path_suffix(const char *const fname, const char **const suffix)
+pathsuffix(const char *const fname, const char **const suffix)
 {
     assert(fname != NULL);
     assert(*fname != '\0');

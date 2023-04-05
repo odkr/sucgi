@@ -33,7 +33,7 @@
 
 
 bool
-file_is_exe(const uid_t uid, const gid_t gid, const struct stat fstatus)
+fileisexe(const uid_t uid, const gid_t gid, const struct stat fstatus)
 {
     mode_t perm = fstatus.st_mode;
 
@@ -53,7 +53,7 @@ file_is_exe(const uid_t uid, const gid_t gid, const struct stat fstatus)
 }
 
 bool
-file_is_wexcl(const uid_t uid, const struct stat fstatus)
+fileisxusrw(const uid_t uid, const struct stat fstatus)
 {
     mode_t perm = fstatus.st_mode;
 

@@ -46,7 +46,7 @@
 #endif
 
 Error
-userdir_resolve(const char *const str, const struct passwd *const user,
+userdirexp(const char *const str, const struct passwd *const user,
                 char dir[MAX_FNAME_LEN])
 {
     int nchars;

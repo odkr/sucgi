@@ -1,5 +1,5 @@
 /*
- * Test file_is_exe.
+ * Test fileisexe.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -146,7 +146,7 @@ main(void)
         const Args args = cases[i];
         bool ret;
 
-        ret = file_is_exe(args.uid, args.gid, args.fstatus);
+        ret = fileisexe(args.uid, args.gid, args.fstatus);
         if (ret != args.ret) {
             warnx("(%d, %d, {%d, %d, 0%03o}) -> %d [!]",
                   (int) args.uid, (int) args.gid,

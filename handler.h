@@ -42,7 +42,7 @@
  *     ERR_SUFFIX     Filename has no suffix.
  */
 __attribute__((nonnull(2, 3, 4), warn_unused_result))
-Error handler_lookup(size_t nhandlers, const Pair *handlerdb,
+Error handlerfind(size_t nhandlers, const Pair *handlerdb,
                      const char *script, const char **handler);
 
 #endif /* !defined(HANDLER_H) */

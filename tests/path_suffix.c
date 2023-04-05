@@ -1,5 +1,5 @@
 /*
- * Test path_suffix.
+ * Test pathsuffix.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -734,7 +734,7 @@ main (void)
         const char *suffix;
         Error ret;
 
-        ret = path_suffix(args.fname, &suffix);
+        ret = pathsuffix(args.fname, &suffix);
 
         if (ret != args.ret) {
             warnx("(%s, -> %s) -> %u [!]",

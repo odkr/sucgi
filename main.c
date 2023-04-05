@@ -323,13 +323,13 @@ main(int argc, char **argv) {
      * Drop privileges temporarily.
      */
 
-    ret = priv_suspend();
+    ret = privsuspend();
     switch (ret) {
     case OK:
         break;
     default:
         /* Should be unreachable. */
-        error("%d: priv_suspend returned %d.", __LINE__, ret);
+        error("%d: privsuspend returned %d.", __LINE__, ret);
     }
 
     assert(getuid() == geteuid());
@@ -394,7 +394,7 @@ main(int argc, char **argv) {
         }
     }
 
-    ret = env_restore(vars, NELEMS(pregs), pregs);
+    ret = envrestore(vars, NELEMS(pregs), pregs);
     switch (ret) {
     case OK:
         break;
@@ -404,7 +404,7 @@ main(int argc, char **argv) {
         error("setenv: %m.");
     default:
         /* Should be unreachable. */
-        error("%d: env_restore returned %d.", __LINE__, ret);
+        error("%d: envrestore returned %d.", __LINE__, ret);
     }
 
 
@@ -412,7 +412,7 @@ main(int argc, char **argv) {
      * Get the script's filename and filesystem metadata.
      */
 
-    /* RATS: ignore; str_cp is bounded by MAX_FNAME_LEN. */
+    /* RATS: ignore; strcp is bounded by MAX_FNAME_LEN. */
     char script_log[MAX_FNAME_LEN];
     const char *script_phys;
     const char *script_env;
@@ -435,13 +435,13 @@ main(int argc, char **argv) {
         error("$PATH_TRANSLATED is empty.");
     }
 
-    ret = str_cp(MAX_FNAME_LEN, script_env, script_log);
+    ret = strcp(MAX_FNAME_LEN, script_env, script_log);
     switch (ret) {
     case OK:
         break;
     default:
         /* Should be unreachable. */
-        error("%d: str_cp returned %d.", __LINE__, ret);
+        error("%d: strcp returned %d.", __LINE__, ret);
     }
 
     errno = 0;
@@ -635,7 +635,7 @@ main(int argc, char **argv) {
      * (1) a compile-time error is raised if NGRPS_T is too small
      *     to hold INT_MAX (so values cannot overflow).
      */
-    ret = priv_drop(uid, gid, (NGRPS_T) ngroups, groups);
+    ret = privdrop(uid, gid, (NGRPS_T) ngroups, groups);
     switch (ret) {
     case OK:
         break;
@@ -643,7 +643,7 @@ main(int argc, char **argv) {
         error("privilege drop: %m.");
     default:
         /* Should be unreachable. */
-        error("%d: priv_drop returned %d.", __LINE__, ret);
+        error("%d: privdrop returned %d.", __LINE__, ret);
     }
 
     assert(geteuid() == uid);
@@ -660,11 +660,11 @@ main(int argc, char **argv) {
      * Check whether the script is within the user directory.
      */
 
-    /* RATS: ignore; userdir_resolve repects MAX_FNAME_LEN. */
+    /* RATS: ignore; userdirexp repects MAX_FNAME_LEN. */
     char userdir_log[MAX_FNAME_LEN];
     char *userdir_phys;
 
-    ret = userdir_resolve(USER_DIR, owner, userdir_log);
+    ret = userdirexp(USER_DIR, owner, userdir_log);
 
     switch (ret) {
     case OK:
@@ -675,7 +675,7 @@ main(int argc, char **argv) {
         error("snprintf: %m.");
     default:
         /* Should be unreachable. */
-        error("%d: userdir_resolve returned %d.", __LINE__, ret);
+        error("%d: userdirexp returned %d.", __LINE__, ret);
     }
 
     assert(userdir_log != NULL);
@@ -689,7 +689,7 @@ main(int argc, char **argv) {
         error("realpath %s: %m.", userdir_log);
     }
 
-    ret = path_check_in(userdir_phys, script_phys);
+    ret = pathchkloc(userdir_phys, script_phys);
     switch (ret) {
         case OK:
             break;
@@ -698,7 +698,7 @@ main(int argc, char **argv) {
                   script_log, logname);
         default:
             /* Should be unreachable. */
-            error("%d: path_check_in returned %d.", __LINE__, ret);
+            error("%d: pathchkloc returned %d.", __LINE__, ret);
     }
 
 
@@ -736,7 +736,7 @@ main(int argc, char **argv) {
         }
     }
 
-    ret = path_check_wexcl(uid, base_dir, script_phys);
+    ret = pathchkperm(uid, base_dir, script_phys);
     switch (ret) {
     case OK:
         break;
@@ -747,7 +747,7 @@ main(int argc, char **argv) {
         error("stat %s: %m.", script_log);
     default:
         /* Should be unreachable. */
-        error("%d: path_check_wexcl returned %d.", __LINE__, ret);
+        error("%d: pathchkperm returned %d.", __LINE__, ret);
     }
 
 
@@ -825,11 +825,11 @@ main(int argc, char **argv) {
      * Run the script.
      */
 
-    if (!file_is_exe(uid, gid, script_stat)) {
+    if (!fileisexe(uid, gid, script_stat)) {
         const Pair handlers[] = HANDLERS;
         const char *handler;
 
-        ret = handler_lookup(NELEMS(handlers), handlers,
+        ret = handlerfind(NELEMS(handlers), handlers,
                              script_phys, &handler);
 
         switch (ret) {
@@ -845,7 +845,7 @@ main(int argc, char **argv) {
             error("script %s: not executable.", script_log);
         default:
             /* Should be unreachable. */
-            error("%d: handler_lookup returned %d.", __LINE__, ret);
+            error("%d: handlerfind returned %d.", __LINE__, ret);
         }
 
         assert(handler != NULL);

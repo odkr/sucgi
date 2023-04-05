@@ -35,7 +35,7 @@
 
 
 Error
-str_cp(const size_t nbytes, const char *const src, char *const dest)
+strcp(const size_t nbytes, const char *const src, char *const dest)
 {
     const char *end;
     size_t len;
@@ -59,7 +59,7 @@ str_cp(const size_t nbytes, const char *const src, char *const dest)
 }
 
 Error
-str_split(const char *const str, const char *const sep,
+strsplit(const char *const str, const char *const sep,
           const size_t size, char *const head, const char **const tail)
 {
     size_t len;
@@ -74,7 +74,7 @@ str_split(const char *const str, const char *const sep,
 
     *tail = strpbrk(str, sep);
     if (*tail == NULL) {
-        return str_cp(size - 1U, str, head);
+        return strcp(size - 1U, str, head);
     }
 
     /* cppcheck-suppress [misra-c2012-10.8, misra-c2012-18.4];
@@ -84,7 +84,7 @@ str_split(const char *const str, const char *const sep,
         return ERR_LEN;
     }
 
-    (void) str_cp(len, str, head);
+    (void) strcp(len, str, head);
     ++(*tail);
 
     return OK;
