@@ -48,20 +48,20 @@ include(`macros.m4')dnl
 ifelse(__HAVE_SYS_PARAM_H, `1', `dnl
 /* sys/param.h is available. */
 #include <sys/param.h>
-
 ', `dnl
 #if defined(HAVE_SYS_PARAM_H)
 #include <sys/param.h>
 #endif
 ')dnl
+
 ifelse(__HAVE_FEATURES_H, `1', `dnl
 /* features.h is available. */
 #include <features.h>
-
 ', `dnl
 #if defined(HAVE_FEATURES_H)
 #include <features.h>
 #endif
+
 ')dnl
 /* Type that getgrouplist takes and returns group IDs as. */
 #if !defined(GRP_T)
