@@ -104,9 +104,9 @@
  * Maximum number of groups a user may be a member of. Unsigned integer.
  * Users who are members of more groups are rejected.
  */
-// #if !defined(MAX_NGROUPS)
+#if !defined(MAX_NGROUPS)
 #define MAX_NGROUPS 128U
-// #endif
+#endif
 
 /*
  * Maximum number of environment variables. Unsigned integer.
