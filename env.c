@@ -40,6 +40,7 @@
 #include "str.h"
 #include "types.h"
 
+
 bool
 /* cppcheck-suppress misra-c2012-8.7; external linkage needed for testing. */
 env_is_name(const char *const str)
@@ -69,7 +70,7 @@ env_restore(char *const *const vars, const size_t npregs,
     assert(vars != NULL);
     assert(pregs != NULL);
 
-    for (varidx = 0; vars[varidx]; ++varidx) {
+    for (varidx = 0; vars[varidx] != NULL; ++varidx) {
         /* RATS: ignore; str_split respects MAX_VARNAME_LEN. */
         char name[MAX_VARNAME_LEN];
         const char *value;

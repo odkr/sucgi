@@ -46,19 +46,18 @@ path_check_in(const char *const basedir, const char *const fname)
     assert(fname);
     assert(*fname != '\0');
 
-    /* NOLINTBEGIN(bugprone-not-null-terminated-result);
-       strncmp(<...>, "/", 2) and strncmp(<...>, ".", 2) are fine. */
-
-    if (strncmp(fname, "/", 2) != 0 && strncmp(fname, ".", 2) != 0) {
+    if (strncmp(fname, "/", sizeof("/")) != 0 &&
+        strncmp(fname, ".", sizeof(".")) != 0)
+    {
         size_t basedir_len;
         size_t fname_len;
 
         if (*fname == '/') {
-            if (strncmp(basedir, "/", 2) == 0) {
+            if (strncmp(basedir, "/", sizeof("/")) == 0) {
                 return OK;
             }
         } else {
-            if (strncmp(basedir, ".", 2) == 0) {
+            if (strncmp(basedir, ".", sizeof(".")) == 0) {
                 return OK;
             }
         }
@@ -80,8 +79,6 @@ path_check_in(const char *const basedir, const char *const fname)
             return OK;
         }
     }
-
-    /* NOLINTEND(bugprone-not-null-terminated-result) */
 
     return ERR_BASEDIR;
 }
