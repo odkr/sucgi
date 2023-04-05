@@ -241,7 +241,7 @@ package = sucgi
 version = 0
 dist_name = $(package)-$(version)
 dist_ar = $(dist_name).tgz
-dist_files = *.c *.h *.env *.excl *.m4 *.sample README.rst LICENSE.txt \
+dist_files = *.c *.h *.env *.excl *.m4 *.ex README.rst LICENSE.txt \
 	clang-tidy.yml configure prepare cppcheck docs tests tools scripts
 
 distclean: clean
