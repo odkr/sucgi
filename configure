@@ -470,8 +470,14 @@ do
 		headervar="HAVE_$(
 			printf '%s\n' "$header"	|
 			sed 's/[^a-z]/_/g'	|
-			tr '[a-z]' '[A-Z]'
+			tr '[:lower:]' '[:upper:]'
 		)"
+
+		case $headervar in (HAVE_|*[!A-Z0-9_]*)
+			warn '%s: could not derive macro name.'
+			continue
+		esac
+
 		eval headeravail="\${$headervar-}"
 
 		# shellcheck disable=2154
