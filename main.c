@@ -412,7 +412,7 @@ main(int argc, char **argv) {
      * Get the script's filename and filesystem metadata.
      */
 
-    /* RATS: ignore; strcp is bounded by MAX_FNAME_LEN. */
+    /* RATS: ignore; cpstr is bounded by MAX_FNAME_LEN. */
     char script_log[MAX_FNAME_LEN];
     const char *script_phys;
     const char *script_env;
@@ -435,13 +435,13 @@ main(int argc, char **argv) {
         error("$PATH_TRANSLATED is empty.");
     }
 
-    ret = strcp(MAX_FNAME_LEN, script_env, script_log);
+    ret = cpstr(MAX_FNAME_LEN, script_env, script_log);
     switch (ret) {
     case OK:
         break;
     default:
         /* Should be unreachable. */
-        error("%d: strcp returned %d.", __LINE__, ret);
+        error("%d: cpstr returned %d.", __LINE__, ret);
     }
 
     errno = 0;
@@ -829,9 +829,7 @@ main(int argc, char **argv) {
         const Pair handlers[] = HANDLERS;
         const char *handler;
 
-        ret = handlerfind(NELEMS(handlers), handlers,
-                             script_phys, &handler);
-
+        ret = handlerfind(NELEMS(handlers), handlers, script_phys, &handler);
         switch (ret) {
         case OK:
             break;

@@ -38,6 +38,7 @@
 #include "str.h"
 #include "types.h"
 
+
 Error
 pathchkloc(const char *const basedir, const char *const fname)
 {
@@ -112,7 +113,7 @@ pathchkperm(const uid_t uid, const char *const basedir,
 
         /* cppcheck-suppress [misra-c2012-10.8, misra-c2012-18.4];
            cast is safe and portable, pos always points to a char in fname. */
-        (void) strcp((size_t) (pos - fname), fname, cur);
+        (void) cpstr((size_t) (pos - fname), fname, cur);
 
         if (stat(cur, &fstatus) != 0) {
             return ERR_SYS;

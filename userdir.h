@@ -30,9 +30,9 @@
 
 
 /*
- * Resolve the user directory pattern STR for the given USER and return
- * the resolved user directory in DIR, which must be large enough to hold
- * MAX_FNAME_LEN bytes, including the terminating NUL.
+ * Expand the user directory pattern STR for the given USER and return
+ * the expanded user directory in DIR, which must be large enough to hold
+ * hold MAX_FNAME_LEN bytes, including the terminating NUL.
  *
  * Return value:
  *     OK       Success.
@@ -41,7 +41,7 @@
  */
 __attribute__((nonnull(1, 2, 3), format(printf, 1, 0), warn_unused_result))
 Error userdirexp(const char *str, const struct passwd *user,
-                      char dir[MAX_FNAME_LEN]);
+                 char dir[MAX_FNAME_LEN]);
 
 
 #endif /* !defined(USERDIR_H) */

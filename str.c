@@ -35,7 +35,7 @@
 
 
 Error
-strcp(const size_t nbytes, const char *const src, char *const dest)
+cpstr(const size_t nbytes, const char *const src, char *const dest)
 {
     const char *end;
     size_t len;
@@ -50,7 +50,7 @@ strcp(const size_t nbytes, const char *const src, char *const dest)
     len = (size_t) (end - dest);
     dest[len] = '\0';
 
-    /* dest[len] could only be '\0' only dest was zeroed out. */
+    /* dest[len] could only be '\0' because dest was zeroed out. */
     if (src[len] != '\0') {
         return ERR_LEN;
     }
@@ -59,8 +59,8 @@ strcp(const size_t nbytes, const char *const src, char *const dest)
 }
 
 Error
-strsplit(const char *const str, const char *const sep,
-          const size_t size, char *const head, const char **const tail)
+splitstr(const char *const str, const char *const sep,
+         const size_t size, char *const head, const char **const tail)
 {
     size_t len;
 
@@ -74,7 +74,7 @@ strsplit(const char *const str, const char *const sep,
 
     *tail = strpbrk(str, sep);
     if (*tail == NULL) {
-        return strcp(size - 1U, str, head);
+        return cpstr(size - 1U, str, head);
     }
 
     /* cppcheck-suppress [misra-c2012-10.8, misra-c2012-18.4];
@@ -84,7 +84,7 @@ strsplit(const char *const str, const char *const sep,
         return ERR_LEN;
     }
 
-    (void) strcp(len, str, head);
+    (void) cpstr(len, str, head);
     ++(*tail);
 
     return OK;

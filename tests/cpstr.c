@@ -1,5 +1,5 @@
 /*
- * Test strcp.
+ * Test cpstr.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -88,7 +88,7 @@ main (void) {
 
         (void) memset(dest, '\0', sizeof(dest));
 
-        ret = strcp(args.n, args.src, dest);
+        ret = cpstr(args.n, args.src, dest);
 
         if (ret != args.ret) {
             warnx("(%zu, %s, -> %s) -> %u [!]",

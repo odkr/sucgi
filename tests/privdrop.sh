@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Test priv_suspend.
+# Test privdrop.
 #
 # Copyright 2022 Odin Kroeger.
 #
@@ -40,7 +40,7 @@ cd "$tests_dir" || exit
 # Build configuration
 #
 
-eval "$(main -C | grep -E '^(MIN|MAX)_(UID|GID)=')"
+eval "$(main -C | grep -vE ^PATH=)"
 : "${MIN_UID:?}" "${MAX_UID:?}" "${MIN_GID:?}" "${MAX_GID:?}"
 
 
@@ -53,15 +53,25 @@ user="$(id -un)" uid="$(id -u)"
 
 
 #
+# Assertions
+#
+
+if ! [ "${NDEBUG-}" ]
+then
+	root="$(ids | awk '$1 == 0 {print $2; exit}')"
+	check -s134 -e'uid > 0' privdrop "$root"
+fi
+
+
+#
 # Test
 #
 
 result=0
-
 if [ "$uid" -eq 0 ]
 then
 	reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")" ||
-		err -s75 'no regular user found.'
+		err -s75 "no regular user user found."
 
 	runas "$reguser" main -C >/dev/null 2>&1 ||
 		err -s75 '%s cannot execute main.' "$reguser"
@@ -69,25 +79,18 @@ then
 	reguid="$(id -u "$reguser")"
 	reggid="$(id -g "$reguser")"
 
-	check -s1 -o"euid=$reguid egid=$reggid ruid=$reguid rgid=$reggid" \
-		runas "$reguser" "$tests_dir/priv_suspend" || result=70
 	check -s1 -e'Operation not permitted' \
-		runas "$reguser" "$tests_dir/priv_suspend" || result=70
-	check -o"euid=$reguid egid=$reggid ruid=$reguid rgid=$reggid" \
-		runas -r "$reguser" "$tests_dir/priv_suspend" || result=70
+		runas "$reguser" "$tests_dir/privdrop" "$reguser" || result=70
+	check -s0 -o"euid=$reguid egid=$reggid ruid=$reguid rgid=$reggid" \
+		privdrop "$reguser" || result=70
 
 	exit "$result"
 else
-	uid="$(id -u)"
-	gid="$(id -g)"
-
-	check -s1 -o"euid=$uid egid=$gid ruid=$uid rgid=$gid" \
-		priv_suspend || result=70
 	check -s1 -e'Operation not permitted' \
-		priv_suspend || result=70
+		privdrop "$user" || result=70
 
 	case $result in
-	(0) err -s75 'skipped superuser tests.' ;;
+	(0) err -s75 "skipped superuser tests." ;;
 	(*) exit "$result"
 	esac
 fi

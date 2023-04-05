@@ -18,7 +18,7 @@ include(`macros.m4')dnl
 # Special targets
 #
 
-.PHONY:	all analysis check clean distcheck distclean shellcheck
+.PHONY: all analysis check clean distcheck distclean shellcheck
 
 .IGNORE: analysis
 
@@ -130,25 +130,25 @@ uninstall:
 # Tests
 #
 
-checks = $(check_scripts) $(macro_check_bins) tests/env_is_name \
-	tests/env_restore tests/file_is_exe tests/file_is_wexcl \
-	tests/handler_lookup tests/pair_lookup tests/path_check_in \
-	tests/path_suffix tests/str_cp tests/str_split tests/userdir_resolve
+checks = $(check_scripts) $(macro_check_bins) tests/envisname \
+	tests/envrestore tests/fileisexe tests/fileisxusrw \
+	tests/handlerfind tests/pairfind tests/pathchkloc \
+	tests/pathsuffix tests/cpstr tests/splitstr tests/userdirexp
 
 macro_check_bins = tests/ISSIGNED tests/NELEMS tests/SIGNEDMAX
 
-other_check_bins = tests/env_is_name tests/env_restore tests/error \
-	tests/file_is_exe tests/file_is_wexcl tests/handler_lookup \
-	tests/pair_lookup tests/path_check_wexcl tests/path_check_in \
-	tests/path_suffix tests/priv_drop tests/priv_suspend tests/str_cp \
-	tests/str_split tests/userdir_resolve
+other_check_bins = tests/envisname tests/envrestore tests/error \
+	tests/fileisexe tests/fileisxusrw tests/handlerfind \
+	tests/pairfind tests/pathchkperm tests/pathchkloc \
+	tests/pathsuffix tests/privdrop tests/privsuspend tests/cpstr \
+	tests/splitstr tests/userdirexp
 
-check_scripts =	tests/error.sh tests/main.sh tests/path_check_wexcl.sh \
-	tests/priv_drop.sh tests/priv_suspend.sh
+check_scripts = tests/error.sh tests/main.sh tests/pathchkperm.sh \
+	tests/privdrop.sh tests/privsuspend.sh
 
 tool_bins = tools/badenv tools/badexec tools/ids tools/runpara tools/runas
 
-runpara_flags =	-ci75 -j8
+runpara_flags = -ci75 -j8
 
 tests/ISSIGNED: tests/ISSIGNED.c
 
@@ -156,37 +156,37 @@ tests/NELEMS: tests/NELEMS.c
 
 tests/SIGNEDMAX: tests/SIGNEDMAX.c
 
-tests/env_is_name: tests/env_is_name.c funcs.a(env.o)
+tests/envisname: tests/envisname.c funcs.a(env.o)
 
-tests/env_restore: tests/env_restore.c funcs.a(env.o) funcs.a(str.o)
+tests/envrestore: tests/envrestore.c funcs.a(env.o) funcs.a(str.o)
 
 tests/error: tests/error.c funcs.a(error.o)
 
-tests/file_is_exe: tests/file_is_exe.c funcs.a(file.o)
+tests/fileisexe: tests/fileisexe.c funcs.a(file.o)
 
-tests/file_is_wexcl: tests/file_is_wexcl.c funcs.a(file.o)
+tests/fileisxusrw: tests/fileisxusrw.c funcs.a(file.o)
 
-tests/handler_lookup: tests/handler_lookup.c funcs.a(handler.o)
+tests/handlerfind: tests/handlerfind.c funcs.a(handler.o)
 
 tests/main: main.c config.h testing.h $(hdrs) $(objs)
 
-tests/pair_lookup: tests/pair_lookup.c funcs.a(pair.o)
+tests/pairfind: tests/pairfind.c funcs.a(pair.o)
 
-tests/path_check_wexcl: tests/path_check_wexcl.c funcs.a(path.o)
+tests/pathchkperm: tests/pathchkperm.c funcs.a(path.o)
 
-tests/path_check_in: tests/path_check_in.c funcs.a(path.o)
+tests/pathchkloc: tests/pathchkloc.c funcs.a(path.o)
 
-tests/path_suffix: tests/path_suffix.c funcs.a(path.o)
+tests/pathsuffix: tests/pathsuffix.c funcs.a(path.o)
 
-tests/priv_drop: tests/priv_drop.c funcs.a(priv.o)
+tests/privdrop: tests/privdrop.c funcs.a(priv.o)
 
-tests/priv_suspend: tests/priv_suspend.c funcs.a(priv.o)
+tests/privsuspend: tests/privsuspend.c funcs.a(priv.o)
 
-tests/str_cp: tests/str_cp.c funcs.a(str.o)
+tests/cpstr: tests/cpstr.c funcs.a(str.o)
 
-tests/str_split: tests/str_split.c funcs.a(str.o)
+tests/splitstr: tests/splitstr.c funcs.a(str.o)
 
-tests/userdir_resolve: tests/userdir_resolve.c funcs.a(userdir.o)
+tests/userdirexp: tests/userdirexp.c funcs.a(userdir.o)
 
 $(macro_check_bins) $(other_check_bins): $(hdrs)
 
@@ -194,11 +194,11 @@ tests/error.sh: tests/error
 
 tests/main.sh: tests/main tools/badenv tools/badexec tools/ids
 
-tests/path_check_wexcl.sh: tests/path_check_wexcl tools/ids
+tests/pathchkperm.sh: tests/pathchkperm tools/ids
 
-tests/priv_drop.sh: tests/priv_drop tools/ids tools/runas
+tests/privdrop.sh: tests/privdrop tools/ids tools/runas
 
-tests/priv_suspend.sh: tests/priv_suspend tools/ids tools/runas
+tests/privsuspend.sh: tests/privsuspend tools/ids tools/runas
 
 $(check_scripts): tests/main scripts/funcs.sh
 
@@ -274,7 +274,7 @@ distcheck: dist
 # Static code analysis
 #
 
-inspect	= *.h *.c
+inspect = *.h *.c
 scripts = configure prepare scripts/* tests/*.sh
 
 ifnempty(`__clang_tidy', `dnl

@@ -59,7 +59,7 @@ main (int argc, char **argv)
             errx(EXIT_FAILURE, "no such user");
         } else {
             err(EXIT_FAILURE, "getpwnam");
-	    }
+        }
     }
 
     ret = pathchkperm(user->pw_uid, basedir, fname);

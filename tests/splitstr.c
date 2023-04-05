@@ -1,5 +1,5 @@
 /*
- * Test strsplit.
+ * Test splitstr.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -126,7 +126,7 @@ main(void)
 
         (void) memset(head, '\0', MAX_LEN);
 
-        ret = strsplit(args.str, args.sep, MAX_LEN, head, &tail);
+        ret = splitstr(args.str, args.sep, MAX_LEN, head, &tail);
 
         if (ret != args.ret)
         {

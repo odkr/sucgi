@@ -39,6 +39,6 @@
  */
 __attribute__((nonnull(2, 3, 4), warn_unused_result))
 Error pairfind(size_t npairs, const Pair *pairs,
-                  const char *key, const char **value);
+               const char *key, const char **value);
 
 #endif /* !defined(PAIR_H) */

@@ -71,7 +71,7 @@ envrestore(char *const *const vars, const size_t npregs,
     assert(pregs != NULL);
 
     for (varidx = 0; vars[varidx] != NULL; ++varidx) {
-        /* RATS: ignore; strsplit respects MAX_VARNAME_LEN. */
+        /* RATS: ignore; splitstr respects MAX_VARNAME_LEN. */
         char name[MAX_VARNAME_LEN];
         const char *value;
         const char *var;
@@ -81,7 +81,7 @@ envrestore(char *const *const vars, const size_t npregs,
         if (strnlen(var, MAX_VAR_LEN) >= (size_t) MAX_VAR_LEN) {
             /* RATS: ignore; format is short and a literal. */
             syslog(LOG_INFO, "discarding overly long variable.");
-        } else if (strsplit(var, "=", MAX_VARNAME_LEN, name, &value) != OK) {
+        } else if (splitstr(var, "=", MAX_VARNAME_LEN, name, &value) != OK) {
             /* RATS: ignore; format is short and a literal. */
             syslog(LOG_INFO, "discarding variable with overly long name.");
         } else if (value == NULL) {

@@ -29,7 +29,7 @@
 
 
 /*
- * Check if the file naemd FNAME is within BASEDIR.
+ * Check if the file named FNAME is within BASEDIR.
  * FNAME and BASEDIR must be canonical.
  *
  * Return value:

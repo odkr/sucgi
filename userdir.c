@@ -37,8 +37,8 @@
 
 
 /*
- * Only one format string is a non-literal, and
- * that string can only be set by the system administrator.
+ * Only one format string is not a literal, and that
+ * string can only be set by the system administrator.
  */
 #if defined(__GNUC__) && __GNUC__ >= 3
 #pragma GCC diagnostic push
@@ -47,7 +47,7 @@
 
 Error
 userdirexp(const char *const str, const struct passwd *const user,
-                char dir[MAX_FNAME_LEN])
+           char dir[MAX_FNAME_LEN])
 {
     int nchars;
 

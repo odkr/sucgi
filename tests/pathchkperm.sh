@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Test path_check_wexcl.
+# Test pathchkperm.
 #
 # Copyright 2022 Odin Kroeger.
 #
@@ -71,28 +71,28 @@ then
 	err_fname="${long_fname}x"
 
 	check -s134 -e"*basedir == '/'"	\
-		path_check_wexcl "$user" '' /			|| result=70
+		pathchkperm "$user" '' /			|| result=70
 	check -s134 -e"*basedir == '/'"	\
-		path_check_wexcl "$user" relpath /		|| result=70
+		pathchkperm "$user" relpath /		|| result=70
 	check -s134 -e"*basedir == '/'"	\
-		path_check_wexcl "$user" . /			|| result=70
+		pathchkperm "$user" . /			|| result=70
 
 	check -s134 -e"*fname == '/'" \
-		path_check_wexcl "$user" / ''			|| result=70
+		pathchkperm "$user" / ''			|| result=70
 	check -s134 -e"*fname == '/'" \
-		path_check_wexcl "$user" / relpath		|| result=70
+		pathchkperm "$user" / relpath		|| result=70
 	check -s134 -e"*fname == '/'" \
-		path_check_wexcl "$user" / .			|| result=70
+		pathchkperm "$user" / .			|| result=70
 
 	check -s134 \
 	      -e'strnlen(basedir, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN' \
-	      path_check_wexcl "$user" "$err_fname" /		|| result=70
+	      pathchkperm "$user" "$err_fname" /		|| result=70
 	check -s134 \
 	      -e'strnlen(fname, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN' \
-	      path_check_wexcl "$user" / "$err_fname"		|| result=70
+	      pathchkperm "$user" / "$err_fname"		|| result=70
 
-	check -s1 path_check_wexcl "$user" "$long_fname" /	|| result=70
-	check -s1 path_check_wexcl "$user" / "$long_fname"	|| result=70
+	check -s1 pathchkperm "$user" "$long_fname" /	|| result=70
+	check -s1 pathchkperm "$user" / "$long_fname"	|| result=70
 fi
 
 
@@ -122,7 +122,7 @@ do
 	unset IFS
 
 	check -s1 -e"file $2: not within $1" \
-	      path_check_wexcl "$user" "$1" "$2" || result=70
+	      pathchkperm "$user" "$1" "$2" || result=70
 done
 
 
@@ -131,7 +131,7 @@ done
 #
 
 check -s1 -e "stat $TMPDIR/<nosuchfile>: No such file or directory" \
-      path_check_wexcl "$user" "$TMPDIR" "$TMPDIR/<nosuchfile>" || result=70
+      pathchkperm "$user" "$TMPDIR" "$TMPDIR/<nosuchfile>" || result=70
 
 
 #
@@ -143,12 +143,12 @@ for mode in $no
 do
 	chmod "$mode" "$shallow"
 	check -s1 -e"file $shallow: writable by non-owner" \
-	      path_check_wexcl "$user" "$TMPDIR" "$shallow"	|| result=70
+	      pathchkperm "$user" "$TMPDIR" "$shallow"	|| result=70
 
 	chmod "$mode" "$basedir"
 	chmod u+x "$basedir"
 	check -s1 -e"file $deeper: writable by non-owner" \
-	      path_check_wexcl "$user" "$TMPDIR" "$deeper"	|| result=70
+	      pathchkperm "$user" "$TMPDIR" "$deeper"	|| result=70
 done
 
 
@@ -162,24 +162,24 @@ do
 	chmod go-w "$basedir" "$shallow" "$deeper"
 
 	chmod "$mode" "$shallow"
-	check path_check_wexcl "$user" "$TMPDIR" "$shallow"	|| result=70
+	check pathchkperm "$user" "$TMPDIR" "$shallow"	|| result=70
 	if [ "$uid" -ne 0 ]
 	then
 		check -s1 -e"file $deeper: writable by non-owner" \
-		      path_check_wexcl "$user" / "$deeper"	|| result=70
+		      pathchkperm "$user" / "$deeper"	|| result=70
 	fi
 
 	chmod "$mode" "$basedir"
 	chmod u+wx,go= "$basedir"
-	check path_check_wexcl "$user" "$TMPDIR" "$deeper"	|| result=70
+	check pathchkperm "$user" "$TMPDIR" "$deeper"	|| result=70
 
 	chmod g+w,o= "$deeper"
 	check -s1 -e"file $deeper: writable by non-owner" \
-	      path_check_wexcl "$user" "$TMPDIR" "$deeper"	|| result=70
+	      pathchkperm "$user" "$TMPDIR" "$deeper"	|| result=70
 
 	chmod g=,o+w "$deeper"
 	check -s1 -e"file $deeper: writable by non-owner" \
-	      path_check_wexcl "$user" "$TMPDIR" "$deeper"	|| result=70
+	      pathchkperm "$user" "$TMPDIR" "$deeper"	|| result=70
 done
 
 

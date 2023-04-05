@@ -37,7 +37,7 @@
 
 Error
 handlerfind(const size_t nhandlers, const Pair *const handlerdb,
-               const char *const script, const char **const handler)
+            const char *const script, const char **const handler)
 {
     const char *suffix;
     Error ret;

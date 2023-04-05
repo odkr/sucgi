@@ -126,7 +126,7 @@ main(void)
     longabsname[0] = '/';
 
     (void) memset(longpattern, 'x', sizeof(longpattern));
-    (void) strcp(4, "/%s", &longpattern[sizeof(longpattern) - 4]);
+    (void) cpstr(4, "/%s", &longpattern[sizeof(longpattern) - 4]);
     longpattern[0] = '/';
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
