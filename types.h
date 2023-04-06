@@ -31,9 +31,9 @@ typedef enum {
     ERR_BASEDIR,        /* File is outside of base directory. */
     ERR_LEN,            /* An array or a string is too long. */
     ERR_PRIV,           /* Privileges could be resumed. */
-    ERR_SEARCH,         /* A value does not match a specification. */
+    ERR_SEARCH,         /* Something was not found. */
     ERR_SUFFIX,         /* Filename has no suffix. */
-    ERR_WEXCL           /* File is not exclusively writable by its owner. */
+    ERR_WEXCL           /* File not exclusively writable by its owner. */
 } Error;
 
 
