@@ -234,10 +234,10 @@ scrsan_script="$TMPDIR/scrsan-valid.php"
 touch "$scrsan_script"
 
 # PATH_TRANSLATED is undefined.
-check -s1 -e'$PATH_TRANSLATED not set.'	 main			|| result=70
+check -s1 -e'$PATH_TRANSLATED: not set.' main			|| result=70
 
 # $PATH_TRANSLATED is empty.
-check -s1 -e'$PATH_TRANSLATED is empty.' PATH_TRANSLATED= main	|| result=70
+check -s1 -e'$PATH_TRANSLATED: empty.' PATH_TRANSLATED= main	|| result=70
 
 # $PATH_TRANSLATED is too long.
 check -s1 -e'long'	PATH_TRANSLATED="$scrsan_hugepath" main	|| result=70
@@ -675,7 +675,7 @@ do
 	HTTP_REFERER='https://www.bar.example'		\
 	HTTP_USER_AGENT='FakeZilla/1'			\
 	HTTPS='on'					\
-	IFS=':' 					\
+	IFS=':'						\
 	LANG='en_GB.UTF-8'				\
 	LOGNAME='jdoe'					\
 	PAGER='less'					\
@@ -723,7 +723,7 @@ do
 		if ! grep -Eq "^$envcln_var$" "$envcln_logfile"
 		then
 			warn 'PATH_TRANSLATED=%s [...] main: $%s: not set.' \
-	     		     "$envcln_script" "$envcln_var"
+			     "$envcln_script" "$envcln_var"
 			result=70
 		fi
 	done
@@ -741,7 +741,7 @@ do
 		if grep -Eq "^$envcln_var" "$envcln_logfile"
 		then
 			warn 'PATH_TRANSLATED=%s [...] main: $%s: set.' \
-	     		     "$envcln_script" "$envcln_var"
+			     "$envcln_script" "$envcln_var"
 			result=70
 		fi
 	done

@@ -35,7 +35,7 @@
 
 
 Error
-cpstr(const size_t nbytes, const char *const src, char *const dest)
+copystr(const size_t nbytes, const char *const src, char *const dest)
 {
     const char *end;
     size_t len;
@@ -74,7 +74,7 @@ splitstr(const char *const str, const char *const sep,
 
     *tail = strpbrk(str, sep);
     if (*tail == NULL) {
-        return cpstr(size - 1U, str, head);
+        return copystr(size - 1U, str, head);
     }
 
     /* cppcheck-suppress [misra-c2012-10.8, misra-c2012-18.4];
@@ -84,7 +84,7 @@ splitstr(const char *const str, const char *const sep,
         return ERR_LEN;
     }
 
-    (void) cpstr(len, str, head);
+    (void) copystr(len, str, head);
     ++(*tail);
 
     return OK;

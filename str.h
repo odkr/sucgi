@@ -38,7 +38,7 @@
  *      ERR_LEN  Source is longer than LEN bytes.
  */
 __attribute__((nonnull(2, 3)))
-Error cpstr(size_t nbytes, const char *src, char *dest);
+Error copystr(size_t nbytes, const char *src, char *dest);
 
 /*
  * Split STR at the first occurence of any byte in SEP, copy the substring

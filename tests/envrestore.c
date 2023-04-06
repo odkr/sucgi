@@ -577,10 +577,10 @@ main (void) {
     }
 
     (void) memset(longvar, 'x', sizeof(longvar) - 1U);
-    (void) cpstr(4, "var=", longvar);
+    (void) copystr(4, "var=", longvar);
 
     (void) memset(hugevar, 'x', sizeof(hugevar) - 1U);
-    (void) cpstr(4, "var=", longvar);
+    (void) copystr(4, "var=", longvar);
 
     (void) memset(longname, 'x', sizeof(longname) - 1U);
     longname[MAX_VARNAME_LEN - 1U] = '=';

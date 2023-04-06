@@ -133,14 +133,14 @@ uninstall:
 checks = $(check_scripts) $(macro_check_bins) tests/envisname \
 	tests/envrestore tests/fileisexe tests/fileisxusrw \
 	tests/handlerfind tests/pairfind tests/pathchkloc \
-	tests/pathsuffix tests/cpstr tests/splitstr tests/userdirexp
+	tests/pathsuffix tests/copystr tests/splitstr tests/userdirexp
 
 macro_check_bins = tests/ISSIGNED tests/NELEMS tests/SIGNEDMAX
 
 other_check_bins = tests/envisname tests/envrestore tests/error \
 	tests/fileisexe tests/fileisxusrw tests/handlerfind \
 	tests/pairfind tests/pathchkperm tests/pathchkloc \
-	tests/pathsuffix tests/privdrop tests/privsuspend tests/cpstr \
+	tests/pathsuffix tests/privdrop tests/privsuspend tests/copystr \
 	tests/splitstr tests/userdirexp
 
 check_scripts = tests/error.sh tests/main.sh tests/pathchkperm.sh \
@@ -182,7 +182,7 @@ tests/privdrop: tests/privdrop.c funcs.a(priv.o)
 
 tests/privsuspend: tests/privsuspend.c funcs.a(priv.o)
 
-tests/cpstr: tests/cpstr.c funcs.a(str.o)
+tests/copystr: tests/copystr.c funcs.a(str.o)
 
 tests/splitstr: tests/splitstr.c funcs.a(str.o)
 
