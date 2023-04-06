@@ -29,6 +29,7 @@
 		<define name="MAX_SUFFIX_LEN=8U"/>
 		<define name="MAX_VAR_LEN=1024"/>
 		<define name="MAX_VARNAME_LEN=64U"/>
+		<define name="MAX_NGROUPS=128U"/>
 		<define name="MAX_NVARS=512U"/>
 		<define name="GRP_T=gid_t"/>
 		<define name="NGRPS_T=int"/>

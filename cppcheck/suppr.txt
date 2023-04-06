@@ -55,6 +55,8 @@ misra-c2012-20.5:testing.h
 // Consequently, it reports too many false positives.
 misra-c2012-21.1
 
-// Rule 21.8 requires that, among others, exit not be used.
+// Rule 21.8 requires that, among others, exit and getenv not be used.
 // But error must be be able to exit suCGI.
 misra-c2012-21.8:error.c
+// And envcp must access the environment.
+misra-c2012-21.8:env.c
