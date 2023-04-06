@@ -45,36 +45,115 @@ include(`macros.m4')dnl
 #if !defined(COMPAT_H)
 #define COMPAT_H
 
-ifelse(__HAVE_SYS_PARAM_H, `1', `dnl
-#include <sys/param.h>
-', `dnl
-#if defined(HAVE_SYS_PARAM_H) || \
-    defined(__bsdi__)         || \
-    defined(__DragonFly__)    || \
-    defined(__FreeBSD__)      || \
-    defined(__NetBSD__)       || \
-    defined(__OpenBSD__)
-#include <sys/param.h>
-#else
-/* Include sys/param.h in a round-about way. */
+/* Include <features.h> and <sys/param.h> in a round-about way. */
 #include <limits.h>
-#endif
-')dnl
 
-ifelse(__HAVE_FEATURES_H, `1', `dnl
-#include <features.h>
-', `dnl
-#if defined(HAVE_FEATURES_H) || \
-    defined(__GLIBC__)       || \
-    defined(__GNU_LIBRARY__) || \
-    defined(__UCLIBC__)
-#include <features.h>
-#else
-/* Include features.h in a round-about way. */
-#include <limits.h>
+ifdef(`__HAVE_SYS_PARAM_H', `dnl
+/* <sys/param.h> is available. */
+#if !defined(HAVE_SYS_PARAM)
+#define HAVE_SYS_PARAM __HAVE_SYS_PARAM_H
 #endif
 
 ')dnl
+ifdef(`__HAVE_FEATURES_H', `dnl
+/* <features.h> is available. */
+#if !defined(HAVE_FEATURES_H)
+#define HAVE_FEATURES_H __HAVE_FEATURES_H
+#endif
+
+')dnl
+/* BSD/386 and BSD/OS */
+#if defined(__bsdi__)
+#if !defined(HAVE_SYS_PARAM_H)
+#define HAVE_SYS_PARAM_H 1
+#endif
+#if !defined(HAVE_FEATURES_H)
+#define HAVE_FEATURES_H 0
+#endif
+
+/* DragonFly BSD. */
+#elif defined(__DragonFly__)
+#if !defined(HAVE_SYS_PARAM_H)
+#define HAVE_SYS_PARAM_H 1
+#endif
+#if !defined(HAVE_FEATURES_H)
+#define HAVE_FEATURES_H 0
+#endif
+
+/* FreeBSD */
+#elif defined(__FreeBSD__)
+#if !defined(HAVE_SYS_PARAM_H)
+#define HAVE_SYS_PARAM_H 1
+#endif
+#if !defined(HAVE_FEATURES_H)
+#define HAVE_FEATURES_H 0
+#endif
+
+/* NetBSD */
+#elif defined(__NetBSD__)
+#if !defined(HAVE_SYS_PARAM_H)
+#define HAVE_SYS_PARAM_H 1
+#endif
+#if !defined(HAVE_FEATURES_H)
+#define HAVE_FEATURES_H 0
+#endif
+
+/* OpenBSD */
+#elif defined(__OpenBSD__)
+#if !defined(HAVE_SYS_PARAM_H)
+#define HAVE_SYS_PARAM_H 1
+#endif
+#if !defined(HAVE_FEATURES_H)
+#define HAVE_FEATURES_H 0
+#endif
+
+/* macOS */
+#elif defined(__MACH__)
+#if !defined(HAVE_SYS_PARAM_H)
+#define HAVE_SYS_PARAM_H 1
+#endif
+#if !defined(HAVE_FEATURES_H)
+#define HAVE_FEATURES_H 0
+#endif
+
+/* GNU/Linux, GNU Hurd, or GNU/kFreeBSD */
+#elif defined(__GLIBC__) || defined(__GNU_LIBRARY__)
+#if !defined(HAVE_SYS_PARAM_H)
+#define HAVE_SYS_PARAM_H 1
+#endif
+#if !defined(HAVE_FEATURES_H)
+#define HAVE_FEATURES_H 1
+#endif
+
+/* Linux with uClibc */
+#elif defined(__UCLIBC__)
+#if !defined(HAVE_SYS_PARAM_H)
+#define HAVE_SYS_PARAM_H 1
+#endif
+#if !defined(HAVE_FEATURES_H)
+#define HAVE_FEATURES_H 1
+#endif
+
+/* Minix */
+#elif defined(__minix)
+#if !defined(HAVE_SYS_PARAM_H)
+#define HAVE_SYS_PARAM_H 1
+#endif
+#if !defined(HAVE_FEATURES_H)
+#define HAVE_FEATURES_H 0
+#endif
+#endif /* OS detection. */
+
+/* Include <sys/param.h> if available. */
+#if HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+
+/* Include <features.h> if available. */
+#if HAVE_FEATURES_H
+#include <features.h>
+#endif
+
 /* Type that getgrouplist takes and returns group IDs as. */
 #if !defined(GRP_T)
 ifnempty(`__GRP_T', `dnl
