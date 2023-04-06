@@ -232,7 +232,7 @@ config(void)
     (void) printf("LIBC=NetBSD\n");
 #elif defined(__OpenBSD__)
     (void) printf("LIBC=OpenBSD\n");
-#elif defined(__APPLE__)
+#elif defined(__MACH__)
     (void) printf("LIBC=Apple\n");
 #else
     (void) printf("#LIBC=?\n");
