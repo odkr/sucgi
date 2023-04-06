@@ -412,48 +412,44 @@ main(int argc, char **argv) {
      * Get the script's filename and filesystem metadata.
      */
 
-    /* RATS: ignore; cpstr is bounded by MAX_FNAME_LEN. */
-    char script_log[MAX_FNAME_LEN];
+    /* RATS: ignore; copystr is bounded by MAX_FNAME_LEN. */
+    char script_log[MAX_VAR_LEN];
     const char *script_phys;
-    const char *script_env;
     struct stat script_stat;
 
-    errno = 0;
-    /* cppcheck-suppress misra-c2012-21.8; PATH_TRANSLATED is sanitised. */
-    script_env = getenv("PATH_TRANSLATED");     /* RATS: ignore */
-    if (script_env == NULL) {
-        /* cppcheck-suppress misra-c2012-22.10; getenv may set errno. */
-        if (errno == 0) {
-            error("$PATH_TRANSLATED not set.");
-        } else {
-            /* Should be unreachable. */
-            error("getenv: %m.");
-        }
-    }
-
-    if (*script_env == '\0') {
-        error("$PATH_TRANSLATED is empty.");
-    }
-
-    ret = cpstr(MAX_FNAME_LEN, script_env, script_log);
+    ret = envcopy("PATH_TRANSLATED", script_log);
     switch (ret) {
     case OK:
         break;
+    case ERR_LEN:
+        error("$PATH_TRANSLATED: too long.");
+    case ERR_SEARCH:
+        error("$PATH_TRANSLATED: not set.");
     default:
         /* Should be unreachable. */
-        error("%d: cpstr returned %d.", __LINE__, ret);
+        error("%d: envcopy returned %d.", __LINE__, ret);
     }
 
-    errno = 0;
-    /* RATS: ignore; script_log is <= PATH_MAX, script_phys is checked. */
-    script_phys = realpath(script_log, NULL);
-    if (script_phys == NULL) {
+    if (*script_log == '\0') {
+        error("$PATH_TRANSLATED: empty.");
+    }
+
+    ret = pathreal(script_log, &script_phys);
+    switch (ret) {
+    case OK:
+        break;
+    case ERR_LEN:
+        error("script filename is too long.");
+    case ERR_SYS:
         error("realpath %s: %m.", script_log);
+    default:
+        /* Should be unreachable. */
+        error("%d: pathreal returned %d.", __LINE__, ret);
     }
 
-    if (strnlen(script_phys, MAX_FNAME_LEN) >= (size_t) MAX_FNAME_LEN) {
-        error("script %s: canonical path is too long.", script_log);
-    }
+    assert(script_phys != NULL);
+    assert(*script_phys != '\0');
+    assert(strnlen(script_phys, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
 
     if (stat(script_phys, &script_stat) != 0) {
         /* Only reachable if the script was deleted after realpath. */
@@ -662,10 +658,9 @@ main(int argc, char **argv) {
 
     /* RATS: ignore; userdirexp repects MAX_FNAME_LEN. */
     char userdir_log[MAX_FNAME_LEN];
-    char *userdir_phys;
+    const char *userdir_phys;
 
     ret = userdirexp(USER_DIR, owner, userdir_log);
-
     switch (ret) {
     case OK:
         break;
@@ -682,12 +677,22 @@ main(int argc, char **argv) {
     assert(*userdir_log != '\0');
     assert(strnlen(userdir_log, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
 
-    errno = 0;
-    /* RATS: ignore; userdir_log is <= PATH_MAX, userdir_phys is checked. */
-    userdir_phys = realpath(userdir_log, NULL);
-    if (userdir_phys == NULL) {
+    ret = pathreal(userdir_log, &userdir_phys);
+    switch (ret) {
+    case OK:
+        break;
+    case ERR_LEN:
+        error("expanded user directory is too long.");
+    case ERR_SYS:
         error("realpath %s: %m.", userdir_log);
+    default:
+        /* Should be unreachable. */
+        error("%d: pathreal returned %d.", __LINE__, ret);
     }
+
+    assert(userdir_phys != NULL);
+    assert(*userdir_phys != '\0');
+    assert(strnlen(userdir_phys, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
 
     ret = pathchkloc(userdir_phys, script_phys);
     switch (ret) {
@@ -706,37 +711,26 @@ main(int argc, char **argv) {
      * Check whether the CGI script can only be modified by the user.
      */
 
-    const char *base_dir;
+    const char *basedir;
 
     if (*USER_DIR == '/') {
-        base_dir = userdir_phys;
+        basedir = userdir_phys;
     } else {
-        if (strnlen(owner->pw_dir, MAX_FNAME_LEN) >= (size_t) MAX_FNAME_LEN) {
-            /*
-             * Should only be reachable if a system administrator set the
-             * owner's home directory to a path that is longer than PATH_MAX.
-             */
-            error("user %s: home directory is too long", logname);
-        }
-
-        errno = 0;
-        /* RATS: ignore; owner->pw_dir is <= PATH_MAX, basedir is checked. */
-        base_dir = realpath(owner->pw_dir, NULL);
-        if (base_dir == NULL) {
+        ret = pathreal(owner->pw_dir, &basedir);
+        switch (ret) {
+        case OK:
+            break;
+        case ERR_LEN:
+            error("user %s: home directory is too long.", logname);
+        case ERR_SYS:
             error("realpath %s: %m.", owner->pw_dir);
-        }
-
-        if (strnlen(base_dir, MAX_FNAME_LEN) >= (size_t) MAX_FNAME_LEN) {
-            /*
-             * Should only be reachable if a system administrator set the
-             * owner's home directory to a symlink to a path that is longer
-             * than PATH_MAX.
-             */
-            error("directory %s: canonical path is too long.", owner->pw_dir);
+        default:
+            /* Should be unreachable. */
+            error("%d: pathreal returned %d.", __LINE__, ret);
         }
     }
 
-    ret = pathchkperm(uid, base_dir, script_phys);
+    ret = pathchkperm(uid, basedir, script_phys);
     switch (ret) {
     case OK:
         break;
