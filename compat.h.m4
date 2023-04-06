@@ -46,20 +46,32 @@ include(`macros.m4')dnl
 #define COMPAT_H
 
 ifelse(__HAVE_SYS_PARAM_H, `1', `dnl
-/* sys/param.h is available. */
 #include <sys/param.h>
 ', `dnl
-#if defined(HAVE_SYS_PARAM_H)
+#if defined(HAVE_SYS_PARAM_H) || \
+    defined(__bsdi__)         || \
+    defined(__DragonFly__)    || \
+    defined(__FreeBSD__)      || \
+    defined(__NetBSD__)       || \
+    defined(__OpenBSD__)
 #include <sys/param.h>
+#else
+/* Include sys/param.h in a round-about way. */
+#include <limits.h>
 #endif
 ')dnl
 
 ifelse(__HAVE_FEATURES_H, `1', `dnl
-/* features.h is available. */
 #include <features.h>
 ', `dnl
-#if defined(HAVE_FEATURES_H)
+#if defined(HAVE_FEATURES_H) || \
+    defined(__GLIBC__)       || \
+    defined(__GNU_LIBRARY__) || \
+    defined(__UCLIBC__)
 #include <features.h>
+#else
+/* Include features.h in a round-about way. */
+#include <limits.h>
 #endif
 
 ')dnl
@@ -68,7 +80,7 @@ ifelse(__HAVE_FEATURES_H, `1', `dnl
 ifnempty(`__GRP_T', `dnl
 #define GRP_T __GRP_T
 ', `dnl
-#if defined(__APPLE__) && __APPLE__
+#if defined(__MACH__) && __MACH__
 #define GRP_T int
 #else
 #define GRP_T gid_t
