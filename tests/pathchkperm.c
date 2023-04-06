@@ -68,7 +68,7 @@ main (int argc, char **argv)
         break;
     case ERR_BASEDIR:
         errx(EXIT_FAILURE, "file %s: not within %s", fname, basedir);
-    case ERR_WEXCL:
+    case ERR_PERM:
         errx(EXIT_FAILURE, "file %s: writable by non-owner", fname);
     case ERR_SYS:
         err(EXIT_FAILURE, "stat %s", fname);

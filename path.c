@@ -121,7 +121,7 @@ pathchkperm(const uid_t uid, const char *const basedir,
         }
 
         if (!fileisxusrw(uid, fstatus)) {
-            return ERR_WEXCL;
+            return ERR_PERM;
         }
 
         /* cppcheck-suppress misra-c2012-18.4; only moves past '/'s. */

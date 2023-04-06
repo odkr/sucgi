@@ -734,7 +734,7 @@ main(int argc, char **argv) {
     switch (ret) {
     case OK:
         break;
-    case ERR_WEXCL:
+    case ERR_PERM:
         error("script %s: writable by non-owner.", script_log);
     case ERR_SYS:
         /* Only reachable if the script was deleted after realpath. */
