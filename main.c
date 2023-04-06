@@ -417,17 +417,15 @@ main(int argc, char **argv) {
     const char *script_phys;
     struct stat script_stat;
 
-    ret = envcopy("PATH_TRANSLATED", script_log);
+    ret = envcopyvar("PATH_TRANSLATED", script_log);
     switch (ret) {
     case OK:
         break;
-    case ERR_LEN:
-        error("$PATH_TRANSLATED: too long.");
     case ERR_SEARCH:
         error("$PATH_TRANSLATED: not set.");
     default:
         /* Should be unreachable. */
-        error("%d: envcopy returned %d.", __LINE__, ret);
+        error("%d: envcopyvar returned %d.", __LINE__, ret);
     }
 
     if (*script_log == '\0') {
@@ -438,8 +436,6 @@ main(int argc, char **argv) {
     switch (ret) {
     case OK:
         break;
-    case ERR_LEN:
-        error("script filename is too long.");
     case ERR_SYS:
         error("realpath %s: %m.", script_log);
     default:
@@ -506,7 +502,7 @@ main(int argc, char **argv) {
      *
      * Casting gid_t to GRP_T is guaranteed to be safe because:
      * (1) a compile-time error is raised if sizeof(GRP_T) != sizeof(gid_t)
-     *     (so GRP_T[i] and gid_t[i] always refer to the same address).
+     *     (so GRP_T[i] and gid_t[i] cannot refer to different addresses).
      * (2) gid_t and GRP_T use the same integer representation for any value
      *     in [MIN_GID .. MAX_GID] (so type-casting cannot change values).
      * (3) a run-time error is raised if a GID falls outside that range.
@@ -514,13 +510,13 @@ main(int argc, char **argv) {
      * gid_t and GRP_T are guaranteed to use the same integer representation
      * for any value in that range because a compile-time error is raised if:
      * (1) MIN_GID < 1 (so values cannot change sign);
-     * (2) MAX_GID > the greatest signed value that gid_t and GRP_T could hold
+     * (2) MAX_GID > the greatest signed value that gid_t/GRP_T could hold
      *     if they were signed data types (so values cannot overflow).
      */
 
     ngroups = MAX_NGROUPS;
     if (getgrouplist(logname, (GRP_T) gid, (GRP_T *) groups, &ngroups) < 0) {
-        error("user %s: in too many groups.", logname);
+        error("user %s: belongs to too many groups.", logname);
     }
 
     if (ngroups < 0) {
@@ -628,7 +624,7 @@ main(int argc, char **argv) {
      *
      * Casting int to NGRPS_T is guaranteed to be safe because:
      * (1) ngroups cannot be negative (so values cannot change sign);
-     * (1) a compile-time error is raised if NGRPS_T is too small
+     * (2) a compile-time error is raised if NGRPS_T is too small
      *     to hold INT_MAX (so values cannot overflow).
      */
     ret = privdrop(uid, gid, (NGRPS_T) ngroups, groups);

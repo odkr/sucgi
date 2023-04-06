@@ -42,7 +42,7 @@
 
 
 Error
-envcopy(const char *const name, char value[MAX_VAR_LEN])
+envcopyvar(const char *const name, char value[MAX_VAR_LEN])
 {
     const char *var;
 

@@ -44,11 +44,19 @@ extern char **environ;
  */
 
 /*
- * FIXME: Not documented.
+ * Copy the value of the environment variable named NAME to VALUE,
+ * which must be large enough to hold MAX_VAR_LEN bytes.
+ *
+ * Return value:
+ *     OK          Success.
+ *     ERR_LEN     NAME is too long.
+ *     ERR_SEARCH  NAME is not set.
+ *     ERR_SYS     getenv failed.
+ *
  * FIXME: Not unit-tested.
  */
 __attribute__((nonnull(1, 2), warn_unused_result))
-Error envcopy(const char *name, char value[MAX_VAR_LEN]);
+Error envcopyvar(const char *name, char value[MAX_VAR_LEN]);
 
 /*
  * Check whether STR is a valid environment variable name.
