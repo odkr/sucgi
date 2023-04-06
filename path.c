@@ -43,51 +43,60 @@
 Error
 pathchkloc(const char *const basedir, const char *const fname)
 {
+    size_t basedir_len;
+    size_t fname_len;
+
     assert(basedir);
     assert(*basedir != '\0');
     assert(fname);
     assert(*fname != '\0');
 
-    if (strncmp(fname, "/", sizeof("/")) != 0 &&
-        strncmp(fname, ".", sizeof(".")) != 0)
-    {
-        size_t basedir_len;
-        size_t fname_len;
+    if (strncmp(fname, "/", sizeof("/")) == 0) {
+        return ERR_BASEDIR;
+    }
 
-        if (*fname == '/') {
-            if (strncmp(basedir, "/", sizeof("/")) == 0) {
-                return OK;
-            }
-        } else {
-            if (strncmp(basedir, ".", sizeof(".")) == 0) {
-                return OK;
-            }
+    if (strncmp(fname, ".", sizeof(".")) == 0) {
+        return ERR_BASEDIR;
+    }
+
+    if (*fname == '/') {
+        if (strncmp(basedir, "/", sizeof("/")) == 0) {
+            return OK;
         }
-
-        basedir_len = strnlen(basedir, MAX_FNAME_LEN);
-        if (basedir_len >= (size_t) MAX_FNAME_LEN) {
-            return ERR_LEN;
-        }
-
-        fname_len = strnlen(fname, MAX_FNAME_LEN);
-        if (fname_len >= (size_t) MAX_FNAME_LEN) {
-            return ERR_LEN;
-        }
-
-        if (fname_len > basedir_len                     &&
-            fname[basedir_len] == '/'                   &&
-            strncmp(basedir, fname, basedir_len) == 0)
-        {
+    } else {
+        if (strncmp(basedir, ".", sizeof(".")) == 0) {
             return OK;
         }
     }
 
-    return ERR_BASEDIR;
+    basedir_len = strnlen(basedir, MAX_FNAME_LEN);
+    if (basedir_len >= (size_t) MAX_FNAME_LEN) {
+        return ERR_LEN;
+    }
+
+    fname_len = strnlen(fname, MAX_FNAME_LEN);
+    if (fname_len >= (size_t) MAX_FNAME_LEN) {
+        return ERR_LEN;
+    }
+
+    if (fname_len <= basedir_len) {
+        return ERR_BASEDIR;
+    }
+
+    if (fname[basedir_len] != '/') {
+        return ERR_BASEDIR;
+    }
+
+    if (strncmp(basedir, fname, basedir_len) != 0) {
+        return ERR_BASEDIR;
+    }
+
+    return OK;
 }
 
 Error
 pathchkperm(const uid_t uid, const char *const basedir,
-                 const char *const fname)
+            const char *const fname)
 {
     const char *pos;
     Error ret;
@@ -165,29 +174,37 @@ pathreal(const char *const fname, const char **const real)
 Error
 pathsuffix(const char *const fname, const char **const suffix)
 {
+    const char *sepptr;
+    size_t postsepidx;
+
     assert(fname != NULL);
     assert(*fname != '\0');
     assert(strnlen(fname, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
     assert(suffix != NULL);
 
     *suffix = strrchr(fname, '.');
+    if (*suffix == NULL) {
+        return ERR_SUFFIX;
+    }
+
+    if (*suffix == fname) {
+        return ERR_SUFFIX;
+    }
+
     /* cppcheck-suppress misra-c2012-18.4;
        the expression *suffix - 1 can only be reached if *suffix > fname. */
-    if (*suffix != NULL && *suffix > fname && *(*suffix - 1) != '/') {
-        const char *sep;
+    if (*(*suffix - 1) == '/') {
+        return ERR_SUFFIX;
+    }
 
-        sep = strchr(*suffix, '/');
-        if (sep == NULL) {
-            return OK;
-        }
+    sepptr = strchr(*suffix, '/');
+    if (sepptr == NULL) {
+        return OK;
+    }
 
-        do {
-            ++sep;
-        } while (*sep == '/');
-
-        if (*sep == '\0') {
-            return OK;
-        }
+    postsepidx = strspn(sepptr, "/");
+    if (sepptr[postsepidx] == '\0') {
+        return OK;
     }
 
     return ERR_SUFFIX;

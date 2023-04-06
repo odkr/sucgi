@@ -35,28 +35,25 @@
 bool
 fileisexe(const uid_t uid, const gid_t gid, const struct stat fstatus)
 {
-    mode_t perm = fstatus.st_mode;
+    mode_t mask;
 
     if (uid == 0) {
-        return (perm & (S_IXUSR | S_IXGRP | S_IXOTH)) != 0;
+        mask = S_IXUSR | S_IXGRP | S_IXOTH;
+    } else if (fstatus.st_uid == uid) {
+        mask = S_IXUSR;
+    } else if (fstatus.st_gid == gid) {
+        mask = S_IXGRP;
+    } else {
+        mask = S_IXOTH;
     }
 
-    if (fstatus.st_uid == uid) {
-        return (perm & S_IXUSR) != 0;
-    }
-
-    if (fstatus.st_gid == gid) {
-        return (perm & S_IXGRP) != 0;
-    }
-
-    return (perm & S_IXOTH) != 0;
+    return (fstatus.st_mode & mask) != 0;
 }
 
 bool
 fileisxusrw(const uid_t uid, const struct stat fstatus)
 {
-    mode_t perm = fstatus.st_mode;
-
-    return fstatus.st_uid == uid && (perm & (S_IWGRP | S_IWOTH)) == 0;
+    return fstatus.st_uid == uid &&
+           (fstatus.st_mode & (S_IWGRP | S_IWOTH)) == 0;
 }
 
