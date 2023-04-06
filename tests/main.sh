@@ -52,7 +52,6 @@ nskipped=0
 # Functions
 #
 
-
 # Delete every segment of $path up to $stop. Should ignore PATH_MAX.
 # shellcheck disable=2317
 rmtree() (
@@ -285,7 +284,11 @@ case $uid in
 esac
 
 # PATH_TRANSLATED is valid.
-check -s1 -e"$scrsan_err" PATH_TRANSLATED="$scrsan_script" main || result=70
+mutatefnames "$scrsan_script" |
+while read -r scrsan_fname
+do
+	check -s1 -e"$scrsan_err" PATH_TRANSLATED="$scrsan_fname" main
+done || result=70
 
 # $PATH_TRANSLATED is valid despite its long name.
 if [ "${LIBC-}" ]
@@ -298,7 +301,7 @@ else
 fi
 
 # Cleanup.
-unset scrsan_err scrsan_longpath scrsan_script scrsan_wrongftype
+unset scrsan_err scrsan_longpath scrsan_script scrsan_fname scrsan_wrongftype
 
 
 #
@@ -351,12 +354,17 @@ do
 	[ "$usrval_uid" ] || continue
 
 	chown "$usrval_uid" "$usrval_script"
-	check -s1 -e"script $usrval_script: owned by privileged user" \
-		PATH_TRANSLATED="$usrval_script" main || result=70
+
+	mutatefnames "$usrval_script" |
+	while read -r usrval_fname
+	do
+		check -s1 -e"script $usrval_fname: owned by privileged user" \
+			PATH_TRANSLATED="$usrval_fname" main
+	done || result=70
 done
 
 # Cleanup.
-unset usrval_script usrval_uid usrval_lowuid usrval_highuid \
+unset usrval_script usrval_fname usrval_uid usrval_lowuid usrval_highuid \
       usrval_uids usrval_unallocuid
 
 
@@ -453,10 +461,14 @@ do
 		continue
 	fi
 
-	check -s0 -o"uid=$reguid egid=$reggid ruid=$reguid rgid=$reggid" \
-	      PATH_TRANSLATED="$priv_script" main  || result=70
+	mutatefnames "$priv_script" |
+	while read -r priv_fname
+	do
+		check -s0 -o"uid=$reguid egid=$reggid ruid=$reguid rgid=$reggid" \
+		      PATH_TRANSLATED="$priv_fname" main
+	done || result=70
 done
-unset priv_script
+unset priv_script priv_fname
 
 
 #
@@ -484,19 +496,28 @@ ln -s "$dirval_outside" "$dirval_intoout"
 # Forbidden location.
 for dirval_forb in "$dirval_outside" "$dirval_dots" "$dirval_intoout"
 do
-	check -s1 -e"script $dirval_forb: not within $reguser's user directory." \
-	      PATH_TRANSLATED="$dirval_forb" main || result=70
+	mutatefnames "$dirval_forb" |
+	while read -r dirval_fname
+	do
+		check -s1 -e"script $dirval_fname: not within $reguser's user directory." \
+		      PATH_TRANSLATED="$dirval_fname" main
+	done || result=70
 done
 
 # Permitted location.
 for dirval_perm in "$procids_sfx" "$dirval_outtoin"
 do
-	check -s0 -o"uid=$reguid egid=$reggid ruid=$reguid rgid=$reggid" \
-	      PATH_TRANSLATED="$dirval_perm" main || result=70
+	mutatefnames "$dirval_perm" |
+	while read -r dirval_fname
+	do
+		check -s0 -o"uid=$reguid egid=$reggid ruid=$reguid rgid=$reggid" \
+		      PATH_TRANSLATED="$dirval_fname" main
+	done || result=70
 done
 
 # Cleanup.
-unset dirval_outtoin dirval_outside dirval_intoout dirval_forb dirval_perm
+unset dirval_outtoin dirval_outside dirval_intoout \
+      dirval_forb dirval_perm dirval_fname
 
 
 #
@@ -521,13 +542,21 @@ exclw_no="u=r,g=w,o= u=r,g=,o=w u=rw,g=w,o= u=rw,g=,o=w u=rw,go=w u=rw,go=w"
 for exclw_mode in $exclw_no
 do
 	chmod "$exclw_mode" "$exclw_shallow"
-	check -s1 -e"script $exclw_shallow: writable by non-owner" \
-	      PATH_TRANSLATED="$exclw_shallow" main || result=70
+	mutatefnames "$exclw_shallow" |
+	while read -r exclw_fname
+	do
+		check -s1 -e"script $exclw_fname: writable by non-owner" \
+		      PATH_TRANSLATED="$exclw_fname" main
+	done || result=70
 
 	chmod "$exclw_mode" "$exclw_subdir"
 	chmod u+x "$exclw_subdir"
-	check -s1 -e"script $exclw_deeper: writable by non-owner" \
-	      PATH_TRANSLATED="$exclw_deeper" main || result=70
+	mutatefnames "$exclw_deeper" |
+	while read -r exclw_fname
+	do
+		check -s1 -e"script $exclw_fname: writable by non-owner" \
+		      PATH_TRANSLATED="$exclw_fname" main
+	done || result=70
 done
 
 # Exclusively writable.
@@ -537,25 +566,42 @@ do
 	chmod go-w "$exclw_subdir" "$exclw_shallow" "$exclw_deeper"
 
 	chmod "$exclw_mode" "$exclw_shallow"
-	check -s1 -e"script $exclw_shallow: not executable." \
-	      PATH_TRANSLATED="$exclw_shallow" main || result=70
+	mutatefnames "$exclw_shallow" |
+	while read -r exclw_fname
+	do
+		check -s1 -e"script $exclw_fname: not executable." \
+		      PATH_TRANSLATED="$exclw_fname" main
+	done || result=70
 
 	chmod "$exclw_mode" "$exclw_subdir"
 	chmod u+wx,go= "$exclw_subdir"
-	check -s1 -e"script $exclw_deeper: not executable." \
-	      PATH_TRANSLATED="$exclw_deeper" main || result=70
+	mutatefnames "$exclw_deeper" |
+	while read -r exclw_fname
+	do
+		check -s1 -e"script $exclw_fname: not executable." \
+		      PATH_TRANSLATED="$exclw_fname" main
+	done || result=70
 
 	chmod g+w,o= "$exclw_deeper"
-	check -s1 -e"script $exclw_deeper: writable by non-owner" \
-	      PATH_TRANSLATED="$exclw_deeper" main || result=70
+	mutatefnames "$exclw_deeper" |
+	while read -r exclw_fname
+	do
+		check -s1 -e"script $exclw_fname: writable by non-owner" \
+		      PATH_TRANSLATED="$exclw_fname" main
+	done || result=70
 
 	chmod g=,o+w "$exclw_deeper"
-	check -s1 -e"script $exclw_deeper: writable by non-owner" \
-	      PATH_TRANSLATED="$exclw_deeper" main || result=70
+	mutatefnames "$exclw_deeper" |
+	while read -r exclw_fname
+	do
+		check -s1 -e"script $exclw_fname: writable by non-owner" \
+		      PATH_TRANSLATED="$exclw_fname" main
+	done || result=70
 done
 
 # Cleanup.
-unset exclw_shallow exclw_deeper exclw_subdir exclw_yes exclw_no excl_mode
+unset exclw_shallow exclw_deeper exclw_subdir \
+      exclw_yes exclw_no excl_mode exclw_fname
 
 
 #
@@ -564,16 +610,27 @@ unset exclw_shallow exclw_deeper exclw_subdir exclw_yes exclw_no excl_mode
 
 # Set-user-ID on execute bit set.
 chmod u=rws,g=r,o=r "$procids_sfx"
-check -s1 -e"script $procids_sfx: set-user-ID on execute bit is set." \
-      PATH_TRANSLATED="$procids_sfx" main || result=70
+
+mutatefnames "$procids_sfx" |
+while read -r procids_fname
+do
+	check -s1 -e"script $procids_fname: set-user-ID on execute bit is set." \
+	      PATH_TRANSLATED="$procids_fname" main
+done || result=70
 
 # Set-group-ID on execute bit set.
 chmod u=rx,g=rs,o=r "$procids_sfx"
-check -s1 -e"script $procids_sfx: set-group-ID on execute bit is set." \
-      PATH_TRANSLATED="$procids_sfx" main || result=70
+
+mutatefnames "$procids_sfx" |
+while read -r procids_fname
+do
+	check -s1 -e"script $procids_fname: set-group-ID on execute bit is set." \
+	      PATH_TRANSLATED="$procids_fname" main
+done || result=70
 
 # Cleanup.
 chmod u=rwx,go= "$procids_sfx"
+unset procids_fname
 
 
 #
@@ -596,12 +653,16 @@ chown -R "$reguser" "$userdir"
 # Test.
 for hidden_script in "$hidden_file" "$hidden_indir"
 do
-	check -s1 -e"path $hidden_script: contains hidden files." \
-		PATH_TRANSLATED="$hidden_script" main || result=70
+	mutatefnames "$hidden_script" |
+	while read -r hidden_fname
+	do
+		check -s1 -e"path $hidden_fname: contains hidden files." \
+			PATH_TRANSLATED="$hidden_fname" main
+	done || result=70
 done
 
 # Cleanup.
-unset hidden_file hidden_dir hidden_indir hidden_script
+unset hidden_file hidden_dir hidden_indir hidden_script hidden_fname
 
 
 #
@@ -629,24 +690,40 @@ touch "$hdl_hugesuffix"
 chown -R "$reguser" "$userdir"
 
 # Bad handler.
-check -s1 -e"script $hdl_emptyhandler: bad handler." \
-      PATH_TRANSLATED="$hdl_emptyhandler" main || result=70
+mutatefnames "$hdl_emptyhandler" |
+while read -r hdl_fname
+do
+check -s1 -e"script $hdl_fname: bad handler." \
+      PATH_TRANSLATED="$hdl_fname" main
+done || result=70
 
 # Suffix is too long.
-check -s1 -e"script $hdl_hugesuffix: filename suffix too long." \
-	PATH_TRANSLATED="$hdl_hugesuffix" main || result=70
+mutatefnames "$hdl_hugesuffix" |
+while read -r hdl_fname
+do
+check -s1 -e"script $hdl_fname: filename suffix too long." \
+      PATH_TRANSLATED="$hdl_fname" main
+done || result=70
 
 # Unknown suffix.
-check -s1 -e"script $hdl_unknownsuffix: no handler found." \
-	PATH_TRANSLATED="$hdl_unknownsuffix" main || result=70
+mutatefnames "$hdl_unknownsuffix" |
+while read -r hdl_fname
+do
+check -s1 -e"script $hdl_fname: no handler found." \
+      PATH_TRANSLATED="$hdl_fname" main
+done || result=70
 
 # Not executable.
-check -s1 -e"script $hdl_nosuffix: not executable." \
-	PATH_TRANSLATED="$hdl_nosuffix" main || result=70
+mutatefnames "$hdl_nosuffix" |
+while read -r hdl_fname
+do
+check -s1 -e"script $hdl_fname: not executable." \
+      PATH_TRANSLATED="$hdl_fname" main
+done || result=70
 
 # Cleanup.
 unset hdl_nosuffix hdl_unknownsuffix hdl_emptyhandler \
-      hdl_suffix hdl_hugesuffix
+      hdl_suffix hdl_hugesuffix hdl_fname
 
 
 #

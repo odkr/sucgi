@@ -267,6 +267,15 @@ mklongpath() (
 	printf '%s\n' "$fname"
 )
 
+# Take filenames and print non-canonical mutations of those filenames.
+mutatefnames() {
+	printf '%s\n' "$@"				|
+	sed -n 'p; s/^\([^/]\)/.\/\1/p'			|
+	sed -n 'p; s/\//\/.\//p'			|
+	sed -n 'p; s/\/\([^/]*\)\//\/\1\/..\/\1\//p'	|
+	sed -n 'p; s/\//\/\//p'
+}
+
 # Pad $str with $ch up to length $n.
 pad() (
 	str="${1?}" n="${2:?}" ch="${3:-x}" side="${4:-l}"
