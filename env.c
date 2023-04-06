@@ -41,6 +41,27 @@
 #include "types.h"
 
 
+Error
+envcopy(const char *const name, char value[MAX_VAR_LEN])
+{
+    const char *var;
+
+    assert(name != NULL);
+    assert(*name != '\0');
+    assert(strnlen(name, MAX_VARNAME_LEN) < MAX_VARNAME_LEN);
+    assert(value != NULL);
+
+    errno = 0;
+    /* RATS: ignore; CGI requires reading environment variables. */
+    var = getenv(name);
+    if (var == NULL) {
+        /* cppcheck-suppress misra-c2012-22.10; getenv may set errno. */
+        return (errno == 0) ? ERR_SEARCH : ERR_SYS;
+    }
+
+    return copystr(MAX_VAR_LEN, var, value);
+}
+
 bool
 /* cppcheck-suppress misra-c2012-8.7; external linkage needed for testing. */
 envisname(const char *const str)

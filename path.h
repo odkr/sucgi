@@ -55,6 +55,24 @@ __attribute__((nonnull(2, 3), warn_unused_result))
 Error pathchkperm(uid_t uid, const char *basedir, const char *fname);
 
 /*
+ * Get the canonical path of FNAME, allocate enough memory to store that
+ * path, and return a pointer to that memory in REAL; that memory should
+ * be freed by the caller.
+ *
+ * Differs from realpath only by checking the length of FNAME as well as
+ * of the canonicalised path.
+ *
+ * Return value:
+ *     OK       Success.
+ *     ERR_LEN  The filename is longer than MAX_FNAME_LEN - 1 bytes.
+ *     ERR_SYS  realpath failed.
+ *
+ * FIXME: Not unit-tested.
+ */
+__attribute__((nonnull(1, 2), warn_unused_result))
+Error pathreal(const char *fname, const char **real);
+
+/*
  * Return a pointer to the filename suffix of FNAME in SUFFIX.
  *
  * Return value:

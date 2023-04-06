@@ -44,6 +44,13 @@ extern char **environ;
  */
 
 /*
+ * FIXME: Not documented.
+ * FIXME: Not unit-tested.
+ */
+__attribute__((nonnull(1, 2), warn_unused_result))
+Error envcopy(const char *name, char value[MAX_VAR_LEN]);
+
+/*
  * Check whether STR is a valid environment variable name.
  */
 __attribute__((nonnull(1), warn_unused_result))

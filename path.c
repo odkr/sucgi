@@ -28,6 +28,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <assert.h>
+#include <errno.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -113,7 +114,7 @@ pathchkperm(const uid_t uid, const char *const basedir,
 
         /* cppcheck-suppress [misra-c2012-10.8, misra-c2012-18.4];
            cast is safe and portable, pos always points to a char in fname. */
-        (void) cpstr((size_t) (pos - fname), fname, cur);
+        (void) copystr((size_t) (pos - fname), fname, cur);
 
         if (stat(cur, &fstatus) != 0) {
             return ERR_SYS;
@@ -132,6 +133,31 @@ pathchkperm(const uid_t uid, const char *const basedir,
         /* cppcheck-suppress misra-c2012-18.4; only moves to the next '/'. */
         pos += strcspn(pos, "/");
     } while (true);
+
+    return OK;
+}
+
+Error
+pathreal(const char *const fname, const char **const real)
+{
+    assert(fname != NULL);
+    assert(*fname != '\0');
+    assert(real != NULL);
+
+    if (strnlen(fname, MAX_FNAME_LEN) >= (size_t) MAX_FNAME_LEN) {
+        return ERR_LEN;
+    }
+
+    errno = 0;
+    /* RATS: ignore; length of input is checked. */
+    *real = realpath(fname, NULL);
+    if (*real == NULL) {
+        return ERR_SYS;
+    }
+
+    if (strnlen(*real, MAX_FNAME_LEN) >= (size_t) MAX_FNAME_LEN) {
+        return ERR_LEN;
+    }
 
     return OK;
 }
