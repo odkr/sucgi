@@ -33,7 +33,7 @@ typedef enum {
     ERR_PRIV,           /* Privileges could be resumed. */
     ERR_SEARCH,         /* Something was not found. */
     ERR_SUFFIX,         /* Filename has no suffix. */
-    ERR_WEXCL           /* File not exclusively writable by its owner. */
+    ERR_PERM            /* Permission error. */
 } Error;
 
 
