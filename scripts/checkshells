@@ -39,7 +39,7 @@ verbose=
 # Initialiation
 #
 
-set -Cefu
+set -Ceu
 tools_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
 src_dir="$(dirname -- "$tools_dir")"
 # shellcheck disable=2034
@@ -128,7 +128,11 @@ warn -q 'copying sources ...'
 m4 makefile.m4 >"$TMPDIR/makefile"
 distdir="$TMPDIR/dist"
 make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir" >/dev/null
-cd -P "$distdir" || exit
+cd "$distdir" || exit
+
+warn -q 'compiling binaries ...'
+./configure -qc'speed.env' >/dev/null
+make all tools checks >/dev/null 2>&1
 
 failures=
 for shell
@@ -139,12 +143,14 @@ do
 
 	logfile="$TMPDIR/check$shell.log"
 	if ! (
+		set -e
+
 		[ "$verbose" ] || exec >"$logfile" 2>&1
 
 		# shellcheck disable=2086
 		rm -- $files
 
-		"$shell" ./configure -c'posix.env'
+		"$shell" ./configure -c'speed.env'
 
 		for file in $files
 		do
@@ -155,8 +161,17 @@ do
 			fi
 		done
 
-		find tests -name '*.sh' ! -name funcs.sh \
-		     -exec make -e check SHELL="$shell" checks='{}' ';'
+		for script in tests/*.sh
+		do
+			[ "$script" = 'tests/*.sh' ] && break
+
+			retval=0
+			"$shell" "$script" || retval=$?
+			case $retval in
+			(0|75) : ;;
+			(*) exit "$retval"
+			esac
+		done
 	)
 	then
 		if ! [ "$verbose" ]

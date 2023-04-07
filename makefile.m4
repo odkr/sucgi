@@ -232,6 +232,10 @@ bins = sucgi tests/main $(macro_check_bins) $(other_check_bins) $(tool_bins)
 clean:
 	rm -f *.a *.o $(bins)
 
+mrproper: distclean
+	rm -rf tmp-*
+	find . -type f '(' -name '*.bak' -o -name '*.log' ')' -delete
+
 
 #
 # Distribution
@@ -246,13 +250,13 @@ dist_files = *.c *.h *.env *.excl *.m4 *.ex README.rst LICENSE.txt \
 
 distclean: clean
 	rm -f compat.h makefile *.log *.lock *.status *.tgz
-	rm -rf tmp-* $(dist_name)
+	rm -rf $(dist_name)
 
-$(dist_name):
+$(dist_name): distclean
 	mkdir $(dist_name)
 	cp -a $(dist_files) $(dist_name)
 
-$(dist_ar): distclean $(dist_name)
+$(dist_ar): $(dist_name)
 	tar -X dist.excl -czf $(dist_ar) $(dist_name)
 
 $(dist_ar).asc: $(dist_ar)
