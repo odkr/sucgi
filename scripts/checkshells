@@ -131,7 +131,7 @@ make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir" >/dev/null
 cd "$distdir" || exit
 
 warn -q 'compiling binaries ...'
-./configure -qc'speed.env' >/dev/null
+./configure -qc'posix.env' >/dev/null
 make all tools checks >/dev/null 2>&1
 
 failures=
@@ -150,7 +150,7 @@ do
 		# shellcheck disable=2086
 		rm -- $files
 
-		"$shell" ./configure -c'speed.env'
+		"$shell" ./configure -c'posix.env'
 
 		for file in $files
 		do
