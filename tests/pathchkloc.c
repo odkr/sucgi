@@ -100,12 +100,14 @@ static const Args cases[] = {
     {"/", "foo", ERR_BASEDIR},
     {"/foo", "/", ERR_BASEDIR},
     {"/foo", "/foo", ERR_BASEDIR},
+    {"/foo", "/bar/foo", ERR_BASEDIR},
 
     /* Relative paths. */
     {"foo", "foo/bar", OK},
     {".", "foo/bar", OK},
     {"foo", "foo", ERR_BASEDIR},
     {"bar", "foo", ERR_BASEDIR},
+    {"foo", "bar/foo", ERR_BASEDIR},
 
     /* Leading dot. */
     {".", "./foo", OK},
@@ -118,6 +120,7 @@ static const Args cases[] = {
     {".", ".", ERR_BASEDIR},
     {".f", ".foo", ERR_BASEDIR},
     {".foo", ".foo", ERR_BASEDIR},
+    {"./foo", "./bar/foo", ERR_BASEDIR},
 
     /* Realistc tests. */
     {"/home/jdoe", "/home/jdoe/public_html", OK},

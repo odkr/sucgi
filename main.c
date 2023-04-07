@@ -521,7 +521,8 @@ main(int argc, char **argv) {
 
     if (ngroups < 0) {
         /* Should be unreachable. */
-        error("user %s: member of a negative number of groups.", logname);
+        error("%d: getgrouplist returned %d groups for user %s.",
+              __LINE__, ngroups, logname);
     }
 
     if (strncmp(ALLOW_GROUP, "", 1) != 0) {
@@ -678,7 +679,7 @@ main(int argc, char **argv) {
     case OK:
         break;
     case ERR_LEN:
-        error("expanded user directory is too long.");
+        error("user %s: user directory is too long.", logname);
     case ERR_SYS:
         error("realpath %s: %m.", userdir_log);
     default:
@@ -695,7 +696,7 @@ main(int argc, char **argv) {
         case OK:
             break;
         case ERR_BASEDIR:
-            error("script %s: not within %s's user directory.",
+            error("script %s: not in %s's user directory.",
                   script_log, logname);
         default:
             /* Should be unreachable. */
