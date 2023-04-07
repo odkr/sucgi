@@ -23,9 +23,11 @@
 # Check if calling a programme produces a result.
 # -s checks for an exit status (defaults to 0),
 # -o STR for STR on stdout, -e STR for STR on stderr.
+# FIXME: Doesn't work with posh.
 check() (
 	exstatus=0 stream=''
 	OPTIND=1 OPTARG='' opt=''
+
 	while getopts 's:o:e:v' opt
 	do
 		# shellcheck disable=2034
