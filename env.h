@@ -52,8 +52,6 @@ extern char **environ;
  *     ERR_LEN     NAME is too long.
  *     ERR_SEARCH  NAME is not set.
  *     ERR_SYS     getenv failed.
- *
- * FIXME: Not unit-tested.
  */
 __attribute__((nonnull(1, 2), warn_unused_result))
 Error envcopyvar(const char *name, char value[MAX_VAR_LEN]);
