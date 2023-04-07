@@ -146,7 +146,7 @@ main(void)
         const Args args = cases[i];
         bool ret;
 
-        ret = fileisexe(args.uid, args.gid, args.fstatus);
+        ret = fileisexe(args.uid, args.gid, &args.fstatus);
         if (ret != args.ret) {
             warnx("(%d, %d, {%d, %d, 0%03o}) -> %d [!]",
                   (int) args.uid, (int) args.gid,

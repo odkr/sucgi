@@ -816,7 +816,7 @@ main(int argc, char **argv) {
      * Run the script.
      */
 
-    if (!fileisexe(uid, gid, script_stat)) {
+    if (!fileisexe(uid, gid, &script_stat)) {
         const Pair handlers[] = HANDLERS;
         const char *handler;
 

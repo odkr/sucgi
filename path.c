@@ -129,7 +129,7 @@ pathchkperm(const uid_t uid, const char *const basedir,
             return ERR_SYS;
         }
 
-        if (!fileisxusrw(uid, fstatus)) {
+        if (!fileisxusrw(uid, &fstatus)) {
             return ERR_PERM;
         }
 

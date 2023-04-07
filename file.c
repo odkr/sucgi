@@ -33,27 +33,27 @@
 
 
 bool
-fileisexe(const uid_t uid, const gid_t gid, const struct stat fstatus)
+fileisexe(const uid_t uid, const gid_t gid, const struct stat *const fstatus)
 {
     mode_t mask;
 
     if (uid == 0) {
         mask = S_IXUSR | S_IXGRP | S_IXOTH;
-    } else if (fstatus.st_uid == uid) {
+    } else if (fstatus->st_uid == uid) {
         mask = S_IXUSR;
-    } else if (fstatus.st_gid == gid) {
+    } else if (fstatus->st_gid == gid) {
         mask = S_IXGRP;
     } else {
         mask = S_IXOTH;
     }
 
-    return (fstatus.st_mode & mask) != 0;
+    return (fstatus->st_mode & mask) != 0;
 }
 
 bool
-fileisxusrw(const uid_t uid, const struct stat fstatus)
+fileisxusrw(const uid_t uid, const struct stat *const fstatus)
 {
-    return fstatus.st_uid == uid &&
-           (fstatus.st_mode & (S_IWGRP | S_IWOTH)) == 0;
+    return fstatus->st_uid == uid &&
+           (fstatus->st_mode & (S_IWGRP | S_IWOTH)) == 0;
 }
 

@@ -125,7 +125,7 @@ main(void)
         const Args args = cases[i];
         bool ret;
 
-        ret = fileisxusrw(args.uid, args.fstatus);
+        ret = fileisxusrw(args.uid, &args.fstatus);
         if (ret != args.ret) {
             warnx("(%d, {%d, 0%03o})) -> %d [!]",
                   (int) args.uid, (int) args.fstatus.st_gid,
