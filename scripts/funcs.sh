@@ -20,23 +20,17 @@
 
 # shellcheck disable=2015,2031
 
-
-#
-# Functions
-#
-
-
 # Check if calling a programme produces a result.
 # -s checks for an exit status (defaults to 0),
 # -o STR for STR on stdout, -e STR for STR on stderr.
 check() (
-	status=0 stream=''
+	exstatus=0 stream=''
 	OPTIND=1 OPTARG='' opt=''
 	while getopts 's:o:e:v' opt
 	do
 		# shellcheck disable=2034
 		case $opt in
-		(s) status="$OPTARG" ;;
+		(s) exstatus="$OPTARG" ;;
 		(o) stream=out pattern="$OPTARG" ;;
 		(e) stream=err pattern="$OPTARG" ;;
 		(*) return 2
@@ -53,11 +47,11 @@ check() (
 		eval "std$stream=\"\$tmpfile\""
 	fi
 
-	: "${@?no command given}"
+	: "${1:?no command given}"
 	: "${stdout:=/dev/null}"
 	: "${stderr:=/dev/null}"
 
-	err=0 rc=0
+	err=0 retval=0
 
 	# shellcheck disable=2154
 	env "$@" >"$stdout" 2>"$stderr" || err=$?
@@ -78,13 +72,13 @@ check() (
 	fi
 
 
-	if [ "$err" -ne "$status" ] && [ "$err" -ne 141 ]
+	if [ "$err" -ne "$exstatus" ] && [ "$err" -ne 141 ]
 	then
 		warn '%s: exited with status %d.' "$*" "$err"
-		rc=70
+		retval=70
 	fi
 
-	return "$rc"
+	return "$retval"
 )
 
 # Re-raise $signal if $catch is set.
@@ -110,14 +104,14 @@ catch() {
 # Terminate all children, eval $cleanup and exit with status $?.
 cleanup() {
 	# shellcheck disable=2319
-	rc=$?
+	retval=$?
 	set +e
 	trap '' EXIT HUP INT TERM
 	# shellcheck disable=2046
 	kill -- $(jobs -p 2>/dev/null) -$$ >/dev/null 2>&1
 	wait
 	eval "${cleanup-}"
-	return "$rc"
+	return $((retval % 128))
 }
 
 # Clear the current line of terminal $fd.
@@ -161,12 +155,12 @@ dirwalk() (
 # Print a message to STDERR and exit with a non-zero status.
 # -s sets a different status.
 err() {
-	rc=2
+	exstatus=2
 	OPTIND=1 OPTARG='' opt=''
 	while getopts s: opt
 	do
 		case $opt in
-		(s) rc="$OPTARG" ;;
+		(s) exstatus="$OPTARG" ;;
 		(*) exit 70
 		esac
 	done
@@ -174,7 +168,7 @@ err() {
 
 	warn "$@"
 
-	exit "$rc"
+	exit "$exstatus"
 }
 
 # Register signals, set variables, and enable colours.
@@ -238,7 +232,7 @@ mklongpath() (
 		i=0
 		while [ $i -lt "$max" ]
 		do
-			seg="$(pad "$i" "$dirlen")"
+			seg="$(pad "$dirlen" "$i")"
 			if ! [ -e "$dir/$seg" ]
 			then
 				dir="$dir/$seg"
@@ -251,7 +245,7 @@ mklongpath() (
 	i=0 fname=
 	while [ $i -lt "$max" ]
 	do
-		seg="$(pad "$i" "$((len - ${#dir} - 1))")"
+		seg="$(pad "$((len - ${#dir} - 1))" "$i")"
 		if ! [ -e "$dir/$seg" ]
 		then
 			fname="$dir/$seg"
@@ -276,27 +270,27 @@ mutatefnames() {
 	sed -n 'p; s/\//\/\//p'
 }
 
-# Pad $str with $ch up to length $n.
+# Pad $str with $fill on $side up to length $n.
 pad() (
-	str="${1?}" n="${2:?}" ch="${3:-x}" side="${4:-l}"
-	pipe="${TMPDIR:-/tmp}/pad-$$.fifo" rc=0
-	mkfifo -m 0700 "$pipe"
+	n="${1:?}" str="${2-}" fill="${3:-x}" side="${4:-l}"
+
+	strlen="${#str}" fillen="${#fill}"
+	limit="$((n - fillen))" pad=
+	while [ "$strlen" -le "$limit" ]
+	do pad="$pad$fill" strlen=$((strlen + fillen))
+	done
+
 	case $side in
-	(l) printf '%*s\n' "$n" "$str" >"$pipe" & printf=$! ;;
-	(r) printf '%-*s\n' "$n" "$str" >"$pipe" & printf=$! ;;
-	(*) err "side must be 'l' or 'r'."
+	(l) printf '%s%s\n' "$pad" "$str" ;;
+	(r) printf '%s%s\n' "$str" "$pad" ;;
 	esac
-	tr ' ' "$ch" <"$pipe" || rc=$?
-	wait $printf          || rc=$?
-	rm -f "$pipe"
-	return $rc
 )
 
 # Find a user whose UID is between $minuid and $maxuid and who
 # only belongs to groups with GIDs between $mingid and $maxgid.
 reguser() (
 	minuid="${1:?}" maxuid="${2:?}" mingid="${3:?}" maxgid="${4:?}"
-	pipe="${TMPDIR:-/tmp}/ids-$$.fifo" rc=0 reguser=
+	pipe="${TMPDIR:-/tmp}/ids-$$.fifo" retval=0 reguser=
 	mkfifo -m 700 "$pipe"
 
 	ids >"$pipe" & ids=$!
@@ -319,9 +313,9 @@ reguser() (
 		break
 	done <"$pipe"
 
-	wait $ids || rc=$?
+	wait $ids || retval=$?
 	rm -f "$pipe"
-	[ "$rc" -eq 0 ] && [ "$reguser" ] || return 1
+	[ "$retval" -eq 0 ] && [ "$reguser" ] || return 1
 
 	printf '%s\n' "$reguser"
 )
@@ -366,14 +360,14 @@ unallocid() (
 	shift $((OPTIND - 1))
 	start="${1:?}" end="${2:?}"
 
-	pipe="${TMPDIR:-/tmp}/ids-$$.fifo" rc=0
+	pipe="${TMPDIR:-/tmp}/ids-$$.fifo" retval=0
 	mkfifo -m 0700 "$pipe"
 	ids $opts >"$pipe" 2>/dev/null & pid=$!
 	# shellcheck disable=2086
-	ids="$(cut -d' ' -f1 <"$pipe")" || rc=$?
+	ids="$(cut -d' ' -f1 <"$pipe")" || retval=$?
 	rm -f "$pipe"
 
-	[ "$rc" -eq 0 ] || return $rc
+	[ "$retval" -eq 0 ] || return $retval
 	wait "$pid" || [ $? -eq 67 ]
 
 	i="$start"

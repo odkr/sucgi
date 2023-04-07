@@ -47,7 +47,17 @@ eval "$(main -C | grep -E ^NDEBUG=)"
 # Assertions
 #
 
-[ "${NDEBUG-}" ] || check -s134 -e"*message" error ''
+if ! [ "${NDEBUG-}" ]
+then
+	trap '' ABRT
+
+	if [ "${KSH_VERSION-}" ]
+	then retval=262
+	else retval=134
+	fi
+
+	check -s"$retval" -e"*message" error ''
+fi
 
 
 #

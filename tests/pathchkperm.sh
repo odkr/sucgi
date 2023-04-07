@@ -67,29 +67,36 @@ touch "$deeper"
 
 if ! [ "${NDEBUG-}" ]
 then
-	long_fname="$(pad / $((MAX_FNAME_LEN - 1)) x r)"
+	trap '' ABRT
+
+	if [ "${KSH_VERSION-}" ]
+	then retval=262
+	else retval=134
+	fi
+
+	long_fname="$(pad $((MAX_FNAME_LEN - 1)) / x r)"
 	err_fname="${long_fname}x"
 
-	check -s134 -e"*basedir == '/'"	\
-		pathchkperm "$user" '' /			|| result=70
-	check -s134 -e"*basedir == '/'"	\
+	check -s"$retval" -e"*basedir == '/'"	\
+		pathchkperm "$user" '' /		|| result=70
+	check -s"$retval" -e"*basedir == '/'"	\
 		pathchkperm "$user" relpath /		|| result=70
-	check -s134 -e"*basedir == '/'"	\
+	check -s"$retval" -e"*basedir == '/'"	\
 		pathchkperm "$user" . /			|| result=70
 
-	check -s134 -e"*fname == '/'" \
-		pathchkperm "$user" / ''			|| result=70
-	check -s134 -e"*fname == '/'" \
+	check -s"$retval" -e"*fname == '/'" \
+		pathchkperm "$user" / ''		|| result=70
+	check -s"$retval" -e"*fname == '/'" \
 		pathchkperm "$user" / relpath		|| result=70
-	check -s134 -e"*fname == '/'" \
+	check -s"$retval" -e"*fname == '/'" \
 		pathchkperm "$user" / .			|| result=70
 
-	check -s134 \
+	check -s"$retval" \
 	      -e'strnlen(basedir, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN' \
-	      pathchkperm "$user" "$err_fname" /		|| result=70
-	check -s134 \
+	      pathchkperm "$user" "$err_fname" /	|| result=70
+	check -s"$retval" \
 	      -e'strnlen(fname, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN' \
-	      pathchkperm "$user" / "$err_fname"		|| result=70
+	      pathchkperm "$user" / "$err_fname"	|| result=70
 
 	check -s1 pathchkperm "$user" "$long_fname" /	|| result=70
 	check -s1 pathchkperm "$user" / "$long_fname"	|| result=70

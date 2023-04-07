@@ -58,8 +58,15 @@ user="$(id -un)" uid="$(id -u)"
 
 if ! [ "${NDEBUG-}" ]
 then
+	trap '' ABRT
+
+	if [ "${KSH_VERSION-}" ]
+	then retval=262
+	else retval=134
+	fi
+
 	root="$(ids | awk '$1 == 0 {print $2; exit}')"
-	check -s134 -e'uid > 0' privdrop "$root"
+	check -s"$retval" -e'uid > 0' privdrop "$root"
 fi
 
 

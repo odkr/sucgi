@@ -105,23 +105,23 @@ check -s1 -e'too many environment variables.' \
       $envsan_vars main		|| result=70
 
 # Variable name has maximum length.
-envsan_varname="$(pad v $((MAX_VARNAME_LEN - 1)))"
+envsan_varname="$(pad $((MAX_VARNAME_LEN - 1)) v)"
 check -s1 -e"discarding \$$envsan_varname" \
       "$envsan_varname=" main	|| result=70
 
 # Variable name is too long.
-envsan_varname="$(pad v "$MAX_VARNAME_LEN")"
+envsan_varname="$(pad "$MAX_VARNAME_LEN" v)"
 envsan_var="$envsan_varname=foo"
 check -s1 -e'discarding variable with overly long name.' \
       "$envsan_var" main	|| result=70
 
 # Variable has maximum length.
-envsan_var="$(pad var= $((MAX_VAR_LEN - 1)) x r)"
+envsan_var="$(pad $((MAX_VAR_LEN - 1)) var= x r)"
 check -s1 -e"discarding \$${envsan_var%=*}" \
       "$envsan_var" main	|| result=70
 
 # Variable is too long.
-envsan_var="$(pad var= "$MAX_VAR_LEN" x r)"
+envsan_var="$(pad "$MAX_VAR_LEN" var= x r)"
 check -s1 -e'discarding overly long variable.'	\
       "$envsan_var" main	|| result=70
 
@@ -174,10 +174,9 @@ sed -n 's/#define \([[:alnum:]_]*\).*/\1/p' "$src_dir/config.h"	|
 sort -u								|
 while read -r opthdl_var
 do
-	[ "$opthdl_var" != CONFIG_H ] 	&&
-	check -o"$opthdl_var" main -C	||
-	result=70
-done
+	[ "$opthdl_var" != CONFIG_H ] 	|| continue
+	check -o"$opthdl_var" main -C	|| exit
+done || result=70
 
 # Usage message.
 for opthdl_args in -X -XX -x --x - -- '-h -C' '-hC' '-h -V' '-hC'
@@ -316,6 +315,7 @@ then
 	esac
 fi
 
+
 #
 # User validation
 #
@@ -391,7 +391,7 @@ reggid="$(id -g "$reguser")"
 # shellcheck disable=2059
 case $USER_DIR in
 (/*%s*) userdir="$(printf -- "$USER_DIR" "$reguser")" ;;
-(*%s*)	err 'user directories within home directories are unsupported.' ;;
+(*%s*)	err 'user directories in home directories are unsupported.' ;;
 (*)	userdir="$USER_DIR/$reguser" ;;
 esac
 
@@ -449,6 +449,14 @@ chown -R "$reguser" "$userdir"
 
 
 #
+# Non-superuser
+#
+
+check -s1 -e'seteuid: Operation not permitted.' \
+	PATH_TRANSLATED="$penv_sfx" runas "$reguser" main
+
+
+#
 # Privilege dropping
 #
 
@@ -494,30 +502,23 @@ dirval_intoout="$userdir/in-to-out.sh"
 ln -s "$dirval_outside" "$dirval_intoout"
 
 # Forbidden location.
-for dirval_forb in "$dirval_outside" "$dirval_dots" "$dirval_intoout"
+mutatefnames "$dirval_outside" "$dirval_dots" "$dirval_intoout" |
+while read -r dirval_fname
 do
-	mutatefnames "$dirval_forb" |
-	while read -r dirval_fname
-	do
-		check -s1 -e"script $dirval_fname: not within $reguser's user directory." \
-		      PATH_TRANSLATED="$dirval_fname" main
-	done || result=70
-done
+	check -s1 -e"script $dirval_fname: not in $reguser's user directory." \
+	      PATH_TRANSLATED="$dirval_fname" main
+done || result=70
 
 # Permitted location.
-for dirval_perm in "$procids_sfx" "$dirval_outtoin"
+mutatefnames "$procids_sfx" "$dirval_outtoin" |
+while read -r dirval_fname
 do
-	mutatefnames "$dirval_perm" |
-	while read -r dirval_fname
-	do
-		check -s0 -o"uid=$reguid egid=$reggid ruid=$reguid rgid=$reggid" \
-		      PATH_TRANSLATED="$dirval_fname" main
-	done || result=70
-done
+	check -s0 -o"uid=$reguid egid=$reggid ruid=$reguid rgid=$reggid" \
+	      PATH_TRANSLATED="$dirval_fname" main
+done || result=70
 
 # Cleanup.
-unset dirval_outtoin dirval_outside dirval_intoout \
-      dirval_forb dirval_perm dirval_fname
+unset dirval_outtoin dirval_outside dirval_intoout dirval_fname
 
 
 #
@@ -651,18 +652,15 @@ touch "$hidden_indir"
 chown -R "$reguser" "$userdir"
 
 # Test.
-for hidden_script in "$hidden_file" "$hidden_indir"
+mutatefnames "$hidden_file" "$hidden_indir" |
+while read -r hidden_fname
 do
-	mutatefnames "$hidden_script" |
-	while read -r hidden_fname
-	do
-		check -s1 -e"path $hidden_fname: contains hidden files." \
-			PATH_TRANSLATED="$hidden_fname" main
-	done || result=70
-done
+	check -s1 -e"path $hidden_fname: contains hidden files." \
+		PATH_TRANSLATED="$hidden_fname" main
+done || result=70
 
 # Cleanup.
-unset hidden_file hidden_dir hidden_indir hidden_script hidden_fname
+unset hidden_file hidden_dir hidden_indir hidden_fname
 
 
 #
@@ -682,7 +680,7 @@ hdl_emptyhandler="$userdir/script.empty"
 touch "$hdl_emptyhandler"
 
 # Create a script with a too long filename suffix.
-hdl_suffix=$(pad . "$MAX_SUFFIX_LEN" x r)
+hdl_suffix=$(pad "$MAX_SUFFIX_LEN" . x r)
 hdl_hugesuffix="$userdir/script$hdl_suffix"
 touch "$hdl_hugesuffix"
 
