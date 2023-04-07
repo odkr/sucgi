@@ -130,15 +130,15 @@ uninstall:
 # Tests
 #
 
-checks = $(check_scripts) $(macro_check_bins) tests/envisname \
-	tests/envrestore tests/fileisexe tests/fileisxusrw \
+checks = $(check_scripts) $(macro_check_bins) tests/envcopyvar \
+	tests/envisname tests/envrestore tests/fileisexe tests/fileisxusrw \
 	tests/handlerfind tests/pairfind tests/pathchkloc \
 	tests/pathsuffix tests/copystr tests/splitstr tests/userdirexp
 
 macro_check_bins = tests/ISSIGNED tests/NELEMS tests/SIGNEDMAX
 
-other_check_bins = tests/envisname tests/envrestore tests/error \
-	tests/fileisexe tests/fileisxusrw tests/handlerfind \
+other_check_bins = tests/envcopyvar tests/envisname tests/envrestore \
+	tests/error tests/fileisexe tests/fileisxusrw tests/handlerfind \
 	tests/pairfind tests/pathchkperm tests/pathchkloc \
 	tests/pathsuffix tests/privdrop tests/privsuspend tests/copystr \
 	tests/splitstr tests/userdirexp
@@ -158,7 +158,9 @@ tests/SIGNEDMAX: tests/SIGNEDMAX.c
 
 tests/envisname: tests/envisname.c funcs.a(env.o)
 
-tests/envrestore: tests/envrestore.c funcs.a(env.o) funcs.a(str.o)
+tests/envrestore: tests/envrestore.c funcs.a(env.o)
+
+tests/envcopyvar: tests/envcopyvar.c funcs.a(env.o)
 
 tests/error: tests/error.c funcs.a(error.o)
 
