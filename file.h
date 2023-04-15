@@ -33,7 +33,7 @@
  * Check whether FSTATUS indicates that only the user with the
  * user ID UID has write access to the corresponding file.
  */
-__attribute__((const, warn_unused_result))
+__attribute__((nonnull(2), warn_unused_result))
 bool fileisxusrw(uid_t uid, const struct stat *fstatus);
 
 
