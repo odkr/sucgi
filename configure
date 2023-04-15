@@ -719,8 +719,8 @@ do
 	if [ "$value" ]
 	then
 		case $# in
-		(0) set -- "-D__${key}=${value# }" ;;
-		(*) set -- "$@" "-D__${key}=${value# }" ;;
+		(0) set -- "-D__${key}=\`${value# }'" ;;
+		(*) set -- "$@" "-D__${key}=\`${value# }'" ;;
 		esac
 	fi
 done
