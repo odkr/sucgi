@@ -812,20 +812,3 @@ do
 	fi
 	unset swap
 done
-
-
-#
-# config.h
-#
-
-if [ "$prog_name" = "$confsave" ]
-then
-	:
-elif [ -e config.h ]
-then
-	cmp -s config.h.ex config.h ||
-	warn -q 'config.h and config.h.ex differ, keeping config.h.'
-else
-	warn -q 'copying config.h.ex to config.h.'
-	cp config.h.ex config.h
-fi

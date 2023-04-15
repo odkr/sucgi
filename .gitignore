@@ -16,7 +16,6 @@
 a.out
 build.h
 compat.h
-config.h
 config.status
 cov
 local.env
