@@ -62,7 +62,7 @@ envcopyvar(const char *const name, char value[MAX_VAR_LEN])
         return ERR_SYS;
     }
 
-    return copystr(MAX_VAR_LEN - 1U, var, value);
+    return copystr(MAX_VAR_LEN - 1, var, value);
 }
 
 bool

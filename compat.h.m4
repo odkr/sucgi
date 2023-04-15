@@ -142,15 +142,16 @@ ifdef(`__HAVE_FEATURES_H', `dnl
 #if !defined(HAVE_FEATURES_H)
 #define HAVE_FEATURES_H 0
 #endif
-#endif /* OS detection. */
+
+#endif /* System detection. */
 
 /* Include <sys/param.h> if available. */
-#if HAVE_SYS_PARAM_H
+#if defined(HAVE_SYS_PARAM_H) && HAVE_SYS_PARAM_H
 #include <sys/param.h>
 #endif
 
 /* Include <features.h> if available. */
-#if HAVE_FEATURES_H
+#if defined(HAVE_FEATURES_H) && HAVE_FEATURES_H
 #include <features.h>
 #endif
 

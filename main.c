@@ -833,7 +833,8 @@ main(int argc, char **argv) {
         /* If this point is reached, execution has failed. */
         error("execlp %s %s: %m.", handler, script_phys);
     case ERR_SEARCH:
-        break;
+        ; /* Empty on purpose. */
+        __attribute__((fallthrough));
     case ERR_SUFFIX:
         break;
     case ERR_BAD:
