@@ -31,6 +31,7 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <signal.h>
+#include <spawn.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -152,6 +153,13 @@ static void rewindln(FILE *tty);
  *     Not async-safe.
  */
 static long opttonum(long min, long max);
+
+
+/*
+ * Global variables
+ */
+
+extern char **environ;
 
 
 /*
@@ -364,25 +372,39 @@ main (int argc, char **argv)
         .sa_handler = SIG_DFL
     };
 
-    wordexp_t comms[MAX_NRUN];  /* Parsed commands. */
-    bool statusmask[128];       /* Ignored exit statuses. */
-    sigset_t nosigs;            /* Empty signal set. */
-    sigset_t oldmask;           /* Old signal mask. */
-    long timeout;               /* Number of seconds to wait for jobs. */
-    int nfork;                  /* Number of jobs forked. */
-    int nrep;                   /* Number of exit statuses reported. */
-    int nullfd;                 /* File descriptor for /dev/null. */
-    int ret;                    /* runpara exit status. */
-    int ch;                     /* Option character. */
-    bool cont;                  /* Continue despite errors? */
-    bool quiet;                 /* Be quiet? */
-    bool suppress;              /* Suppress job output? */
+    posix_spawnattr_t procattrs;            /* Process attributes. */
+    posix_spawn_file_actions_t fileacts;    /* File descriptor actions. */
+    wordexp_t comms[MAX_NRUN];              /* Parsed commands. */
+    bool statusmask[128];                   /* Ignored exit statuses. */
+    sigset_t nosigs;                        /* Empty signal set. */
+    sigset_t oldmask;                       /* Old signal mask. */
+    sigset_t trapped;                       /* Set of trapped signals. */
+    long timeout;                           /* Number of seconds to wait. */
+    int nfork;                              /* Number of jobs forked. */
+    int nrep;                               /* Number of jobs reported on. */
+    int nullfd;                             /* /dev/null file descriptor. */
+    int exstatus;                           /* runpara exit status. */
+    int ch;                                 /* Option character. */
+    bool cont;                              /* Continue despite errors? */
+    bool quiet;                             /* Be quiet? */
+    bool suppress;                          /* Suppress job output? */
+
+    errno = posix_spawnattr_init(&procattrs);
+    if (errno != 0) {
+        err(EXIT_FAILURE, "posix_spawnattr_init");
+    }
+
+    errno = posix_spawn_file_actions_init(&fileacts);
+    if (errno != 0) {
+        err(EXIT_FAILURE, "posix_spawn_file_actions_init");
+    }
 
     (void) memset(jobs, 0, sizeof(jobs));
     (void) memset(statusmask, 0, sizeof(statusmask));
     (void) memset(comms, 0, sizeof(comms));
     (void) sigemptyset(&nosigs);
     (void) sigemptyset(&chldsig);
+    (void) sigemptyset(&trapped);
 
 /* GCC mistakes chldsig for an int, and hence warns about a sign change. */
 #pragma GCC diagnostic push
@@ -394,7 +416,7 @@ main (int argc, char **argv)
     nfork = 0;
     nrep = 0;
     nullfd = -1;
-    ret = EXIT_SUCCESS;
+    exstatus = EXIT_SUCCESS;
     cont = false;
     quiet = false;
     suppress = true;
@@ -474,10 +496,10 @@ PROGNAME " - run jobs in parallel\n\n"
      * shell out and ergo trigger a SIGCHLD, breaking job collection.
      */
     for (int i = 0; i < argc; ++i) {
-        int rc;     /* Return value of wordexp. */
+        int retval;     /* Return value of wordexp. */
 
-        rc = wordexp(argv[i], &comms[i], WRDE_SHOWERR);
-        switch (rc) {
+        retval = wordexp(argv[i], &comms[i], WRDE_SHOWERR);
+        switch (retval) {
             case 0:
                 break;
             case WRDE_NOSPACE:
@@ -487,7 +509,7 @@ PROGNAME " - run jobs in parallel\n\n"
             case WRDE_BADCHAR:
                 errx(EXIT_FAILURE, "%s: forbidden character", argv[i]);
             default:
-                errx(EXIT_FAILURE, "wordexp returned %d", rc);
+                errx(EXIT_FAILURE, "wordexp returned %d", retval);
         }
     }
 
@@ -506,6 +528,38 @@ PROGNAME " - run jobs in parallel\n\n"
         errno = 0;
         if (sigaction(trap.signo, &action, NULL) != 0) {
             err(EXIT_FAILURE, "sigaction");
+        }
+
+/* GCC mistakes trapped for an int, and hence warns about a sign change. */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-conversion"
+        sigaddset(&trapped, trap.signo);
+#pragma GCC diagnostic pop
+    }
+
+    errno = posix_spawnattr_setflags(
+        &procattrs, POSIX_SPAWN_SETSIGMASK | POSIX_SPAWN_SETSIGDEF
+    );
+    if (errno != 0) {
+        err(EXIT_FAILURE, "posix_spawnattr_setflags");
+    }
+
+    errno = posix_spawnattr_setsigmask(&procattrs, &oldmask);
+    if (errno != 0) {
+        err(EXIT_FAILURE, "posix_spawnattr_setsigmask");
+    }
+
+    errno = posix_spawnattr_setsigdefault(&procattrs, &trapped);
+    if (errno != 0) {
+        err(EXIT_FAILURE, "posix_spawnattr_setsigdefault");
+    }
+
+    if (suppress && nullfd > 0) {
+        for (int fd = 0; fd < 3; ++fd) {
+            errno = posix_spawn_file_actions_adddup2(&fileacts, nullfd, fd);
+            if (errno != 0) {
+                err(EXIT_FAILURE, "posix_spawn_file_actions_adddup2");
+            }
         }
     }
 
@@ -545,7 +599,7 @@ PROGNAME " - run jobs in parallel\n\n"
                                 return status;
                             }
 
-                            ret = status;
+                            exstatus = status;
                         }
                     }
                 } else {
@@ -562,47 +616,21 @@ PROGNAME " - run jobs in parallel\n\n"
 
             /* Start a job. */
             if (job->pid == 0 && nfork < argc) {
+                char **comm = comms[nfork].we_wordv;
+
                 job->comm = argv[nfork];
 
-                errno = 0;
-                job->pid = fork();
-
-                if (job->pid < 0) {
-                    if (errno == EAGAIN) {
-                        /* Wait for another job to complete. */
-                        break;
-                    }
-                    err(EXIT_FAILURE, "fork");
-                } else if (job->pid == 0) {
-                    char **comm = comms[nfork].we_wordv;
-
-                    for (size_t j = 0; j < NELEMS(traps); ++j) {
-                        if (sigaction(traps[j].signo, &defhdl, NULL) != 0) {
-                            abort();
-                        }
-                    }
-
-                    if (sigprocmask(SIG_SETMASK, &oldmask, NULL) != 0) {
-                        abort();
-                    }
-
-                    if (suppress && nullfd > 0) {
-                        for (int fd = 0; fd < 3; ++fd) {
-                            if (dup2(nullfd, fd) < 0) {
-                                abort();
-                            }
-                        }
-                    }
-
-                    (void) execvp(*comm, comm);
-                    _exit(127);
-                } else {
+                errno = posix_spawnp(&job->pid, *comm,
+                                     &fileacts, &procattrs, comm, environ);
+                if (errno == 0) {
                     ++nfork;
                     ++nrun;
 
                     if (!quiet) {
                         warnx("[%d] %s", job->pid, job->comm);
                     }
+                } else {
+                    err(EXIT_FAILURE, "posix_spawnp %s", job->comm);
                 }
             }
         }
@@ -648,5 +676,5 @@ PROGNAME " - run jobs in parallel\n\n"
         warnx("all jobs completed");
     }
 
-    return ret;
+    return exstatus;
 }
