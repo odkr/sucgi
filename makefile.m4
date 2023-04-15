@@ -190,7 +190,11 @@ tests/splitstr: tests/splitstr.c funcs.a(str.o)
 
 tests/userdirexp: tests/userdirexp.c funcs.a(userdir.o)
 
+tests/check.o: tests/check.c tests/check.h
+
 $(macro_check_bins) $(other_check_bins): $(hdrs)
+
+$(other_check_bins): tests/check.o
 
 tests/error.sh: tests/error
 
@@ -219,7 +223,7 @@ $(macro_check_bins):
 	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c $(LDLIBS)
 
 $(other_check_bins):
-	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c funcs.a $(LDLIBS)
+	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c tests/check.o funcs.a $(LDLIBS)
 
 check:
 	tools/runpara $(runpara_flags) $(checks)
@@ -232,11 +236,12 @@ check:
 bins = sucgi tests/main $(macro_check_bins) $(other_check_bins) $(tool_bins)
 
 clean:
-	rm -f *.a *.o $(bins)
+	find . -type f '(' -name '*.a' -o -name '*.o' ')' -delete
+	rm -f $(bins)
 
 mrproper: distclean
-	rm -rf tmp-*
 	find . -type f '(' -name '*.bak' -o -name '*.log' ')' -delete
+	rm -rf tmp-*
 
 
 #
@@ -251,7 +256,7 @@ dist_files = *.c *.h *.env *.excl *.m4 *.ex README.rst LICENSE.txt \
 	clang-tidy.yml configure prepare cppcheck docs tests tools scripts
 
 distclean: clean
-	rm -f compat.h makefile *.log *.lock *.status *.tgz
+	rm -f compat.h config.status makefile *.tgz
 	rm -rf $(dist_name)
 
 $(dist_name): distclean
