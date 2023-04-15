@@ -37,7 +37,7 @@
 
 
 /*
- * Only one format string is not a literal, and that
+ * Only one format string is not a literal and that
  * string can only be set by the system administrator.
  */
 #if defined(__GNUC__) && __GNUC__ >= 3
