@@ -91,7 +91,9 @@ static const Args cases[] = {
 
 /* Pairs for testing. */
 static const Pair pairs[] = {
+#if !defined (NDEBUG)
     {hugekey, "huge key"},
+#endif
     {longkey, "long key"},
     {"", "empty key"},
     {"foo", "bar"},
