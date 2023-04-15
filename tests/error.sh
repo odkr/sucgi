@@ -51,9 +51,13 @@ if ! [ "${NDEBUG-}" ]
 then
 	trap '' ABRT
 
-	if [ "${KSH_VERSION-}" ]
-	then retval=262
-	else retval=134
+	case ${KSH_VERSION-} in
+	(''|*MIRBSD*|*PD*) retval=134 ;;
+	(*)                retval=262 ;;
+	esac
+
+	if [ "${YASH_VERSION-}" ]
+	then retval=390
 	fi
 
 	check -s"$retval" -e"*message" error ''
