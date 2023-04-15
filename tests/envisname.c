@@ -25,13 +25,15 @@
 #define _GNU_SOURCE
 
 #include <err.h>
+#include <setjmp.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "../env.h"
 #include "../macros.h"
-#include "result.h"
+#include "check.h"
 
 
 /*
@@ -40,8 +42,9 @@
 
 /* Mapping of a string to a return value. */
 typedef struct {
-    const char *const s;
-    const bool ret;
+    const char *const str;
+    const bool retval;
+    int signo;
 } Args;
 
 
@@ -49,153 +52,169 @@ typedef struct {
  * Module variables
  */
 
+#if !defined(NDEBUG)
+/* A variable name that exceeds MAX_VARNAME_LEN. */
+static char hugename[MAX_VARNAME_LEN + 1U] = {'\0'};
+#endif
+
+/* A variable name just within MAX_VARNAME_LEN. */
+static char longname[MAX_VARNAME_LEN] = {'\0'};
+
 /* Static test cases. */
 static const Args cases[] = {
+    /* Invalid arguments. */
+#if !defined(NDEBUG)
+    {hugename, true, SIGABRT},
+#endif
+
+    /* Long, but okay. */
+    {longname, true, 0},
+
     /* Invalid names. */
-    {"", false},
-    {" foo", false},
-    {"1foo", false},
-    {"=foo", false},
-    {"*", false},
-    {"FOO ", false},
-    {"$(foo)", false},
-    {"`foo`", false},
+    {"", false, 0},
+    {" foo", false, 0},
+    {"1foo", false, 0},
+    {"=foo", false, 0},
+    {"*", false, 0},
+    {"FOO ", false, 0},
+    {"$(foo)", false, 0},
+    {"`foo`", false, 0},
 
     /* Valid names. */
-    {"_", true},
-    {"_f", true},
-    {"_F", true},
-    {"f", true},
-    {"F", true},
-    {"F_", true},
-    {"f0", true},
-    {"F0", true},
+    {"_", true, 0},
+    {"_f", true, 0},
+    {"_F", true, 0},
+    {"f", true, 0},
+    {"F", true, 0},
+    {"F_", true, 0},
+    {"f0", true, 0},
+    {"F0", true, 0},
 
     /* Unicode shenanigans. */
-    {"𝘧", false},
-    {"𝘧oo", false},
-    {"fȭo", false},
-    {"foộ", false},
-    {"𝘧ȭộ", false},
+    {"𝘧", false, 0},
+    {"𝘧oo", false, 0},
+    {"fȭo", false, 0},
+    {"foộ", false, 0},
+    {"𝘧ȭộ", false, 0},
 
     /* Permitted variables. */
-    {"AUTH_TYPE", true},
-    {"CONTENT_LENGTH", true},
-    {"CONTENT_TYPE", true},
-    {"CONTEXT_DOCUMENT_ROOT", true},
-    {"CONTEXT_PREFIX", true},
-    {"DATE_GMT", true},
-    {"DATE_LOCAL", true},
-    {"DOCUMENT_NAME", true},
-    {"DOCUMENT_PATH_INFO", true},
-    {"DOCUMENT_ROOT", true},
-    {"DOCUMENT_URI", true},
-    {"GATEWAY_INTERFACE", true},
-    {"HANDLER", true},
-    {"HTTP_ACCEPT", true},
-    {"HTTP_COOKIE", true},
-    {"HTTP_FORWARDED", true},
-    {"HTTP_HOST", true},
-    {"HTTP_PROXY_CONNECTION", true},
-    {"HTTP_REFERER", true},
-    {"HTTP_USER_AGENT", true},
-    {"HTTP2", true},
-    {"HTTPS", true},
-    {"IS_SUBREQ", true},
-    {"IPV6", true},
-    {"LAST_MODIFIED", true},
-    {"PATH_INFO", true},
-    {"PATH_TRANSLATED", true},
-    {"POSIXLY_CORRECT", true},
-    {"QUERY_STRING", true},
-    {"QUERY_STRING_UNESCAPED", true},
-    {"REMOTE_ADDR", true},
-    {"REMOTE_HOST", true},
-    {"REMOTE_IDENT", true},
-    {"REMOTE_PORT", true},
-    {"REMOTE_USER", true},
-    {"REDIRECT_ERROR_NOTES", true},
-    {"REDIRECT_HANDLER", true},
-    {"REDIRECT_QUERY_STRING", true},
-    {"REDIRECT_REMOTE_USER", true},
-    {"REDIRECT_SCRIPT_FILENAME", true},
-    {"REDIRECT_STATUS", true},
-    {"REDIRECT_URL", true},
-    {"REQUEST_LOG_ID", true},
-    {"REQUEST_METHOD", true},
-    {"REQUEST_SCHEME", true},
-    {"REQUEST_STATUS", true},
-    {"REQUEST_URI", true},
-    {"SCRIPT_FILENAME", true},
-    {"SCRIPT_NAME", true},
-    {"SCRIPT_URI", true},
-    {"SCRIPT_URL", true},
-    {"SERVER_ADMIN", true},
-    {"SERVER_NAME", true},
-    {"SERVER_ADDR", true},
-    {"SERVER_PORT", true},
-    {"SERVER_PROTOCOL", true},
-    {"SERVER_SIGNATURE", true},
-    {"SERVER_SOFTWARE", true},
-    {"SSL_CIPHER", true},
-    {"SSL_CIPHER_EXPORT", true},
-    {"SSL_CIPHER_USEKEYSIZE", true},
-    {"SSL_CIPHER_ALGKEYSIZE", true},
-    {"SSL_CLIENT_M_VERSION", true},
-    {"SSL_CLIENT_M_SERIAL", true},
-    {"SSL_CLIENT_S_DN", true},
-    {"SSL_CLIENT_S_DN_CN", true},
-    {"SSL_CLIENT_SAN_Email_0", true},
-    {"SSL_CLIENT_SAN_DNS_0", true},
-    {"SSL_CLIENT_SAN_OTHER_msUPN_0", true},
-    {"SSL_CLIENT_I_DN", true},
-    {"SSL_CLIENT_I_DN_CN", true},
-    {"SSL_CLIENT_V_START", true},
-    {"SSL_CLIENT_V_END", true},
-    {"SSL_CLIENT_V_REMAIN", true},
-    {"SSL_CLIENT_A_SIG", true},
-    {"SSL_CLIENT_A_KEY", true},
-    {"SSL_CLIENT_CERT", true},
-    {"SSL_CLIENT_CERT_CHAIN_0", true},
-    {"SSL_CLIENT_CERT_RFC4523_CEA", true},
-    {"SSL_CLIENT_VERIFY", true},
-    {"SSL_COMPRESS_METHOD", true},
-    {"SSL_PROTOCOL", true},
-    {"SSL_SECURE_RENEG", true},
-    {"SSL_SERVER_M_VERSION", true},
-    {"SSL_SERVER_M_SERIAL", true},
-    {"SSL_SERVER_S_DN", true},
-    {"SSL_SERVER_SAN_Email_0", true},
-    {"SSL_SERVER_SAN_DNS_0", true},
-    {"SSL_SERVER_SAN_OTHER_dnsSRV_0", true},
-    {"SSL_SERVER_S_DN_CN", true},
-    {"SSL_SERVER_I_DN", true},
-    {"SSL_SERVER_I_DN_CN", true},
-    {"SSL_SERVER_V_START", true},
-    {"SSL_SERVER_V_END", true},
-    {"SSL_SERVER_A_SIG", true},
-    {"SSL_SERVER_A_KEY", true},
-    {"SSL_SERVER_CERT", true},
-    {"SSL_SESSION_ID", true},
-    {"SSL_SESSION_RESUMED", true},
-    {"SSL_SRP_USER", true},
-    {"SSL_SRP_USERINFO", true},
-    {"SSL_TLS_SNI", true},
-    {"SSL_VERSION_INTERFACE", true},
-    {"SSL_VERSION_LIBRARY", true},
-    {"UNIQUE_ID", true},
-    {"USER_NAME", true},
-    {"THE_REQUEST", true},
-    {"TIME_YEAR", true},
-    {"TIME_MON", true},
-    {"TIME_DAY", true},
-    {"TIME_HOUR", true},
-    {"TIME_MIN", true},
-    {"TIME_SEC", true},
-    {"TIME_WDAY", true},
-    {"TIME", true},
-    {"TMPDIR", true},
-    {"TZ", true}
+    {"AUTH_TYPE", true, 0},
+    {"CONTENT_LENGTH", true, 0},
+    {"CONTENT_TYPE", true, 0},
+    {"CONTEXT_DOCUMENT_ROOT", true, 0},
+    {"CONTEXT_PREFIX", true, 0},
+    {"DATE_GMT", true, 0},
+    {"DATE_LOCAL", true, 0},
+    {"DOCUMENT_NAME", true, 0},
+    {"DOCUMENT_PATH_INFO", true, 0},
+    {"DOCUMENT_ROOT", true, 0},
+    {"DOCUMENT_URI", true, 0},
+    {"GATEWAY_INTERFACE", true, 0},
+    {"HANDLER", true, 0},
+    {"HTTP_ACCEPT", true, 0},
+    {"HTTP_COOKIE", true, 0},
+    {"HTTP_FORWARDED", true, 0},
+    {"HTTP_HOST", true, 0},
+    {"HTTP_PROXY_CONNECTION", true, 0},
+    {"HTTP_REFERER", true, 0},
+    {"HTTP_USER_AGENT", true, 0},
+    {"HTTP2", true, 0},
+    {"HTTPS", true, 0},
+    {"IS_SUBREQ", true, 0},
+    {"IPV6", true, 0},
+    {"LAST_MODIFIED", true, 0},
+    {"PATH_INFO", true, 0},
+    {"PATH_TRANSLATED", true, 0},
+    {"POSIXLY_CORRECT", true, 0},
+    {"QUERY_STRING", true, 0},
+    {"QUERY_STRING_UNESCAPED", true, 0},
+    {"REMOTE_ADDR", true, 0},
+    {"REMOTE_HOST", true, 0},
+    {"REMOTE_IDENT", true, 0},
+    {"REMOTE_PORT", true, 0},
+    {"REMOTE_USER", true, 0},
+    {"REDIRECT_ERROR_NOTES", true, 0},
+    {"REDIRECT_HANDLER", true, 0},
+    {"REDIRECT_QUERY_STRING", true, 0},
+    {"REDIRECT_REMOTE_USER", true, 0},
+    {"REDIRECT_SCRIPT_FILENAME", true, 0},
+    {"REDIRECT_STATUS", true, 0},
+    {"REDIRECT_URL", true, 0},
+    {"REQUEST_LOG_ID", true, 0},
+    {"REQUEST_METHOD", true, 0},
+    {"REQUEST_SCHEME", true, 0},
+    {"REQUEST_STATUS", true, 0},
+    {"REQUEST_URI", true, 0},
+    {"SCRIPT_FILENAME", true, 0},
+    {"SCRIPT_NAME", true, 0},
+    {"SCRIPT_URI", true, 0},
+    {"SCRIPT_URL", true, 0},
+    {"SERVER_ADMIN", true, 0},
+    {"SERVER_NAME", true, 0},
+    {"SERVER_ADDR", true, 0},
+    {"SERVER_PORT", true, 0},
+    {"SERVER_PROTOCOL", true, 0},
+    {"SERVER_SIGNATURE", true, 0},
+    {"SERVER_SOFTWARE", true, 0},
+    {"SSL_CIPHER", true, 0},
+    {"SSL_CIPHER_EXPORT", true, 0},
+    {"SSL_CIPHER_USEKEYSIZE", true, 0},
+    {"SSL_CIPHER_ALGKEYSIZE", true, 0},
+    {"SSL_CLIENT_M_VERSION", true, 0},
+    {"SSL_CLIENT_M_SERIAL", true, 0},
+    {"SSL_CLIENT_S_DN", true, 0},
+    {"SSL_CLIENT_S_DN_CN", true, 0},
+    {"SSL_CLIENT_SAN_Email_0", true, 0},
+    {"SSL_CLIENT_SAN_DNS_0", true, 0},
+    {"SSL_CLIENT_SAN_OTHER_msUPN_0", true, 0},
+    {"SSL_CLIENT_I_DN", true, 0},
+    {"SSL_CLIENT_I_DN_CN", true, 0},
+    {"SSL_CLIENT_V_START", true, 0},
+    {"SSL_CLIENT_V_END", true, 0},
+    {"SSL_CLIENT_V_REMAIN", true, 0},
+    {"SSL_CLIENT_A_SIG", true, 0},
+    {"SSL_CLIENT_A_KEY", true, 0},
+    {"SSL_CLIENT_CERT", true, 0},
+    {"SSL_CLIENT_CERT_CHAIN_0", true, 0},
+    {"SSL_CLIENT_CERT_RFC4523_CEA", true, 0},
+    {"SSL_CLIENT_VERIFY", true, 0},
+    {"SSL_COMPRESS_METHOD", true, 0},
+    {"SSL_PROTOCOL", true, 0},
+    {"SSL_SECURE_RENEG", true, 0},
+    {"SSL_SERVER_M_VERSION", true, 0},
+    {"SSL_SERVER_M_SERIAL", true, 0},
+    {"SSL_SERVER_S_DN", true, 0},
+    {"SSL_SERVER_SAN_Email_0", true, 0},
+    {"SSL_SERVER_SAN_DNS_0", true, 0},
+    {"SSL_SERVER_SAN_OTHER_dnsSRV_0", true, 0},
+    {"SSL_SERVER_S_DN_CN", true, 0},
+    {"SSL_SERVER_I_DN", true, 0},
+    {"SSL_SERVER_I_DN_CN", true, 0},
+    {"SSL_SERVER_V_START", true, 0},
+    {"SSL_SERVER_V_END", true, 0},
+    {"SSL_SERVER_A_SIG", true, 0},
+    {"SSL_SERVER_A_KEY", true, 0},
+    {"SSL_SERVER_CERT", true, 0},
+    {"SSL_SESSION_ID", true, 0},
+    {"SSL_SESSION_RESUMED", true, 0},
+    {"SSL_SRP_USER", true, 0},
+    {"SSL_SRP_USERINFO", true, 0},
+    {"SSL_TLS_SNI", true, 0},
+    {"SSL_VERSION_INTERFACE", true, 0},
+    {"SSL_VERSION_LIBRARY", true, 0},
+    {"UNIQUE_ID", true, 0},
+    {"USER_NAME", true, 0},
+    {"THE_REQUEST", true, 0},
+    {"TIME_YEAR", true, 0},
+    {"TIME_MON", true, 0},
+    {"TIME_DAY", true, 0},
+    {"TIME_HOUR", true, 0},
+    {"TIME_MIN", true, 0},
+    {"TIME_SEC", true, 0},
+    {"TIME_WDAY", true, 0},
+    {"TIME", true, 0},
+    {"TMPDIR", true, 0},
+    {"TZ", true, 0}
 };
 
 
@@ -206,15 +225,35 @@ static const Args cases[] = {
 int
 main (void)
 {
-    int result = TEST_PASSED;
+    volatile int result = TEST_PASSED;
+
+    checkinit();
+
+#if !defined(NDEBUG)
+    (void) memset(hugename, 'x', sizeof(hugename) - 1U);
+#endif
+    (void) memset(longname, 'x', sizeof(longname) - 1U);
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
-        bool ret;
+        volatile bool retval;
+        int jumpval;
 
-        ret = envisname(args.s);
-        if (ret != args.ret) {
-            warnx("(%s) -> %d [!]", args.s, ret);
+        jumpval = sigsetjmp(checkenv, true);
+
+        if (jumpval == 0) {
+            checking = 1;
+            retval = envisname(args.str);
+            checking = 0;
+
+            if (retval != args.retval) {
+                warnx("(%s) → %d [!]", args.str, retval);
+                result = TEST_FAILED;
+            }
+        }
+
+        if (jumpval != args.signo) {
+            warnx("(%s) ↑ %s [!]", args.str, strsignal(jumpval));
             result = TEST_FAILED;
         }
     }

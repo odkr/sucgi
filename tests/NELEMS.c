@@ -28,7 +28,7 @@
 #include <stdlib.h>
 
 #include "../macros.h"
-#include "result.h"
+#include "check.h"
 
 
 /*

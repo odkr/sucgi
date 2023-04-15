@@ -25,6 +25,9 @@
 #define _GNU_SOURCE
 
 #include <err.h>
+#include <setjmp.h>
+#include <signal.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,7 +36,7 @@
 #include "../handler.h"
 #include "../macros.h"
 #include "../max.h"
-#include "result.h"
+#include "check.h"
 
 
 /*
@@ -43,8 +46,9 @@
 /* Mapping of arguments to return values. */
 typedef struct {
     const char *const script;
-    const char *const hdl;
-    const Error ret;
+    const char *const handler;
+    const Error retval;
+    int signo;
 } Args;
 
 
@@ -52,44 +56,59 @@ typedef struct {
  * Module variables
  */
 
+#if !defined(NDEBUG)
+/* A filename that that exceeds MAX_FNAME_LEN. */
+static char hugefname[MAX_FNAME_LEN + 1U] = {0};
+#endif
+
+/* A filename just within MAX_FNAME_LEN */
+static char longfname[MAX_FNAME_LEN] = {0};
+
 /* Test cases. */
 static const Args cases[] = {
+#if !defined(NDEBUG)
+    /* Illegal arguments. */
+    {hugefname, "<n/a>", OK, SIGABRT},
+    {"", "<n/a>", OK, SIGABRT},
+#endif
+
     /* Simple errors. */
-    {"file", "<n/a>", ERR_SUFFIX},
-    {".", "<n/a>", ERR_SUFFIX},
-    {".sh", "<n/a>", ERR_SUFFIX},
-    {".py", "<n/a>", ERR_SUFFIX},
-    {"file.null", "<n/a>", ERR_BAD},
-    {"file.empty", "<n/a>", ERR_BAD},
-    {"file.py", "<n/a>", ERR_SEARCH},
-    {"file.post", "<n/a>", ERR_SEARCH},
-    {"long.suffix-0123456789abcdef", "<n/a>", ERR_LEN},
+    {"file", "<n/a>", ERR_SUFFIX, 0},
+    {".", "<n/a>", ERR_SUFFIX, 0},
+    {".sh", "<n/a>", ERR_SUFFIX, 0},
+    {".py", "<n/a>", ERR_SUFFIX, 0},
+    {"file.null", "<n/a>", ERR_BAD, 0},
+    {"file.empty", "<n/a>", ERR_BAD, 0},
+    {"file.py", "<n/a>", ERR_SEARCH, 0},
+    {"file.post", "<n/a>", ERR_SEARCH, 0},
+    {"long.suffix-0123456789abcdef", "<n/a>", ERR_LEN, 0},
 
     /* Empty string shenanigans. */
-    {" ", "<n/a>", ERR_SUFFIX},
-    {". ", "<n/a>", ERR_SUFFIX},
-    {".sh ", "<n/a>", ERR_SUFFIX},
-    {".py ", "<n/a>", ERR_SUFFIX},
-    {" .null", "<n/a>", ERR_BAD},
-    {" .empty", "<n/a>", ERR_BAD},
-    {" .py", "<n/a>", ERR_SEARCH},
-    {" .post", "<n/a>", ERR_SEARCH},
-    {" . ", "<n/a>", ERR_SEARCH},
+    {" ", "<n/a>", ERR_SUFFIX, 0},
+    {". ", "<n/a>", ERR_SUFFIX, 0},
+    {".sh ", "<n/a>", ERR_SUFFIX, 0},
+    {".py ", "<n/a>", ERR_SUFFIX, 0},
+    {" .null", "<n/a>", ERR_BAD, 0},
+    {" .empty", "<n/a>", ERR_BAD, 0},
+    {" .py", "<n/a>", ERR_SEARCH, 0},
+    {" .post", "<n/a>", ERR_SEARCH, 0},
+    {" . ", "<n/a>", ERR_SEARCH, 0},
 
     /* Unicode shenanigans. */
-    {"𝕗ïḻę", "<n/a>", ERR_SUFFIX},
-    {".", "<n/a>", ERR_SUFFIX},
-    {".sh", "<n/a>", ERR_SUFFIX},
-    {".py", "<n/a>", ERR_SUFFIX},
-    {"𝕗ïḻę.null", "<n/a>", ERR_BAD},
-    {"𝕗ïḻę.empty", "<n/a>", ERR_BAD},
-    {"𝕗ïḻę.py", "<n/a>", ERR_SEARCH},
-    {"𝕗ïḻę.post", "<n/a>", ERR_SEARCH},
-    {"𝕗ïḻę.suffix-0123456789abcdef", "<n/a>", ERR_LEN},
+    {"𝕗ïḻę", "<n/a>", ERR_SUFFIX, 0},
+    {".", "<n/a>", ERR_SUFFIX, 0},
+    {".sh", "<n/a>", ERR_SUFFIX, 0},
+    {".py", "<n/a>", ERR_SUFFIX, 0},
+    {"𝕗ïḻę.null", "<n/a>", ERR_BAD, 0},
+    {"𝕗ïḻę.empty", "<n/a>", ERR_BAD, 0},
+    {"𝕗ïḻę.py", "<n/a>", ERR_SEARCH, 0},
+    {"𝕗ïḻę.post", "<n/a>", ERR_SEARCH, 0},
+    {"𝕗ïḻę.suffix-0123456789abcdef", "<n/a>", ERR_LEN, 0},
 
-    /* Simple test. */
-    {"file.sh", "sh", OK},
-    {"file.", "dot", OK}
+    /* Simple tests. */
+    {longfname, "<n/a>", ERR_SUFFIX, 0},
+    {"file.sh", "sh", OK, 0},
+    {"file.", "dot", OK, 0}
 };
 
 /* Filename suffix-handler database for testing. */
@@ -111,24 +130,46 @@ static const Pair db[] = {
 int
 main(void)
 {
-    int result = TEST_PASSED;
+    volatile int result = TEST_PASSED;
 
-    for (size_t i = 0; i < NELEMS(cases); ++i) {
+    checkinit();
+
+#if !defined(NDEBUG)
+    (void) memset(hugefname, 'x', sizeof(hugefname) - 1U);
+#endif
+    (void) memset(longfname, 'x', sizeof(longfname) - 1U);
+
+    for (volatile size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
-        const char *hdl;
-        Error ret;
+        const char *handler;
+        int jumpval;
+        volatile Error retval;
 
-        ret = handlerfind(NELEMS(db), db, args.script, &hdl);
+        jumpval = sigsetjmp(checkenv, true);
 
-        if (args.ret != ret) {
-            warnx("(db, %s, -> %s) -> %u [!]",
-                  args.script, args.hdl, ret);
-            result = TEST_FAILED;
+        if (jumpval == 0) {
+            checking = 1;
+            retval = handlerfind(NELEMS(db), db, args.script, &handler);
+            checking = 0;
+
+            if (args.retval != retval) {
+                warnx("(<db>, %s, → %s) → %u [!]",
+                      args.script, handler, retval);
+                result = TEST_FAILED;
+            }
+
+            if (retval == OK &&
+                strncmp(handler, args.handler, MAX_STR_LEN) != 0)
+            {
+                warnx("(<db>, %s, → %s [!]) → %u",
+                      args.script, handler, retval);
+                result = TEST_FAILED;
+            }
         }
 
-        if (ret == OK && strncmp(hdl, args.hdl, MAX_STR_LEN) != 0) {
-            warnx("(db, %s, -> %s [!]) -> %u",
-                  args.script, hdl, args.ret);
+        if (jumpval != args.signo) {
+            warnx("(<db>, %s, → %s) ↑ %s [!]",
+                  args.script, handler, strsignal(jumpval));
             result = TEST_FAILED;
         }
     }

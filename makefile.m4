@@ -192,7 +192,7 @@ tests/userdirexp: tests/userdirexp.c funcs.a(userdir.o)
 
 tests/check.o: tests/check.c tests/check.h
 
-$(macro_check_bins) $(other_check_bins): $(hdrs)
+$(macro_check_bins) $(other_check_bins): $(hdrs) tests/check.h
 
 $(other_check_bins): tests/check.o
 

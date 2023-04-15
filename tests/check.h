@@ -1,5 +1,5 @@
 /*
- * Header for tests.c.
+ * Header for libcheck.c.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -19,8 +19,11 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(TESTS_RESULT_H)
-#define TESTS_RESULT_H
+#if !defined(TESTS_LIBCHECK_H)
+#define TESTS_LIBCHECK_H
+
+#include <setjmp.h>
+
 
 /*
  * Data types
@@ -35,4 +38,25 @@ typedef enum {
 } Result;
 
 
-#endif /* defined(TESTS_RESULT_H) */
+/*
+ * Global variables
+ */
+
+/* Is a test running? */
+extern volatile sig_atomic_t checking;
+
+/* Environment to run tests in. */
+extern sigjmp_buf checkenv;
+
+
+/*
+ * Functions
+ */
+
+/*
+ * Register signal handler.
+ */
+void checkinit(void);
+
+
+#endif /* defined(TESTS_LIBCHECK_H) */

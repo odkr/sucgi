@@ -28,7 +28,8 @@
 #include <err.h>
 #include <errno.h>
 #include <regex.h>
-#include <search.h>
+#include <setjmp.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -37,7 +38,7 @@
 #include "../config.h"
 #include "../macros.h"
 #include "../str.h"
-#include "result.h"
+#include "check.h"
 
 
 
@@ -63,6 +64,7 @@ typedef struct {
     const char *const *patterns;    /* Patterns. */
     const char *const *environ;     /* Resulting environmnet. */
     Error retval;                   /* Return value. */
+    int signo;                      /* Signal caught, if any. */
 } Args;
 
 /* FIXME */
@@ -96,150 +98,150 @@ static const Args cases[] = {
     /* Null tests. */
     {
         (ConstStrArray) {NULL},
-        0, (ConstStrArray) {NULL}, (ConstStrArray) {NULL}, OK
+        0, (ConstStrArray) {NULL}, (ConstStrArray) {NULL}, OK, 0
     },
     {
         (ConstStrArray) {NULL},
-        1, (ConstStrArray) {"."}, (ConstStrArray) {NULL}, OK
+        1, (ConstStrArray) {"."}, (ConstStrArray) {NULL}, OK, 0
     },
 
     /* Too many variables. */
     {
         toomanyvars,
         1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, ERR_LEN
+        (ConstStrArray) {NULL}, ERR_LEN, 0
     },
 
     /* Overly long variables should be ignored. */
     {
         (ConstStrArray) {longvar, NULL},
         1, (ConstStrArray) {"."},
-        (ConstStrArray) {longvar, NULL}, OK
+        (ConstStrArray) {longvar, NULL}, OK, 0
     },
     {
         (ConstStrArray) {hugevar, NULL},
         1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
 
     /* Variables with overly long should be ignored, too. */
     {
         (ConstStrArray) {longname, NULL},
         1, (ConstStrArray) {"."},
-        (ConstStrArray) {longname, NULL}, OK
+        (ConstStrArray) {longname, NULL}, OK, 0
     },
     {
         (ConstStrArray) {hugename, NULL},
         1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
 
     /* Simple tests. */
     {
         (ConstStrArray) {"foo=foo", NULL},
         1, (ConstStrArray) {"."},
-        (ConstStrArray) {"foo=foo", NULL}, OK
+        (ConstStrArray) {"foo=foo", NULL}, OK, 0
     },
     {
         (ConstStrArray) {"foo=foo", "bar=bar", NULL},
         1, (ConstStrArray) {"^foo$"},
-        (ConstStrArray) {"foo=foo", NULL}, OK
+        (ConstStrArray) {"foo=foo", NULL}, OK, 0
     },
     {
         (ConstStrArray) {"foo=foo", "bar=bar", "foobar=foobar", NULL},
         1, (ConstStrArray) {"^foo"},
-        (ConstStrArray) {"foo=foo", "foobar=foobar", NULL}, OK
+        (ConstStrArray) {"foo=foo", "foobar=foobar", NULL}, OK, 0
     },
     {
         (ConstStrArray) {"foo=foo", "bar=bar", "foobar=foobar", NULL},
         1, (ConstStrArray) {"foo"},
-        (ConstStrArray) {"foo=foo", "foobar=foobar", NULL}, OK
+        (ConstStrArray) {"foo=foo", "foobar=foobar", NULL}, OK, 0
     },
     {
         (ConstStrArray) {"foo=foo", "bar=bar", "foobar=foobar", NULL},
         1, (ConstStrArray) {"bar$"},
-        (ConstStrArray) {"bar=bar", "foobar=foobar", NULL}, OK
+        (ConstStrArray) {"bar=bar", "foobar=foobar", NULL}, OK, 0
     },
     {
         (ConstStrArray) {"foo=foo", "bar=bar", "foobar=foobar", NULL},
         1, (ConstStrArray) {"bar"},
-        (ConstStrArray) {"bar=bar", "foobar=foobar", NULL}, OK
+        (ConstStrArray) {"bar=bar", "foobar=foobar", NULL}, OK, 0
     },
     {
         (ConstStrArray) {"foo=foo", "bar=bar", "baz=baz", NULL},
         0, (ConstStrArray) {NULL},
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
     {
         (ConstStrArray) {"foo=foo", "bar=bar", "baz=baz", NULL},
         1, (ConstStrArray) {"^$"},
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
 
     /* Syntax errors. */
     {
         (ConstStrArray) {"", NULL},
         1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
     {
         (ConstStrArray) {"foo", NULL},
         1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
     {
         (ConstStrArray) {"=foo", NULL},
         1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
 
     /* Illegal names. */
     {
         (ConstStrArray) {" foo=foo", NULL},
         1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
     {
         (ConstStrArray) {"0foo=foo", NULL},
         1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
     {
         (ConstStrArray) {"*=foo", NULL},
         1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
     {
         (ConstStrArray) {"foo =foo", NULL},
         1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
     {
         (ConstStrArray) {"$(foo)=foo", NULL},
         1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
     {
         (ConstStrArray) {"`foo`=foo", NULL},
         1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
 
     /* More realistic tests. */
     {
         (ConstStrArray) {"bar=bar", "foo_0=foo", NULL},
         1, (ConstStrArray) {"^foo_[0-9]+$"},
-        (ConstStrArray) {"foo_0=foo", NULL}, OK
+        (ConstStrArray) {"foo_0=foo", NULL}, OK, 0
     },
     {
         (ConstStrArray) {"bar=bar", "foo_0=foo", NULL},
         1, (ConstStrArray) {"^foo_(0|[1-9][0-9]*)$"},
-        (ConstStrArray) {"foo_0=foo", NULL}, OK
+        (ConstStrArray) {"foo_0=foo", NULL}, OK, 0
     },
     {
         (ConstStrArray) {"foo_0=foo", "foo_01=foo", NULL},
         1, (ConstStrArray) {"^foo_(0|[1-9][0-9]*)$"},
-        (ConstStrArray) {"foo_0=foo", NULL}, OK
+        (ConstStrArray) {"foo_0=foo", NULL}, OK, 0
     },
 
 
@@ -247,50 +249,50 @@ static const Args cases[] = {
     {
         (ConstStrArray) {"foo=foo", NULL},
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
 
     {
         (ConstStrArray) {"PATH_TRANSLATED=foo", NULL},
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {"PATH_TRANSLATED=foo", NULL}, OK
+        (ConstStrArray) {"PATH_TRANSLATED=foo", NULL}, OK, 0
     },
     {
         (ConstStrArray) {"PATH_TRANSLATED=foo", "foo=foo", NULL},
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {"PATH_TRANSLATED=foo", NULL}, OK
+        (ConstStrArray) {"PATH_TRANSLATED=foo", NULL}, OK, 0
     },
 
     /* Illegal names. */
     {
         (ConstStrArray) {" IPV6=foo", NULL},
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
     {
         (ConstStrArray) {"0IPV6=foo", NULL},
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
     {
         (ConstStrArray) {"*=foo", NULL},
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
     {
         (ConstStrArray) {"IPV6 =foo", NULL},
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
     {
         (ConstStrArray) {"$(IPV6)=foo", NULL},
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
     {
         (ConstStrArray) {"`IPV6`=foo", NULL},
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
 
     /* Odd but legal values. */
@@ -305,7 +307,7 @@ static const Args cases[] = {
             "SSL_CLIENT_S_DN_C_0=", "SSL_CLIENT_S_DN_C_1==",
             "SSL_CLIENT_S_DN_C_2= ", "SSL_CLIENT_S_DN_C_3=\t",
             "SSL_CLIENT_S_DN_C_4=\n", NULL
-        }, OK
+        }, OK, 0
     },
 
     /* Real-world tests. */
@@ -327,7 +329,7 @@ static const Args cases[] = {
             NULL
         },
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {NULL}, OK
+        (ConstStrArray) {NULL}, OK, 0
     },
     {
         (ConstStrArray) {
@@ -383,7 +385,7 @@ static const Args cases[] = {
             "SERVER_PORT=443",
             "SERVER_SOFTWARE=Apache v2.4",
             NULL
-        }, OK
+        }, OK, 0
     }
 };
 
@@ -394,12 +396,14 @@ static const Args cases[] = {
 
 /*
  * Replace the format specifiers in MESSAGE with a string describing
- * ARGS->vars, ARGS->npatterns, a string describing ARGS->patterns, and
- * a string describing the environment, in that order, and print the
- * resulting string and a linefeed to stderr.
+ * ARGS->vars, ARGS->npatterns, a string describing ARGS->patterns,
+ * and a string describing the environment, and the name of the
+ * signal number SIGNO, in that order, and print the resulting
+ * string and a linefeed to stderr.
  */
 __attribute__((nonnull(1, 2)))
-static void report(const char *message, const Args *args, Error retval);
+static void report(const char *message, const Args *args,
+                   Error retval, int signo);
 
 
 /*
@@ -447,7 +451,8 @@ static int findstrel(const char *key, char const *const *arr);
  */
 
 static void
-report(const char *const message, const Args *const args, const Error retval)
+report(const char *const message, const Args *const args,
+       const Error retval, const int signo)
 {
     char varstr[MAX_TEST_STR_LEN];
     char patstr[MAX_TEST_STR_LEN];
@@ -466,7 +471,8 @@ report(const char *const message, const Args *const args, const Error retval)
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 #endif
 
-    warnx(message, varstr, args->npatterns, patstr, retval, envstr);
+    warnx(message, varstr, args->npatterns, patstr,
+          retval, envstr, strsignal(signo));
 
 #if defined(__GNUC__) && __GNUC__ >= 3
 #pragma GCC diagnostic pop
@@ -559,8 +565,10 @@ findstrel(const char *const key, const char *const *const arr)
 
 int
 main (void) {
-    int result = TEST_PASSED;
+    volatile int result = TEST_PASSED;
     char *null = NULL;
+
+    checkinit();
 
     /* Initialise dynamic test cases. */
     for (size_t i = 0; i < NELEMS(toomanyvars); ++i) {
@@ -598,7 +606,8 @@ main (void) {
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
         regex_t pregs[MAX_TEST_NVARS];
-        Error retval;
+        int jumpval;
+        volatile Error retval;
 
         environ = &null;
 
@@ -616,15 +625,29 @@ main (void) {
             }
         }
 
-        retval = envrestore(args.vars, args.npatterns, pregs);
+        jumpval = sigsetjmp(checkenv, true);
 
-        if (retval != args.retval) {
-            report("({%s}, %zu, {%s}) → %u [!] ➾ %s", &args, retval);
-            result = TEST_FAILED;
+        if (jumpval == 0) {
+            checking = 1;
+            retval = envrestore(args.vars, args.npatterns, pregs);
+            checking = 0;
+
+            if (retval != args.retval) {
+                report("({%s}, %zu, {%s}) → %u [!] ➾ %s ↑ %s", &args,
+                       retval, jumpval);
+                result = TEST_FAILED;
+            }
+
+            if (retval == OK && !cmpenv(args.environ)) {
+                report("({%s}, %zu, {%s}) → %u ➾ %s [!] ↑ %s",
+                       &args, retval, jumpval);
+                result = TEST_FAILED;
+            }
         }
 
-        if (retval == OK && !cmpenv(args.environ)) {
-            report("({%s}, %zu, {%s}) → %u ➾ %s [!]", &args, retval);
+        if (jumpval != args.signo) {
+            report("({%s}, %zu, {%s}) → %u ➾ %s ↑ %s [!]",
+                   &args, retval, jumpval);
             result = TEST_FAILED;
         }
     }

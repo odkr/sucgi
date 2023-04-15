@@ -25,6 +25,9 @@
 #define _GNU_SOURCE
 
 #include <err.h>
+#include <setjmp.h>
+#include <signal.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,7 +36,7 @@
 #include "../macros.h"
 #include "../max.h"
 #include "../pair.h"
-#include "result.h"
+#include "check.h"
 
 
 /*
@@ -44,7 +47,8 @@
 typedef struct {
     const char *const key;
     const char *const value;
-    const Error ret;
+    const Error retval;
+    int signo;
 } Args;
 
 
@@ -52,35 +56,46 @@ typedef struct {
  * Module variables
  */
 
-/* A string just within MAX_LEN. */
-static char longstr[MAX_STR_LEN] = {'\0'};
+#if !defined(NDEBUG)
+/* A key that that exceeds MAX_STR_LEN. */
+static char hugekey[MAX_STR_LEN + 1U] = {0};
+#endif
+
+/* A key just within MAX_FNAME_LEN */
+static char longkey[MAX_STR_LEN] = {0};
 
 /* Test cases. */
 static const Args cases[] = {
+    /* Illegal argument. */
+#if !defined(NDEBUG)
+    {hugekey, "huge key", OK, SIGABRT},
+#endif
+
     /* Simple tests. */
-    {"foo", "bar", OK},
-    {"bar", "n/a", ERR_SEARCH},
+    {"foo", "bar", OK, 0},
+    {"bar", "n/a", ERR_SEARCH, 0},
 
     /* Empty strings. */
-    {"", "empty string", OK},
-    {"empty string", "", OK},
+    {"", "empty key", OK, 0},
+    {"empty string", "", OK, 0},
 
-    /* Maximum string length. */
-    {longstr, "long string", OK},
+    /* Maximum key length. */
+    {longkey, "long key", OK, 0},
 
     /* Unicode shenanigans. */
-    {"ⓕȱȱ", "Ḅḁᴿ", OK},
-    {"Ḅḁᴿ", "n/a", ERR_SEARCH},
-    {"", "empty string", OK},
-    {"èṃṗťÿ ŝțȓịñḡ", "", OK}
+    {"ⓕȱȱ", "Ḅḁᴿ", OK, 0},
+    {"Ḅḁᴿ", "n/a", ERR_SEARCH, 0},
+    {"", "empty key", OK, 0},
+    {"èṃṗťÿ ŝțȓịñḡ", "", OK, 0}
 };
 
 /* Pairs for testing. */
 static const Pair pairs[] = {
-    {"", "empty string"},
+    {hugekey, "huge key"},
+    {longkey, "long key"},
+    {"", "empty key"},
     {"foo", "bar"},
     {"empty string", ""},
-    {longstr, "long string"},
     {"ⓕȱȱ", "Ḅḁᴿ"},
     {"èṃṗťÿ ŝțȓịñḡ", ""}
 };
@@ -93,27 +108,44 @@ static const Pair pairs[] = {
 int
 main(void)
 {
-    int result = TEST_PASSED;
+    int volatile result = TEST_PASSED;
 
-    (void) memset(longstr, 'x', sizeof(longstr));
-    longstr[sizeof(longstr) - 1U] = '\0';
+    checkinit();
 
-    for (size_t i = 0; i < NELEMS(cases); ++i) {
+#if !defined(NDEBUG)
+    (void) memset(hugekey, 'x', sizeof(hugekey) - 1U);
+#endif
+    (void) memset(longkey, 'x', sizeof(longkey) - 1U);
+
+    for (volatile size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
         const char *value;
-        Error ret;
+        int jumpval;
+        volatile Error retval;
 
-        ret = pairfind(NELEMS(pairs), pairs, args.key, &value);
+        jumpval = sigsetjmp(checkenv, true);
 
-        if (args.ret != ret) {
-            warnx("(<pairs>, %s, -> %s) -> %u [!]",
-                  args.key, args.value, ret);
-            result = TEST_FAILED;
+        if (jumpval == 0) {
+            checking = 1;
+            retval = pairfind(NELEMS(pairs), pairs, args.key, &value);
+            checking = 0;
+
+            if (args.retval != retval) {
+                warnx("(<pairs>, %s, → %s) → %u [!]",
+                      args.key, value, retval);
+                result = TEST_FAILED;
+            }
+
+            if (retval == OK && strncmp(value, args.value, MAX_STR_LEN) != 0) {
+                warnx("(<pairs>, %s, → %s [!]) → %u",
+                      args.key, value, retval);
+                result = TEST_FAILED;
+            }
         }
 
-        if (ret == OK && strncmp(value, args.value, MAX_STR_LEN) != 0) {
-            warnx("(<pairs>, %s, -> %s [!]) -> %u",
-                  args.key, value, args.ret);
+        if (jumpval != args.signo) {
+            warnx("(<pairs>, %s, → %s) ↑ %s [!]",
+                  args.key, value, strsignal(jumpval));
             result = TEST_FAILED;
         }
     }

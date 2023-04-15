@@ -26,7 +26,8 @@
 
 #include <err.h>
 #include <limits.h>
-#include <math.h>
+#include <setjmp.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,7 +35,7 @@
 #include "../macros.h"
 #include "../max.h"
 #include "../str.h"
-#include "result.h"
+#include "check.h"
 
 
 /*
@@ -55,7 +56,8 @@ typedef struct {
     const char *const sep;
     const char *const head;
     const char *const tail;
-    const Error ret;
+    const Error retval;
+    int signo;
 } Args;
 
 
@@ -63,40 +65,54 @@ typedef struct {
  * Module variables
  */
 
-/* A string just within MAX_LEN. */
-static char longstr[MAX_LEN] = {'\0'};
+/* A string w/o a delimiter that exceeds MAX_STR_LEN. */
+#if !defined(NDEBUG)
+static char xhugestr[MAX_STR_LEN + 1U] = {'\0'};
+#endif
+
+/* A string just within MAX_STR_LEN. */
+static char xlongstr[MAX_STR_LEN] = {'\0'};
 
 /* A string w/o a delimiter that exceeds MAX_LEN. */
 static char hugestr[MAX_LEN + 1U] = {'\0'};
 
-/* A pair w/ a head that exceeds MAX_LEN. */
+/* A string just within MAX_LEN. */
+static char longstr[MAX_LEN] = {'\0'};
+
+/* A head that exceeds MAX_LEN. */
 static char hugehead[MAX_LEN + 32U] = {'\0'};
 
 /* Test cases. */
 static const Args cases[] = {
+#if !defined(NDEBUG)
+    /* Illegal arguments. */
+    {xhugestr, ",", "<n/a>", NULL, ERR_LEN, SIGABRT},
+#endif
+
     /* Overly long string. */
-    {hugestr, ",", longstr, NULL, ERR_LEN},
+    {xlongstr, ",", "<n/a>", NULL, ERR_LEN, 0},
+    {hugestr, ",", "<n/a>", NULL, ERR_LEN, 0},
 
     /* Overly long head. */
-    {hugehead, ",", NULL, ",foo", ERR_LEN},
+    {hugehead, ",", "<n/a>", ",foo", ERR_LEN, 0},
 
     /* Barely fitting string. */
-    {longstr, ",", longstr, NULL, OK},
+    {longstr, ",", longstr, NULL, OK, 0},
 
     /* Simple test. */
-    {"a,b", ",", "a", "b", OK},
+    {"a,b", ",", "a", "b", OK, 0},
 
     /* Empty strings. */
-    {",b", ",", "", "b", OK},
-    {"a,", ",", "a", "", OK},
-    {"a,b", "", "a,b", NULL, OK},
+    {",b", ",", "", "b", OK, 0},
+    {"a,", ",", "a", "", OK, 0},
+    {"a,b", "", "a,b", NULL, OK, 0},
 
     /* Environment-like tests. */
-    {"foo=bar", "=", "foo", "bar", OK},
-    {"foo=", "=", "foo", "", OK},
-    {"foo==bar", "=", "foo", "=bar", OK},
-    {"=bar", "=", "", "bar", OK},
-    {"foo", "=", "foo", NULL, OK}
+    {"foo=bar", "=", "foo", "bar", OK, 0},
+    {"foo=", "=", "foo", "", OK, 0},
+    {"foo==bar", "=", "foo", "=bar", OK, 0},
+    {"=bar", "=", "", "bar", OK, 0},
+    {"foo", "=", "foo", NULL, OK, 0}
 };
 
 
@@ -107,50 +123,59 @@ static const Args cases[] = {
 int
 main(void)
 {
-    int result = TEST_PASSED;
+    int volatile result = TEST_PASSED;
 
-    (void) memset(longstr, 'x', sizeof(longstr));
-    longstr[sizeof(longstr) - 1U] = '\0';
+    checkinit();
 
-    (void) memset(hugestr, 'x', sizeof(hugestr));
-    hugestr[sizeof(hugestr) - 1U] = '\0';
-
-    (void) memset(hugehead, 'x', sizeof(hugehead));
+#if !defined(NDEBUG)
+    (void) memset(xhugestr, 'x', sizeof(xhugestr) - 1U);
+#endif
+    (void) memset(xlongstr, 'x', sizeof(xlongstr) - 1U);
+    (void) memset(hugestr, 'x', sizeof(hugestr) - 1U);
+    (void) memset(longstr, 'x', sizeof(longstr) - 1U);
+    (void) memset(hugehead, 'x', sizeof(hugehead) - 1U);
     (void) strncpy(&hugehead[MAX_LEN], ",foo", 5U);
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
         char head[MAX_LEN];
         const char *tail;
-        Error ret;
+        int jumpval;
+        Error retval;
 
         (void) memset(head, '\0', MAX_LEN);
 
-        ret = splitstr(args.str, args.sep, MAX_LEN, head, &tail);
+        jumpval = sigsetjmp(checkenv, true);
 
-        if (ret != args.ret)
-        {
-            warnx("(%s, %s, %u, -> %s, -> %s) -> %u [!]",
-                  args.str, args.sep, MAX_LEN,
-                  args.head, args.tail, ret);
-            result = TEST_FAILED;
+        if (jumpval == 0) {
+            checking = 1;
+            retval = splitstr(args.str, args.sep, MAX_LEN, head, &tail);
+            checking = 0;
+
+            if (retval != args.retval) {
+                warnx("(%s, %s, %u, → %s, → %s) → %u [!]",
+                      args.str, args.sep, MAX_LEN, head, tail, retval);
+                result = TEST_FAILED;
+            }
+
+            if (retval == OK && strncmp(args.head, head, MAX_STR_LEN) != 0) {
+                warnx("(%s, %s, %u, → %s [!], → %s) → %u",
+                      args.str, args.sep, MAX_LEN, head, tail, retval);
+                result = TEST_FAILED;
+            }
+
+            if (args.tail != NULL &&
+                strncmp(args.tail, tail, MAX_STR_LEN) != 0)
+            {
+                warnx("(%s, %s, %u, → %s, → %s [!]) → %u",
+                      args.str, args.sep, MAX_LEN, head, tail, retval);
+                result = TEST_FAILED;
+            }
         }
 
-        if (!(args.head == NULL ||
-              strncmp(args.head, head, MAX_STR_LEN) == 0))
-        {
-            warnx("(%s, %s, %u, -> %s [!], -> %s) -> %u",
-                  args.str, args.sep, MAX_LEN,
-                  head, args.tail, args.ret);
-            result = TEST_FAILED;
-        }
-
-        if (!(args.tail == tail ||
-              strncmp(args.tail, tail, MAX_STR_LEN) == 0))
-        {
-            warnx("(%s, %s, %u, -> %s, -> %s [!]) -> %u",
-                  args.str, args.sep, MAX_LEN,
-                  args.head, tail, args.ret);
+        if (jumpval != args.signo) {
+            warnx("(%s, %s, %u, → %s, → %s) ↑ %s [!]",
+                  args.str, args.sep, MAX_LEN, head, tail, strsignal(jumpval));
             result = TEST_FAILED;
         }
     }

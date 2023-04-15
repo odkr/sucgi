@@ -26,13 +26,15 @@
 
 #include <err.h>
 #include <errno.h>
+#include <setjmp.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "../env.h"
 #include "../macros.h"
-#include "result.h"
+#include "check.h"
 
 
 /*
@@ -44,7 +46,8 @@ typedef struct {
     const bool set;
     const char *const key;
     const char *const value;
-    const Error ret;
+    const Error retval;
+    int signo;
 } Args;
 
 
@@ -52,28 +55,45 @@ typedef struct {
  * Module variables
  */
 
-/* A value just within MAX_VAR_LEN. */
-static char longstr[MAX_VAR_LEN] = {'\0'};
+#if !defined(NDEBUG)
+/* A variable name that exceeds MAX_VARNAME_LEN. */
+static char hugename[MAX_VARNAME_LEN + 1U] = {'\0'};
+#endif
+
+/* A variable name just within MAX_VARNAME_LEN. */
+static char longname[MAX_VARNAME_LEN] = {'\0'};
 
 /* A value that exceeds MAX_VAR_LEN. */
-static char hugestr[MAX_VAR_LEN + 1U] = {'\0'};
+static char hugevar[MAX_VAR_LEN + 1U] = {'\0'};
+
+/* A value just within MAX_VAR_LEN. */
+static char longvar[MAX_VAR_LEN] = {'\0'};
 
 /* Static test cases. */
 static const Args cases[] = {
+    /* Invalid arguments. */
+#if !defined(NDEBUG)
+    {false, "", "n/a", OK, SIGABRT},
+    {true, hugename, "n/a", OK, SIGABRT},
+#endif
+
+    /* Long name, but okay. */
+    {true, longname, "foo", OK, 0},
+
     /* Simple tests. */
-    {true, "foo", "bar", OK},
-    {false, "bar", "n/a", ERR_SEARCH},
+    {true, "foo", "bar", OK, 0},
+    {false, "bar", "n/a", ERR_SEARCH, 0},
 
     /* Empty string shenanigans. */
-    {true, "empty", "", OK},
+    {true, "empty", "", OK, 0},
 
     /* Long values. */
-    {true, "long", longstr, OK},
-    {true, "huge", hugestr, ERR_LEN},
+    {true, "long", longvar, OK, 0},
+    {true, "huge", hugevar, ERR_LEN, 0},
 
     /* UTF-8. */
-    {true, "ḟ𝐨ò", "🄑ǠƦ", OK},
-    {false, "🄑ǠƦ", "n/a", ERR_SEARCH}
+    {true, "ḟ𝐨ò", "🄑ǠƦ", OK, 0},
+    {false, "🄑ǠƦ", "n/a", ERR_SEARCH, 0}
 };
 
 
@@ -84,43 +104,62 @@ static const Args cases[] = {
 int
 main (void)
 {
-    int result = TEST_PASSED;
+    volatile int result = TEST_PASSED;
 
-    (void) memset(longstr, 'x', sizeof(longstr));
-    longstr[sizeof(longstr) - 1U] = '\0';
+    checkinit();
 
-    (void) memset(hugestr, 'x', sizeof(hugestr));
-    hugestr[sizeof(hugestr) - 1U] = '\0';
+#if !defined(NDEBUG)
+    (void) memset(hugename, 'x', sizeof(hugename) - 1U);
+#endif
+
+    (void) memset(longname, 'x', sizeof(longname) - 1U);
+    (void) memset(hugevar, 'x', sizeof(hugevar) - 1U);
+    (void) memset(longvar, 'x', sizeof(longvar) - 1U);
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
-        char value[sizeof(hugestr)];
-        Error ret;
+        char value[sizeof(hugevar)];
+        int jumpval;
+        volatile Error retval;
 
         errno = 0;
         if (args.set && setenv(args.key, args.value, true) != 0) {
             err(TEST_ERROR, "setenv %s=%s", args.key, args.value);
         }
 
-        ret = envcopyvar(args.key, value);
+        jumpval = sigsetjmp(checkenv, true);
 
-        if (ret != args.ret) {
-            warnx("(%s -> %s) -> %u [!]", args.key, args.value, ret);
-            result = TEST_FAILED;
+        if (jumpval == 0) {
+            checking = 1;
+            retval = envcopyvar(args.key, value);
+            checking = 0;
+
+            if (retval != args.retval) {
+                warnx("(%s → %s) → %u [!]", args.key, value, retval);
+                result = TEST_FAILED;
+            }
+
+            if (retval == OK &&
+                strncmp(value, args.value, sizeof(value)) != 0)
+            {
+                warnx("(%s → %s [!]) → %u", args.key, value, retval);
+                result = TEST_FAILED;
+            }
+
+            (void) memset(value, '\0', sizeof(value));
+
+            if (retval == OK &&
+                *args.value != '\0' &&
+                strncmp(getenv(args.key), "", sizeof("")) == 0)
+            {
+                warnx("changing the copied value changed the environment.");
+                result = TEST_FAILED;
+            }
         }
 
-        if (ret == OK && strncmp(value, args.value, sizeof(value)) != 0) {
-            warnx("(%s -> %s [!]) -> %u", args.key, value, args.ret);
-            result = TEST_FAILED;
-        }
-
-        (void) memset(value, '\0', sizeof(value));
-
-        if (ret == OK &&
-            *args.value != '\0' &&
-            strncmp(getenv(args.key), "", sizeof("")) == 0)
-        {
-            warnx("changing the copied value changed the environment.");
+        if (jumpval != args.signo) {
+            warnx("(%s → %s) ↑ %s [!]",
+                  args.key, value, strsignal(jumpval));
             result = TEST_FAILED;
         }
     }

@@ -26,6 +26,9 @@
 
 #include <err.h>
 #include <limits.h>
+#include <setjmp.h>
+#include <signal.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -33,7 +36,7 @@
 #include "../max.h"
 #include "../str.h"
 #include "../userdir.h"
-#include "result.h"
+#include "check.h"
 
 
 /*
@@ -56,13 +59,22 @@ typedef struct {
     const char *const str;
     const struct passwd *const user;
     const char *const dir;
-    const Error ret;
+    const Error retval;
+    int signo;
 } Args;
 
 
 /*
  * Module variables
  */
+
+#if !defined(NDEBUG)
+/* A filename that that exceeds MAX_FNAME_LEN. */
+static char xhugefname[MAX_FNAME_LEN + 1U] = {0};
+#endif
+
+/* A filename just within MAX_FNAME_LEN */
+static char xlongfname[MAX_FNAME_LEN] = {0};
 
 /* A long relative filename. */
 char longrelfname[MAX_FNAME_LEN];
@@ -87,25 +99,33 @@ const struct passwd user = {
 
 /* Test cases. */
 static const Args cases[] = {
+    /* Illegal arguments. */
+#if !defined(NDEBUG)
+    {xhugefname, &user, NULL, ERR_LEN, SIGABRT},
+#endif
+
+    /* Long filename. */
+    {xlongfname, &user, NULL, ERR_LEN, 0},
+
     /* Simple tests. */
-    {"public_html", &user, "/home/jdoe/public_html", OK},
-    {"/srv/www", &user, "/srv/www/jdoe", OK},
-    {"/srv/www/%s/html", &user, "/srv/www/jdoe/html", OK},
+    {"public_html", &user, "/home/jdoe/public_html", OK, 0},
+    {"/srv/www", &user, "/srv/www/jdoe", OK, 0},
+    {"/srv/www/%s/html", &user, "/srv/www/jdoe/html", OK, 0},
 
     /* Spaces. */
-    {"Web docs", &user, "/home/jdoe/Web docs", OK},
-    {"/Server files/Web docs", &user, "/Server files/Web docs/jdoe", OK},
-    {"/User files/%s/Web docs", &user, "/User files/jdoe/Web docs", OK},
+    {"Web docs", &user, "/home/jdoe/Web docs", OK, 0},
+    {"/Server files/Web docs", &user, "/Server files/Web docs/jdoe", OK, 0},
+    {"/User files/%s/Web docs", &user, "/User files/jdoe/Web docs", OK, 0},
 
     /* UTF-8. */
-    {"ⓟů𝕓ḹḭⓒ﹏𝒽𝚝ṃḹ", &user, "/home/jdoe/ⓟů𝕓ḹḭⓒ﹏𝒽𝚝ṃḹ", OK},
-    {"/𝘴ȑṽ/𝙬𝙬𝙬", &user, "/𝘴ȑṽ/𝙬𝙬𝙬/jdoe", OK},
-    {"/𝘴ȑṽ/𝙬𝙬𝙬/%s/𝒽𝚝ṃḹ", &user, "/𝘴ȑṽ/𝙬𝙬𝙬/jdoe/𝒽𝚝ṃḹ", OK},
+    {"ⓟů𝕓ḹḭⓒ﹏𝒽𝚝ṃḹ", &user, "/home/jdoe/ⓟů𝕓ḹḭⓒ﹏𝒽𝚝ṃḹ", OK, 0},
+    {"/𝘴ȑṽ/𝙬𝙬𝙬", &user, "/𝘴ȑṽ/𝙬𝙬𝙬/jdoe", OK, 0},
+    {"/𝘴ȑṽ/𝙬𝙬𝙬/%s/𝒽𝚝ṃḹ", &user, "/𝘴ȑṽ/𝙬𝙬𝙬/jdoe/𝒽𝚝ṃḹ", OK, 0},
 
     /* Long filenames. */
-    {longrelfname, &user, NULL, ERR_LEN},
-    {longabsname, &user, NULL, ERR_LEN},
-    {longpattern, &user, NULL, ERR_LEN},
+    {longrelfname, &user, NULL, ERR_LEN, 0},
+    {longabsname, &user, NULL, ERR_LEN, 0},
+    {longpattern, &user, NULL, ERR_LEN, 0},
 };
 
 
@@ -116,45 +136,62 @@ static const Args cases[] = {
 int
 main(void)
 {
-    int result = TEST_PASSED;
+    volatile int result = TEST_PASSED;
 
-    (void) memset(longrelfname, 'x', sizeof(longrelfname));
-    longrelfname[sizeof(longrelfname) - 1] = '\0';
+    checkinit();
 
-    (void) memset(longabsname, 'x', sizeof(longabsname));
-    longabsname[sizeof(longabsname) - 1] = '\0';
+#if !defined(NDEBUG)
+    (void) memset(xhugefname, 'x', sizeof(xhugefname) - 1U);
+#endif
+    (void) memset(xlongfname, 'x', sizeof(xlongfname) - 1U);
+    (void) memset(longrelfname, 'x', sizeof(longrelfname) - 1U);
+    (void) memset(longabsname, 'x', sizeof(longabsname) - 1U);
     longabsname[0] = '/';
 
-    (void) memset(longpattern, 'x', sizeof(longpattern));
-    (void) copystr(4, "/%s", &longpattern[sizeof(longpattern) - 4]);
+    (void) memset(longpattern, 'x', sizeof(longpattern) - 1U);
+    (void) copystr(4, "/%s", &longpattern[sizeof(longpattern) - 4U]);
     longpattern[0] = '/';
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
         char dir[MAX_FNAME_LEN];
-        Error ret;
+        int jumpval;
+        Error retval;
 
         (void) memset(dir, '\0', MAX_FNAME_LEN);
 
+        jumpval = sigsetjmp(checkenv, true);
+
+        if (jumpval == 0) {
 /* args.str is not a literal. */
 #if defined(__GNUC__) && __GNUC__ >= 3
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-nonliteral"
 #endif
-        ret = userdirexp(args.str, args.user, dir);
+            checking = 1;
+            retval = userdirexp(args.str, args.user, dir);
+            checking = 0;
+
 #if defined(__GNUC__) && __GNUC__ >= 3
 #pragma GCC diagnostic pop
 #endif
 
-        if (ret != args.ret) {
-            warnx("(%s, %s, -> %s) -> %u [!]",
-                  args.str, args.user->pw_name, args.dir, ret);
-            result = TEST_FAILED;
+            if (retval != args.retval) {
+                warnx("(%s, %s, → %s) → %u [!]",
+                      args.str, args.user->pw_name, dir, retval);
+                result = TEST_FAILED;
+            }
+
+            if (retval == OK && strcmp(args.dir, dir) != 0) {
+                warnx("(%s, %s, → %s [!]) → %u",
+                      args.str, args.user->pw_name, dir, retval);
+                result = TEST_FAILED;
+            }
         }
 
-        if (ret == OK && strcmp(args.dir, dir) != 0) {
-            warnx("(%s, %s, -> %s [!]) -> %u",
-                  args.str, args.user->pw_name, dir, args.ret);
+        if (jumpval != args.signo) {
+            warnx("(%s, %s, → %s) ↑ %s [!]",
+                  args.str, args.user->pw_name, dir, strsignal(jumpval));
             result = TEST_FAILED;
         }
     }

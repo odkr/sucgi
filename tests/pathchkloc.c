@@ -25,7 +25,7 @@
 #define _GNU_SOURCE
 
 #include <err.h>
-#include <math.h>
+#include <setjmp.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,30 +34,7 @@
 #include "../macros.h"
 #include "../max.h"
 #include "../path.h"
-#include "result.h"
-
-
-/*
- * Constants
- */
-
-/* Maximum length of dynamically created filenames. */
-#define FNAME_LEN 3U
-
-/* Maximum length of dynamically created sub-directories. */
-#define SUBDIR_LEN (FNAME_LEN * 2U + 1U)
-
-/*
- * The number that tostr maps to a slash when given
- * ASCII shifted one byte to the left as digits.
- */
-#define SLASH ('/' - 1U)
-
-/*
- * The number that tostr maps to a dot when given
- * ASCII shifted one byte to the left as digits.
- */
-#define DOT ('.' - 1U)
+#include "check.h"
 
 
 /*
@@ -68,7 +45,8 @@
 typedef struct {
     const char *const basedir;
     const char *const fname;
-    const Error ret;
+    const Error retval;
+    int signo;
 } Args;
 
 
@@ -76,85 +54,85 @@ typedef struct {
  * Module variables
  */
 
-/* A filename just within MAX_FNAME_LEN. */
-static char longfname[MAX_FNAME_LEN] = {'\0'};
-
 /* A filename that exceeds MAX_FNAME_LEN. */
 static char hugefname[MAX_FNAME_LEN + 1U] = {'\0'};
+
+/* A filename just within MAX_FNAME_LEN. */
+static char longfname[MAX_FNAME_LEN] = {'\0'};
 
 /* Static test cases. */
 static const Args cases[] = {
     /* Long filenames. */
-    {"foo", longfname, ERR_BASEDIR},
-    {longfname, "foo", ERR_BASEDIR},
-    {"foo", hugefname, ERR_LEN},
-    {hugefname, "foo", ERR_LEN},
+    {"foo", longfname, ERR_BASEDIR, 0},
+    {longfname, "foo", ERR_BASEDIR, 0},
+    {"foo", hugefname, ERR_LEN, 0},
+    {hugefname, "foo", ERR_LEN, 0},
 
     /* Absolute paths. */
-    {"/", "/", ERR_BASEDIR},
-    {"/", "/foo", OK},
-    {"/foo", "/foo/bar", OK},
-    {"/foo", "/bar", ERR_BASEDIR},
-    {"/bar", "/foo", ERR_BASEDIR},
-    {"/foo", "/foobar", ERR_BASEDIR},
-    {"/", "foo", ERR_BASEDIR},
-    {"/foo", "/", ERR_BASEDIR},
-    {"/foo", "/foo", ERR_BASEDIR},
-    {"/foo", "/bar/foo", ERR_BASEDIR},
+    {"/", "/", ERR_BASEDIR, 0},
+    {"/", "/foo", OK, 0},
+    {"/foo", "/foo/bar", OK, 0},
+    {"/foo", "/bar", ERR_BASEDIR, 0},
+    {"/bar", "/foo", ERR_BASEDIR, 0},
+    {"/foo", "/foobar", ERR_BASEDIR, 0},
+    {"/", "foo", ERR_BASEDIR, 0},
+    {"/foo", "/", ERR_BASEDIR, 0},
+    {"/foo", "/foo", ERR_BASEDIR, 0},
+    {"/foo", "/bar/foo", ERR_BASEDIR, 0},
 
     /* Relative paths. */
-    {"foo", "foo/bar", OK},
-    {".", "foo/bar", OK},
-    {"foo", "foo", ERR_BASEDIR},
-    {"bar", "foo", ERR_BASEDIR},
-    {"foo", "bar/foo", ERR_BASEDIR},
+    {"foo", "foo/bar", OK, 0},
+    {".", "foo/bar", OK, 0},
+    {"foo", "foo", ERR_BASEDIR, 0},
+    {"bar", "foo", ERR_BASEDIR, 0},
+    {"foo", "bar/foo", ERR_BASEDIR, 0},
 
     /* Leading dot. */
-    {".", "./foo", OK},
-    {"./foo", "./foo/bar", OK},
-    {".", ".foo", OK},
-    {"./bar", "./foo", ERR_BASEDIR},
-    {"./foo", ".", ERR_BASEDIR},
-    {"./foo", "./", ERR_BASEDIR},
-    {"./foo", "./foo", ERR_BASEDIR},
-    {".", ".", ERR_BASEDIR},
-    {".f", ".foo", ERR_BASEDIR},
-    {".foo", ".foo", ERR_BASEDIR},
-    {"./foo", "./bar/foo", ERR_BASEDIR},
+    {".", "./foo", OK, 0},
+    {"./foo", "./foo/bar", OK, 0},
+    {".", ".foo", OK, 0},
+    {"./bar", "./foo", ERR_BASEDIR, 0},
+    {"./foo", ".", ERR_BASEDIR, 0},
+    {"./foo", "./", ERR_BASEDIR, 0},
+    {"./foo", "./foo", ERR_BASEDIR, 0},
+    {".", ".", ERR_BASEDIR, 0},
+    {".f", ".foo", ERR_BASEDIR, 0},
+    {".foo", ".foo", ERR_BASEDIR, 0},
+    {"./foo", "./bar/foo", ERR_BASEDIR, 0},
 
     /* Realistc tests. */
-    {"/home/jdoe", "/home/jdoe/public_html", OK},
-    {"/srv/www", "/srv/www/jdoe", OK},
-    {"/home/jdoe", "/srv/www/jdoe", ERR_BASEDIR},
-    {"/srv/www", "/home/jdoe/public_html", ERR_BASEDIR},
+    {"/home/jdoe", "/home/jdoe/public_html", OK, 0},
+    {"/srv/www", "/srv/www/jdoe", OK, 0},
+    {"/home/jdoe", "/srv/www/jdoe", ERR_BASEDIR, 0},
+    {"/srv/www", "/home/jdoe/public_html", ERR_BASEDIR, 0},
 
     /* UTF-8. */
-    {"/", "/𝒇ȫǭ", OK},
-    {"/𝒇ȫǭ", "/𝒇ȫǭ/𝕓ắ𝚛", OK},
-    {"/𝒇ȫǭ", "/𝕓ắ𝚛", ERR_BASEDIR},
-    {"/𝕓ắ𝚛", "/𝒇ȫǭ", ERR_BASEDIR},
-    {"/𝒇ȫǭ", "/𝒇ȫǭ𝕓ắ𝚛", ERR_BASEDIR},
-    {"/", "𝒇ȫǭ", ERR_BASEDIR},
-    {"/𝒇ȫǭ", "/", ERR_BASEDIR},
-    {"/𝒇ȫǭ", "/𝒇ȫǭ", ERR_BASEDIR},
-    {"𝒇ȫǭ", "𝒇ȫǭ/𝕓ắ𝚛", OK},
-    {".", "𝒇ȫǭ/𝕓ắ𝚛", OK},
-    {"𝒇ȫǭ", "𝒇ȫǭ", ERR_BASEDIR},
-    {"𝕓ắ𝚛", "𝒇ȫǭ", ERR_BASEDIR},
-    {".", "./𝒇ȫǭ", OK},
-    {"./𝒇ȫǭ", "./𝒇ȫǭ/𝕓ắ𝚛", OK},
-    {".", ".𝒇ȫǭ", OK},
-    {"./𝕓ắ𝚛", "./𝒇ȫǭ", ERR_BASEDIR},
-    {"./𝒇ȫǭ", ".", ERR_BASEDIR},
-    {"./𝒇ȫǭ", "./", ERR_BASEDIR},
-    {"./𝒇ȫǭ", "./𝒇ȫǭ", ERR_BASEDIR},
-    {".", ".", ERR_BASEDIR},
-    {".f", ".𝒇ȫǭ", ERR_BASEDIR},
-    {".𝒇ȫǭ", ".𝒇ȫǭ", ERR_BASEDIR},
-    {"/home/⒥𝑑𝓸𝖊", "/home/⒥𝑑𝓸𝖊/public_html", OK},
-    {"/srv/www", "/srv/www/⒥𝑑𝓸𝖊", OK},
-    {"/home/⒥𝑑𝓸𝖊", "/srv/www/⒥𝑑𝓸𝖊", ERR_BASEDIR},
-    {"/srv/www", "/home/⒥𝑑𝓸𝖊/public_html", ERR_BASEDIR}
+    {"/", "/𝒇ȫǭ", OK, 0},
+    {"/𝒇ȫǭ", "/𝒇ȫǭ/𝕓ắ𝚛", OK, 0},
+    {"/𝒇ȫǭ", "/𝕓ắ𝚛", ERR_BASEDIR, 0},
+    {"/𝕓ắ𝚛", "/𝒇ȫǭ", ERR_BASEDIR, 0},
+    {"/𝒇ȫǭ", "/𝒇ȫǭ𝕓ắ𝚛", ERR_BASEDIR, 0},
+    {"/", "𝒇ȫǭ", ERR_BASEDIR, 0},
+    {"/𝒇ȫǭ", "/", ERR_BASEDIR, 0},
+    {"/𝒇ȫǭ", "/𝒇ȫǭ", ERR_BASEDIR, 0},
+    {"𝒇ȫǭ", "𝒇ȫǭ/𝕓ắ𝚛", OK, 0},
+    {".", "𝒇ȫǭ/𝕓ắ𝚛", OK, 0},
+    {"𝒇ȫǭ", "𝒇ȫǭ", ERR_BASEDIR, 0},
+    {"𝕓ắ𝚛", "𝒇ȫǭ", ERR_BASEDIR, 0},
+    {".", "./𝒇ȫǭ", OK, 0},
+    {"./𝒇ȫǭ", "./𝒇ȫǭ/𝕓ắ𝚛", OK, 0},
+    {".", ".𝒇ȫǭ", OK, 0},
+    {"./𝕓ắ𝚛", "./𝒇ȫǭ", ERR_BASEDIR, 0},
+    {"./𝒇ȫǭ", ".", ERR_BASEDIR, 0},
+    {"./𝒇ȫǭ", "./", ERR_BASEDIR, 0},
+    {"./𝒇ȫǭ", "./𝒇ȫǭ", ERR_BASEDIR, 0},
+    {".", ".", ERR_BASEDIR, 0},
+    {".f", ".𝒇ȫǭ", ERR_BASEDIR, 0},
+    {".𝒇ȫǭ", ".𝒇ȫǭ", ERR_BASEDIR, 0},
+    {"/home/⒥𝑑𝓸𝖊", "/home/⒥𝑑𝓸𝖊/public_html", OK, 0},
+    {"/srv/www", "/srv/www/⒥𝑑𝓸𝖊", OK, 0},
+    {"/home/⒥𝑑𝓸𝖊", "/srv/www/⒥𝑑𝓸𝖊", ERR_BASEDIR, 0},
+    {"/srv/www", "/home/⒥𝑑𝓸𝖊/public_html", ERR_BASEDIR, 0}
 };
 
 
@@ -165,22 +143,35 @@ static const Args cases[] = {
 int
 main(void)
 {
-    int result = TEST_PASSED;
+    volatile int result = TEST_PASSED;
 
-    (void) memset(longfname, 'x', sizeof(longfname));
-    longfname[sizeof(longfname) - 1U] = '\0';
+    checkinit();
 
-    (void) memset(hugefname, 'x', sizeof(hugefname));
-    hugefname[sizeof(hugefname) - 1U] = '\0';
+    (void) memset(hugefname, 'x', sizeof(hugefname) - 1U);
+    (void) memset(longfname, 'x', sizeof(longfname) - 1U);
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
-        Error ret;
+        int jumpval;
+        Error retval;
 
-        ret = pathchkloc(args.basedir, args.fname);
-        if (ret != args.ret) {
-            warnx("checking (%s, %s) -> %u ... [!]",
-                  args.basedir, args.fname, ret);
+        jumpval = sigsetjmp(checkenv, true);
+
+        if (jumpval == 0) {
+            checking = 1;
+            retval = pathchkloc(args.basedir, args.fname);
+            checking = 0;
+
+            if (retval != args.retval) {
+                warnx("checking (%s, %s) → %u [!]",
+                      args.basedir, args.fname, retval);
+                result = TEST_FAILED;
+            }
+        }
+
+        if (jumpval != args.signo) {
+            warnx("checking (%s, %s) ↑ %s [!]",
+                  args.basedir, args.fname, strsignal(jumpval));
             result = TEST_FAILED;
         }
     }

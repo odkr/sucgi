@@ -25,14 +25,16 @@
 #define _GNU_SOURCE
 
 #include <err.h>
-#include <math.h>
+#include <setjmp.h>
+#include <signal.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "../macros.h"
 #include "../max.h"
 #include "../str.h"
-#include "result.h"
+#include "check.h"
 
 
 /*
@@ -44,7 +46,8 @@ typedef struct {
     const size_t n;
     const char *const src;
     const char *const dest;
-    const Error ret;
+    const Error retval;
+    const int signo;
 } Args;
 
 
@@ -52,24 +55,41 @@ typedef struct {
  * Module variables
  */
 
+#if !defined(NDEBUG)
+/* A string that that exceeds MAX_STR_LEN. */
+static char hugestr[MAX_STR_LEN + 1U] = {0};
+#endif
+
+/* A string just within MAX_STR_LEN */
+static char longstr[MAX_STR_LEN] = {0};
+
 /* Tests. */
 static const Args cases[] = {
+#if !defined(NDEBUG)
+    /* Invalid argument. */
+    {1, hugestr, "n/a", OK, SIGABRT},
+#endif
+
+    /* Long string. */
+    {MAX_STR_LEN - 1U, longstr, longstr, OK, 0},
+
     /* Simple test. */
-    {MAX_STR_LEN - 1U, "foo", "foo", OK},
+    {MAX_STR_LEN - 1U, "foo", "foo", OK, 0},
+
 
     /* Almost truncated. */
-    {1, "x", "x", OK},
+    {1, "x", "x", OK, 0},
 
     /* Truncation. */
-    {3, "abcd", "abc", ERR_LEN},
+    {3, "abcd", "abc", ERR_LEN, 0},
 
     /* Truncate to 0. */
-    {0, "foo", "", ERR_LEN},
+    {0, "foo", "", ERR_LEN, 0},
 
     /* Empty strings. */
-    {MAX_STR_LEN - 1U, "", "", OK},
-    {1, "", "", OK},
-    {0, "", "", OK}
+    {MAX_STR_LEN - 1U, "", "", OK, 0},
+    {1, "", "", OK, 0},
+    {0, "", "", OK, 0}
 };
 
 
@@ -79,26 +99,46 @@ static const Args cases[] = {
 
 int
 main (void) {
-    int result = TEST_PASSED;
+    volatile int result = TEST_PASSED;
+
+    checkinit();
+
+#if !defined(NDEBUG)
+    (void) memset(hugestr, 'x', sizeof(hugestr) - 1U);
+#endif
+    (void) memset(longstr, 'x', sizeof(longstr) - 1U);
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
         char dest[MAX_STR_LEN];
-        Error ret;
+        int jumpval;
+        volatile Error retval;
 
         (void) memset(dest, '\0', sizeof(dest));
 
-        ret = copystr(args.n, args.src, dest);
+        jumpval = sigsetjmp(checkenv, true);
 
-        if (ret != args.ret) {
-            warnx("(%zu, %s, -> %s) -> %u [!]",
-                  args.n, args.src, args.dest, ret);
-            result = TEST_FAILED;
+        if (jumpval == 0) {
+            checking = 1;
+            retval = copystr(args.n, args.src, dest);
+            checking = 0;
+
+            if (retval != args.retval) {
+                warnx("(%zu, %s, → %s) → %u [!]",
+                      args.n, args.src, dest, retval);
+                result = TEST_FAILED;
+            }
+
+            if (retval == OK && strncmp(args.dest, dest, MAX_STR_LEN) != 0) {
+                warnx("(%zu, %s, → %s [!]) → %u",
+                      args.n, args.src, dest, retval);
+                result = TEST_FAILED;
+            }
         }
 
-        if (ret == OK && strncmp(args.dest, dest, MAX_STR_LEN) != 0) {
-            warnx("(%zu, %s, -> %s [!]) -> %u",
-                  args.n, args.src, dest, args.ret);
+        if (jumpval != args.signo) {
+            warnx("(%zu, %s, → %s) ↑ %s [!]",
+                  args.n, args.src, dest, strsignal(jumpval));
             result = TEST_FAILED;
         }
     }

@@ -26,22 +26,15 @@
 
 #include <sys/types.h>
 #include <err.h>
+#include <setjmp.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../file.h"
 #include "../macros.h"
-#include "result.h"
-
-
-/*
- * Macros
- */
-
-/* Shorthand to create a struct stat object with UID and MODE. */
-#define STAT(uid, mode) \
-    (const struct stat) {.st_uid = (uid), .st_mode = (mode)}
+#include "check.h"
 
 
 /*
@@ -52,7 +45,8 @@
 typedef struct {
     const uid_t uid;
     const struct stat fstatus;
-    const bool ret;
+    const bool retval;
+    int signo;
 } Args;
 
 
@@ -63,52 +57,52 @@ typedef struct {
 /* Static test cases. */
 static const Args cases[] = {
     /* Owner matches. */
-    {0, {.st_uid = 0, .st_mode = 0000}, true},
-    {0, {.st_uid = 0, .st_mode = 0100}, true},
-    {0, {.st_uid = 0, .st_mode = 0200}, true},
-    {0, {.st_uid = 0, .st_mode = 0300}, true},
-    {0, {.st_uid = 0, .st_mode = 0400}, true},
-    {0, {.st_uid = 0, .st_mode = 0500}, true},
-    {0, {.st_uid = 0, .st_mode = 0600}, true},
-    {0, {.st_uid = 0, .st_mode = 0700}, true},
-    {0, {.st_uid = 0, .st_mode = 0010}, true},
-    {0, {.st_uid = 0, .st_mode = 0020}, false},
-    {0, {.st_uid = 0, .st_mode = 0030}, false},
-    {0, {.st_uid = 0, .st_mode = 0040}, true},
-    {0, {.st_uid = 0, .st_mode = 0050}, true},
-    {0, {.st_uid = 0, .st_mode = 0060}, false},
-    {0, {.st_uid = 0, .st_mode = 0070}, false},
-    {0, {.st_uid = 0, .st_mode = 0001}, true},
-    {0, {.st_uid = 0, .st_mode = 0002}, false},
-    {0, {.st_uid = 0, .st_mode = 0003}, false},
-    {0, {.st_uid = 0, .st_mode = 0004}, true},
-    {0, {.st_uid = 0, .st_mode = 0005}, true},
-    {0, {.st_uid = 0, .st_mode = 0006}, false},
-    {0, {.st_uid = 0, .st_mode = 0007}, false},
+    {0, {.st_uid = 0, .st_mode = 0000}, true, 0},
+    {0, {.st_uid = 0, .st_mode = 0100}, true, 0},
+    {0, {.st_uid = 0, .st_mode = 0200}, true, 0},
+    {0, {.st_uid = 0, .st_mode = 0300}, true, 0},
+    {0, {.st_uid = 0, .st_mode = 0400}, true, 0},
+    {0, {.st_uid = 0, .st_mode = 0500}, true, 0},
+    {0, {.st_uid = 0, .st_mode = 0600}, true, 0},
+    {0, {.st_uid = 0, .st_mode = 0700}, true, 0},
+    {0, {.st_uid = 0, .st_mode = 0010}, true, 0},
+    {0, {.st_uid = 0, .st_mode = 0020}, false, 0},
+    {0, {.st_uid = 0, .st_mode = 0030}, false, 0},
+    {0, {.st_uid = 0, .st_mode = 0040}, true, 0},
+    {0, {.st_uid = 0, .st_mode = 0050}, true, 0},
+    {0, {.st_uid = 0, .st_mode = 0060}, false, 0},
+    {0, {.st_uid = 0, .st_mode = 0070}, false, 0},
+    {0, {.st_uid = 0, .st_mode = 0001}, true, 0},
+    {0, {.st_uid = 0, .st_mode = 0002}, false, 0},
+    {0, {.st_uid = 0, .st_mode = 0003}, false, 0},
+    {0, {.st_uid = 0, .st_mode = 0004}, true, 0},
+    {0, {.st_uid = 0, .st_mode = 0005}, true, 0},
+    {0, {.st_uid = 0, .st_mode = 0006}, false, 0},
+    {0, {.st_uid = 0, .st_mode = 0007}, false, 0},
 
     /* Owner does not match. */
-    {0, {.st_uid = 1, .st_mode = 0000}, false},
-    {0, {.st_uid = 1, .st_mode = 0100}, false},
-    {0, {.st_uid = 1, .st_mode = 0200}, false},
-    {0, {.st_uid = 1, .st_mode = 0300}, false},
-    {0, {.st_uid = 1, .st_mode = 0400}, false},
-    {0, {.st_uid = 1, .st_mode = 0500}, false},
-    {0, {.st_uid = 1, .st_mode = 0600}, false},
-    {0, {.st_uid = 1, .st_mode = 0700}, false},
-    {0, {.st_uid = 1, .st_mode = 0010}, false},
-    {0, {.st_uid = 1, .st_mode = 0020}, false},
-    {0, {.st_uid = 1, .st_mode = 0030}, false},
-    {0, {.st_uid = 1, .st_mode = 0040}, false},
-    {0, {.st_uid = 1, .st_mode = 0050}, false},
-    {0, {.st_uid = 1, .st_mode = 0060}, false},
-    {0, {.st_uid = 1, .st_mode = 0070}, false},
-    {0, {.st_uid = 1, .st_mode = 0001}, false},
-    {0, {.st_uid = 1, .st_mode = 0002}, false},
-    {0, {.st_uid = 1, .st_mode = 0003}, false},
-    {0, {.st_uid = 1, .st_mode = 0004}, false},
-    {0, {.st_uid = 1, .st_mode = 0005}, false},
-    {0, {.st_uid = 1, .st_mode = 0006}, false},
-    {0, {.st_uid = 1, .st_mode = 0007}, false},
+    {0, {.st_uid = 1, .st_mode = 0000}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0100}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0200}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0300}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0400}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0500}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0600}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0700}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0010}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0020}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0030}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0040}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0050}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0060}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0070}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0001}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0002}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0003}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0004}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0005}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0006}, false, 0},
+    {0, {.st_uid = 1, .st_mode = 0007}, false, 0}
 };
 
 
@@ -119,17 +113,31 @@ static const Args cases[] = {
 int
 main(void)
 {
-    int result = TEST_PASSED;
+    volatile int result = TEST_PASSED;
+
+    checkinit();
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
-        bool ret;
+        volatile bool retval;
+        int jumpval;
 
-        ret = fileisxusrw(args.uid, &args.fstatus);
-        if (ret != args.ret) {
-            warnx("(%d, {%d, 0%03o})) -> %d [!]",
+        jumpval = sigsetjmp(checkenv, true);
+
+        if (jumpval == 0) {
+            retval = fileisxusrw(args.uid, &args.fstatus);
+            if (retval != args.retval) {
+                warnx("(%d, {%d, 0%03o})) → %d [!]",
+                      (int) args.uid, (int) args.fstatus.st_gid,
+                      args.fstatus.st_mode, retval);
+                result = TEST_FAILED;
+            }
+        }
+
+        if (jumpval != args.signo) {
+            warnx("(%d, {%d, 0%03o})) ↑ %s [!]",
                   (int) args.uid, (int) args.fstatus.st_gid,
-                  args.fstatus.st_mode, ret);
+                  args.fstatus.st_mode, strsignal(jumpval));
             result = TEST_FAILED;
         }
     }
