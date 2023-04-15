@@ -87,7 +87,7 @@ bool envisname(const char *str);
  *     Logs which variables are kept and which are discarded.
  */
 __attribute__((nonnull(1, 3), warn_unused_result))
-Error envrestore(char *const *vars, size_t npregs, const regex_t *pregs);
+Error envrestore(const char *const *vars, size_t npregs, const regex_t *pregs);
 
 
 #endif /* !defined(ENV_H) */

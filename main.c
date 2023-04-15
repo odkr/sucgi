@@ -394,7 +394,7 @@ main(int argc, char **argv) {
         }
     }
 
-    ret = envrestore(vars, NELEMS(pregs), pregs);
+    ret = envrestore((const char *const *) vars, NELEMS(pregs), pregs);
     switch (ret) {
     case OK:
         break;

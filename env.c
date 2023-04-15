@@ -58,9 +58,8 @@ envcopyvar(const char *const name, char value[MAX_VAR_LEN])
         /* cppcheck-suppress misra-c2012-22.10; getenv may set errno. */
         if (errno == 0) {
             return ERR_SEARCH;
-        } else {
-            return ERR_SYS;
         }
+        return ERR_SYS;
     }
 
     return copystr(MAX_VAR_LEN - 1U, var, value);
@@ -87,8 +86,8 @@ envisname(const char *const str)
 }
 
 Error
-envrestore(char *const *const vars, const size_t npregs,
-            const regex_t *const pregs)
+envrestore(const char *const *const vars, const size_t npregs,
+           const regex_t *const pregs)
 {
     size_t varidx;
 
