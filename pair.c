@@ -35,7 +35,7 @@
 
 Error
 pairfind(const size_t npairs, const Pair *const pairs,
-            const char *const key, const char **const value)
+         const char *const key, const char **const value)
 {
     size_t len = strnlen(key, MAX_STR_LEN);
 
