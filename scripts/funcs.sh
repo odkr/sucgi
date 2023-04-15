@@ -113,7 +113,8 @@ cleanup() {
 	kill -- $(jobs -p 2>/dev/null) -$$ >/dev/null 2>&1
 	wait
 	eval "${cleanup-}"
-	return $((retval % 128))
+	cleanup=
+	return $retval
 }
 
 # Clear the current line of terminal $fd.

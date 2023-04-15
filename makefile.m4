@@ -131,15 +131,15 @@ uninstall:
 #
 
 checks = $(check_scripts) $(macro_check_bins) tests/envcopyvar \
-	tests/envisname tests/envrestore tests/fileisexe tests/fileisxusrw \
+	tests/envisname tests/envrestore tests/fileisxusrw \
 	tests/handlerfind tests/pairfind tests/pathchkloc \
 	tests/pathsuffix tests/copystr tests/splitstr tests/userdirexp
 
 macro_check_bins = tests/ISSIGNED tests/NELEMS tests/SIGNEDMAX
 
 other_check_bins = tests/envcopyvar tests/envisname tests/envrestore \
-	tests/error tests/fileisexe tests/fileisxusrw tests/handlerfind \
-	tests/pairfind tests/pathchkperm tests/pathchkloc \
+	tests/error tests/fileisxusrw tests/handlerfind \
+	tests/pairfind tests/pathchkperm tests/pathchkloc tests/pathreal \
 	tests/pathsuffix tests/privdrop tests/privsuspend tests/copystr \
 	tests/splitstr tests/userdirexp
 
@@ -164,8 +164,6 @@ tests/envcopyvar: tests/envcopyvar.c funcs.a(env.o)
 
 tests/error: tests/error.c funcs.a(error.o)
 
-tests/fileisexe: tests/fileisexe.c funcs.a(file.o)
-
 tests/fileisxusrw: tests/fileisxusrw.c funcs.a(file.o)
 
 tests/handlerfind: tests/handlerfind.c funcs.a(handler.o)
@@ -177,6 +175,8 @@ tests/pairfind: tests/pairfind.c funcs.a(pair.o)
 tests/pathchkperm: tests/pathchkperm.c funcs.a(path.o)
 
 tests/pathchkloc: tests/pathchkloc.c funcs.a(path.o)
+
+tests/pathreal: tests/pathreal.c funcs.a(path.o)
 
 tests/pathsuffix: tests/pathsuffix.c funcs.a(path.o)
 

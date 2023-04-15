@@ -56,7 +56,11 @@ envcopyvar(const char *const name, char value[MAX_VAR_LEN])
     var = getenv(name);
     if (var == NULL) {
         /* cppcheck-suppress misra-c2012-22.10; getenv may set errno. */
-        return (errno == 0) ? ERR_SEARCH : ERR_SYS;
+        if (errno == 0) {
+            return ERR_SEARCH;
+        } else {
+            return ERR_SYS;
+        }
     }
 
     return copystr(MAX_VAR_LEN - 1U, var, value);
