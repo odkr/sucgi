@@ -45,7 +45,7 @@
  */
 
 /* Limit for the maximum number of jobs to run in parallel. */
-#define LIM_NRUN 64
+#define MAX_NRUN 64
 
 /* Programme name. */
 #define PROGNAME "runpara"
@@ -159,7 +159,7 @@ static long opttonum(long min, long max);
  */
 
 /* Most recently started jobs. */
-static Job jobs[LIM_NRUN] = {0};
+static Job jobs[MAX_NRUN] = {0};
 
 /* Most recently caught signal. */
 static volatile sig_atomic_t caught = 0;
@@ -364,7 +364,7 @@ main (int argc, char **argv)
         .sa_handler = SIG_DFL
     };
 
-    wordexp_t comms[LIM_NRUN];  /* Parsed commands. */
+    wordexp_t comms[MAX_NRUN];  /* Parsed commands. */
     bool statusmask[128];       /* Ignored exit statuses. */
     sigset_t nosigs;            /* Empty signal set. */
     sigset_t oldmask;           /* Old signal mask. */
