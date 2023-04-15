@@ -30,13 +30,6 @@
 
 
 /*
- * Check whether FSTATUS indicates that the user with the user ID UID
- * and the primary group ID GID can execute the corresponding file.
- */
-__attribute__((const, warn_unused_result))
-bool fileisexe(uid_t uid, gid_t gid, const struct stat *fstatus);
-
-/*
  * Check whether FSTATUS indicates that only the user with the
  * user ID UID has write access to the corresponding file.
  */

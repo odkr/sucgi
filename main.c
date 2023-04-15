@@ -816,27 +816,12 @@ main(int argc, char **argv) {
      * Run the script.
      */
 
-    if (!fileisexe(uid, gid, &script_stat)) {
-        const Pair handlers[] = HANDLERS;
-        const char *handler;
+    const Pair handlers[] = HANDLERS;
+    const char *handler;
 
-        ret = handlerfind(NELEMS(handlers), handlers, script_phys, &handler);
-        switch (ret) {
-        case OK:
-            break;
-        case ERR_BAD:
-            error("script %s: bad handler.", script_log);
-        case ERR_LEN:
-            error("script %s: filename suffix too long.", script_log);
-        case ERR_SEARCH:
-            error("script %s: no handler found.", script_log);
-        case ERR_SUFFIX:
-            error("script %s: not executable.", script_log);
-        default:
-            /* Should be unreachable. */
-            error("%d: handlerfind returned %d.", __LINE__, ret);
-        }
-
+    ret = handlerfind(NELEMS(handlers), handlers, script_phys, &handler);
+    switch (ret) {
+    case OK:
         assert(handler != NULL);
         assert(*handler != '\0');
         assert(strnlen(handler, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
@@ -847,6 +832,17 @@ main(int argc, char **argv) {
 
         /* If this point is reached, execution has failed. */
         error("execlp %s %s: %m.", handler, script_phys);
+    case ERR_SEARCH:
+        break;
+    case ERR_SUFFIX:
+        break;
+    case ERR_BAD:
+        error("script %s: bad handler.", script_log);
+    case ERR_LEN:
+        error("script %s: filename suffix too long.", script_log);
+    default:
+        /* Should be unreachable. */
+        error("%d: handlerfind returned %d.", __LINE__, ret);
     }
 
     errno = 0;
