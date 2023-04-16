@@ -67,9 +67,6 @@ typedef struct {
     int signo;                      /* Signal caught, if any. */
 } Args;
 
-/* FIXME */
-typedef const char *const ConstStrArray[];
-
 
 /*
  * Module variables
@@ -97,213 +94,215 @@ static char hugename[MAX_VAR_LEN] = {'\0'};
 static const Args cases[] = {
     /* Null tests. */
     {
-        (ConstStrArray) {NULL},
-        0, (ConstStrArray) {NULL}, (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {NULL},
+        0, (const char *const []) {NULL},
+        (const char *const []) {NULL}, OK, 0
     },
     {
-        (ConstStrArray) {NULL},
-        1, (ConstStrArray) {"."}, (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {NULL},
+        1, (const char *const []) {"."},
+        (const char *const []) {NULL}, OK, 0
     },
 
     /* Too many variables. */
     {
         toomanyvars,
-        1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, ERR_LEN, 0
+        1, (const char *const []) {"."},
+        (const char *const []) {NULL}, ERR_LEN, 0
     },
 
     /* Overly long variables should be ignored. */
     {
-        (ConstStrArray) {longvar, NULL},
-        1, (ConstStrArray) {"."},
-        (ConstStrArray) {longvar, NULL}, OK, 0
+        (const char *const []) {longvar, NULL},
+        1, (const char *const []) {"."},
+        (const char *const []) {longvar, NULL}, OK, 0
     },
     {
-        (ConstStrArray) {hugevar, NULL},
-        1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {hugevar, NULL},
+        1, (const char *const []) {"."},
+        (const char *const []) {NULL}, OK, 0
     },
 
     /* Variables with overly long should be ignored, too. */
     {
-        (ConstStrArray) {longname, NULL},
-        1, (ConstStrArray) {"."},
-        (ConstStrArray) {longname, NULL}, OK, 0
+        (const char *const []) {longname, NULL},
+        1, (const char *const []) {"."},
+        (const char *const []) {longname, NULL}, OK, 0
     },
     {
-        (ConstStrArray) {hugename, NULL},
-        1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {hugename, NULL},
+        1, (const char *const []) {"."},
+        (const char *const []) {NULL}, OK, 0
     },
 
     /* Simple tests. */
     {
-        (ConstStrArray) {"foo=foo", NULL},
-        1, (ConstStrArray) {"."},
-        (ConstStrArray) {"foo=foo", NULL}, OK, 0
+        (const char *const []) {"foo=foo", NULL},
+        1, (const char *const []) {"."},
+        (const char *const []) {"foo=foo", NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"foo=foo", "bar=bar", NULL},
-        1, (ConstStrArray) {"^foo$"},
-        (ConstStrArray) {"foo=foo", NULL}, OK, 0
+        (const char *const []) {"foo=foo", "bar=bar", NULL},
+        1, (const char *const []) {"^foo$"},
+        (const char *const []) {"foo=foo", NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"foo=foo", "bar=bar", "foobar=foobar", NULL},
-        1, (ConstStrArray) {"^foo"},
-        (ConstStrArray) {"foo=foo", "foobar=foobar", NULL}, OK, 0
+        (const char *const []) {"foo=foo", "bar=bar", "foobar=foobar", NULL},
+        1, (const char *const []) {"^foo"},
+        (const char *const []) {"foo=foo", "foobar=foobar", NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"foo=foo", "bar=bar", "foobar=foobar", NULL},
-        1, (ConstStrArray) {"foo"},
-        (ConstStrArray) {"foo=foo", "foobar=foobar", NULL}, OK, 0
+        (const char *const []) {"foo=foo", "bar=bar", "foobar=foobar", NULL},
+        1, (const char *const []) {"foo"},
+        (const char *const []) {"foo=foo", "foobar=foobar", NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"foo=foo", "bar=bar", "foobar=foobar", NULL},
-        1, (ConstStrArray) {"bar$"},
-        (ConstStrArray) {"bar=bar", "foobar=foobar", NULL}, OK, 0
+        (const char *const []) {"foo=foo", "bar=bar", "foobar=foobar", NULL},
+        1, (const char *const []) {"bar$"},
+        (const char *const []) {"bar=bar", "foobar=foobar", NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"foo=foo", "bar=bar", "foobar=foobar", NULL},
-        1, (ConstStrArray) {"bar"},
-        (ConstStrArray) {"bar=bar", "foobar=foobar", NULL}, OK, 0
+        (const char *const []) {"foo=foo", "bar=bar", "foobar=foobar", NULL},
+        1, (const char *const []) {"bar"},
+        (const char *const []) {"bar=bar", "foobar=foobar", NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"foo=foo", "bar=bar", "baz=baz", NULL},
-        0, (ConstStrArray) {NULL},
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {"foo=foo", "bar=bar", "baz=baz", NULL},
+        0, (const char *const []) {NULL},
+        (const char *const []) {NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"foo=foo", "bar=bar", "baz=baz", NULL},
-        1, (ConstStrArray) {"^$"},
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {"foo=foo", "bar=bar", "baz=baz", NULL},
+        1, (const char *const []) {"^$"},
+        (const char *const []) {NULL}, OK, 0
     },
 
     /* Syntax errors. */
     {
-        (ConstStrArray) {"", NULL},
-        1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {"", NULL},
+        1, (const char *const []) {"."},
+        (const char *const []) {NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"foo", NULL},
-        1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {"foo", NULL},
+        1, (const char *const []) {"."},
+        (const char *const []) {NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"=foo", NULL},
-        1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {"=foo", NULL},
+        1, (const char *const []) {"."},
+        (const char *const []) {NULL}, OK, 0
     },
 
     /* Illegal names. */
     {
-        (ConstStrArray) {" foo=foo", NULL},
-        1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {" foo=foo", NULL},
+        1, (const char *const []) {"."},
+        (const char *const []) {NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"0foo=foo", NULL},
-        1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {"0foo=foo", NULL},
+        1, (const char *const []) {"."},
+        (const char *const []) {NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"*=foo", NULL},
-        1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {"*=foo", NULL},
+        1, (const char *const []) {"."},
+        (const char *const []) {NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"foo =foo", NULL},
-        1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {"foo =foo", NULL},
+        1, (const char *const []) {"."},
+        (const char *const []) {NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"$(foo)=foo", NULL},
-        1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {"$(foo)=foo", NULL},
+        1, (const char *const []) {"."},
+        (const char *const []) {NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"`foo`=foo", NULL},
-        1, (ConstStrArray) {"."},
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {"`foo`=foo", NULL},
+        1, (const char *const []) {"."},
+        (const char *const []) {NULL}, OK, 0
     },
 
     /* More realistic tests. */
     {
-        (ConstStrArray) {"bar=bar", "foo_0=foo", NULL},
-        1, (ConstStrArray) {"^foo_[0-9]+$"},
-        (ConstStrArray) {"foo_0=foo", NULL}, OK, 0
+        (const char *const []) {"bar=bar", "foo_0=foo", NULL},
+        1, (const char *const []) {"^foo_[0-9]+$"},
+        (const char *const []) {"foo_0=foo", NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"bar=bar", "foo_0=foo", NULL},
-        1, (ConstStrArray) {"^foo_(0|[1-9][0-9]*)$"},
-        (ConstStrArray) {"foo_0=foo", NULL}, OK, 0
+        (const char *const []) {"bar=bar", "foo_0=foo", NULL},
+        1, (const char *const []) {"^foo_(0|[1-9][0-9]*)$"},
+        (const char *const []) {"foo_0=foo", NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"foo_0=foo", "foo_01=foo", NULL},
-        1, (ConstStrArray) {"^foo_(0|[1-9][0-9]*)$"},
-        (ConstStrArray) {"foo_0=foo", NULL}, OK, 0
+        (const char *const []) {"foo_0=foo", "foo_01=foo", NULL},
+        1, (const char *const []) {"^foo_(0|[1-9][0-9]*)$"},
+        (const char *const []) {"foo_0=foo", NULL}, OK, 0
     },
 
 
     /* Simple tests with real patterns. */
     {
-        (ConstStrArray) {"foo=foo", NULL},
+        (const char *const []) {"foo=foo", NULL},
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {NULL}, OK, 0
     },
 
     {
-        (ConstStrArray) {"PATH_TRANSLATED=foo", NULL},
+        (const char *const []) {"PATH_TRANSLATED=foo", NULL},
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {"PATH_TRANSLATED=foo", NULL}, OK, 0
+        (const char *const []) {"PATH_TRANSLATED=foo", NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"PATH_TRANSLATED=foo", "foo=foo", NULL},
+        (const char *const []) {"PATH_TRANSLATED=foo", "foo=foo", NULL},
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {"PATH_TRANSLATED=foo", NULL}, OK, 0
+        (const char *const []) {"PATH_TRANSLATED=foo", NULL}, OK, 0
     },
 
     /* Illegal names. */
     {
-        (ConstStrArray) {" IPV6=foo", NULL},
+        (const char *const []) {" IPV6=foo", NULL},
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"0IPV6=foo", NULL},
+        (const char *const []) {"0IPV6=foo", NULL},
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"*=foo", NULL},
+        (const char *const []) {"*=foo", NULL},
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"IPV6 =foo", NULL},
+        (const char *const []) {"IPV6 =foo", NULL},
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"$(IPV6)=foo", NULL},
+        (const char *const []) {"$(IPV6)=foo", NULL},
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {NULL}, OK, 0
     },
     {
-        (ConstStrArray) {"`IPV6`=foo", NULL},
+        (const char *const []) {"`IPV6`=foo", NULL},
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {NULL}, OK, 0
     },
 
     /* Odd but legal values. */
     {
-        (ConstStrArray) {
+        (const char *const []) {
             "SSL_CLIENT_S_DN_C_0=", "SSL_CLIENT_S_DN_C_1==",
             "SSL_CLIENT_S_DN_C_2= ", "SSL_CLIENT_S_DN_C_3=\t",
             "SSL_CLIENT_S_DN_C_4=\n", NULL
         },
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {
+        (const char *const []) {
             "SSL_CLIENT_S_DN_C_0=", "SSL_CLIENT_S_DN_C_1==",
             "SSL_CLIENT_S_DN_C_2= ", "SSL_CLIENT_S_DN_C_3=\t",
             "SSL_CLIENT_S_DN_C_4=\n", NULL
@@ -312,7 +311,7 @@ static const Args cases[] = {
 
     /* Real-world tests. */
     {
-        (ConstStrArray) {
+        (const char *const []) {
             "CLICOLOR=x",
             "EDITOR=vim",
             "HOME=/home/jdoe",
@@ -329,10 +328,10 @@ static const Args cases[] = {
             NULL
         },
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {NULL}, OK, 0
+        (const char *const []) {NULL}, OK, 0
     },
     {
-        (ConstStrArray) {
+        (const char *const []) {
             "CLICOLOR=x",
             "DOCUMENT_ROOT=/home/jdoe/public_html",
             "EDITOR=vim",
@@ -367,7 +366,7 @@ static const Args cases[] = {
             NULL
         },
         NELEMS(envpatterns), envpatterns,
-        (ConstStrArray) {
+        (const char *const []) {
             "HTTP_HOST=www.foo.example",
             "HTTP_REFERER=https://www.bar.example",
             "HTTP_USER_AGENT=FakeZilla/1",
