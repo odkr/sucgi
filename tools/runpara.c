@@ -224,11 +224,7 @@ cleanup(void)
 
         clearln(stderr);
         if (nrun > 0) {
-            int nkilled;    /* Number of processes killed. */
-
             warnx("killing %ld remaining job(s) ...", (long) nrun);
-            nkilled = signaljobs(SIGKILL);
-            warnx("%d job(s) killed", nkilled);
         } else {
             warnx("all jobs terminated");
         }
@@ -265,7 +261,7 @@ collect(const int signo __attribute__((unused)))
         }
 
         for (i = 0; i < maxnrun; ++i) {
-            Job *job = &jobs[i];  /* Shorthand. */
+            Job *job = &jobs[i];
 
             if (job->exited == 0 && pid == job->pid) {
                 job->status = status;
@@ -496,7 +492,7 @@ PROGNAME " - run jobs in parallel\n\n"
      * shell out and ergo trigger a SIGCHLD, breaking job collection.
      */
     for (int i = 0; i < argc; ++i) {
-        int retval;     /* Return value of wordexp. */
+        int retval;
 
         retval = wordexp(argv[i], &comms[i], WRDE_SHOWERR);
         switch (retval) {
@@ -580,7 +576,6 @@ PROGNAME " - run jobs in parallel\n\n"
                     int signo;
 
                     signo = WTERMSIG(job->status);
-                    clearln(stderr);
                     warnx("%s[%d]: %s", job->comm, job->pid, strsignal(signo));
                     return EXIT_FAILURE;
                 } else if (WIFEXITED(job->status)) {
@@ -588,7 +583,6 @@ PROGNAME " - run jobs in parallel\n\n"
 
                     status = WEXITSTATUS(job->status);
                     if (status > 0) {
-                        clearln(stderr);
                         warnx("%s[%d] exited with status %d",
                               job->comm, job->pid, status);
 
@@ -604,7 +598,6 @@ PROGNAME " - run jobs in parallel\n\n"
                     }
                 } else {
                     /* Should be unreachable. */
-                    clearln(stderr);
                     warnx("%s[%d] exited abnormally", job->comm, job->pid);
                     return EXIT_FAILURE;
                 }
@@ -620,8 +613,8 @@ PROGNAME " - run jobs in parallel\n\n"
 
                 job->comm = argv[nfork];
 
-                errno = posix_spawnp(&job->pid, *comm,
-                                     &fileacts, &procattrs, comm, environ);
+                errno = posix_spawnp(&job->pid, *comm, &fileacts,
+                                     &procattrs, comm, environ);
                 if (errno == 0) {
                     ++nfork;
                     ++nrun;
@@ -672,7 +665,6 @@ PROGNAME " - run jobs in parallel\n\n"
     }
 
     if (!quiet) {
-        clearln(stderr);
         warnx("all jobs completed");
     }
 
