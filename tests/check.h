@@ -1,5 +1,5 @@
 /*
- * Header for libcheck.c.
+ * Header for check.c.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -19,8 +19,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(TESTS_LIBCHECK_H)
-#define TESTS_LIBCHECK_H
+#if !defined(TESTS_CHECK_H)
+#define TESTS_CHECK_H
 
 #include <setjmp.h>
 #include <signal.h>
@@ -60,4 +60,4 @@ extern sigjmp_buf checkenv;
 void checkinit(void);
 
 
-#endif /* defined(TESTS_LIBCHECK_H) */
+#endif /* !defined(TESTS_CHECK_H) */
