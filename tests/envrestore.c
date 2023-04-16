@@ -566,11 +566,12 @@ int
 main (void) {
     volatile int result = TEST_PASSED;
     char *null = NULL;
+    size_t nvars = NELEMS(toomanyvars) - 1U;
 
     checkinit();
 
     /* Initialise dynamic test cases. */
-    for (size_t i = 0; i < NELEMS(toomanyvars); ++i) {
+    for (size_t i = 0; i < nvars; ++i) {
         char *var;
         int nbytes;
 
@@ -588,6 +589,7 @@ main (void) {
 
         toomanyvars[i] = var;
     }
+    toomanyvars[nvars] = NULL;
 
     (void) memset(longvar, 'x', sizeof(longvar) - 1U);
     (void) copystr(4, "var=", longvar);
@@ -632,20 +634,20 @@ main (void) {
             checking = 0;
 
             if (retval != args.retval) {
-                report("({%s}, %zu, {%s}) → %u [!] ➾ %s ↑ %s", &args,
+                report("({%s}, %zu, {%s}) → %u [!] → %s ↑ %s", &args,
                        retval, jumpval);
                 result = TEST_FAILED;
             }
 
             if (retval == OK && !cmpenv(args.environ)) {
-                report("({%s}, %zu, {%s}) → %u ➾ %s [!] ↑ %s",
+                report("({%s}, %zu, {%s}) → %u ─→ %s [!] ↑ %s",
                        &args, retval, jumpval);
                 result = TEST_FAILED;
             }
         }
 
         if (jumpval != args.signo) {
-            report("({%s}, %zu, {%s}) → %u ➾ %s ↑ %s [!]",
+            report("({%s}, %zu, {%s}) → %u ─→ %s ↑ %s [!]",
                    &args, retval, jumpval);
             result = TEST_FAILED;
         }
