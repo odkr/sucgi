@@ -34,8 +34,8 @@
  * supernumery elements are ignored.
  *
  * Return value:
- *     OK             Success.
- *     ERR_SEARCH     KEY was not found.
+ *     OK          Success.
+ *     ERR_SEARCH  KEY was not found.
  */
 __attribute__((nonnull(2, 3, 4), warn_unused_result))
 Error pairfind(size_t npairs, const Pair *pairs,

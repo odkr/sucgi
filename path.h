@@ -46,10 +46,10 @@ Error pathchkloc(const char *basedir, const char *fname);
  * including, BASEDIR.
  *
  * Return value:
- *     OK            UID has exclusive write access to FNAME.
- *     ERR_BASEDIR   FNAME is not within BASEDIR.
+ *     OK           UID has exclusive write access to FNAME.
+ *     ERR_BASEDIR  FNAME is not within BASEDIR.
  *     ERR_PERM     UID does NOT have exclusive write access to FNAME.
- *     ERR_SYS       stat failed.
+ *     ERR_SYS      stat failed.
  */
 __attribute__((nonnull(2, 3), warn_unused_result))
 Error pathchkperm(uid_t uid, const char *basedir, const char *fname);

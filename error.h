@@ -24,8 +24,10 @@
 
 #include "cattr.h"
 
+
 /* Log MESSAGE as an error and exit with status EXIT_FAILURE. */
-__attribute__((cold, nonnull(1), noreturn))
+__attribute__((nonnull(1), noreturn))
 void error(const char *message, ...);
+
 
 #endif /* !defined(ERROR_H) */

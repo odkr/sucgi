@@ -35,11 +35,11 @@
  * supernumery elements are ignored.
  *
  * Return value:
- *     OK             Success.
- *     ERR_BAD        Handler is NULL or the empty string.
- *     ERR_LEN        Filename suffix is too long.
- *     ERR_SEARCH     No handler found.
- *     ERR_SUFFIX     Filename has no suffix.
+ *     OK          Success.
+ *     ERR_BAD     Handler is NULL or the empty string.
+ *     ERR_LEN     Filename suffix is too long.
+ *     ERR_SEARCH  No handler found.
+ *     ERR_SUFFIX  Filename has no suffix.
  */
 __attribute__((nonnull(2, 3, 4), warn_unused_result))
 Error handlerfind(size_t nhandlers, const Pair *handlerdb,

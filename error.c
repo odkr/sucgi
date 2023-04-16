@@ -37,6 +37,7 @@
 #include "error.h"
 #include "max.h"
 
+
 /* message cannot be a literal. */
 #if defined(__GNUC__) && __GNUC__ >= 3
 #pragma GCC diagnostic push

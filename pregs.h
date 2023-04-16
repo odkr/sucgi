@@ -22,6 +22,7 @@
 #if !defined(PREGS_H)
 #define PREGS_H
 
+
 /* Pattern that matches X.509 distinguished name components. */
 #define PREG_X509 "(C|ST|L|O|OU|CN|T|I|G|S|D|UID|Email)"
 
