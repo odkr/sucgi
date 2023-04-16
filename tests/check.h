@@ -23,6 +23,7 @@
 #define TESTS_LIBCHECK_H
 
 #include <setjmp.h>
+#include <signal.h>
 
 
 /*
