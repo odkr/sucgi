@@ -30,8 +30,8 @@ jobs:
           sudo scripts/gencov -Ggcov -H-
       - name: Run build-wrapper
         run: |
-          make distclean
-          ./configure -f
+	  ./configure -f
+	  make clean
           build-wrapper-macosx-x86 --out-dir ${{ env.BUILD_WRAPPER_OUT_DIR }} make all
       - name: Run sonar-scanner
         env:
