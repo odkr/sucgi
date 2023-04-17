@@ -76,7 +76,7 @@ catch(const int signo)
         siglongjmp(checkenv, signo);
     }
 
-    psignal((unsigned int) signo, NULL);
+    warnx("%s", strsignal(signo));
 
     (void) sigaction(signo, &defhdl, NULL);
     (void) raise(signo);
