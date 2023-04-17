@@ -65,31 +65,6 @@ const Args cases[] = {
 
 
 /*
- * Prototypes
- */
-
-/*
- * Exit the programme with STATUS. But do not call exithandlers.
- *
- * GNU gcov uses exit handlers to write out coverage data, to the effect
- * that calling exit breaks collection of coverage data. However, error
- * calls exit, so, in order to allow for collection of coverage data,
- * the exit symbols is re-directed to point to _exit.
- */
-void exit(int status);
-
-
-/*
- * Functions
- */
-
-void exit(int status)
-{
-    _exit(status);
-}
-
-
-/*
  * Main
  */
 
