@@ -33,7 +33,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "file.h"
 #include "max.h"
 #include "path.h"
 #include "str.h"
