@@ -50,7 +50,6 @@
 #include "config.h"
 #include "env.h"
 #include "error.h"
-#include "file.h"
 #include "handler.h"
 #include "max.h"
 #include "macros.h"
