@@ -792,7 +792,7 @@ main(int argc, char **argv) {
         (void) execlp(handler, handler, script_phys, NULL);
 
         /* If this point is reached, execution has failed. */
-        error("execlp %s %s: %m.", handler, script_phys);
+        error("execlp %s %s: %m.", handler, script_log);
     case ERR_SEARCH:
         ; /* Empty on purpose. */
         __attribute__((fallthrough));
@@ -812,5 +812,5 @@ main(int argc, char **argv) {
     (void) execl(script_phys, script_phys, NULL);
 
     /* If this point is reached, execution has failed. */
-    error("execl %s: %m.", script_phys);
+    error("execl %s: %m.", script_log);
 }
