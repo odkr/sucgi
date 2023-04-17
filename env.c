@@ -48,6 +48,7 @@ envcopyvar(const char *const name, char value[MAX_VAR_LEN])
 
     assert(name != NULL);
     assert(*name != '\0');
+    assert(strchr(name, '=') == NULL);
     assert(strnlen(name, MAX_VARNAME_LEN) < MAX_VARNAME_LEN);
     assert(value != NULL);
 
@@ -59,6 +60,8 @@ envcopyvar(const char *const name, char value[MAX_VAR_LEN])
         if (errno == 0) {
             return ERR_SEARCH;
         }
+
+        /* Should be unreachable. */
         return ERR_SYS;
     }
 
