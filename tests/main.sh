@@ -38,6 +38,14 @@ tmpdir
 
 
 #
+# Constants
+#
+
+# A linefeed.
+readonly linefeed='
+'
+
+#
 # Globals
 #
 
@@ -72,44 +80,47 @@ check() (
 	done
 	shift $((OPTIND - 1))
 
-	if [ "$stream" ]
-	then
-		# shellcheck disable=2030
-		: "${TMPDIR:=/tmp}"
-
-		tmpfile="$TMPDIR/std$stream-$$.log"
-		eval "std$stream=\"\$tmpfile\""
-	fi
-
 	: "${1:?no command given}"
 	: "${stdout:=/dev/null}"
 	: "${stderr:=/dev/null}"
 
 	err=0 retval=0
 
-	# shellcheck disable=2154
-	env "$@" >"$stdout" 2>"$stderr" || err=$?
-
-	if [ "$stream" ]
-	then
-		if ! grep -Fq "$pattern" <"$tmpfile"
-		then
-			warn '%s printed to std%s:' "$*" "$stream"
-			while read -r line
-			do
-				warn '> %s' "$line"
-			done <"$tmpfile"
-			rc=70
-		fi
-
-		rm -f "$tmpfile"
-	fi
-
+	case $stream in
+	(out) output="$(env "$@" 2>/dev/null)" || err=$? ;;
+	(err) output="$(env "$@" 2>&1 >/dev/null)" || err=$? ;;
+	(*) err -s70 'main.sh:%d: $stream must be "err" or "out".' $LINENO
+	esac
 
 	if [ "$err" -ne "$exstatus" ] && [ "$err" -ne 141 ]
 	then
 		warn '%s: exited with status %d.' "$*" "$err"
 		retval=70
+	fi
+
+	if [ "$stream" ]
+	then
+		IFS="$linefeed"
+
+		hit=
+		for line in $output
+		do
+			case $line in (*$pattern*)
+				hit=x
+				break
+			esac
+		done
+
+		if ! [ "$hit" ]
+		then
+			retval=70
+			warn '%s printed to std%s:' "$*" "$stream"
+			for line in $output
+			do warn '> %s' "$line"
+			done
+		fi
+
+		unset IFS
 	fi
 
 	return "$retval"
@@ -266,24 +277,13 @@ rmtree() (
 	done
 )
 
-# Find an unallocated ID in a given range.
-# -g looks for a group ID.
-unallocid() (
-	OPTIND=1 OPTARG='' opt=
-	opts=
-	while getopts 'g' opt
-	do
-		case $opt in
-		(g) opts=-g ;;
-		(*) return 2
-		esac
-	done
-	shift $((OPTIND - 1))
+# Find an unallocated user ID in a given range.
+unallocuid() (
 	start="${1:?}" end="${2:?}"
 
 	pipe="${TMPDIR:-/tmp}/ids-$$.fifo" retval=0
 	mkfifo -m 0700 "$pipe"
-	ids $opts >"$pipe" 2>/dev/null & pid=$!
+	ids >"$pipe" 2>/dev/null & pid=$!
 	# shellcheck disable=2086
 	ids="$(cut -d' ' -f1 <"$pipe")" || retval=$?
 	rm -f "$pipe"
@@ -378,7 +378,6 @@ check -s1 -e'discarding $foo' foo=foo main || result=70
 unset envsan_var envsan_varname envsan_vars
 
 
-
 #
 # Missing argv[0]
 #
@@ -396,10 +395,10 @@ check -s1 -e'empty argument vector' badexec main ''	|| result=70
 #
 
 # Help.
-check -o'Print this help screen.'	main -h		|| result=70
+check -o'Print this help screen.'	main -h	|| result=70
 
 # Version.
-check -o'suCGI v'			main -V		|| result=70
+check -o'suCGI v'			main -V	|| result=70
 
 # Build configuration.
 sed -n 's/#define \([[:alnum:]_]*\).*/\1/p' "$src_dir/config.h"	|
@@ -557,7 +556,7 @@ usrval_script="$TMPDIR/usrval-script.sh"
 touch "$usrval_script"
 
 # Find an unallocated user ID.
-usrval_unallocuid="$(unallocid "$MIN_UID" "$MAX_UID")"
+usrval_unallocuid="$(unallocuid "$MIN_UID" "$MAX_UID")"
 
 # Store a list of all user IDs.
 usrval_uids="$TMPDIR/usrval-uids.list"
