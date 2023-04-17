@@ -20,61 +20,385 @@
  */
 
 #define _BSD_SOURCE
-#define _DARWIN_C_SOURCE
+/* _DARWIN_C_SOURCE must NOT be set, or else getgroups will be pointless. */
 #define _DEFAULT_SOURCE
 #define _GNU_SOURCE
 
 #include <sys/types.h>
 #include <err.h>
 #include <errno.h>
+#include <limits.h>
 #include <pwd.h>
-#include <stdio.h>
+#include <search.h>
+#include <signal.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
+#include "../compat.h"
+#include "../macros.h"
+#include "../max.h"
 #include "../priv.h"
-#include "../types.h"
+#include "lib/priv.h"
+#include "lib/util.h"
 
 
-int
-main (int argc, char **argv)
+/*
+ * Data types
+ */
+
+/* Mapping of arguments to return values. */
+typedef struct {
+    uid_t *euid;    /* Effective process UID. */
+    uid_t *ruid;    /* Real process UID. */
+    uid_t *dropuid; /* UID to drop to. */
+    gid_t *dropgid; /* GID to drop to. Use NULL to use UID's primary GID. */
+    int ndropgrps;  /* Number of groups to ste. Use -1 */
+    Error retval;   /* Return value. */
+    int signo;      /* Signal raised, if any. */
+} Args;
+
+/* Shorthand for comparison function type. */
+typedef int (*Compar)(const void *, const void *);
+
+
+/*
+ * Module variables
+ */
+
+/* The user ID of the superuser. */
+uid_t superuid = 0;
+
+/* The group ID of the superuser. */
+gid_t supergid = 0;
+
+/* A user ID of a regular user. */
+uid_t reguid = INT_MAX;
+
+/* A group ID of a regular user. */
+uid_t reggid = INT_MAX;
+
+/* Test cases. */ /* FIXME: explain. */
+const Args cases[] = {
+    {&superuid, &superuid, &reguid,   NULL,      -1, OK,      0},
+    {&superuid, &reguid,   &reguid,   NULL,      -1, OK,      0},
+    {&reguid,   &superuid, &reguid,   NULL,      -1, ERR_SYS, 0},
+    {&reguid,   &reguid,   &reguid,   NULL,      -1, ERR_SYS, 0},
+    {&superuid, &superuid, &reguid,   &reggid,   -1, OK,      0},
+    {&superuid, &reguid,   &reguid,   &reggid,   -1, OK,      0},
+    {&reguid,   &superuid, &reguid,   &reggid,   -1, ERR_SYS, 0},
+    {&reguid,   &reguid,   &reguid,   &reggid,   -1, ERR_SYS, 0},
+    {&superuid, &superuid, &superuid, NULL,      -1, OK,      SIGABRT},
+    {&superuid, &superuid, &reguid,   &supergid, -1, OK,      SIGABRT},
+    {&superuid, &superuid, &reguid,   NULL,       0, OK,      SIGABRT},
+    {&reguid,   &reguid,   &superuid, NULL,      -1, ERR_SYS, SIGABRT},
+    {&reguid,   &reguid,   &reguid,   &supergid, -1, ERR_SYS, SIGABRT},
+    {&reguid,   &reguid,   &reguid,   NULL,       0, ERR_SYS, SIGABRT}
+};
+
+
+/*
+ * Prototypes
+ */
+
+/*
+ * Check whether GID A is smaller than, equal to, or greater than B.
+ *
+ * Return value:
+ *   -1  A is smaller than B.
+ *    0  A is equal to B.
+ *    1  A is greater than B.
+ */
+static int cmpgids(gid_t *a, gid_t *b);
+
+
+/*
+ * Functions
+ */
+
+static int
+cmpgids(gid_t *a, gid_t *b)
 {
-    struct passwd *pwd;
-    Error ret;
-
-    if (argc != 2) {
-        fputs("usage: privdrop LOGNAME\n", stderr);
-        return EXIT_FAILURE;
+    if (*a < *b) {
+        return -1;
     }
 
-    errno = 0;
-    pwd = getpwnam(argv[1]);
-    if (!pwd) {
-        if (errno == 0) {
-            errx(EXIT_FAILURE, "no such user");
+    if (*a > *b) {
+        return 1;
+    }
+
+    return 0;
+}
+
+
+/*
+ * Main
+ */
+
+int
+main (void) {
+    volatile int result = TEST_PASSED;
+
+    ERRORIF(sizeof(GRP_T) != sizeof(gid_t));
+    ERRORIF(SIGNEDMAX(NGRPS_T) < SIGNEDMAX(int));
+    ERRORIF((uint64_t) INT_MAX > (uint64_t) SIGNEDMAX(uid_t));
+    ERRORIF((uint64_t) INT_MAX > (uint64_t) SIGNEDMAX(gid_t));
+    ERRORIF((uint64_t) INT_MAX > (uint64_t) SIGNEDMAX(GRP_T));
+
+    if (getuid() == 0) {
+        if (!checkgetreguid(&reguid)) {
+            struct passwd pwd;
+
+            if (errno == 0) {
+                errx(TEST_SKIPPED, "no regular user found");
+            } else {
+                err(TEST_ERROR, "getpwent");
+            }
+
+            checkgetuser(reguid, &pwd);
+            reggid = pwd.pw_gid;
+        }
+    } else {
+        reguid = getuid();
+        reggid = getgid();
+    }
+
+    for (size_t i = 0; i < NELEMS(cases); ++i) {
+        const Args args = cases[i];
+        struct passwd ruser, euser, drop;
+        uid_t dropuid;
+        gid_t dropgid;
+        pid_t pid;
+
+        checkgetuser(*args.ruid, &ruser);
+        checkgetuser(*args.euid, &euser);
+        checkgetuser(*args.dropuid, &drop);
+
+        dropuid = drop.pw_uid;
+        dropgid = (args.dropgid == NULL) ? drop.pw_gid : *args.dropgid;
+
+        pid = fork();
+        if (pid == 0) {
+            gid_t groups[MAX_NGROUPS], dropgroups[MAX_NGROUPS];
+            uid_t ruid, euid;
+            gid_t rgid, egid;
+            int ngroups, ndropgrps, ndroppedgrps;
+            int err;
+            Error retval;
+
+            if (geteuid() == 0) {
+                errno = 0;
+                if (setregid(ruser.pw_gid, euser.pw_gid) != 0) {
+                    check_err(TEST_ERROR, "setregid");
+                }
+                if (setreuid(ruser.pw_uid, euser.pw_uid) != 0) {
+                    check_err(TEST_ERROR, "setreuid");
+                }
+            } else {
+                if (getuid() != *args.ruid || geteuid() != *args.euid) {
+                    check_errx(
+                        TEST_SKIPPED,
+                        "skipping (%s, %s, %llu, %llu, %d) ...",
+                        ruser.pw_name,
+                        euser.pw_name,
+                        (long long unsigned) dropuid,
+                        (long long unsigned) dropgid,
+                        args.ndropgrps
+                    );
+                }
+            }
+
+            ngroups = MAX_NGROUPS;
+            ndropgrps = (args.ndropgrps == -1) ? ngroups : args.ndropgrps;
+            err = getgrouplist(drop.pw_name, (GRP_T) dropgid,
+                               (GRP_T *) groups, &ngroups);
+            if (err < 0) {
+                check_errx(TEST_ERROR, "user %s: belongs to too many groups.",
+                           drop.pw_name);
+            }
+
+            retval = privdrop(dropuid, dropgid,
+                              (NGRPS_T) ngroups, groups);
+            if (retval != args.retval) {
+                /* Should be unreachable. */
+                check_errx(
+                    TEST_FAILED,
+                    "(%s, %s, %llu, %llu, %d) → %u [!]",
+                    ruser.pw_name,
+                    euser.pw_name,
+                    (long long unsigned) dropuid,
+                    (long long unsigned) dropgid,
+                    args.ndropgrps,
+                    retval
+                );
+            }
+
+            if (retval != OK) {
+                _exit(0);
+            }
+
+            ruid = getuid();
+            if (ruid != dropuid) {
+                check_errx(
+                    TEST_FAILED,
+                    "(%s, %s, %llu, %llu, %d) ─→ <ruid> = %llu [!]",
+                    ruser.pw_name,
+                    euser.pw_name,
+                    (long long unsigned) dropuid,
+                    (long long unsigned) dropgid,
+                    args.ndropgrps,
+                    (unsigned long long) ruid
+                );
+            }
+
+            euid = geteuid();
+            if (euid != dropuid) {
+                check_errx(
+                    TEST_FAILED,
+                    "(%s, %s, %llu, %llu, %d) ─→ <euid> = %llu [!]",
+                    ruser.pw_name,
+                    euser.pw_name,
+                    (long long unsigned) dropuid,
+                    (long long unsigned) dropgid,
+                    args.ndropgrps,
+                    (unsigned long long) euid
+                );
+            }
+
+            rgid = getgid();
+            if (rgid != dropgid) {
+                check_errx(
+                    TEST_FAILED,
+                    "(%s, %s, %llu, %llu, %d) ─→ <rgid> = %llu [!]",
+                    ruser.pw_name,
+                    euser.pw_name,
+                    (long long unsigned) dropuid,
+                    (long long unsigned) dropgid,
+                    args.ndropgrps,
+                    (unsigned long long) rgid
+                );
+            }
+
+            egid = getegid();
+            if (egid != dropgid) {
+                check_errx(
+                    TEST_FAILED,
+                    "(%s, %s, %llu, %llu, %d) ─→ <egid> = %llu [!]",
+                    ruser.pw_name,
+                    euser.pw_name,
+                    (long long unsigned) dropuid,
+                    (long long unsigned) dropgid,
+                    args.ndropgrps,
+                    (unsigned long long) egid
+                );
+            }
+
+            errno = 0;
+            ndroppedgrps = getgroups(MAX_NGROUPS, dropgroups);
+            if (ndroppedgrps == -1) {
+                check_err(TEST_ERROR, "getgroups");
+            }
+
+            if (ndropgrps == ngroups) {
+                for (int j = 0; j < ngroups; ++j) {
+                    size_t nelems = (size_t) ndroppedgrps;
+                    gid_t grp = groups[j];
+                    void *grpp;
+
+                    grpp = lfind(&grp, dropgroups, &nelems,
+                                 sizeof(*dropgroups), (Compar) cmpgids);
+                    if (grpp == NULL) {
+                        check_errx(
+                            TEST_FAILED,
+                            "(%s, %s, %llu, %llu, %d) ─→ missing GID %llu [!]",
+                            ruser.pw_name,
+                            euser.pw_name,
+                            (long long unsigned) dropuid,
+                            (long long unsigned) dropgid,
+                            args.ndropgrps,
+                            (unsigned long long) grp
+                        );
+                    }
+                }
+            }
+
+            for (int j = 0; j < ndroppedgrps; ++j) {
+                size_t nelems = (size_t) ngroups;
+                gid_t grp = dropgroups[j];
+                void *grpp;
+
+                grpp = lfind(&grp, groups, &nelems,
+                             sizeof(*groups), (Compar) cmpgids);
+                if (grpp == NULL && grp != dropgid) {
+                    check_errx(
+                        TEST_FAILED,
+                        "(%s, %s, %llu, %llu, %d) ─→ wrong GID %llu [!]",
+                        ruser.pw_name,
+                        euser.pw_name,
+                        (long long unsigned) dropuid,
+                        (long long unsigned) dropgid,
+                        args.ndropgrps,
+                        (unsigned long long) grp
+                    );
+                }
+            }
+
+            _exit(0);
         } else {
-            err(EXIT_FAILURE, "getpwnam");
+            int retval;
+            int status;
+
+            do {
+                errno = 0;
+                retval = waitpid(pid, &status, 0);
+            } while (retval < 0 && errno == EINTR);
+
+            if (retval < 0) {
+                err(EXIT_FAILURE, "waitpid %d", pid);
+            }
+
+            if (WIFEXITED(status)) {
+                int exitstatus;
+
+                exitstatus = WEXITSTATUS(status);
+                switch (exitstatus) {
+                case TEST_PASSED:
+                    break;
+                case TEST_FAILED:
+                    result = TEST_FAILED;
+                    break;
+                case TEST_SKIPPED:
+                    if (result == TEST_PASSED) result = TEST_SKIPPED;
+                    break;
+                default:
+                    return TEST_ERROR;
+                    break;
+                }
+            } else if (WIFSIGNALED(status)) {
+                int signo;
+
+                signo = WTERMSIG(status);
+                if (signo != args.signo) {
+                    const char *signame;
+
+                    result = TEST_FAILED;
+                    signame = strsignal(signo);
+                    warnx(
+                        "(%s, %s, %llu, %llu, %d) ↑ %s [!]",
+                        ruser.pw_name,
+                        euser.pw_name,
+                        (long long unsigned) dropuid,
+                        (long long unsigned) dropgid,
+                        args.ndropgrps,
+                        signame
+                    );
+                }
+            } else {
+                errx(TEST_ERROR, "child %d exited abnormally", pid);
+            }
         }
     }
 
-    ret = privdrop(pwd->pw_uid, pwd->pw_gid, 1, (gid_t [1]) {pwd->pw_gid});
-    switch (ret) {
-    case OK:
-        break;
-    case ERR_SYS:
-        err(EXIT_FAILURE, "privilege drop");
-    case ERR_PRIV:
-        errx(EXIT_FAILURE, "could resume superuser privileges.");
-    default:
-        errx(EXIT_FAILURE, "returned %u.", ret);
-    }
-
-    printf("euid=%llu egid=%llu ruid=%llu rgid=%llu\n",
-           (unsigned long long) geteuid(),
-           (unsigned long long) getegid(),
-           (unsigned long long) getuid(),
-           (unsigned long long) getgid());
-
-    return EXIT_SUCCESS;
+    return result;
 }

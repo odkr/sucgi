@@ -130,11 +130,14 @@ uninstall:
 # Tests
 #
 
+testsobjs = tests/lib/check.a(tests/lib/util.o) \
+            tests/lib/check.a(tests/lib/priv.o)
+
 checks = $(check_scripts) $(macro_check_bins) tests/envcopyvar \
 	tests/envisname tests/envrestore tests/fileisxusrw \
 	tests/handlerfind tests/pairfind tests/pathchkloc \
-	tests/pathsuffix tests/privsuspend tests/copystr tests/splitstr \
-	tests/userdirexp
+	tests/pathsuffix tests/privdrop tests/privsuspend \
+	tests/copystr tests/splitstr tests/userdirexp
 
 macro_check_bins = tests/ISSIGNED tests/NELEMS tests/SIGNEDMAX
 
@@ -144,12 +147,13 @@ other_check_bins = tests/envcopyvar tests/envisname tests/envrestore \
 	tests/pathsuffix tests/privdrop tests/privsuspend tests/copystr \
 	tests/splitstr tests/userdirexp
 
-check_scripts = tests/error.sh tests/main.sh tests/pathchkperm.sh \
-	tests/privdrop.sh
+check_scripts = tests/error.sh tests/main.sh tests/pathchkperm.sh
 
 tool_bins = tools/badenv tools/badexec tools/ids tools/runpara tools/runas
 
 runpara_flags = -ci75 -j8
+
+tests/lib/util.o: tests/lib/util.c tests/lib/util.h
 
 tests/ISSIGNED: tests/ISSIGNED.c
 
@@ -181,9 +185,11 @@ tests/pathreal: tests/pathreal.c funcs.a(path.o)
 
 tests/pathsuffix: tests/pathsuffix.c funcs.a(path.o)
 
-tests/privdrop: tests/privdrop.c funcs.a(priv.o)
+tests/privsuspend: tests/privsuspend.c funcs.a(priv.o) \
+	tests/lib/check.a(tests/lib/priv.o)
 
-tests/privsuspend: tests/privsuspend.c funcs.a(priv.o)
+tests/privdrop: tests/privdrop.c funcs.a(priv.o) \
+	tests/lib/check.a(tests/lib/priv.o)
 
 tests/copystr: tests/copystr.c funcs.a(str.o)
 
@@ -191,21 +197,15 @@ tests/splitstr: tests/splitstr.c funcs.a(str.o)
 
 tests/userdirexp: tests/userdirexp.c funcs.a(userdir.o)
 
-tests/lib/check.o: tests/lib/check.c tests/lib/check.h
+$(macro_check_bins) $(other_check_bins): $(hdrs) tests/lib/util.h
 
-$(macro_check_bins) $(other_check_bins): $(hdrs) tests/lib/check.h
-
-$(other_check_bins): tests/lib/check.o
+$(other_check_bins): tests/lib/check.a(tests/lib/util.o)
 
 tests/error.sh: tests/error
 
 tests/main.sh: tests/main tools/badenv tools/badexec tools/ids
 
 tests/pathchkperm.sh: tests/pathchkperm tools/ids
-
-tests/privdrop.sh: tests/privdrop tools/ids tools/runas
-
-tests/privsuspend.sh: tests/privsuspend tools/ids tools/runas
 
 $(check_scripts): tests/main scripts/funcs.sh
 
@@ -217,6 +217,11 @@ checks: $(checks)
 
 check: tools/runpara $(checks)
 
+$(testobjs):
+	$(CC) $(LDFLAGS) $(CFLAGS) -c $*.c $(LDLIBS)
+	$(AR) $(ARFLAGS) tests/lib/check.a $%
+	rm -f $%
+
 tests/main:
 	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ main.c funcs.a $(LDLIBS)
 
@@ -224,7 +229,7 @@ $(macro_check_bins):
 	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c $(LDLIBS)
 
 $(other_check_bins):
-	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c tests/lib/check.o funcs.a $(LDLIBS)
+	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c tests/lib/check.a funcs.a $(LDLIBS)
 
 check:
 	tools/runpara $(runpara_flags) $(checks)
