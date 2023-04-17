@@ -225,40 +225,6 @@ pad() (
 	esac
 )
 
-# Find a user whose UID is between $minuid and $maxuid and who
-# only belongs to groups with GIDs between $mingid and $maxgid.
-reguser() (
-	minuid="${1:?}" maxuid="${2:?}" mingid="${3:?}" maxgid="${4:?}"
-	pipe="${TMPDIR:-/tmp}/ids-$$.fifo" retval=0 reguser=
-	mkfifo -m 700 "$pipe"
-
-	ids >"$pipe" & ids=$!
-	while read -r uid user
-	do
-		case $user in (*[!A-Za-z0-9_]*)
-			continue
-		esac
-
-		[ "$uid" -lt "$minuid" ] && continue
-		[ "$uid" -gt "$maxuid" ] && continue
-
-		for gid in $(id -G "$user")
-		do
-			[ "$gid" -lt "$mingid" ] && continue 2
-			[ "$gid" -gt "$maxgid" ] && continue 2
-		done
-
-		reguser="$user"
-		break
-	done <"$pipe"
-
-	wait $ids || retval=$?
-	rm -f "$pipe"
-	[ "$retval" -eq 0 ] && [ "$reguser" ] || return 1
-
-	printf '%s\n' "$reguser"
-)
-
 # Delete every segment of $path up to $stop. Should ignore PATH_MAX.
 # shellcheck disable=2317
 rmtree() (
