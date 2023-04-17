@@ -191,11 +191,11 @@ tests/splitstr: tests/splitstr.c funcs.a(str.o)
 
 tests/userdirexp: tests/userdirexp.c funcs.a(userdir.o)
 
-tests/check.o: tests/check.c tests/check.h
+tests/lib/check.o: tests/lib/check.c tests/lib/check.h
 
-$(macro_check_bins) $(other_check_bins): $(hdrs) tests/check.h
+$(macro_check_bins) $(other_check_bins): $(hdrs) tests/lib/check.h
 
-$(other_check_bins): tests/check.o
+$(other_check_bins): tests/lib/check.o
 
 tests/error.sh: tests/error
 
@@ -224,7 +224,7 @@ $(macro_check_bins):
 	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c $(LDLIBS)
 
 $(other_check_bins):
-	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c tests/check.o funcs.a $(LDLIBS)
+	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c tests/lib/check.o funcs.a $(LDLIBS)
 
 check:
 	tools/runpara $(runpara_flags) $(checks)
