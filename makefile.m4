@@ -131,9 +131,9 @@ testsobjs = tests/lib/check.a(tests/lib/util.o) \
             tests/lib/check.a(tests/lib/priv.o)
 
 checks = $(check_scripts) $(macro_check_bins) tests/envcopyvar \
-	tests/envisname tests/envrestore tests/handlerfind tests/pairfind \
-	tests/pathchkloc tests/pathsuffix tests/privdrop tests/privsuspend \
-	tests/copystr tests/splitstr tests/userdirexp
+	tests/envisname tests/envrestore tests/error tests/handlerfind \
+	tests/pairfind tests/pathchkloc tests/pathsuffix tests/privdrop \
+	tests/privsuspend tests/copystr tests/splitstr tests/userdirexp
 
 macro_check_bins = tests/ISSIGNED tests/NELEMS tests/SIGNEDMAX
 
@@ -142,7 +142,7 @@ other_check_bins = tests/envcopyvar tests/envisname tests/envrestore \
 	tests/pathreal tests/pathsuffix tests/privdrop tests/privsuspend \
 	tests/copystr tests/splitstr tests/userdirexp
 
-check_scripts = tests/error.sh tests/main.sh
+check_scripts = tests/main.sh
 
 tool_bins = tools/badenv tools/badexec tools/ids tools/runpara tools/runas
 
@@ -188,11 +188,9 @@ tests/splitstr: tests/splitstr.c funcs.a(str.o)
 
 tests/userdirexp: tests/userdirexp.c funcs.a(userdir.o)
 
-$(macro_check_bins) $(other_check_bins): $(hdrs) tests/lib/util.h
+$(check_bins): $(hdrs) tests/lib/util.h
 
 $(other_check_bins): tests/lib/check.a(tests/lib/util.o)
-
-tests/error.sh: tests/error
 
 tests/main.sh: tests/main tools/badenv tools/badexec tools/ids tools/runas
 

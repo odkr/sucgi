@@ -27,9 +27,7 @@
 #include <sys/types.h>
 #include <err.h>
 #include <errno.h>
-#include <inttypes.h>
 #include <pwd.h>
-#include <setjmp.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -41,7 +39,6 @@
 #include "../priv.h"
 #include "lib/priv.h"
 #include "lib/util.h"
-
 
 
 /*

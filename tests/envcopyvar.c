@@ -74,6 +74,10 @@ static const Args cases[] = {
     /* Invalid arguments. */
 #if !defined(NDEBUG)
     {false, "", "n/a", OK, SIGABRT},
+    {false, "=", "n/a", OK, SIGABRT},
+    {false, "=foo", "n/a", OK, SIGABRT},
+    {false, "foo=", "n/a", OK, SIGABRT},
+    {false, "fo=o", "n/a", OK, SIGABRT},
     {true, hugename, "n/a", OK, SIGABRT},
 #endif
 

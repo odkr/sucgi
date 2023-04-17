@@ -81,6 +81,16 @@ uid_t reggid = INT_MAX;
 
 /* Test cases. */ /* FIXME: explain. */
 const Args cases[] = {
+    /* Illegal arguments. */
+#if !defined(NDEBUG)
+    {&superuid, &superuid, &superuid, NULL,      -1, OK,      SIGABRT},
+    {&superuid, &superuid, &reguid,   &supergid, -1, OK,      SIGABRT},
+    {&superuid, &superuid, &reguid,   NULL,       0, OK,      SIGABRT},
+    {&reguid,   &reguid,   &superuid, NULL,      -1, ERR_SYS, SIGABRT},
+    {&reguid,   &reguid,   &reguid,   &supergid, -1, ERR_SYS, SIGABRT},
+    {&reguid,   &reguid,   &reguid,   NULL,       0, ERR_SYS, SIGABRT},
+#endif
+
     {&superuid, &superuid, &reguid,   NULL,      -1, OK,      0},
     {&superuid, &reguid,   &reguid,   NULL,      -1, OK,      0},
     {&reguid,   &superuid, &reguid,   NULL,      -1, ERR_SYS, 0},
@@ -88,13 +98,7 @@ const Args cases[] = {
     {&superuid, &superuid, &reguid,   &reggid,   -1, OK,      0},
     {&superuid, &reguid,   &reguid,   &reggid,   -1, OK,      0},
     {&reguid,   &superuid, &reguid,   &reggid,   -1, ERR_SYS, 0},
-    {&reguid,   &reguid,   &reguid,   &reggid,   -1, ERR_SYS, 0},
-    {&superuid, &superuid, &superuid, NULL,      -1, OK,      SIGABRT},
-    {&superuid, &superuid, &reguid,   &supergid, -1, OK,      SIGABRT},
-    {&superuid, &superuid, &reguid,   NULL,       0, OK,      SIGABRT},
-    {&reguid,   &reguid,   &superuid, NULL,      -1, ERR_SYS, SIGABRT},
-    {&reguid,   &reguid,   &reguid,   &supergid, -1, ERR_SYS, SIGABRT},
-    {&reguid,   &reguid,   &reguid,   NULL,       0, ERR_SYS, SIGABRT}
+    {&reguid,   &reguid,   &reguid,   &reggid,   -1, ERR_SYS, 0}
 };
 
 
@@ -214,8 +218,11 @@ main (void) {
             err = getgrouplist(drop.pw_name, (GRP_T) dropgid,
                                (GRP_T *) groups, &ngroups);
             if (err < 0) {
-                check_errx(TEST_ERROR, "user %s: belongs to too many groups.",
-                           drop.pw_name);
+                check_errx(
+                    TEST_SKIPPED,
+                    "user %s: belongs to too many groups.",
+                    drop.pw_name
+                );
             }
 
             retval = privdrop(dropuid, dropgid,
