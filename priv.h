@@ -48,10 +48,11 @@ Error privdrop(uid_t uid, gid_t gid, NGRPS_T ngroups, const gid_t *groups);
  * to the real user and group IDs respectively.
  *
  * Return value:
- *     OK        Success.
- *     ERR_SYS*  seteuid/setegid/setgroups failed.
+ *     OK         Success.
+ *     ERR_SYS*   seteuid/setegid/setgroups failed.
+ *     ERR_PRIV*  The effective user/group ID was not changed.
  *
- *     * This error should be unreachable.
+ *     * These errors should be unreachable.
  */
 __attribute__((warn_unused_result))
 Error privsuspend(void);

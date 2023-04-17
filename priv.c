@@ -108,5 +108,15 @@ privsuspend(void)
         return ERR_SYS;
     }
 
+    if (geteuid() != uid) {
+        /* Should be unreachable. */
+        return ERR_PRIV;
+    }
+
+    if (getegid() != gid) {
+        /* Should be unreachable. */
+        return ERR_PRIV;
+    }
+
     return OK;
 }
