@@ -1,7 +1,7 @@
 /*
- * Header for check.c.
+ * Header for util.c.
  *
- * Copyright 2022 and 2023 Odin Kroeger.
+ * Copyright 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
@@ -19,8 +19,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(TESTS_CHECK_H)
-#define TESTS_CHECK_H
+#if !defined(TESTS_LIB_UTIL_H)
+#define TESTS_LIB_UTIL_H
 
 #include <setjmp.h>
 #include <signal.h>
@@ -76,4 +76,4 @@ __attribute__((format(printf, 2, 3), noreturn))
 void check_errx(int eval, const char *fmt, ...);
 
 
-#endif /* !defined(TESTS_CHECK_H) */
+#endif /* !defined(TESTS_LIB_UTIL_H) */

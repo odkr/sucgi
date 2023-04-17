@@ -1,7 +1,7 @@
 /*
  * Utility functions for tests.
  *
- * Copyright 2022 and 2023 Odin Kroeger.
+ * Copyright 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
@@ -31,7 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "check.h"
+#include "util.h"
 #include "../../macros.h"
 
 

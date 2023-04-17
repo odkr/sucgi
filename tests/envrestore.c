@@ -38,7 +38,7 @@
 #include "../config.h"
 #include "../macros.h"
 #include "../str.h"
-#include "lib/check.h"
+#include "lib/util.h"
 
 
 

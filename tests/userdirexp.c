@@ -36,7 +36,7 @@
 #include "../max.h"
 #include "../str.h"
 #include "../userdir.h"
-#include "lib/check.h"
+#include "lib/util.h"
 
 
 /*

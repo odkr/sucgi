@@ -27,10 +27,10 @@
 #include <sys/types.h>
 #include <err.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <pwd.h>
 #include <setjmp.h>
 #include <signal.h>
-#include <stdarg.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -39,7 +39,9 @@
 #include "../macros.h"
 #include "../max.h"
 #include "../priv.h"
-#include "lib/check.h"
+#include "lib/priv.h"
+#include "lib/util.h"
+
 
 
 /*
@@ -58,81 +60,19 @@ typedef struct {
  */
 
 /* The user ID of the superuser. */
-uid_t superuser = 0;
+uid_t superuid = 0;
 
 /* A user ID of a regular user. */
-uid_t reguser = INT_MAX;
+uid_t reguid = INT_MAX;
 
 
 /* Test cases. */
 const Args cases[] = {
-    {&superuser, &superuser},
-    {&superuser, &reguser},
-    {&reguser, &superuser},
-    {&reguser, &reguser}
+    {&superuid, &superuid},
+    {&superuid, &reguid  },
+    {&reguid,   &superuid},
+    {&reguid,   &reguid  }
 };
-
-
-/*
- * Prototypes
- */
-
-/*
- * Return the user ID of a non-superuser in UID.
- *
- * Return value:
- *     true   A non-superuser was found.
- *     false  No non-superuser was found.
- *            errno is set if getpwent failed.
- */
-__attribute__((nonnull(1), warn_unused_result))
-static bool getreguser(uid_t *const uid);
-
-/*
- * A fatal version of getpwuid.
- */
-static struct passwd *getpwuid_f(uid_t uid);
-
-
-/*
- * Functions
- */
-
-static bool
-getreguser(uid_t *const uid) {
-    int retval = false;
-    int olderr = 0;
-    struct passwd *pwd;
-
-    setpwent();
-    while ((errno = 0, pwd = getpwent()) != NULL) {
-        if (pwd->pw_uid > 0) {
-            *uid = pwd->pw_uid;
-            retval = true;
-            break;
-        }
-    }
-    olderr = errno;
-    endpwent();
-
-    errno = olderr;
-    return retval;
-}
-
-static struct passwd *
-getpwuid_f(uid_t uid)
-{
-    errno = 0;
-    struct passwd *pwd = getpwuid(uid);
-    if (pwd == NULL) {
-        if (errno == 0) {
-            errx(TEST_ERROR, "user ID %llu: unallocated",
-                 (unsigned long long) uid);
-        }
-        err(TEST_ERROR, "getpwuid");
-    }
-    return pwd;
-}
 
 
 /*
@@ -144,20 +84,20 @@ main (void) {
     volatile int result = TEST_PASSED;
 
     if (getuid() == 0) {
-        if (!getreguser(&reguser) && errno != 0) {
+        if (!checkgetreguid(&reguid) && errno != 0) {
             err(TEST_ERROR, "getpwent");
         }
     } else {
-        reguser = getuid();
+        reguid = getuid();
     }
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const Args args = cases[i];
-        struct passwd *ruser, *euser;
+        struct passwd ruser, euser;
         pid_t pid;
 
-        ruser = getpwuid_f(*args.ruid);
-        euser = getpwuid_f(*args.euid);
+        checkgetuser(*args.ruid, &ruser);
+        checkgetuser(*args.euid, &euser);
 
         pid = fork();
         if (pid == 0) {
@@ -170,16 +110,16 @@ main (void) {
 
             if (geteuid() == 0) {
                 errno = 0;
-                if (setregid(ruser->pw_gid, euser->pw_gid) != 0) {
+                if (setregid(ruser.pw_gid, euser.pw_gid) != 0) {
                     check_err(TEST_ERROR, "setregid");
                 }
-                if (setreuid(ruser->pw_uid, euser->pw_uid) != 0) {
+                if (setreuid(ruser.pw_uid, euser.pw_uid) != 0) {
                     check_err(TEST_ERROR, "setreuid");
                 }
             } else {
                 if (getuid() != *args.ruid || geteuid() != *args.euid) {
                     check_errx(TEST_SKIPPED, "skipping (%s, %s) ...",
-                               ruser->pw_name, euser->pw_name);
+                               ruser.pw_name, euser.pw_name);
                 }
             }
 
@@ -189,34 +129,34 @@ main (void) {
             if (retval != OK) {
                 /* Should be unreachable. */
                 check_errx(TEST_FAILED, "(%s, %s) → %u [!]",
-                           ruser->pw_name, euser->pw_name, retval);
+                           ruser.pw_name, euser.pw_name, retval);
             }
 
             ruid = getuid();
-            if (ruid != ruser->pw_uid) {
+            if (ruid != ruser.pw_uid) {
                 check_errx(TEST_FAILED, "(%s, %s) ─→ <ruid> = %llu [!]",
-                           ruser->pw_name, euser->pw_name,
+                           ruser.pw_name, euser.pw_name,
                            (unsigned long long) ruid);
             }
 
             euid = geteuid();
-            if (euid != ruser->pw_uid) {
+            if (euid != ruser.pw_uid) {
                 check_errx(TEST_FAILED, "(%s, %s) ─→ <euid> = %llu [!]",
-                           ruser->pw_name, euser->pw_name,
+                           ruser.pw_name, euser.pw_name,
                            (unsigned long long) euid);
             }
 
             rgid = getgid();
-            if (rgid != ruser->pw_gid) {
+            if (rgid != ruser.pw_gid) {
                 check_errx(TEST_FAILED, "(%s, %s) ─→ <rgid> = %llu [!]",
-                           ruser->pw_name, euser->pw_name,
+                           ruser.pw_name, euser.pw_name,
                            (unsigned long long) rgid);
             }
 
             egid = getegid();
-            if (egid != ruser->pw_gid) {
+            if (egid != ruser.pw_gid) {
                 check_errx(TEST_FAILED, "(%s, %s) ─→ <egid> = %llu [!]",
-                           ruser->pw_name, euser->pw_name,
+                           ruser.pw_name, euser.pw_name,
                            (unsigned long long) egid);
             }
 
@@ -229,13 +169,13 @@ main (void) {
 
                 if (ngroups != 1) {
                     check_errx(TEST_FAILED, "(%s, %s) ─→ <ngroups> = %d [!]",
-                               ruser->pw_name, euser->pw_name, ngroups);
+                               ruser.pw_name, euser.pw_name, ngroups);
                 }
 
                 if (groups[0] != rgid) {
                     check_errx(TEST_FAILED,
                                "(%s, %s) ─→ <groups[0]> = %llu [!]",
-                               ruser->pw_name, euser->pw_name,
+                               ruser.pw_name, euser.pw_name,
                                (unsigned long long) groups[0]);
                 }
             }
@@ -279,12 +219,11 @@ main (void) {
                 signo = WTERMSIG(status);
                 signame = strsignal(signo);
                 warnx("(%s, %s) ↑ %s [!]",
-                      ruser->pw_name, euser->pw_name, signame);
+                      ruser.pw_name, euser.pw_name, signame);
             } else {
                 errx(TEST_ERROR, "child %d exited abnormally", pid);
             }
         }
-
     }
 
     return result;
