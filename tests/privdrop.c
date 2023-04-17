@@ -30,6 +30,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <pwd.h>
+#include <grp.h>
 #include <search.h>
 #include <signal.h>
 #include <stdbool.h>
