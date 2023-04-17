@@ -623,15 +623,15 @@ done || result=70
 mutatefnames "$hdl_unknownsuffix" |
 while read -r hdl_fname
 do
-check -s1 -e"script $hdl_fname: no handler found." \
-      PATH_TRANSLATED="$hdl_fname" main
+	check -s1 -e"execl $hdl_fname: Permission denied." \
+	      PATH_TRANSLATED="$hdl_fname" main
 done || result=70
 
 # Not executable.
 mutatefnames "$hdl_nosuffix" |
 while read -r hdl_fname
 do
-check -s1 -e"script $hdl_fname: not executable." \
+check -s1 -e"execl $hdl_fname: Permission denied." \
       PATH_TRANSLATED="$hdl_fname" main
 done || result=70
 
@@ -740,7 +740,6 @@ done
 
 # Cleanup.
 unset envcln_homedir envcln_script envcln_logfile envcln_var
-
 
 
 #
