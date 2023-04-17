@@ -89,12 +89,6 @@ __attribute__((nonnull(1), warn_unused_result))
 static bool getreguser(uid_t *const uid);
 
 /*
- * Print a formatted message to STDERR and _exit with EVAL.
- */
-__attribute__((format(printf, 2, 3), noreturn))
-static void chlderrx(int eval, const char *fmt, ...);
-
-/*
  * A fatal version of getpwuid.
  */
 static struct passwd *getpwuid_f(uid_t uid);
@@ -123,18 +117,6 @@ getreguser(uid_t *const uid) {
 
     errno = olderr;
     return retval;
-}
-
-static void
-chlderrx(int eval, const char *fmt, ...)
-{
-    va_list argp;
-
-    va_start(argp, fmt);
-    vwarnx(fmt, argp);
-    va_end(argp);
-
-    _exit(eval);
 }
 
 static struct passwd *
@@ -189,15 +171,15 @@ main (void) {
             if (geteuid() == 0) {
                 errno = 0;
                 if (setregid(ruser->pw_gid, euser->pw_gid) != 0) {
-                    err(TEST_ERROR, "setregid");
+                    check_err(TEST_ERROR, "setregid");
                 }
                 if (setreuid(ruser->pw_uid, euser->pw_uid) != 0) {
-                    err(TEST_ERROR, "setreuid");
+                    check_err(TEST_ERROR, "setreuid");
                 }
             } else {
                 if (getuid() != *args.ruid || geteuid() != *args.euid) {
-                    chlderrx(TEST_SKIPPED, "skipping (%s, %s) ...",
-                             ruser->pw_name, euser->pw_name);
+                    check_errx(TEST_SKIPPED, "skipping (%s, %s) ...",
+                               ruser->pw_name, euser->pw_name);
                 }
             }
 
@@ -206,54 +188,55 @@ main (void) {
             retval = privsuspend();
             if (retval != OK) {
                 /* Should be unreachable. */
-                chlderrx(TEST_FAILED, "(%s, %s) → %u [!]",
-                         ruser->pw_name, euser->pw_name, retval);
+                check_errx(TEST_FAILED, "(%s, %s) → %u [!]",
+                           ruser->pw_name, euser->pw_name, retval);
             }
 
             ruid = getuid();
             if (ruid != ruser->pw_uid) {
-                chlderrx(TEST_FAILED, "(%s, %s) ─→ <ruid> = %llu [!]",
-                         ruser->pw_name, euser->pw_name,
-                         (unsigned long long) ruid);
+                check_errx(TEST_FAILED, "(%s, %s) ─→ <ruid> = %llu [!]",
+                           ruser->pw_name, euser->pw_name,
+                           (unsigned long long) ruid);
             }
 
             euid = geteuid();
             if (euid != ruser->pw_uid) {
-                chlderrx(TEST_FAILED, "(%s, %s) ─→ <euid> = %llu [!]",
-                         ruser->pw_name, euser->pw_name,
-                         (unsigned long long) euid);
+                check_errx(TEST_FAILED, "(%s, %s) ─→ <euid> = %llu [!]",
+                           ruser->pw_name, euser->pw_name,
+                           (unsigned long long) euid);
             }
 
             rgid = getgid();
             if (rgid != ruser->pw_gid) {
-                chlderrx(TEST_FAILED, "(%s, %s) ─→ <rgid> = %llu [!]",
-                         ruser->pw_name, euser->pw_name,
-                         (unsigned long long) rgid);
+                check_errx(TEST_FAILED, "(%s, %s) ─→ <rgid> = %llu [!]",
+                           ruser->pw_name, euser->pw_name,
+                           (unsigned long long) rgid);
             }
 
             egid = getegid();
             if (egid != ruser->pw_gid) {
-                chlderrx(TEST_FAILED, "(%s, %s) ─→ <egid> = %llu [!]",
-                         ruser->pw_name, euser->pw_name,
-                         (unsigned long long) egid);
+                check_errx(TEST_FAILED, "(%s, %s) ─→ <egid> = %llu [!]",
+                           ruser->pw_name, euser->pw_name,
+                           (unsigned long long) egid);
             }
 
             if (super) {
                 errno = 0;
                 ngroups = getgroups(MAX_NGROUPS, groups);
                 if (ngroups == -1) {
-                    err(TEST_ERROR, "getgroups");
+                    check_err(TEST_ERROR, "getgroups");
                 }
 
                 if (ngroups != 1) {
-                    chlderrx(TEST_FAILED, "(%s, %s) ─→ <ngroups> = %d [!]",
-                             ruser->pw_name, euser->pw_name, ngroups);
+                    check_errx(TEST_FAILED, "(%s, %s) ─→ <ngroups> = %d [!]",
+                               ruser->pw_name, euser->pw_name, ngroups);
                 }
 
                 if (groups[0] != rgid) {
-                    chlderrx(TEST_FAILED, "(%s, %s) ─→ <groups[0]> = %llu [!]",
-                             ruser->pw_name, euser->pw_name,
-                             (unsigned long long) groups[0]);
+                    check_errx(TEST_FAILED,
+                               "(%s, %s) ─→ <groups[0]> = %llu [!]",
+                               ruser->pw_name, euser->pw_name,
+                               (unsigned long long) groups[0]);
                 }
             }
 

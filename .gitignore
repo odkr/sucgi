@@ -28,6 +28,10 @@ tests/*
 !tests/*.c
 !tests/*.h
 !tests/*.sh
+!tests/lib
+tests/lib/*
+!tests/lib/*.c
+!tests/lib/*.h
 tools/*
 !tools/*.c
 !tools/*.h
