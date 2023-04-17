@@ -20,7 +20,7 @@
  */
 
 #define _BSD_SOURCE
-#define _DARWIN_C_SOURCE
+/* _DARWIN_C_SOURCE must NOT be set, or else getgroups will be pointless. */
 #define _DEFAULT_SOURCE
 #define _GNU_SOURCE
 
@@ -28,42 +28,281 @@
 #include <err.h>
 #include <errno.h>
 #include <pwd.h>
-#include <stdio.h>
+#include <setjmp.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
+#include "../macros.h"
+#include "../max.h"
 #include "../priv.h"
-#include "../types.h"
+#include "check.h"
 
+
+/*
+ * Data types
+ */
+
+/* Combinations of effective and real process UIDs. */
+typedef struct {
+    uid_t *euid;
+    uid_t *ruid;
+} Args;
+
+
+/*
+ * Module variables
+ */
+
+/* The user ID of the superuser. */
+uid_t superuser = 0;
+
+/* A user ID of a regular user. */
+uid_t reguser = INT_MAX;
+
+
+/* Test cases. */
+const Args cases[] = {
+    {&superuser, &superuser},
+    {&superuser, &reguser},
+    {&reguser, &superuser},
+    {&reguser, &reguser}
+};
+
+
+/*
+ * Prototypes
+ */
+
+/*
+ * Return the user ID of a non-superuser in UID.
+ *
+ * Return value:
+ *     true   A non-superuser was found.
+ *     false  No non-superuser was found.
+ *            errno is set if getpwent failed.
+ */
+__attribute__((nonnull(1), warn_unused_result))
+static bool getreguser(uid_t *const uid);
+
+/*
+ * Print a formatted message to STDERR and _exit with EVAL.
+ */
+__attribute__((format(printf, 2, 3), noreturn))
+static void chlderrx(int eval, const char *fmt, ...);
+
+/*
+ * A fatal version of getpwuid.
+ */
+static struct passwd *getpwuid_f(uid_t uid);
+
+
+/*
+ * Functions
+ */
+
+static bool
+getreguser(uid_t *const uid) {
+    int retval = false;
+    int olderr = 0;
+    struct passwd *pwd;
+
+    setpwent();
+    while ((errno = 0, pwd = getpwent()) != NULL) {
+        if (pwd->pw_uid > 0) {
+            *uid = pwd->pw_uid;
+            retval = true;
+            break;
+        }
+    }
+    olderr = errno;
+    endpwent();
+
+    errno = olderr;
+    return retval;
+}
+
+static void
+chlderrx(int eval, const char *fmt, ...)
+{
+    va_list argp;
+
+    va_start(argp, fmt);
+    vwarnx(fmt, argp);
+    va_end(argp);
+
+    _exit(eval);
+}
+
+static struct passwd *
+getpwuid_f(uid_t uid)
+{
+    errno = 0;
+    struct passwd *pwd = getpwuid(uid);
+    if (pwd == NULL) {
+        if (errno == 0) {
+            errx(TEST_ERROR, "user ID %llu: unallocated",
+                 (unsigned long long) uid);
+        }
+        err(TEST_ERROR, "getpwuid");
+    }
+    return pwd;
+}
+
+
+/*
+ * Main
+ */
 
 int
-main (void)
-{
-    Error ret;
+main (void) {
+    volatile int result = TEST_PASSED;
 
-    ret = privsuspend();
-    switch (ret) {
-    case OK:
-        break;
-    case ERR_SYS:
-        err(EXIT_FAILURE, "privilege suspension");
-    case ERR_PRIV:
-        errx(EXIT_FAILURE, "could resume superuser privileges.");
-    default:
-        errx(EXIT_FAILURE, "returned %u.", ret);
+    if (getuid() == 0) {
+        if (!getreguser(&reguser) && errno != 0) {
+            err(TEST_ERROR, "getpwent");
+        }
+    } else {
+        reguser = getuid();
     }
 
-    printf("euid=%llu egid=%llu ruid=%llu rgid=%llu\n",
-           (unsigned long long) geteuid(),
-           (unsigned long long) getegid(),
-           (unsigned long long) getuid(),
-           (unsigned long long) getgid());
+    for (size_t i = 0; i < NELEMS(cases); ++i) {
+        const Args args = cases[i];
+        struct passwd *ruser, *euser;
+        pid_t pid;
 
-    errno = 0;
-    if (setuid(0) != 0) {
-        err(EXIT_FAILURE, "seteuid");
+        ruser = getpwuid_f(*args.ruid);
+        euser = getpwuid_f(*args.euid);
+
+        pid = fork();
+        if (pid == 0) {
+            gid_t groups[MAX_NGROUPS];
+            uid_t ruid, euid;
+            gid_t rgid, egid;
+            int ngroups;
+            bool super;
+            Error retval;
+
+            if (geteuid() == 0) {
+                errno = 0;
+                if (setregid(ruser->pw_gid, euser->pw_gid) != 0) {
+                    err(TEST_ERROR, "setregid");
+                }
+                if (setreuid(ruser->pw_uid, euser->pw_uid) != 0) {
+                    err(TEST_ERROR, "setreuid");
+                }
+            } else {
+                if (getuid() != *args.ruid || geteuid() != *args.euid) {
+                    chlderrx(TEST_SKIPPED, "skipping (%s, %s) ...",
+                             ruser->pw_name, euser->pw_name);
+                }
+            }
+
+            super = geteuid() == 0;
+
+            retval = privsuspend();
+            if (retval != OK) {
+                /* Should be unreachable. */
+                chlderrx(TEST_FAILED, "(%s, %s) → %u [!]",
+                         ruser->pw_name, euser->pw_name, retval);
+            }
+
+            ruid = getuid();
+            if (ruid != ruser->pw_uid) {
+                chlderrx(TEST_FAILED, "(%s, %s) ─→ <ruid> = %llu [!]",
+                         ruser->pw_name, euser->pw_name,
+                         (unsigned long long) ruid);
+            }
+
+            euid = geteuid();
+            if (euid != ruser->pw_uid) {
+                chlderrx(TEST_FAILED, "(%s, %s) ─→ <euid> = %llu [!]",
+                         ruser->pw_name, euser->pw_name,
+                         (unsigned long long) euid);
+            }
+
+            rgid = getgid();
+            if (rgid != ruser->pw_gid) {
+                chlderrx(TEST_FAILED, "(%s, %s) ─→ <rgid> = %llu [!]",
+                         ruser->pw_name, euser->pw_name,
+                         (unsigned long long) rgid);
+            }
+
+            egid = getegid();
+            if (egid != ruser->pw_gid) {
+                chlderrx(TEST_FAILED, "(%s, %s) ─→ <egid> = %llu [!]",
+                         ruser->pw_name, euser->pw_name,
+                         (unsigned long long) egid);
+            }
+
+            if (super) {
+                errno = 0;
+                ngroups = getgroups(MAX_NGROUPS, groups);
+                if (ngroups == -1) {
+                    err(TEST_ERROR, "getgroups");
+                }
+
+                if (ngroups != 1) {
+                    chlderrx(TEST_FAILED, "(%s, %s) ─→ <ngroups> = %d [!]",
+                             ruser->pw_name, euser->pw_name, ngroups);
+                }
+
+                if (groups[0] != rgid) {
+                    chlderrx(TEST_FAILED, "(%s, %s) ─→ <groups[0]> = %llu [!]",
+                             ruser->pw_name, euser->pw_name,
+                             (unsigned long long) groups[0]);
+                }
+            }
+
+            _exit(0);
+        } else {
+            int retval;
+            int status;
+
+            do {
+                errno = 0;
+                retval = waitpid(pid, &status, 0);
+            } while (retval < 0 && errno == EINTR);
+
+            if (retval < 0) {
+                err(EXIT_FAILURE, "waitpid %d", pid);
+            }
+
+            if (WIFEXITED(status)) {
+                int exitstatus;
+
+                exitstatus = WEXITSTATUS(status);
+                switch (exitstatus) {
+                case TEST_PASSED:
+                    break;
+                case TEST_FAILED:
+                    result = TEST_FAILED;
+                    break;
+                case TEST_SKIPPED:
+                    if (result == TEST_PASSED) result = TEST_SKIPPED;
+                    break;
+                default:
+                    return TEST_ERROR;
+                    break;
+                }
+            } else if (WIFSIGNALED(status)) {
+                int signo;
+                const char *signame;
+
+                result = TEST_FAILED;
+                signo = WTERMSIG(status);
+                signame = strsignal(signo);
+                warnx("(%s, %s) ↑ %s [!]",
+                      ruser->pw_name, euser->pw_name, signame);
+            } else {
+                errx(TEST_ERROR, "child %d exited abnormally", pid);
+            }
+        }
+
     }
 
-    return EXIT_SUCCESS;
+    return result;
 }
