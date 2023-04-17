@@ -194,7 +194,7 @@ $(other_check_bins): tests/lib/check.a(tests/lib/util.o)
 
 tests/error.sh: tests/error
 
-tests/main.sh: tests/main tools/badenv tools/badexec tools/ids
+tests/main.sh: tests/main tools/badenv tools/badexec tools/ids tools/runas
 
 $(check_scripts): tests/main scripts/funcs.sh
 
