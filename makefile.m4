@@ -52,9 +52,8 @@ LDLIBS = __LDLIBS
 #
 
 hdrs = cattr.h compat.h macros.h max.h types.h
-objs = funcs.a(env.o)  funcs.a(error.o) funcs.a(file.o) funcs.a(handler.o) \
-       funcs.a(pair.o) funcs.a(path.o)  funcs.a(priv.o) funcs.a(str.o)     \
-       funcs.a(userdir.o)
+objs = funcs.a(env.o) funcs.a(error.o) funcs.a(handler.o) funcs.a(pair.o) \
+       funcs.a(path.o) funcs.a(priv.o) funcs.a(str.o) funcs.a(userdir.o)
 
 
 #
@@ -77,11 +76,9 @@ funcs.a(env.o): env.c env.h funcs.a(str.o)
 
 funcs.a(error.o): error.c error.h
 
-funcs.a(file.o): file.c file.h funcs.a(str.o)
-
 funcs.a(pair.o): pair.c pair.h
 
-funcs.a(path.o): path.c path.h funcs.a(file.o) funcs.a(str.o)
+funcs.a(path.o): path.c path.h funcs.a(str.o)
 
 funcs.a(priv.o): priv.c priv.h
 
@@ -134,20 +131,18 @@ testsobjs = tests/lib/check.a(tests/lib/util.o) \
             tests/lib/check.a(tests/lib/priv.o)
 
 checks = $(check_scripts) $(macro_check_bins) tests/envcopyvar \
-	tests/envisname tests/envrestore tests/fileisxusrw \
-	tests/handlerfind tests/pairfind tests/pathchkloc \
-	tests/pathsuffix tests/privdrop tests/privsuspend \
+	tests/envisname tests/envrestore tests/handlerfind tests/pairfind \
+	tests/pathchkloc tests/pathsuffix tests/privdrop tests/privsuspend \
 	tests/copystr tests/splitstr tests/userdirexp
 
 macro_check_bins = tests/ISSIGNED tests/NELEMS tests/SIGNEDMAX
 
 other_check_bins = tests/envcopyvar tests/envisname tests/envrestore \
-	tests/error tests/fileisxusrw tests/handlerfind \
-	tests/pairfind tests/pathchkperm tests/pathchkloc tests/pathreal \
-	tests/pathsuffix tests/privdrop tests/privsuspend tests/copystr \
-	tests/splitstr tests/userdirexp
+	tests/error tests/handlerfind tests/pairfind tests/pathchkloc \
+	tests/pathreal tests/pathsuffix tests/privdrop tests/privsuspend \
+	tests/copystr tests/splitstr tests/userdirexp
 
-check_scripts = tests/error.sh tests/main.sh tests/pathchkperm.sh
+check_scripts = tests/error.sh tests/main.sh
 
 tool_bins = tools/badenv tools/badexec tools/ids tools/runpara tools/runas
 
@@ -169,15 +164,11 @@ tests/envcopyvar: tests/envcopyvar.c funcs.a(env.o)
 
 tests/error: tests/error.c funcs.a(error.o)
 
-tests/fileisxusrw: tests/fileisxusrw.c funcs.a(file.o)
-
 tests/handlerfind: tests/handlerfind.c funcs.a(handler.o)
 
 tests/main: main.c config.h testing.h $(hdrs) $(objs)
 
 tests/pairfind: tests/pairfind.c funcs.a(pair.o)
-
-tests/pathchkperm: tests/pathchkperm.c funcs.a(path.o)
 
 tests/pathchkloc: tests/pathchkloc.c funcs.a(path.o)
 
@@ -204,8 +195,6 @@ $(other_check_bins): tests/lib/check.a(tests/lib/util.o)
 tests/error.sh: tests/error
 
 tests/main.sh: tests/main tools/badenv tools/badexec tools/ids
-
-tests/pathchkperm.sh: tests/pathchkperm tools/ids
 
 $(check_scripts): tests/main scripts/funcs.sh
 

@@ -41,20 +41,6 @@ __attribute__((nonnull(1, 2), warn_unused_result))
 Error pathchkloc(const char *basedir, const char *fname);
 
 /*
- * Check whether the user with the user ID UID has exclusive write access
- * to the file named FNAME and each parent directory of FNAME up to, and
- * including, BASEDIR.
- *
- * Return value:
- *     OK           UID has exclusive write access to FNAME.
- *     ERR_BASEDIR  FNAME is not within BASEDIR.
- *     ERR_PERM     UID does NOT have exclusive write access to FNAME.
- *     ERR_SYS      stat failed.
- */
-__attribute__((nonnull(2, 3), warn_unused_result))
-Error pathchkperm(uid_t uid, const char *basedir, const char *fname);
-
-/*
  * Get the canonical path of FNAME, allocate enough memory to store that
  * path, and return a pointer to that memory in REAL; that memory should
  * be freed by the caller.

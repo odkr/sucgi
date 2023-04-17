@@ -705,44 +705,6 @@ main(int argc, char **argv) {
 
 
     /*
-     * Check whether the CGI script can only be modified by the user.
-     */
-
-    const char *basedir;
-
-    if (*USER_DIR == '/') {
-        basedir = userdir_phys;
-    } else {
-        ret = pathreal(owner->pw_dir, &basedir);
-        switch (ret) {
-        case OK:
-            break;
-        case ERR_LEN:
-            error("user %s: home directory is too long.", logname);
-        case ERR_SYS:
-            error("realpath %s: %m.", owner->pw_dir);
-        default:
-            /* Should be unreachable. */
-            error("%d: pathreal returned %d.", __LINE__, ret);
-        }
-    }
-
-    ret = pathchkperm(uid, basedir, script_phys);
-    switch (ret) {
-    case OK:
-        break;
-    case ERR_PERM:
-        error("script %s: writable by non-owner.", script_log);
-    case ERR_SYS:
-        /* Only reachable if the script was deleted after realpath. */
-        error("stat %s: %m.", script_log);
-    default:
-        /* Should be unreachable. */
-        error("%d: pathchkperm returned %d.", __LINE__, ret);
-    }
-
-
-    /*
      * It would be odd for the set-user-ID or the set-group-ID on execute
      * bits to be set for a script that is owned by a regular user. So if
      * one of them is set, this probably indicates a configuration error.
