@@ -26,6 +26,7 @@
 #endif
 
 #include <assert.h>
+#include <errno.h>
 #include <pwd.h>
 /* cppcheck-suppress misra-c2012-21.6; needed for snprintf. */
 #include <stdio.h>
@@ -60,6 +61,7 @@ userdirexp(const char *const str, const struct passwd *const user,
     /* Some versions of snprintf fail to NUL-terminate strings. */
     (void) memset(dir, '\0', MAX_FNAME_LEN);
 
+    errno = 0;
     if (*str != '/') {
         /* RATS: ignore; format is short and a literal. */
         nchars = snprintf(dir, MAX_FNAME_LEN, "%s/%s", user->pw_dir, str);
@@ -72,6 +74,7 @@ userdirexp(const char *const str, const struct passwd *const user,
     }
 
     if (nchars < 0) {
+        /* Should only be reachable if an invalid wide-character is used. */
         return ERR_SYS;
     }
     if ((size_t) nchars >= (size_t) MAX_FNAME_LEN) {
