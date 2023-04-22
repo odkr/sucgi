@@ -47,6 +47,7 @@
  * Data types
  */
 
+/* lfind comparison function. */
 typedef int (*Compar)(const void *, const void *);
 
 
@@ -55,7 +56,7 @@ typedef int (*Compar)(const void *, const void *);
  */
 
 /* Compare two user IDs. */
-static int cmpuids(const uid_t *a, const uid_t *b)
+static int cmpuids(const uid_t *a, const uid_t *b);
 
 
 /*
@@ -86,7 +87,7 @@ main(int argc, char **argv)
     uid_t *seen;
     size_t nseen;
     size_t maxseen;
-    int ch;
+    int opt;
 
     nseen = 0;
     maxseen = NIDS;
