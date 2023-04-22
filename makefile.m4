@@ -63,13 +63,11 @@ makefile compat.h:
 # Build
 #
 
-dnl Could $(objs) be done away with?
 hdrs = cattr.h compat.h macros.h max.h types.h
 
-objs = objs.a(env.o) objs.a(error.o) objs.a(handler.o) objs.a(pair.o) \
-       objs.a(path.o) objs.a(priv.o) objs.a(str.o) objs.a(userdir.o)
+objs = env.o error.o handler.o pair.o path.o priv.o str.o userdir.o
 
-libs = objs.a
+libs = libsucgi.a
 
 compat.h: config.h
 
@@ -77,31 +75,31 @@ defaults.h: config.h
 
 max.h: config.h
 
-objs.a(env.o): env.c env.h objs.a(str.o)
+libsucgi.a(env.o): env.c env.h libsucgi.a(str.o)
 
-objs.a(error.o): error.c error.h
+libsucgi.a(error.o): error.c error.h
 
-objs.a(pair.o): pair.c pair.h
+libsucgi.a(pair.o): pair.c pair.h
 
-objs.a(path.o): path.c path.h objs.a(str.o)
+libsucgi.a(path.o): path.c path.h libsucgi.a(str.o)
 
-objs.a(priv.o): priv.c priv.h
+libsucgi.a(priv.o): priv.c priv.h
 
-objs.a(handler.o): handler.c handler.h objs.a(pair.o) objs.a(path.o)
+libsucgi.a(handler.o): handler.c handler.h libsucgi.a(pair.o path.o)
 
-objs.a(str.o): str.c str.h
+libsucgi.a(str.o): str.c str.h
 
-objs.a(userdir.o): userdir.c userdir.h
+libsucgi.a(userdir.o): userdir.c userdir.h
 
-$(objs): $(hdrs)
+libsucgi.a($(objs)): $(hdrs)
 
-objs.a: $(objs)
+libsucgi.a: libsucgi.a($(objs))
 
 sucgi: main.c defaults.h testing.h $(hdrs) $(libs)
 
-$(objs):
+libsucgi.a($(objs)):
 	$(CC) $(LDFLAGS) -c -o $*.o $(CFLAGS) $*.c $(LDLIBS)
-	$(AR) $(ARFLAGS) objs.a $*.o
+	$(AR) $(ARFLAGS) libsucgi.a $*.o
 	rm -f $*.o
 
 sucgi:
@@ -138,9 +136,9 @@ uninstall:
 # Tests
 #
 
-check_objs = tests/objs.a(tests/check.o) tests/objs.a(tests/priv.o)
+check_objs = tests/check.o tests/priv.o
 
-check_libs = tests/objs.a $(libs)
+check_libs = tests/libcheck.a $(libs)
 
 macro_check_bins = tests/ISSIGNED tests/NELEMS tests/SIGNEDMAX
 
@@ -164,16 +162,16 @@ preloadvar = default(`__SUCGI_PRELOAD_VAR', `LD_PRELOAD')
 
 runpara_flags = -ci75 -j8
 
-tests/objs.a(tests/check.o): tests/check.c tests/check.h
+tests/libcheck.a(tests/check.o): tests/check.c tests/check.h
 
-tests/objs.a(tests/priv.o): tests/priv.c tests/priv.h
+tests/libcheck.a(tests/priv.o): tests/priv.c tests/priv.h
 
-tests/objs.a: $(check_objs)
+tests/libcheck.a: tests/libcheck.a($(check_objs))
 
 ifnempty(`__SUCGI_SHARED_LIBS', `dnl
 tests/mock.o: tests/mock.c tests/mock.h
 
-tests/mock.so: tests/mock.o
+tests/libmock.so: tests/mock.o
 
 ')dnl
 tests/ISSIGNED: tests/ISSIGNED.c
@@ -182,39 +180,41 @@ tests/NELEMS: tests/NELEMS.c
 
 tests/SIGNEDMAX: tests/SIGNEDMAX.c
 
-tests/envisname: tests/envisname.c objs.a(env.o)
+tests/envisname: tests/envisname.c libsucgi.a(env.o)
 
-tests/envrestore: tests/envrestore.c defaults.h objs.a(env.o)
+tests/envrestore: tests/envrestore.c defaults.h libsucgi.a(env.o)
 
-tests/envcopyvar: tests/envcopyvar.c objs.a(env.o)
+tests/envcopyvar: tests/envcopyvar.c libsucgi.a(env.o)
 
-tests/error: tests/error.c objs.a(error.o)
+tests/error: tests/error.c libsucgi.a(error.o)
 
-tests/handlerfind: tests/handlerfind.c objs.a(handler.o)
+tests/handlerfind: tests/handlerfind.c libsucgi.a(handler.o)
 
-tests/main: main.c defaults.h testing.h $(hdrs) objs.a
+tests/main: main.c defaults.h testing.h $(hdrs) libsucgi.a
 
-tests/pairfind: tests/pairfind.c defaults.h objs.a(pair.o)
+tests/pairfind: tests/pairfind.c defaults.h libsucgi.a(pair.o)
 
-tests/pathchkloc: tests/pathchkloc.c objs.a(path.o)
+tests/pathchkloc: tests/pathchkloc.c libsucgi.a(path.o)
 
-tests/pathreal: tests/pathreal.c objs.a(path.o)
+tests/pathreal: tests/pathreal.c libsucgi.a(path.o)
 
-tests/pathsuffix: tests/pathsuffix.c objs.a(path.o)
+tests/pathsuffix: tests/pathsuffix.c libsucgi.a(path.o)
 
-tests/privsuspend: tests/privsuspend.c tests/objs.a(tests/priv.o) objs.a(priv.o)
+tests/privdrop: tests/privdrop.c libsucgi.a(priv.o)
 
-tests/privdrop: tests/privdrop.c tests/objs.a(tests/priv.o) objs.a(priv.o)
+tests/privsuspend: tests/privsuspend.c libsucgi.a(priv.o)
 
-tests/copystr: tests/copystr.c objs.a(str.o)
+tests/privdrop tests/privsuspend: tests/libcheck.a(tests/priv.o)
 
-tests/splitstr: tests/splitstr.c objs.a(str.o)
+tests/copystr: tests/copystr.c libsucgi.a(str.o)
 
-tests/userdirexp: tests/userdirexp.c objs.a(userdir.o)
+tests/splitstr: tests/splitstr.c libsucgi.a(str.o)
+
+tests/userdirexp: tests/userdirexp.c libsucgi.a(userdir.o)
 
 $(check_bins): $(hdrs) tests/check.h
 
-$(other_check_bins): tests/objs.a(tests/check.o)
+$(other_check_bins): tests/libcheck.a(tests/check.o)
 
 tests/main.sh: tests/main tools/badenv tools/badexec tools/uids tools/runas
 
@@ -230,18 +230,22 @@ tools: $(tool_bins)
 
 checks: $(checks)
 
-check: tools/runpara $(checks) ifnempty(`__SUCGI_SHARED_LIBS', `tests/mock.so')
+ifnempty(`__SUCGI_SHARED_LIBS', `dnl
+check: tools/runpara $(checks) tests/libmock.so
+', `dnl
+check: tools/runpara $(checks)
+')dnl
 
-$(check_objs):
+tests/libcheck.a($(check_objs)):
 	$(CC) $(LDFLAGS) -c -o $*.o $(CFLAGS) $*.c $(LDLIBS)
-	$(AR) $(ARFLAGS) tests/objs.a $*.o
+	$(AR) $(ARFLAGS) tests/libcheck.a $*.o
 	rm -f $*.o
 
 ifnempty(`__SUCGI_SHARED_LIBS', `dnl
 tests/mock.o:
 	$(CC) $(LDFLAGS) -c -o $@ -fpic $(CFLAGS) $< $(LDLIBS)
 
-tests/mock.so:
+tests/libmock.so:
 	$(CC) $(LDFLAGS) -shared -o $@ -fpic tests/mock.o $(LDLIBS)
 
 ')dnl
@@ -258,7 +262,7 @@ check:
 ifnempty(`__SUCGI_SHARED_LIBS', `dnl
 	[ "$$(id -u)" -eq 0 ] \
 && tools/runpara $(runpara_flags) $(checks) \
-|| tools/runpara $(runpara_flags) $(preloadvar)=tests/mock.so $(checks)
+|| tools/runpara $(runpara_flags) $(preloadvar)=tests/libmock.so $(checks)
 ', `dnl
 	tools/runpara $(runpara_flags) $(checks)
 ')dnl
@@ -272,9 +276,8 @@ bins = sucgi tests/main $(check_bins) $(tool_bins)
 
 covclean: clean
 
-dnl FIXME: Use better variables.
 clean:
-	rm -f $(check_libs) tests/mock.so $(bins)
+	rm -f $(libs) tests/libcheck.a tests/libmock.so $(bins)
 
 
 #
