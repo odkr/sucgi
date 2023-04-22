@@ -121,36 +121,76 @@
  * Checks
  */
 
+#if MAX_STR_LEN < 1
+#error MAX_STR_LEN is non-positive.
+#endif
+
+#if MAX_STR_LEN > SHRT_MAX
+#error MAX_STR_LEN is greater than SHRT_MAX.
+#endif
+
 #if MAX_ERRMSG_LEN > MAX_STR_LEN
 #error MAX_ERRMSG_LEN is greater than MAX_STR_LEN.
+#endif
+
+#if MAX_ERRMSG_LEN < 1
+#error MAX_ERRMSG_LEN is non-positive.
 #endif
 
 #if MAX_FNAME_LEN > MAX_STR_LEN
 #error MAX_FNAME_LEN is greater than MAX_STR_LEN.
 #endif
 
+#if MAX_FNAME_LEN < 1
+#error MAX_FNAME_LEN is non-positive.
+#endif
+
 #if MAX_GRPNAME_LEN > MAX_STR_LEN
 #error MAX_GRPNAME_LEN is greater than MAX_STR_LEN.
+#endif
+
+#if MAX_GRPNAME_LEN < 1
+#error MAX_GRPNAME_LEN is non-positive.
 #endif
 
 #if MAX_SUFFIX_LEN > MAX_STR_LEN
 #error MAX_SUFFIX_LEN is greater than MAX_STR_LEN.
 #endif
 
+#if MAX_SUFFIX_LEN < 1
+#error MAX_SUFFIX_LEN is non-positive.
+#endif
+
 #if MAX_VAR_LEN > MAX_STR_LEN
 #error MAX_VAR_LEN is greater than MAX_STR_LEN.
+#endif
+
+#if MAX_VAR_LEN < 1
+#error MAX_VAR_LEN is non-positive.
 #endif
 
 #if MAX_VARNAME_LEN > MAX_STR_LEN
 #error MAX_VARNAME_LEN is greater than MAX_STR_LEN.
 #endif
 
+#if MAX_VARNAME_LEN < 1
+#error MAX_VARNAME_LEN is non-positive.
+#endif
+
 #if MAX_NGROUPS > INT_MAX
 #error MAX_NGROUPS is greater than INT_MAX.
 #endif
 
+#if MAX_NGROUPS < 1
+#error MAX_NGROUPS is non-positive.
+#endif
+
 #if MAX_NVARS > SHRT_MAX
 #error MAX_NVARS is greater than SHRT_MAX.
+#endif
+
+#if MAX_NVARS < 1
+#error MAX_NVARS is non-positive.
 #endif
 
 #endif /* !defined(MAX_H) */
