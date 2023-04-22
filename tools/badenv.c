@@ -56,15 +56,15 @@ main (int argc, char **argv)
     long nvars;
     bool inherit;
     bool count;
-    int ch;
+    int opt;
 
     nenv = 0;
     nvars = 0;
     inherit = true;
     count = true;
 
-    while ((ch = getopt(argc, argv, "in:h")) != -1) {
-        switch (ch) {
+    while ((opt = getopt(argc, argv, "in:h")) != -1) {
+        switch (opt) {
         case 'h':
             (void) puts(
 "badenv - run a programme with a given environment, any environment\n\n"
@@ -123,9 +123,9 @@ main (int argc, char **argv)
     }
 
     if (count) {
-        while (nvars < argc              &&
-               argv[nvars] != NULL       &&
-               strchr(argv[nvars], '='))
+        while (   nvars < argc
+               && argv[nvars] != NULL
+               && strchr(argv[nvars], '='))
         {
             ++nvars;
         }

@@ -33,10 +33,10 @@
 int
 main (int argc, char **argv)
 {
-    int ch;
+    int opt;
 
-    while ((ch = getopt(argc, argv, "in:h")) != -1) {
-        switch (ch) {
+    while ((opt = getopt(argc, argv, "in:h")) != -1) {
+        switch (opt) {
         case 'h':
             (void) puts(
 "badexec - run a programme with a custom/without argv[0]\n\n"

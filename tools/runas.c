@@ -41,12 +41,12 @@ main (int argc, char **argv)
     struct passwd *pwd;
     char **comm;
     bool real;
-    int ch;
+    int opt;
 
     real = false;
 
-    while ((ch = getopt(argc, argv, "hr")) != -1) {
-        switch (ch) {
+    while ((opt = getopt(argc, argv, "hr")) != -1) {
+        switch (opt) {
         case 'h':
             (void) puts(
 "runas - run a command as a given user\n\n"

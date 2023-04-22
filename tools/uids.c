@@ -51,11 +51,19 @@ typedef int (*Compar)(const void *, const void *);
 
 
 /*
+ * Prototypes
+ */
+
+/* Compare two user IDs. */
+static int cmpuids(const uid_t *a, const uid_t *b)
+
+
+/*
  * Functions
  */
 
 static int
-cmpuids(uid_t *a, uid_t *b)
+cmpuids(const uid_t *const a, const uid_t *const b)
 {
     if (*a < *b) {
         return -1;
@@ -83,8 +91,8 @@ main(int argc, char **argv)
     nseen = 0;
     maxseen = NIDS;
 
-    while ((ch = getopt(argc, argv, "gh")) != -1) {
-        switch (ch) {
+    while ((opt = getopt(argc, argv, "gh")) != -1) {
+        switch (opt) {
         case 'h':
             (void) puts(
 "uids - print user IDs and names\n\n"
