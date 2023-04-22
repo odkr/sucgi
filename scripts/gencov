@@ -25,8 +25,12 @@
 # Defaults
 #
 
-# Compiler to use.
-comp=
+# GCov binary that LCOV should use.
+gcov=gcov
+
+# GCov tool to use.
+# shellcheck disable=2100
+gcovtool=gcov-tool
 
 # Where to store GCov files.
 gcovdir=-
@@ -71,7 +75,10 @@ readonly cwd
 logged() (
 	logfile="$(basename "${1:?}").log"
 
-	if "$@" >"$TMPDIR/$logfile" 2>&1
+	if [ "$verbose" ]
+	then
+		"$@"
+	elif "$@" >"$TMPDIR/$logfile" 2>&1
 	then
 		rm "$TMPDIR/$logfile"
 	else
@@ -101,42 +108,43 @@ owner() (
 
 OPTIND=1 OPTARG='' opt=''
 # shellcheck disable=2034
-while getopts DC:G:H:L:hq opt; do
+while getopts DG:H:L:g:hqt:v opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF
 $prog_name - generate coverage reports
 
-Usage:       $prog_name [-q] [-CCOMP] [-HDIR] [-LFILE]
+Usage:       $prog_name [-q] [-HDIR] [-LFILE]
              $prog_name -h
 
 Options:
-    -C COMP  Use compiler COMP (default is system-dependent).
     -G DIR   Store GCov files in DIR (default: $gcovdir).
     -H DIR   Store HTML report in DIR (default: $htmldir).
     -L FILE  Store LCov data in FILE (default: $lcovinfo).
+    -g COMM  GCov to use (default: $gcov).
+    -t COMM  GCov tool to use (default $gcovtool).
+    -v       Be verbose.
     -q       Be quiet.
     -h       Show this help screen.
 
-    Use a dash as DIR or FILE to skip generation.
+    -G, -H, and -L are mutually exclusive.
 EOF
 	    ;;
 	(D) set -x ;;
-	(C) comp="$OPTARG" ;;
-	(G) gcovdir="$OPTARG" ;;
-	(H) htmldir="$OPTARG" ;;
-	(L) lcovinfo="$OPTARG" ;;
+	(G) gcovdir="$OPTARG" htmldir=- lcovinfo=- ;;
+	(H) htmldir="$OPTARG" gcovdir=- lcovinfo=- ;;
+	(L) lcovinfo="$OPTARG" htmldir=- gcovdir=- ;;
+	(g) gcov="$OPTARG" ;;
+	(t) gcovtool="$OPTARG" ;;
 	(q) quiet=y ;;
+	(v) verbose=y ;;
 	(*) exit 1
 	esac
 done
 shift $((OPTIND - 1))
 unset opt
 
-if [ $# -ne 0 ]
-then
-exit 64
-fi
+[ $# -ne 0 ] && err -s64 'too many operands'
 
 case $gcovdir in
 (-|/*)	: ;;
@@ -162,7 +170,9 @@ readonly htmldir
 #
 
 uid="$(id -u)"
-[ "$uid" -eq 0 ] || err 'not invoked by the superuser.'
+[ "$uid" -eq 0 ] ||
+warn "coverage data collected as regular user is inaccurate."
+
 owner="$(owner "$src_dir")"
 group="$(id -g "$owner")"
 
@@ -173,63 +183,94 @@ logged make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir"
 cd -P "$distdir" || exit
 
 warn -q 'configuring build ... '
-CC="$comp" logged ./configure -cposix.env
+CFLAGS=-O1 logged ./configure
 
-warn -q 'compiling tools ...'
-logged make tools
+warn -q 'compiling tools and test libraries ...'
+logged make -e tools tests/objs.a tests/mock.so
 
 warn -q 'compiling tests ...'
-logged make CFLAGS=--coverage all checks
+logged make -e CFLAGS=--coverage all checks
 
 warn -q 'adapting environment ...'
 export PATH="$distdir/tools:$distdir/tests:$PATH"
-eval "$("$distdir/tests/main" -C | grep -vE '^PATH=')"
+eval "$(main -C | grep -vE '^PATH=')"
+
+# Permissions changing mid-flight confuses LLVM.
+case $(uname) in
+(Darwin) export DYLD_INSERT_LIBRARIES=tests/mock.so ;;
+(*)      export LD_PRELOAD=tests/mock.so ;;
+esac
+
 if ! reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")" ||
    ! [ "$reguser" ]
 then err 'no regular user found.'
 fi
+
 if ! reggroup="$(id -gn "$reguser")" ||
    ! [ "$reggroup" ]
 then err 'no regular group found.'
 fi
 
-# Neither umask 0 nor extensive write privileges work,
-# because main calls umask and permissions would have
-# to be changed while the tests are running.
-chown -R "$reguser:$reggroup" "$TMPDIR"
-chmod -R ugo+r "$TMPDIR"
-find "$TMPDIR" -type d -exec chmod ug+s,o+x '{}' +
+# Neither umask 0 nor extensive write privileges work, because gcov and
+# llvm-cov both appear to ignore permissions, main also calls umask, and
+# permissions would have to be changed while the tests are running.
+if [ "$uid" -eq 0 ]
+then
+	chown -R "$reguser:$reggroup" "$TMPDIR"
+	chmod -R ugo+r "$TMPDIR"
+	find "$TMPDIR" -type d -exec chmod ug+s,o+x '{}' +
+fi
 
 warn -q 'collecting coverage data ...'
-find tests -type f '(' -perm +=x -o -name '*.sh' ')' ! -name 'funcs.*' |
+
+if	[ "$htmldir"  != - ] || [ "$lcovinfo" != - ]
+then
+	geninfo --gcov-tool "$gcov" -q -o initial.info	\
+	--ignore-errors gcov,source			\
+	--exclude '*/tests/*'				\
+	--exclude '/usr/*' --exclude '/Library/*' .	&&
+	lcov --gcov-tool "$gcov" -q -o lcov.info -a initial.info
+fi
+
+find tests -type f '(' -perm +=x -o -name '*.sh' ')' |
 while read -r check
 do
-	[ -e "$check.sh" ] && continue
+	case $check in
+	(*/funcs.sh) continue ;;
+	(*.sh)       : ;;
+	(*.*)        continue ;;
+	(*)         [ -e "$check.sh" ] && continue
+	esac
 
 	basename="$(basename "$check")"
 	logfile="$basename.log" infofile="$basename.info"
 
 	set +e
-	"$check" >>"$logfile" 2>&1
+
+	if [ "$verbose" ]
+	then "$check"
+	else  "$check" >>"$logfile" 2>&1
+	fi
+
 	case $? in
 	(0|75)	: ;;
 	(*)	warn '%s: exited with status %d.' "$check" "$?"
-		warn 'see %s for details.' "$logfile"
+		[ "$verbose" ] || warn 'see %s for details.' "$logfile"
 		mv "$logfile" "$cwd"
-		exit 8
+		exit 69
 	esac
-	set -e
 
 	if	{ [ "$htmldir"  ] && [ "$htmldir"  != - ]; } ||
 		{ [ "$lcovinfo" ] && [ "$lcovinfo" != - ]; }
 	then
-		geninfo -q -o "$infofile"				\
+		geninfo --gcov-tool "$gcov" -q -o "$infofile"		\
+			--ignore-errors gcov,source			\
 			--exclude '*/tests/*'				\
-			--exclude '/usr/*' --exclude '/Library/*'	\
-			"$distdir" 2>/dev/null
-
-		lcov -q -o lcov.info -a "$infofile"
+			--exclude '/usr/*' --exclude '/Library/*' . &&
+		lcov --gcov-tool "$gcov" -q -o lcov.info -a "$infofile"
 	fi
+
+	set -e
 done
 
 if [ "$gcovdir" ] && [ "$gcovdir" != - ]
@@ -237,7 +278,7 @@ then
 	warn -q 'saving GCov files in %s ...' "$gcovdir"
 
 	mkdir -p "$gcovdir"
-	find . -maxdepth 1 -type f -name '*.c' -exec gcov '{}' + >/dev/null
+	find . -maxdepth 1 -type f -name '*.c' -exec "$gcov" '{}' + >/dev/null
 
 	find . -type f -name '*.c.gcov' |
 	while read -r fname
@@ -247,19 +288,19 @@ then
 		mv -f "$fname" "$gcovdir/$dir"
 	done
 
-	chown -R "$owner:$group" "$gcovdir"
+	[ "$uid" -eq 0 ] && chown -R "$owner:$group" "$gcovdir"
 fi
 
 if [ "$htmldir" ] && [ "$htmldir" != - ]
 then
-	warn -q 'saving report to %s ...' "$htmldir"
+	warn -q 'saving HTML report to %s ...' "$htmldir"
 	genhtml -q -o "$htmldir" lcov.info
-	chown -R "$owner:$group" "$htmldir"
+	[ "$uid" -eq 0 ] && chown -R "$owner:$group" "$htmldir"
 fi
 
 if [ "$lcovinfo" ] && [ "$lcovinfo" != - ]
 then
-	warn -q 'saving data to %s ...' "$lcovinfo"
+	warn -q 'saving LCOV data to %s ...' "$lcovinfo"
 	mv -f lcov.info "$lcovinfo"
-	chown -R "$owner:$group" "$lcovinfo"
+	[ "$uid" -eq 0 ] && chown -R "$owner:$group" "$lcovinfo"
 fi

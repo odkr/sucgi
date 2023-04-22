@@ -24,6 +24,7 @@
 # Otherwise set $caught to $signal.
 catch() {
 	signal="${1:?}"
+	# shellcheck disable=2119
 	clearln
 	warn 'caught %s.' "$signal"
 	# shellcheck disable=2034
@@ -49,6 +50,7 @@ cleanup() {
 }
 
 # Clear the current line of terminal $fd.
+# shellcheck disable=2120
 clearln() (
 	fd="${1:-2}"
 	[ -t "$fd" ] && printf '\033[0K' >&"$fd"
@@ -125,13 +127,13 @@ inlist() (
 # only belongs to groups with GIDs between $mingid and $maxgid.
 reguser() (
 	minuid="${1:?}" maxuid="${2:?}" mingid="${3:?}" maxgid="${4:?}"
-	pipe="${TMPDIR:-/tmp}/ids-$$.fifo" retval=0 reguser=
+	pipe="${TMPDIR:-/tmp}/uids-$$.fifo" retval=0 reguser=
 	mkfifo -m 700 "$pipe"
 
-	ids >"$pipe" & ids=$!
+	uids >"$pipe" & uids=$!
 	while read -r uid user
 	do
-		case $user in (*[!A-Za-z0-9_]*)
+		case $user in (_*|*[!A-Za-z0-9_]*)
 			continue
 		esac
 
@@ -148,7 +150,7 @@ reguser() (
 		break
 	done <"$pipe"
 
-	wait $ids || retval=$?
+	wait $uids || retval=$?
 	rm -f "$pipe"
 	[ "$retval" -eq 0 ] && [ "$reguser" ] || return 1
 

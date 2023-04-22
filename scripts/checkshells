@@ -164,6 +164,7 @@ do
 		for script in tests/*.sh
 		do
 			[ "$script" = 'tests/*.sh' ] && break
+			[ "$script" = 'tests/funcs.sh' ] && continue
 
 			retval=0
 			"$shell" "$script" || retval=$?
