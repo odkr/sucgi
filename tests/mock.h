@@ -54,9 +54,9 @@
  * Attributes
  */
 
-#if defined(__GNUC__) &&                                        \
-    (__GNUC__ > 5 || (__GNUC__ >= 5 && __GNUC_MINOR__ >= 1)) && \
-    !defined(__ICC)
+#if     !defined(__INTEL_COMPILER)                          \
+    &&  (   (defined(__GNUC__) && __GNUC__ >= 5)            \
+        ||  (defined(__clang__) && __clang_major__ >= 4))
 #define NO_SANITIZE __attribute__((no_sanitize("all")))
 #else
 #define NO_SANITIZE
