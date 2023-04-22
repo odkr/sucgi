@@ -139,6 +139,6 @@ inlist '=' make     $missing && warn '* Make'
 # shellcheck disable=2086
 inlist '=' m4       $missing && warn '* M4'
 
-[ "$hashdrs" ] || warn '* The headers of your system's standard library'
+[ "$hashdrs" ] || warn "* The headers of your system's standard library"
 
 exit 8
