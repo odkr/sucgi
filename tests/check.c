@@ -31,8 +31,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "util.h"
-#include "../../macros.h"
+#include "check.h"
+#include "../macros.h"
 
 
 /*
@@ -44,9 +44,6 @@ volatile sig_atomic_t checking = 0;
 
 /* Environment to run tests in. */
 sigjmp_buf checkenv;
-
-/* Test result. */
-int result = TEST_PASSED;
 
 
 /*
@@ -98,28 +95,4 @@ checkinit(void)
             err(EXIT_FAILURE, "sigaction");
         }
     }
-}
-
-void
-check_err(int eval, const char *fmt, ...)
-{
-    va_list argp;
-
-    va_start(argp, fmt);
-    vwarn(fmt, argp);
-    va_end(argp);
-
-    _exit(eval);
-}
-
-void
-check_errx(int eval, const char *fmt, ...)
-{
-    va_list argp;
-
-    va_start(argp, fmt);
-    vwarnx(fmt, argp);
-    va_end(argp);
-
-    _exit(eval);
 }

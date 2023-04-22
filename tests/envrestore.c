@@ -35,11 +35,10 @@
 #include <string.h>
 
 #include "../env.h"
-#include "../config.h"
+#include "../defaults.h"
 #include "../macros.h"
 #include "../str.h"
-#include "lib/util.h"
-
+#include "check.h"
 
 
 /*
@@ -435,7 +434,6 @@ static void catstrs(char *dest, const char *const src,
 __attribute__((nonnull(2, 3, 5)))
 static void joinstrs(size_t nstrs, const char *const *strs,
                      const char *sep, size_t size, char *dest);
-
 
 /*
  * Return the index of KEY within ARR or -1 if KEY cannot be found.

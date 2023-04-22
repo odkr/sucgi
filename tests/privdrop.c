@@ -43,8 +43,12 @@
 #include "../macros.h"
 #include "../max.h"
 #include "../priv.h"
-#include "lib/priv.h"
-#include "lib/util.h"
+#include "check.h"
+#include "priv.h"
+
+#if HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
 
 
 /*
@@ -154,7 +158,7 @@ main (void) {
     ERRORIF((uint64_t) INT_MAX > (uint64_t) SIGNEDMAX(GRP_T));
 
     if (getuid() == 0) {
-        if (!checkgetreguid(&reguid)) {
+        if (!privgetregular(&reguid)) {
             struct passwd pwd;
 
             if (errno == 0) {
@@ -163,7 +167,7 @@ main (void) {
                 err(TEST_ERROR, "getpwent");
             }
 
-            checkgetuser(reguid, &pwd);
+            privgetuser(reguid, &pwd);
             reggid = pwd.pw_gid;
         }
     } else {
@@ -178,9 +182,9 @@ main (void) {
         gid_t dropgid;
         pid_t pid;
 
-        checkgetuser(*args.ruid, &ruser);
-        checkgetuser(*args.euid, &euser);
-        checkgetuser(*args.dropuid, &drop);
+        privgetuser(*args.ruid, &ruser);
+        privgetuser(*args.euid, &euser);
+        privgetuser(*args.dropuid, &drop);
 
         dropuid = drop.pw_uid;
         dropgid = (args.dropgid == NULL) ? drop.pw_gid : *args.dropgid;
@@ -191,20 +195,19 @@ main (void) {
             uid_t ruid, euid;
             gid_t rgid, egid;
             int ngroups, ndropgrps, ndroppedgrps;
-            int err;
             Error retval;
 
             if (geteuid() == 0) {
                 errno = 0;
                 if (setregid(ruser.pw_gid, euser.pw_gid) != 0) {
-                    check_err(TEST_ERROR, "setregid");
+                    err(TEST_ERROR, "setregid");
                 }
                 if (setreuid(ruser.pw_uid, euser.pw_uid) != 0) {
-                    check_err(TEST_ERROR, "setreuid");
+                    err(TEST_ERROR, "setreuid");
                 }
             } else {
                 if (getuid() != *args.ruid || geteuid() != *args.euid) {
-                    check_errx(
+                    errx(
                         TEST_SKIPPED,
                         "skipping (%s, %s, %llu, %llu, %d) ...",
                         ruser.pw_name,
@@ -218,21 +221,18 @@ main (void) {
 
             ngroups = MAX_NGROUPS;
             ndropgrps = (args.ndropgrps == -1) ? ngroups : args.ndropgrps;
-            err = getgrouplist(drop.pw_name, (GRP_T) dropgid,
-                               (GRP_T *) groups, &ngroups);
-            if (err < 0) {
-                check_errx(
-                    TEST_SKIPPED,
-                    "user %s: belongs to too many groups.",
-                    drop.pw_name
-                );
+            if (getgrouplist(drop.pw_name, (GRP_T) dropgid,
+                             (GRP_T *) groups, &ngroups) < 0)
+            {
+                errx(TEST_SKIPPED, "user %s: belongs to too many groups.",
+                     drop.pw_name);
             }
 
             retval = privdrop(dropuid, dropgid,
                               (NGRPS_T) ngroups, groups);
             if (retval != args.retval) {
                 /* Should be unreachable. */
-                check_errx(
+                errx(
                     TEST_FAILED,
                     "(%s, %s, %llu, %llu, %d) → %u [!]",
                     ruser.pw_name,
@@ -245,12 +245,12 @@ main (void) {
             }
 
             if (retval != OK) {
-                _exit(0);
+                exit(0);
             }
 
             ruid = getuid();
             if (ruid != dropuid) {
-                check_errx(
+                errx(
                     TEST_FAILED,
                     "(%s, %s, %llu, %llu, %d) ─→ <ruid> = %llu [!]",
                     ruser.pw_name,
@@ -264,7 +264,7 @@ main (void) {
 
             euid = geteuid();
             if (euid != dropuid) {
-                check_errx(
+                errx(
                     TEST_FAILED,
                     "(%s, %s, %llu, %llu, %d) ─→ <euid> = %llu [!]",
                     ruser.pw_name,
@@ -278,7 +278,7 @@ main (void) {
 
             rgid = getgid();
             if (rgid != dropgid) {
-                check_errx(
+                errx(
                     TEST_FAILED,
                     "(%s, %s, %llu, %llu, %d) ─→ <rgid> = %llu [!]",
                     ruser.pw_name,
@@ -292,7 +292,7 @@ main (void) {
 
             egid = getegid();
             if (egid != dropgid) {
-                check_errx(
+                errx(
                     TEST_FAILED,
                     "(%s, %s, %llu, %llu, %d) ─→ <egid> = %llu [!]",
                     ruser.pw_name,
@@ -307,7 +307,7 @@ main (void) {
             errno = 0;
             ndroppedgrps = getgroups(MAX_NGROUPS, dropgroups);
             if (ndroppedgrps == -1) {
-                check_err(TEST_ERROR, "getgroups");
+                err(TEST_ERROR, "getgroups");
             }
 
             if (ndropgrps == ngroups) {
@@ -319,7 +319,7 @@ main (void) {
                     grpp = lfind(&grp, dropgroups, &nelems,
                                  sizeof(*dropgroups), (Compar) cmpgids);
                     if (grpp == NULL) {
-                        check_errx(
+                        errx(
                             TEST_FAILED,
                             "(%s, %s, %llu, %llu, %d) ─→ missing GID %llu [!]",
                             ruser.pw_name,
@@ -341,7 +341,7 @@ main (void) {
                 grpp = lfind(&grp, groups, &nelems,
                              sizeof(*groups), (Compar) cmpgids);
                 if (grpp == NULL && grp != dropgid) {
-                    check_errx(
+                    errx(
                         TEST_FAILED,
                         "(%s, %s, %llu, %llu, %d) ─→ wrong GID %llu [!]",
                         ruser.pw_name,
@@ -354,7 +354,7 @@ main (void) {
                 }
             }
 
-            _exit(0);
+            exit(0);
         } else {
             int retval;
             int status;
@@ -410,5 +410,5 @@ main (void) {
         }
     }
 
-    return result;
+    _exit(result);
 }

@@ -1,5 +1,5 @@
 /*
- * Header for priv.c.
+ * Header for util.c.
  *
  * Copyright 2023 Odin Kroeger.
  *
@@ -19,12 +19,39 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(TESTS_LIB_PRIV_H)
-#define TESTS_LIB_PRIV_H
+#if !defined(TESTS_LIB_CHECK_H)
+#define TESTS_LIB_CHECK_H
 
-#include <sys/types.h>
+#include <setjmp.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <unistd.h>
 
-#include "../../cattr.h"
+#include "../cattr.h"
+
+
+/*
+ * Data types
+ */
+
+/* Exit statuses for tests. */
+typedef enum {
+    TEST_PASSED  =  0,  /* Test passed. */
+    TEST_ERROR   = 69,  /* An error occurred. */
+    TEST_FAILED  = 70,  /* Test failed. */
+    TEST_SKIPPED = 75   /* Test was skipped. */
+} Result;
+
+
+/*
+ * Global variables
+ */
+
+/* Is a test running? */
+extern volatile sig_atomic_t checking;
+
+/* Environment to run tests in. */
+extern sigjmp_buf checkenv;
 
 
 /*
@@ -32,21 +59,9 @@
  */
 
 /*
- * Return the user ID of a non-superuser in UID.
- *
- * Return value:
- *     true   A non-superuser was found.
- *     false  No non-superuser was found.
- *            errno is set to a non-zero value if getpwent failed.
+ * Register signal handler.
  */
-__attribute__((nonnull(1), warn_unused_result))
-bool checkgetreguid(uid_t *const uid);
+void checkinit(void);
 
-/*
- * Return the passwd entry of the user whose ID is UID in PWD.
- * Exit with TEST_ERROR if an error occurs.
- */
-__attribute__((nonnull(2)))
-void checkgetuser(uid_t uid, struct passwd *pwd);
 
-#endif /* !defined(TESTS_LIB_PRIV_H) */
+#endif /* !defined(TESTS_LIB_CHECK_H) */

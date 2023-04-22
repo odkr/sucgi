@@ -32,11 +32,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../config.h"
+#include "../defaults.h"
 #include "../macros.h"
 #include "../max.h"
 #include "../pair.h"
-#include "lib/util.h"
+#include "check.h"
 
 
 /*

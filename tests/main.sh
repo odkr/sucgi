@@ -31,19 +31,11 @@ src_dir="$(cd -P "$script_dir/.." && pwd)"
 tests_dir="$src_dir/tests"
 readonly script_dir src_dir tests_dir
 # shellcheck disable=1091
-. "$src_dir/scripts/funcs.sh" || exit
+. "$tests_dir/funcs.sh" || exit
 init || exit
 # shellcheck disable=2119
 tmpdir
 
-
-#
-# Constants
-#
-
-# A linefeed.
-readonly linefeed='
-'
 
 #
 # Globals
@@ -59,72 +51,6 @@ nskipped=0
 #
 # Functions
 #
-
-# Check if calling a programme produces a result.
-# -s checks for an exit status (defaults to 0),
-# -o STR for STR on stdout, -e STR for STR on stderr.
-# FIXME: Doesn't work with posh.
-check() (
-	exstatus=0 stream=''
-	OPTIND=1 OPTARG='' opt=''
-
-	while getopts 's:o:e:v' opt
-	do
-		# shellcheck disable=2034
-		case $opt in
-		(s) exstatus="$OPTARG" ;;
-		(o) stream=out pattern="$OPTARG" ;;
-		(e) stream=err pattern="$OPTARG" ;;
-		(*) return 2
-		esac
-	done
-	shift $((OPTIND - 1))
-
-	: "${1:?no command given}"
-	: "${stdout:=/dev/null}"
-	: "${stderr:=/dev/null}"
-
-	err=0 retval=0
-
-	case $stream in
-	(out) output="$(env "$@" 2>/dev/null)" || err=$? ;;
-	(err) output="$(env "$@" 2>&1 >/dev/null)" || err=$? ;;
-	(*) err -s70 'main.sh:%d: $stream must be "err" or "out".' $LINENO
-	esac
-
-	if [ "$err" -ne "$exstatus" ] && [ "$err" -ne 141 ]
-	then
-		warn '%s: exited with status %d.' "$*" "$err"
-		retval=70
-	fi
-
-	if [ "$stream" ]
-	then
-		IFS="$linefeed"
-
-		hit=
-		for line in $output
-		do
-			case $line in (*$pattern*)
-				hit=x
-				break
-			esac
-		done
-
-		if ! [ "$hit" ]
-		then
-			retval=70
-			warn '%s printed to std%s:' "$*" "$stream"
-			for line in $output
-			do warn '> %s' "$line"
-			done
-		fi
-
-		unset IFS
-	fi
-
-	return "$retval"
-)
 
 # Starting with, but excluding, $dirname run $dircmd for every path segment
 # of $fname. If $fcmd is given, run $dircmd for every path segment up to,
@@ -151,8 +77,8 @@ dirwalk() (
 			;;
 		(*)
 			eval "$dircmd"
-	 		dirname="${dirname%/}/$fname"
-	 		cd "$fname" || return
+			dirname="${dirname%/}/$fname"
+			cd "$fname" || return
 			;;
 		esac
 	done
@@ -247,11 +173,11 @@ rmtree() (
 unallocuid() (
 	start="${1:?}" end="${2:?}"
 
-	pipe="${TMPDIR:-/tmp}/ids-$$.fifo" retval=0
+	pipe="${TMPDIR:-/tmp}/uids-$$.fifo" retval=0
 	mkfifo -m 0700 "$pipe"
-	ids >"$pipe" 2>/dev/null & pid=$!
+	uids >"$pipe" 2>/dev/null & pid=$!
 	# shellcheck disable=2086
-	ids="$(cut -d' ' -f1 <"$pipe")" || retval=$?
+	uids="$(cut -d' ' -f1 <"$pipe")" || retval=$?
 	rm -f "$pipe"
 
 	[ "$retval" -eq 0 ] || return $retval
@@ -261,13 +187,21 @@ unallocuid() (
 	while [ "$i" -le "$end" ]
 	do
 		# shellcheck disable=2086
-		inlist -eq "$i" $ids || break
+		inlist -eq "$i" $uids || break
 		i=$((i + 1))
 	done
 
 	printf '%d\n' "$i"
 )
 
+# Wait for the given processes and return 0 iff all of them returned 0.
+waitn() {
+	__waitn_ret=0
+	for __waitn_pid
+	do wait "$__waitn_pid" || __waitn_ret="$?"
+	done
+	return $__waitn_ret
+}
 
 #
 # Build configuration
@@ -324,24 +258,30 @@ check -s1 -e'discarding overly long variable.'	\
       "$envsan_var" main	|| result=70
 
 # Variable name is illegal.
+pids=
 for envsan_varname in 'foo ' '0foo' '$(echo foo)' '`echo foo`'
 do
 	check -s1 -e"variable \$$envsan_varname: bad name." \
-	      badenv "$envsan_varname=" "$tests_dir/main"	|| result=70
+	      badenv "$envsan_varname=" "$tests_dir/main" & pids="$pids $!"
 done
+# shellcheck disable=2086
+waitn $pids || result=70
 
 # Variable is not of the form <key>=<value>.
+pids=
 for envsan_var in 'foo' '0foo' 'foo '
 do
 	check -s1 -e"variable \$$envsan_var: no value." \
-	      badenv -n1 "$envsan_var" "$tests_dir/main"	|| result=70
+	      badenv -n1 "$envsan_var" "$tests_dir/main" & pids="$pids $!"
 done
+# shellcheck disable=2086
+waitn $pids || result=70
 
 # Not a CGI variable.
 check -s1 -e'discarding $foo' foo=foo main || result=70
 
 # Cleanup.
-unset envsan_var envsan_varname envsan_vars
+unset envsan_var envsan_varname envsan_vars pids
 
 
 #
@@ -361,31 +301,40 @@ check -s1 -e'empty argument vector' badexec main ''	|| result=70
 #
 
 # Help.
-check -o'Print this help screen.'	main -h	|| result=70
+check -o'Print this help screen.' main -h || result=70
 
 # Version.
-check -o'suCGI v'			main -V	|| result=70
+check -o'suCGI v' main -V || result=70
 
 # Build configuration.
-sed -n 's/#define \([[:alnum:]_]*\).*/\1/p' "$src_dir/config.h"	|
-sort -u								|
-while read -r opthdl_var
-do
-	[ "$opthdl_var" != CONFIG_H ] 	|| continue
-	check -o"$opthdl_var" main -C	|| exit
-done || result=70
+(
+	eval "$(main -C | grep -vE ^PATH=)" || exit 70
+	sed -n 's/#define \([[:alnum:]_]*\).*/\1/p' "$src_dir/defaults.h" |
+	sort -u |
+	while read -r opthdl_var
+	do
+		[ "$opthdl_var" != DEFAULTS_H ] || continue
+		eval val="\${$opthdl_var}"
+		if [ "${val-x}" = x ] && [ "${val-}" != x ]
+		then err -s70 'main -C: %s: undefined.' "$opthdl_var"
+		fi
+	done
+) || result=70
 
 # Usage message.
+pids=
 for opthdl_args in -X -XX -x --x - -- '-h -C' '-hC' '-h -V' '-hC'
 do
 	# shellcheck disable=2086
-	check -s1 -e'usage: sucgi' main $opthdl_args	|| result=70
+	check -s1 -e'usage: sucgi' main $opthdl_args & pids="$pids $!"
 done
+# shellcheck disable=2086
+waitn $pids || result=70
 
-check -s1 -e'usage: sucgi' main ''			|| result=70
+check -s1 -e'usage: sucgi' main '' || result=70
 
 # Cleanup.
-unset opthdl_args opthdl_var
+unset opthdl_args opthdl_var pids
 
 
 #
@@ -435,18 +384,18 @@ check -s1 -e'$PATH_TRANSLATED: not set.' main			|| result=70
 check -s1 -e'$PATH_TRANSLATED: empty.' PATH_TRANSLATED= main	|| result=70
 
 # $PATH_TRANSLATED is too long.
-check -s1 -e'long'	PATH_TRANSLATED="$scrsan_hugepath" main	|| result=70
+check -s1 -e'long' PATH_TRANSLATED="$scrsan_hugepath" main	|| result=70
 
 # Path to script is too long after having been resolved.
-check -s1 -e'long'	PATH_TRANSLATED="$scrsan_hugelink" main	|| result=70
+check -s1 -e'long' PATH_TRANSLATED="$scrsan_hugelink" main	|| result=70
 
 # Script is of the wrong type.
 check -s1 -e"script $scrsan_wrongftype: not a regular file." \
-	PATH_TRANSLATED="$scrsan_wrongftype" main	|| result=70
+	PATH_TRANSLATED="$scrsan_wrongftype" main		|| result=70
 
 # Script does not exist.
 check -s1 -e"realpath $TMPDIR/<nosuchfile>: No such file or directory." \
-	PATH_TRANSLATED="$TMPDIR/<nosuchfile>" main	|| result=70
+	PATH_TRANSLATED="$TMPDIR/<nosuchfile>" main		|| result=70
 
 # Error is system-dependent.
 case $uid in
@@ -480,11 +429,16 @@ case $uid in
 esac
 
 # PATH_TRANSLATED is valid.
-mutatefnames "$scrsan_script" |
-while read -r scrsan_fname
-do
-	check -s1 -e"$scrsan_err" PATH_TRANSLATED="$scrsan_fname" main
-done || result=70
+mutatefnames "$scrsan_script" | {
+	pids=
+	while read -r scrsan_fname
+	do
+		check -s1 -e"$scrsan_err" \
+		      PATH_TRANSLATED="$scrsan_fname" main & pids="$pids $!"
+	done
+	# shellcheck disable=2086
+	waitn $pids
+} || result=70
 
 # $PATH_TRANSLATED is valid despite its long name.
 if [ "${LIBC-}" ]
@@ -526,7 +480,7 @@ usrval_unallocuid="$(unallocuid "$MIN_UID" "$MAX_UID")"
 
 # Store a list of all user IDs.
 usrval_uids="$TMPDIR/usrval-uids.list"
-ids >"$usrval_uids"
+uids >"$usrval_uids"
 
 # Find a user with an ID < $MIN_UID
 usrval_lowuid="$(
@@ -546,18 +500,18 @@ check -s1 -e"script $usrval_script: no owner." \
       PATH_TRANSLATED="$usrval_script" main || result=70
 
 # Owned by a privileged user
-for usrval_uid in 0 "$usrval_lowuid" "$usrval_highuid"
+mutatefnames "$usrval_script" |
+while read -r usrval_fname
 do
-	[ "$usrval_uid" ] || continue
-
-	chown "$usrval_uid" "$usrval_script"
-
-	mutatefnames "$usrval_script" |
-	while read -r usrval_fname
+	for usrval_uid in 0 "$usrval_lowuid" "$usrval_highuid"
 	do
+		[ "$usrval_uid" ] || continue
+
+		chown "$usrval_uid" "$usrval_script"
+
 		check -s1 -e"script $usrval_fname: owned by privileged user" \
-			PATH_TRANSLATED="$usrval_fname" main
-	done || result=70
+		      PATH_TRANSLATED="$usrval_fname" main
+	done
 done
 
 # Cleanup.
@@ -657,6 +611,7 @@ check -s1 -e'seteuid: Operation not permitted.' \
 # Privilege dropping
 #
 
+priv_output="uid=$reguid egid=$reggid ruid=$reguid rgid=$reggid"
 for priv_script in "$procids_sfx" "$procids_nosfx"
 do
 	# /tmp might be mounted noexec.
@@ -666,14 +621,20 @@ do
 		continue
 	fi
 
-	mutatefnames "$priv_script" |
-	while read -r priv_fname
-	do
-		check -s0 -o"uid=$reguid egid=$reggid ruid=$reguid rgid=$reggid" \
-		      PATH_TRANSLATED="$priv_fname" main
-	done || result=70
+
+	mutatefnames "$priv_script" | {
+		pids=
+		while read -r priv_fname
+		do
+			check -s0 -o"$priv_output" \
+			      PATH_TRANSLATED="$priv_fname" main &
+			pids="$pids $!"
+		done
+		# shellcheck disable=2086
+		waitn $pids
+	} || result=70
 done
-unset priv_script priv_fname
+unset priv_script priv_fname priv_output
 
 
 #
@@ -699,23 +660,35 @@ dirval_intoout="$userdir/in-to-out.sh"
 ln -s "$dirval_outside" "$dirval_intoout"
 
 # Forbidden location.
-mutatefnames "$dirval_outside" "$dirval_dots" "$dirval_intoout" |
-while read -r dirval_fname
-do
-	check -s1 -e"script $dirval_fname: not in $reguser's user directory." \
-	      PATH_TRANSLATED="$dirval_fname" main
-done || result=70
+mutatefnames "$dirval_outside" "$dirval_dots" "$dirval_intoout" | {
+	pids=
+	while read -r dirval_fname
+	do
+		error="script $dirval_fname: not in $reguser's user directory."
+		check -s1 -e"$error" \
+		      PATH_TRANSLATED="$dirval_fname" main &
+		pids="$pids $!"
+	done
+	# shellcheck disable=2086
+	waitn $pids
+} || result=70
 
 # Permitted location.
-mutatefnames "$procids_sfx" "$dirval_outtoin" |
-while read -r dirval_fname
-do
-	check -s0 -o"uid=$reguid egid=$reggid ruid=$reguid rgid=$reggid" \
-	      PATH_TRANSLATED="$dirval_fname" main
-done || result=70
+dirval_output="uid=$reguid egid=$reggid ruid=$reguid rgid=$reggid"
+mutatefnames "$procids_sfx" "$dirval_outtoin" | {
+	pids=
+	while read -r dirval_fname
+	do
+		check -s0 -o"$dirval_output" \
+		      PATH_TRANSLATED="$dirval_fname" main &
+		pids="$pids $!"
+	done
+	# shellcheck disable=2086
+	waitn $pids
+} || result=70
 
 # Cleanup.
-unset dirval_outtoin dirval_outside dirval_intoout dirval_fname
+unset dirval_outtoin dirval_outside dirval_intoout dirval_output dirval_fname
 
 
 #
@@ -725,22 +698,34 @@ unset dirval_outtoin dirval_outside dirval_intoout dirval_fname
 # Set-user-ID on execute bit set.
 chmod u=rws,g=r,o=r "$procids_sfx"
 
-mutatefnames "$procids_sfx" |
-while read -r procids_fname
-do
-	check -s1 -e"script $procids_fname: set-user-ID on execute bit is set." \
-	      PATH_TRANSLATED="$procids_fname" main
-done || result=70
+mutatefnames "$procids_sfx" | {
+	pids=
+	while read -r procids_fname
+	do
+		error="script $procids_fname: set-user-ID on execute bit is set."
+		check -s1 -e"$error" \
+		      PATH_TRANSLATED="$procids_fname" main &
+		pids="$pids $!"
+	done
+	# shellcheck disable=2086
+	waitn $pids
+} || result=70
 
 # Set-group-ID on execute bit set.
 chmod u=rx,g=rs,o=r "$procids_sfx"
 
-mutatefnames "$procids_sfx" |
-while read -r procids_fname
-do
-	check -s1 -e"script $procids_fname: set-group-ID on execute bit is set." \
-	      PATH_TRANSLATED="$procids_fname" main
-done || result=70
+mutatefnames "$procids_sfx" | {
+	pids=
+	while read -r procids_fname
+	do
+		error="script $procids_fname: set-group-ID on execute bit is set."
+		check -s1 -e"$error" \
+		      PATH_TRANSLATED="$procids_fname" main &
+		pids="$pids $!"
+	done
+	# shellcheck disable=2086
+	waitn $pids
+} || result=70
 
 # Cleanup.
 chmod u=rwx,go= "$procids_sfx"
@@ -765,12 +750,17 @@ touch "$hidden_indir"
 chown -R "$reguser" "$userdir"
 
 # Test.
-mutatefnames "$hidden_file" "$hidden_indir" |
-while read -r hidden_fname
-do
-	check -s1 -e"path $hidden_fname: contains hidden files." \
-		PATH_TRANSLATED="$hidden_fname" main
-done || result=70
+mutatefnames "$hidden_file" "$hidden_indir" | {
+	pids=
+	while read -r hidden_fname
+	do
+		check -s1 -e"path $hidden_fname: contains hidden files." \
+			PATH_TRANSLATED="$hidden_fname" main &
+		pids="$pids $!"
+	done
+	# shellcheck disable=2086
+	waitn $pids
+} || result=70
 
 # Cleanup.
 unset hidden_file hidden_dir hidden_indir hidden_fname
@@ -801,36 +791,52 @@ touch "$hdl_hugesuffix"
 chown -R "$reguser" "$userdir"
 
 # Bad handler.
-mutatefnames "$hdl_emptyhandler" |
-while read -r hdl_fname
-do
-check -s1 -e"script $hdl_fname: bad handler." \
-      PATH_TRANSLATED="$hdl_fname" main
-done || result=70
+mutatefnames "$hdl_emptyhandler" | {
+	pids=
+	while read -r hdl_fname
+	do
+		check -s1 -e"script $hdl_fname: bad handler." \
+		      PATH_TRANSLATED="$hdl_fname" main & pids="$pids $!"
+	done
+	# shellcheck disable=2086
+	waitn $pids
+} || result=70
 
 # Suffix is too long.
-mutatefnames "$hdl_hugesuffix" |
-while read -r hdl_fname
-do
-check -s1 -e"script $hdl_fname: filename suffix too long." \
-      PATH_TRANSLATED="$hdl_fname" main
-done || result=70
+mutatefnames "$hdl_hugesuffix" | {
+	pids=
+	while read -r hdl_fname
+	do
+		check -s1 -e"script $hdl_fname: filename suffix too long." \
+		      PATH_TRANSLATED="$hdl_fname" main & pids="$pids $!"
+	done
+	# shellcheck disable=2086
+	waitn $pids
+} || result=70
 
 # Unknown suffix.
-mutatefnames "$hdl_unknownsuffix" |
-while read -r hdl_fname
-do
-	check -s1 -e"execl $hdl_fname: Permission denied." \
-	      PATH_TRANSLATED="$hdl_fname" main
-done || result=70
+mutatefnames "$hdl_unknownsuffix" | {
+	pids=
+	while read -r hdl_fname
+	do
+		check -s1 -e"execl $hdl_fname: Permission denied." \
+		      PATH_TRANSLATED="$hdl_fname" main & pids="$pids $!"
+	done
+	# shellcheck disable=2086
+	waitn $pids
+} || result=70
 
 # Not executable.
-mutatefnames "$hdl_nosuffix" |
-while read -r hdl_fname
-do
-check -s1 -e"execl $hdl_fname: Permission denied." \
-      PATH_TRANSLATED="$hdl_fname" main
-done || result=70
+mutatefnames "$hdl_nosuffix" | {
+	pids=
+	while read -r hdl_fname
+	do
+		check -s1 -e"execl $hdl_fname: Permission denied." \
+		      PATH_TRANSLATED="$hdl_fname" main & pids="$pids $!"
+	done
+	# shellcheck disable=2086
+	waitn $pids
+} || result=70
 
 # Cleanup.
 unset hdl_nosuffix hdl_unknownsuffix hdl_emptyhandler \

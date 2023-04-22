@@ -34,7 +34,7 @@
 #include "../macros.h"
 #include "../max.h"
 #include "../path.h"
-#include "lib/util.h"
+#include "check.h"
 
 
 /*

@@ -34,7 +34,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#include "util.h"
+#include "check.h"
 #include "priv.h"
 
 
@@ -43,7 +43,7 @@
  */
 
 bool
-checkgetreguid(uid_t *const uid) {
+privgetregular(uid_t *const uid) {
     int retval = false;
     int olderr = 0;
     struct passwd *pwd;
@@ -64,7 +64,7 @@ checkgetreguid(uid_t *const uid) {
 }
 
 void
-checkgetuser(uid_t uid, struct passwd *pwd)
+privgetuser(uid_t uid, struct passwd *pwd)
 {
     long bufsize;
     char *buffer;
@@ -74,6 +74,7 @@ checkgetuser(uid_t uid, struct passwd *pwd)
     assert(bufsize > 0L);
     assert((uint64_t) bufsize < (uint64_t) SIZE_MAX);
 
+    /* buffer will leak, of course. */
     errno = 0;
     buffer = malloc((size_t) bufsize);
     if (buffer == NULL) {

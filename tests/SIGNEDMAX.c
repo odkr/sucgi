@@ -29,7 +29,7 @@
 #include <stdlib.h>
 
 #include "../macros.h"
-#include "lib/util.h"
+#include "check.h"
 
 
 /*
