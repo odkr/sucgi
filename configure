@@ -45,7 +45,7 @@ headers='sys/param.h features.h'
 
 # Maximum number of child processes to spawn.
 maxnjobs=4
-# The Almquist shell tends to crash when running jobs in parallel.
+# The Busybox Almquist shell tends to crash when running jobs in parallel.
 [ "$(basename "${SHELL-}")" = ash ] && maxnjobs=1
 
 # Be quiet?
@@ -57,7 +57,7 @@ statenable=
 # Directories to add to $PATH when searching analysers. Colon-separated list.
 statpath=
 
-# Does the compiler support conversion warnings?
+# Conversion warning flags.
 wconvflags='-Wincompatible-pointer-types -Wconversion -Wsign-conversion'
 
 
@@ -81,8 +81,10 @@ tmpdir tmp .
 # Variables to set as M4 Macros.
 readonly macros='
 	CC CFLAGS AR ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
-	GRP_T NGRPS_T HAVE_SYS_PARAM_H HAVE_FEATURES_H cgi_dir www_grp
-	clang_tidy cppcheck flawfinder rats shellcheck
+	SUCGI_GRP_T SUCGI_NGRPS_T SUCGI_HAVE_SYS_PARAM_H SUCGI_HAVE_FEATURES_H
+	SUCGI_SHARED_LIBS SUCGI_PRELOAD_VAR SUCGI_CGI_DIR SUCGI_WWW_GRP
+	SUCGI_CLANG_TIDY SUCGI_CPPCHECK SUCGI_FLAWFINDER SUCGI_RATS
+	SUCGI_SHELLCHECK
 '
 
 # Where to save the configuration.
@@ -189,7 +191,7 @@ Operands:
 Options:
     -c FILE  Read build configuration from FILE (default: $conf).
     -d       Short for -c devel.env.
-    -f       Overwrite existing files. config.h is never overwritten.
+    -f       Overwrite existing files.
     -j N     Run N configuration tests in parallel (default: $maxnjobs).
     -p DIR   Add DIR to the search path for static analysers.
     -s       Search for static code analysers.
@@ -251,7 +253,27 @@ readonly conf force quiet maxnjobs nfiles
 
 
 #
-# Check if gcc, clang, tcc, or icc are available.
+# Library pre-load variable
+#
+
+printf 'System: '
+
+uname="$(uname)"
+
+: "${SUCGI_PRELOAD_VAR:=}"
+if ! [ "$SUCGI_PRELOAD_VAR" ]
+then
+	case $uname in
+	(Darwin) SUCGI_PRELOAD_VAR=DYLD_INSERT_LIBRARIES ;;
+	(*)      SUCGI_PRELOAD_VAR=LD_PRELOAD ;;
+	esac
+fi
+
+printf '%s\n' "$uname"
+
+
+#
+# Check which compiler is available.
 #
 
 printf 'C compiler: '
@@ -315,7 +337,7 @@ readonly compprefix
 
 # Compiler flags useful for testing compiler features.
 testflags=
-if ! [ "${CFLAGS-}" ] || ! [ "${GRP_T-}" ] || ! [ "${NGRPS_T}" ]
+if ! [ "${CFLAGS-}" ] || ! [ "${SUCGI_GRP_T-}" ] || ! [ "${SUCGI_NGRPS_T}" ]
 then
 	for flag in -Wextra -Wpedantic -pedantic -pipe
 	do testflags $flag && testflags="$testflags $flag"
@@ -388,6 +410,26 @@ else
 	printf -- ' %s\a\n' "${CFLAGS:-none given}"
 fi
 unset cflags
+
+
+#
+# Check whether the compiler supports -shared.
+#
+
+printf 'Supports shared libraries: '
+
+if [ "${SUCGI_SHARED_LIBS-x}" = x ] && [ "${SUCGI_SHARED_LIBS-}" != x ]
+then
+	if testflags -shared -fpic
+	then SUCGI_SHARED_LIBS=y
+	else SUCGI_SHARED_LIBS=
+	fi
+fi
+
+if [ "$SUCGI_SHARED_LIBS" ]
+then printf 'yes\n'
+else printf 'no\n'
+fi
 
 
 #
@@ -467,7 +509,7 @@ do
 		header="$1"
 		shift
 
-		headervar="HAVE_$(
+		headervar="SUCGI_HAVE_$(
 			printf '%s\n' "$header"	|
 			sed 's/[^a-z]/_/g'	|
 			tr '[:lower:]' '[:upper:]'
@@ -534,9 +576,9 @@ esac
 
 printf 'getgrouplist GID type: '
 
-: "${GRP_T=}"
+: "${SUCGI_GRP_T=}"
 # shellcheck disable=2086
-if ! [ "$GRP_T" ] && testflags $wconvflags
+if ! [ "$SUCGI_GRP_T" ] && testflags $wconvflags
 then
 	src="$TMPDIR/getgroups.c"
 	cat <<-'EOF' >"$src"
@@ -551,8 +593,8 @@ then
 		int
 		main(void)
 		{
-			GRP_T basegid = 0;
-			GRP_T groups[1] = {0};
+			SUCGI_GRP_T basegid = 0;
+			SUCGI_GRP_T groups[1] = {0};
 			int n = 1;
 
 			getgrouplist("dummy", basegid, groups, &n);
@@ -568,17 +610,17 @@ then
 		[ "$grouptype" ] || continue
 
 		# shellcheck disable=2086
-		if testcomp $wconvflags -DGRP_T="$grouptype" "$src"
+		if testcomp $wconvflags -DSUCGI_GRP_T="$grouptype" "$src"
 		then
-			GRP_T="$grouptype"
+			SUCGI_GRP_T="$grouptype"
 			break
 		fi
 	done
 	unset src grouptype
 fi
 
-if [ "$GRP_T" ]
-then printf '%s\n' "$GRP_T"
+if [ "$SUCGI_GRP_T" ]
+then printf '%s\n' "$SUCGI_GRP_T"
 else printf 'guess at compile-time\n'
 fi
 
@@ -589,9 +631,9 @@ fi
 
 printf 'setgroups count type: '
 
-: "${NGRPS_T=}"
+: "${SUCGI_NGRPS_T=}"
 # shellcheck disable=2086
-if ! [ "$NGRPS_T" ] && testflags $wconvflags
+if ! [ "$SUCGI_NGRPS_T" ] && testflags $wconvflags
 then
 	src="$TMPDIR/setgroups.c"
 	cat <<-'EOF' >"$src"
@@ -607,7 +649,7 @@ then
 		int
 		main(void)
 		{
-			NGRPS_T ngroups = 0;
+			SUCGI_NGRPS_T ngroups = 0;
 			gid_t gidset[1] = {0};
 
 			(void) setgroups(ngroups, gidset);
@@ -623,17 +665,17 @@ then
 		[ "$sizetype" ] || continue
 
 		# shellcheck disable=2086
-		if testcomp $wconvflags -DNGRPS_T="$sizetype" "$src"
+		if testcomp $wconvflags -DSUCGI_NGRPS_T="$sizetype" "$src"
 		then
-			NGRPS_T="$sizetype"
+			SUCGI_NGRPS_T="$sizetype"
 			break
 		fi
 	done
 	unset src sizetype
 fi
 
-if [ "$NGRPS_T" ]
-then printf '%s\n' "$NGRPS_T"
+if [ "$SUCGI_NGRPS_T" ]
+then printf '%s\n' "$SUCGI_NGRPS_T"
 else printf 'guess at compile-time\n'
 fi
 
@@ -664,40 +706,40 @@ then
 	fi
 
 	# Clang-tidy
-	: "${clang_tidy=$(command -v clang-tidy 2>/dev/null)}"
-	if [ "$clang_tidy" ]
+	: "${SUCGI_CLANG_TIDY=$(command -v clang-tidy 2>/dev/null)}"
+	if [ "$SUCGI_CLANG_TIDY" ]
 	then
 		nanalysers=$((nanalysers + 1))
 		printf ' clang-tidy'
 	fi
 
 	# Cppcheck
-	: "${cppcheck=$(command -v cppcheck 2>/dev/null)}"
-	if [ "$cppcheck" ]
+	: "${SUCGI_CPPCHECK=$(command -v cppcheck 2>/dev/null)}"
+	if [ "$SUCGI_CPPCHECK" ]
 	then
 		nanalysers=$((nanalysers + 1))
 		printf ' cppcheck'
 	fi
 
 	# Flawfinder
-	: "${flawfinder=$(command -v flawfinder 2>/dev/null)}"
-	if [ "$flawfinder" ]
+	: "${SUCGI_FLAWFINDER=$(command -v flawfinder 2>/dev/null)}"
+	if [ "$SUCGI_FLAWFINDER" ]
 	then
 		nanalysers=$((nanalysers + 1))
 		printf ' flawfinder'
 	fi
 
 	# RATS
-	: "${rats=$(command -v rats 2>/dev/null)}"
-	if [ "$rats" ]
+	: "${SUCGI_RATS=$(command -v rats 2>/dev/null)}"
+	if [ "$SUCGI_RATS" ]
 	then
 		nanalysers=$((nanalysers + 1))
 		printf ' rats'
 	fi
 
 	# ShellCheck
-	: "${shellcheck=$(command -v shellcheck 2>/dev/null)}"
-	if [ "$shellcheck" ]
+	: "${SUCGI_SHELLCHECK=$(command -v shellcheck 2>/dev/null)}"
+	if [ "$SUCGI_SHELLCHECK" ]
 	then
 		printf ' shellcheck'
 		nanalysers=$((nanalysers + 1))
@@ -766,11 +808,18 @@ then
 
 		chmod +x "$swap"
 
-		mv -f "$swap" "$confsave"
-
 		if [ "$exists" ]
-			then warn -q 'updated %s.' "$confsave"
-			else warn -q 'saved configuration in %s.' "$confsave"
+		then
+			if cmp "$swap" "$confsave" >/dev/null 2>&1
+			then
+				warn -q 'no changes to %s.' "$confsave"
+			else
+				warn -q 'updating %s ...' "$confsave"
+				mv -f "$swap" "$confsave"
+			fi
+		else
+			warn -q 'creating %s ...' "$confsave"
+			mv -f "$swap" "$confsave"
 		fi
 	fi
 fi
@@ -799,13 +848,22 @@ do
 	fi
 
 	swap="$TMPDIR/$file"
-	if m4 "$@" "$template" >"$swap" 2>/dev/null
+	if m4 "$@" "$template" >"$swap"
 	then
-		mv -f "$swap" "$file"
 		if [ "$exists" ]
-		then warn -q 'updated %s.' "$file"
-		else warn -q 'generated %s.' "$file"
+		then
+			if cmp "$swap" "$file" >/dev/null 2>&1
+			then
+				warn -q 'no changes to %s.' "$file"
+				continue
+			else
+				warn -q 'updating %s ...' "$file"
+			fi
+		else
+			warn -q 'creating %s ...' "$file"
 		fi
+
+		mv -f "$swap" "$file"
 	else
 		rm -f "$swap" || :
 		err 'could not generate %s.' "$file"
