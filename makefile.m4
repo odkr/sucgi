@@ -20,8 +20,7 @@ include(`macros.m4')dnl
 
 all: sucgi
 
-.PHONY: all analysis check covclean covdataclean clean \
-        distcheck distclean mrproper shellcheck
+.PHONY: all analysis check clean distcheck distclean shellcheck
 
 .IGNORE: analysis shellcheck
 
@@ -64,6 +63,7 @@ makefile compat.h:
 # Build
 #
 
+dnl Could $(objs) be done away with?
 hdrs = cattr.h compat.h macros.h max.h types.h
 
 objs = objs.a(env.o) objs.a(error.o) objs.a(handler.o) objs.a(pair.o) \
@@ -270,25 +270,11 @@ ifnempty(`__SUCGI_SHARED_LIBS', `dnl
 
 bins = sucgi tests/main $(check_bins) $(tool_bins)
 
-covclean: clean covdataclean
+covclean: clean
 
-mrproper: clean covclean distclean
-
+dnl FIXME: Use better variables.
 clean:
-	find . '(' -name '*.a' -o -name '*.o' -o -name '*.so' ')' \
-	-exec rm -f '{}' +
-	rm -f $(bins)
-
-covdataclean:
-	find . '(' -name '*.gcda' -o -name '*.gcov' -o -name '*.info' ')' \
-	-exec rm -f '{}' +
-
-covclean:
-	find . -name '*.gcno' -exec rm -f '{}' +
-
-mrproper:
-	find . '(' -name '*.bak' -o -name '*.log' ')' -exec rm -f '{}' +
-	rm -rf tmp-*
+	rm -f $(check_libs) tests/mock.so $(bins)
 
 
 #
@@ -302,7 +288,7 @@ dist_ar = $(dist_name).tgz
 dist_files = *.c *.h *.env *.excl *.m4 README.rst LICENSE.txt \
 	clang-tidy.yml configure prepare cppcheck docs tests tools scripts
 
-distclean: clean covclean
+distclean: clean
 
 $(dist_name): distclean
 
