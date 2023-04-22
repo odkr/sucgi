@@ -35,6 +35,7 @@
 #include <unistd.h>
 
 #include "compat.h"
+#include "macros.h"
 #include "priv.h"
 #include "types.h"
 
@@ -87,10 +88,11 @@ privsuspend(void)
 {
     const uid_t uid = getuid();
     const gid_t gid = getgid();
+    const gid_t gids[] = {gid};
 
     if (geteuid() == 0) {
         errno = 0;
-        if (setgroups(1, (gid_t [1]) {gid}) != 0) {
+        if (setgroups(NELEMS(gids), gids) != 0) {
             /* Should be unreachable. */
             return ERR_SYS;
         }
