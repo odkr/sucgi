@@ -18,11 +18,12 @@ include(`macros.m4')dnl
 # Special targets
 #
 
-.PHONY: all analysis check clean distcheck distclean shellcheck
-
-.IGNORE: analysis
-
 all: sucgi
+
+.PHONY: all analysis check covclean covdataclean clean \
+        distcheck distclean mrproper shellcheck
+
+.IGNORE: analysis shellcheck
 
 
 #
@@ -48,15 +49,6 @@ LDLIBS = __LDLIBS
 
 
 #
-# Common macros
-#
-
-hdrs = cattr.h compat.h macros.h max.h types.h
-objs = funcs.a(env.o) funcs.a(error.o) funcs.a(handler.o) funcs.a(pair.o) \
-       funcs.a(path.o) funcs.a(priv.o) funcs.a(str.o) funcs.a(userdir.o)
-
-
-#
 # Build configuration
 #
 
@@ -72,29 +64,48 @@ makefile compat.h:
 # Build
 #
 
-funcs.a(env.o): env.c env.h funcs.a(str.o)
+hdrs = cattr.h compat.h macros.h max.h types.h
 
-funcs.a(error.o): error.c error.h
+objs = objs.a(env.o) objs.a(error.o) objs.a(handler.o) objs.a(pair.o) \
+       objs.a(path.o) objs.a(priv.o) objs.a(str.o) objs.a(userdir.o)
 
-funcs.a(pair.o): pair.c pair.h
+libs = objs.a
 
-funcs.a(path.o): path.c path.h funcs.a(str.o)
+compat.h: config.h
 
-funcs.a(priv.o): priv.c priv.h
+defaults.h: config.h
 
-funcs.a(handler.o): handler.c handler.h funcs.a(pair.o) funcs.a(path.o)
+max.h: config.h
 
-funcs.a(str.o): str.c str.h
+objs.a(env.o): env.c env.h objs.a(str.o)
 
-funcs.a(userdir.o): userdir.c userdir.h
+objs.a(error.o): error.c error.h
+
+objs.a(pair.o): pair.c pair.h
+
+objs.a(path.o): path.c path.h objs.a(str.o)
+
+objs.a(priv.o): priv.c priv.h
+
+objs.a(handler.o): handler.c handler.h objs.a(pair.o) objs.a(path.o)
+
+objs.a(str.o): str.c str.h
+
+objs.a(userdir.o): userdir.c userdir.h
 
 $(objs): $(hdrs)
-	$(CC) $(LDFLAGS) $(CFLAGS) -c $*.c $(LDLIBS)
-	$(AR) $(ARFLAGS) funcs.a $%
-	rm -f $%
 
-sucgi: main.c config.h testing.h $(hdrs) $(objs)
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ main.c funcs.a $(LDLIBS)
+objs.a: $(objs)
+
+sucgi: main.c defaults.h testing.h $(hdrs) $(libs)
+
+$(objs):
+	$(CC) $(LDFLAGS) -c -o $*.o $(CFLAGS) $*.c $(LDLIBS)
+	$(AR) $(ARFLAGS) objs.a $*.o
+	rm -f $*.o
+
+sucgi:
+	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ main.c $(libs) $(LDLIBS)
 
 
 #
@@ -104,8 +115,8 @@ sucgi: main.c config.h testing.h $(hdrs) $(objs)
 ifnempty(`__DESTDIR', `DESTDIR = __DESTDIR
 ')dnl
 PREFIX = default(`__PREFIX', `/usr/local')
-www_grp = default(`__www_grp', `www-data')
-cgi_dir = default(`__cgi_dir', `/usr/lib/cgi-bin')
+www_grp = default(`__SUCGI_WWW_GRP', `www-data')
+cgi_dir = default(`__SUCGI_CGI_DIR', `/usr/lib/cgi-bin')
 libexec = $(DESTDIR)$(PREFIX)/libexec
 
 $(libexec)/sucgi: sucgi
@@ -127,13 +138,9 @@ uninstall:
 # Tests
 #
 
-testsobjs = tests/lib/check.a(tests/lib/util.o) \
-            tests/lib/check.a(tests/lib/priv.o)
+check_objs = tests/objs.a(tests/check.o) tests/objs.a(tests/priv.o)
 
-checks = $(check_scripts) $(macro_check_bins) tests/envcopyvar \
-	tests/envisname tests/envrestore tests/error tests/handlerfind \
-	tests/pairfind tests/pathchkloc tests/pathsuffix tests/privdrop \
-	tests/privsuspend tests/copystr tests/splitstr tests/userdirexp
+check_libs = tests/objs.a $(libs)
 
 macro_check_bins = tests/ISSIGNED tests/NELEMS tests/SIGNEDMAX
 
@@ -142,98 +149,145 @@ other_check_bins = tests/envcopyvar tests/envisname tests/envrestore \
 	tests/pathreal tests/pathsuffix tests/privdrop tests/privsuspend \
 	tests/copystr tests/splitstr tests/userdirexp
 
-check_scripts = tests/main.sh
+check_bins = $(macro_check_bins) $(other_check_bins)
 
-tool_bins = tools/badenv tools/badexec tools/ids tools/runpara tools/runas
+check_scripts = tests/main.sh tests/error.sh
+
+checks = $(check_scripts) $(macro_check_bins) tests/envcopyvar \
+	tests/envisname tests/envrestore tests/handlerfind \
+	tests/pairfind tests/pathchkloc tests/pathsuffix tests/privdrop \
+	tests/privsuspend tests/copystr tests/splitstr tests/userdirexp
+
+tool_bins = tools/badenv tools/badexec tools/uids tools/runpara tools/runas
+
+preloadvar = default(`__SUCGI_PRELOAD_VAR', `LD_PRELOAD')
 
 runpara_flags = -ci75 -j8
 
-tests/lib/util.o: tests/lib/util.c tests/lib/util.h
+tests/objs.a(tests/check.o): tests/check.c tests/check.h
 
+tests/objs.a(tests/priv.o): tests/priv.c tests/priv.h
+
+tests/objs.a: $(check_objs)
+
+ifnempty(`__SUCGI_SHARED_LIBS', `dnl
+tests/mock.o: tests/mock.c tests/mock.h
+
+tests/mock.so: tests/mock.o
+
+')dnl
 tests/ISSIGNED: tests/ISSIGNED.c
 
 tests/NELEMS: tests/NELEMS.c
 
 tests/SIGNEDMAX: tests/SIGNEDMAX.c
 
-tests/envisname: tests/envisname.c funcs.a(env.o)
+tests/envisname: tests/envisname.c objs.a(env.o)
 
-tests/envrestore: tests/envrestore.c funcs.a(env.o)
+tests/envrestore: tests/envrestore.c defaults.h objs.a(env.o)
 
-tests/envcopyvar: tests/envcopyvar.c funcs.a(env.o)
+tests/envcopyvar: tests/envcopyvar.c objs.a(env.o)
 
-tests/error: tests/error.c funcs.a(error.o)
+tests/error: tests/error.c objs.a(error.o)
 
-tests/handlerfind: tests/handlerfind.c funcs.a(handler.o)
+tests/handlerfind: tests/handlerfind.c objs.a(handler.o)
 
-tests/main: main.c config.h testing.h $(hdrs) $(objs)
+tests/main: main.c defaults.h testing.h $(hdrs) objs.a
 
-tests/pairfind: tests/pairfind.c funcs.a(pair.o)
+tests/pairfind: tests/pairfind.c defaults.h objs.a(pair.o)
 
-tests/pathchkloc: tests/pathchkloc.c funcs.a(path.o)
+tests/pathchkloc: tests/pathchkloc.c objs.a(path.o)
 
-tests/pathreal: tests/pathreal.c funcs.a(path.o)
+tests/pathreal: tests/pathreal.c objs.a(path.o)
 
-tests/pathsuffix: tests/pathsuffix.c funcs.a(path.o)
+tests/pathsuffix: tests/pathsuffix.c objs.a(path.o)
 
-tests/privsuspend: tests/privsuspend.c funcs.a(priv.o) \
-	tests/lib/check.a(tests/lib/priv.o)
+tests/privsuspend: tests/privsuspend.c tests/objs.a(tests/priv.o) objs.a(priv.o)
 
-tests/privdrop: tests/privdrop.c funcs.a(priv.o) \
-	tests/lib/check.a(tests/lib/priv.o)
+tests/privdrop: tests/privdrop.c tests/objs.a(tests/priv.o) objs.a(priv.o)
 
-tests/copystr: tests/copystr.c funcs.a(str.o)
+tests/copystr: tests/copystr.c objs.a(str.o)
 
-tests/splitstr: tests/splitstr.c funcs.a(str.o)
+tests/splitstr: tests/splitstr.c objs.a(str.o)
 
-tests/userdirexp: tests/userdirexp.c funcs.a(userdir.o)
+tests/userdirexp: tests/userdirexp.c objs.a(userdir.o)
 
-$(check_bins): $(hdrs) tests/lib/util.h
+$(check_bins): $(hdrs) tests/check.h
 
-$(other_check_bins): tests/lib/check.a(tests/lib/util.o)
+$(other_check_bins): tests/objs.a(tests/check.o)
 
-tests/main.sh: tests/main tools/badenv tools/badexec tools/ids tools/runas
+tests/main.sh: tests/main tools/badenv tools/badexec tools/uids tools/runas
 
-$(check_scripts): tests/main scripts/funcs.sh
+tests/error.sh: tests/error tests/main
 
-scripts/funcs.sh: tools/ids
+tests/funcs.sh: tools/uids
+
+scripts/funcs.sh: tests/funcs.sh
+
+$(check_scripts): tests/main tests/funcs.sh
 
 tools: $(tool_bins)
 
 checks: $(checks)
 
-check: tools/runpara $(checks)
+check: tools/runpara $(checks) ifnempty(`__SUCGI_SHARED_LIBS', `tests/mock.so')
 
-$(testobjs):
-	$(CC) $(LDFLAGS) $(CFLAGS) -c $*.c $(LDLIBS)
-	$(AR) $(ARFLAGS) tests/lib/check.a $%
-	rm -f $%
+$(check_objs):
+	$(CC) $(LDFLAGS) -c -o $*.o $(CFLAGS) $*.c $(LDLIBS)
+	$(AR) $(ARFLAGS) tests/objs.a $*.o
+	rm -f $*.o
 
-tests/main:
-	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ main.c funcs.a $(LDLIBS)
+ifnempty(`__SUCGI_SHARED_LIBS', `dnl
+tests/mock.o:
+	$(CC) $(LDFLAGS) -c -o $@ -fpic $(CFLAGS) $< $(LDLIBS)
 
+tests/mock.so:
+	$(CC) $(LDFLAGS) -shared -o $@ -fpic tests/mock.o $(LDLIBS)
+
+')dnl
 $(macro_check_bins):
 	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c $(LDLIBS)
 
 $(other_check_bins):
-	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c tests/lib/check.a funcs.a $(LDLIBS)
+	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c $(check_libs) $(LDLIBS)
+
+tests/main:
+	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ main.c $(libs) $(LDLIBS)
 
 check:
+ifnempty(`__SUCGI_SHARED_LIBS', `dnl
+	[ "$$(id -u)" -eq 0 ] \
+&& tools/runpara $(runpara_flags) $(checks) \
+|| tools/runpara $(runpara_flags) $(preloadvar)=tests/mock.so $(checks)
+', `dnl
 	tools/runpara $(runpara_flags) $(checks)
+')dnl
 
 
 #
 # Cleanup
 #
 
-bins = sucgi tests/main $(macro_check_bins) $(other_check_bins) $(tool_bins)
+bins = sucgi tests/main $(check_bins) $(tool_bins)
+
+covclean: clean covdataclean
+
+mrproper: clean covclean distclean
 
 clean:
-	find . -type f '(' -name '*.a' -o -name '*.o' ')' -delete
+	find . '(' -name '*.a' -o -name '*.o' -o -name '*.so' ')' \
+	-exec rm -f '{}' +
 	rm -f $(bins)
 
-mrproper: distclean
-	find . -type f '(' -name '*.bak' -o -name '*.log' ')' -delete
+covdataclean:
+	find . '(' -name '*.gcda' -o -name '*.gcov' -o -name '*.info' ')' \
+	-exec rm -f '{}' +
+
+covclean:
+	find . -name '*.gcno' -exec rm -f '{}' +
+
+mrproper:
+	find . '(' -name '*.bak' -o -name '*.log' ')' -exec rm -f '{}' +
 	rm -rf tmp-*
 
 
@@ -248,25 +302,35 @@ dist_ar = $(dist_name).tgz
 dist_files = *.c *.h *.env *.excl *.m4 README.rst LICENSE.txt \
 	clang-tidy.yml configure prepare cppcheck docs tests tools scripts
 
-distclean: clean
-	rm -f compat.h config.status makefile *.tgz
-	rm -rf $(dist_name)
+distclean: clean covclean
 
 $(dist_name): distclean
-	mkdir $(dist_name)
-	cp -a $(dist_files) $(dist_name)
 
 $(dist_ar): $(dist_name)
-	tar -X dist.excl -czf $(dist_ar) $(dist_name)
 
 $(dist_ar).asc: $(dist_ar)
-	gpg -qab --batch --yes $(dist_ar)
 
 dist: $(dist_ar)
 
 sigdist: dist $(dist_ar).asc
 
 distcheck: dist
+
+distclean:
+	rm -f compat.h config.status makefile *.tgz
+	rm -rf $(dist_name)
+
+$(dist_name):
+	mkdir $(dist_name)
+	cp -a $(dist_files) $(dist_name)
+
+$(dist_ar):
+	tar -X dist.excl -czf $(dist_ar) $(dist_name)
+
+$(dist_ar).asc:
+	gpg -qab --batch --yes $(dist_ar)
+
+distcheck:
 	tar -xzf $(dist_ar)
 	$(dist_name)/configure
 	cd $(dist_name) && $(MAKE) -e all check dist
@@ -281,11 +345,11 @@ distcheck: dist
 inspect = *.h *.c
 scripts = configure prepare scripts/* tests/*.sh
 
-ifnempty(`__clang_tidy', `dnl
+ifnempty(`__SUCGI_CLANG_TIDY', `dnl
 clang_tidy_flags = --config-file=clang-tidy.yml
 
 ')dnl
-ifnempty(`__cppcheck', `dnl
+ifnempty(`__SUCGI_CPPCHECK', `dnl
 cppcheck_flags = --quiet --force --language=c --std=c99 \
 	--project=cppcheck/sucgi.cppcheck --library=posix \
 	--library=cppcheck/bsd.cfg --library=cppcheck/funcs.cfg \
@@ -293,34 +357,35 @@ cppcheck_flags = --quiet --force --language=c --std=c99 \
 	--enable=all --addon=cppcheck/cert.py --addon=misra.py
 
 ')dnl
-ifnempty(`__flawfinder', `dnl
+ifnempty(`__SUCGI_FLAWFINDER', `dnl
 flawfinder_flags = --falsepositive --dataonly --quiet
 
 ')dnl
-ifnempty(`__rats', `dnl
+ifnempty(`__SUCGI_RATS', `dnl
 rats_flags = --resultsonly --quiet --warning 3
+
+')dnl
+ifnempty(`__SUCGI_SHELLCHECK', `dnl
+shellcheck_flags = -x
 
 ')dnl
 analysis:
 	! grep -i FIXME $(inspect)
-ifnempty(`__clang_tidy', `dnl
-	__clang_tidy $(clang_tidy_flags) $(inspect) -- -std=c99
+ifnempty(`__SUCGI_CLANG_TIDY', `dnl
+	__SUCGI_CLANG_TIDY $(clang_tidy_flags) $(inspect) -- -std=c99
 ')dnl
-ifnempty(`__cppcheck', `dnl
-	__cppcheck $(cppcheck_flags) $(inspect)
+ifnempty(`__SUCGI_CPPCHECK', `dnl
+	__SUCGI_CPPCHECK $(cppcheck_flags) $(inspect)
 ')dnl
-ifnempty(`__flawfinder', `dnl
-	__flawfinder $(flawfinder_flags) $(inspect)
+ifnempty(`__SUCGI_FLAWFINDER', `dnl
+	__SUCGI_FLAWFINDER $(flawfinder_flags) $(inspect)
 ')dnl
-ifnempty(`__rats', `dnl
-	__rats $(rats_flags) $(inspect)
+ifnempty(`__SUCGI_RATS', `dnl
+	__SUCGI_RATS $(rats_flags) $(inspect)
 ')dnl
 
 shellcheck:
 	! grep -i FIXME $(scripts)
-ifnempty(`__shellcheck', `dnl
-	__shellcheck -x $(scripts)
+ifnempty(`__SUCGI_SHELLCHECK', `dnl
+	__SUCGI_SHELLCHECK $(shellcheck_flags) $(scripts)
 ')dnl
-
-
-
