@@ -51,9 +51,6 @@
 /* Programme name. */
 #define PROGNAME "runpara"
 
-/* Synposis. */
-#define USAGE PROGNAME " [-c] [-gN] [-iRET] [-jN] [-tN] [-q] [-S] COMM [...]"
-
 /* Control sequence for clearing the current line. */
 #define CLEARLN "\033" "[0K"
 
@@ -378,7 +375,6 @@ main (int argc, char **argv)
     long timeout;                           /* Number of seconds to wait. */
     int nfork;                              /* Number of jobs forked. */
     int nrep;                               /* Number of jobs reported on. */
-    int nullfd;                             /* /dev/null file descriptor. */
     int exstatus;                           /* runpara exit status. */
     int ch;                                 /* Option character. */
     bool cont;                              /* Continue despite errors? */
@@ -411,7 +407,7 @@ main (int argc, char **argv)
     timeout = 3600;
     nfork = 0;
     nrep = 0;
-    nullfd = -1;
+
     exstatus = EXIT_SUCCESS;
     cont = false;
     quiet = false;
@@ -421,10 +417,12 @@ main (int argc, char **argv)
         switch (ch) {
         case 'h':
             (void) printf(
-PROGNAME " - run jobs in parallel\n\n"
-"Usage:      " USAGE "\n"
-"            " PROGNAME " -h\n\n"
+"runpara - run jobs in parallel\n\n"
+"Usage:      runpara [-c] [-gN] [-iRET] [-jN] [-tN] [-q] [-S]\n"
+"                    [VAR ...] COMM [...]\n"
+"            runpara -h\n\n"
 "Operands:\n"
+"    VAR     Variable to add to the environment.\n"
 "    COMM    Command to run. Subject to shell word expansion.\n\n"
 "Options:\n"
 "    -c      Continue even if a job reports an error.\n"
@@ -469,22 +467,20 @@ PROGNAME " - run jobs in parallel\n\n"
     argc -= optind;
     argv += optind;
 
+    while (*argv != NULL && strchr(*argv, '=') != NULL) {
+        putenv(*argv);
+        argc--;
+        argv++;
+    }
+
     if (argc < 1) {
-        (void) fputs("usage: " USAGE "\n", stderr);
+        (void) fputs("usage: runpara <opts> [VAR ...] COMM [...]\n", stderr);
         return EXIT_FAILURE;
     }
 
     if (argc == 1) {
         quiet = true;
         suppress = false;
-    }
-
-    if (suppress) {
-        errno = 0;
-        nullfd = open("/dev/null", O_RDWR | O_NONBLOCK);
-        if (nullfd < 0) {
-            err(EXIT_FAILURE, "open /dev/null");
-        }
     }
 
     /*
@@ -550,7 +546,15 @@ PROGNAME " - run jobs in parallel\n\n"
         err(EXIT_FAILURE, "posix_spawnattr_setsigdefault");
     }
 
-    if (suppress && nullfd > 0) {
+    if (suppress) {
+        int nullfd;
+
+        errno = 0;
+        nullfd = open("/dev/null", O_RDWR | O_NONBLOCK);
+        if (nullfd < 0) {
+            err(EXIT_FAILURE, "open /dev/null");
+        }
+
         for (int fd = 0; fd < 3; ++fd) {
             errno = posix_spawn_file_actions_adddup2(&fileacts, nullfd, fd);
             if (errno != 0) {
@@ -641,6 +645,8 @@ PROGNAME " - run jobs in parallel\n\n"
 
     (void) alarm(0);
 
+    clearln(stderr);
+
     if (waitpiderr > 0) {
         /* Should be unreachable. */
         errx(EXIT_FAILURE, "waitpid: %s", strerror((int) waitpiderr));
@@ -652,7 +658,6 @@ PROGNAME " - run jobs in parallel\n\n"
     }
 
     if (caught > 0) {
-        clearln(stderr);
         warnx("%s", strsignal((int) caught));
 
         cleanup();
