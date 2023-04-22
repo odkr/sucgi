@@ -123,7 +123,10 @@ main (int argc, char **argv)
     }
 
     if (count) {
-        while (nvars < argc && strstr(argv[nvars], "=")) {
+        while (nvars < argc              &&
+               argv[nvars] != NULL       &&
+               strchr(argv[nvars], '='))
+        {
             ++nvars;
         }
     }
@@ -134,14 +137,10 @@ main (int argc, char **argv)
         err(EXIT_FAILURE, "calloc");
     }
 
-    if (nenv > 0) {
-        if ((size_t) nenv > SIZE_MAX / sizeof(*environ)) {
-            /* Should be unreachable. */
-            errx(EXIT_FAILURE, "too many variables in environment");
-        }
-
-        (void) memcpy(vars, environ, (size_t) nenv * sizeof(*environ));
-    }
+    /*
+     * New variables are simply inserted before the current ones,
+     * so there maybe duplicates; this is BADenv, after all.
+     */
 
     if (nvars > 0) {
         if ((size_t) nvars > SIZE_MAX / sizeof(*argv)) {
@@ -149,7 +148,16 @@ main (int argc, char **argv)
             errx(EXIT_FAILURE, "too many variables given");
         }
 
-        (void) memcpy(&vars[nenv], argv, (size_t) nvars * sizeof(*argv));
+        (void) memcpy(vars, argv, (size_t) nvars * sizeof(*argv));
+    }
+
+    if (nenv > 0) {
+        if ((size_t) nenv > SIZE_MAX / sizeof(*environ)) {
+            /* Should be unreachable. */
+            errx(EXIT_FAILURE, "too many variables in environment");
+        }
+
+        (void) memcpy(&vars[nvars], environ, (size_t) nenv * sizeof(*environ));
     }
 
     cmd = &argv[nvars];
