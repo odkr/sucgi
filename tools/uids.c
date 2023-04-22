@@ -1,5 +1,5 @@
 /*
- * Print user or group IDs.
+ * Print user IDs.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -27,7 +27,6 @@
 #include <sys/types.h>
 #include <err.h>
 #include <errno.h>
-#include <grp.h>
 #include <pwd.h>
 #include <inttypes.h>
 #include <search.h>
@@ -41,31 +40,31 @@
  */
 
 /* Initial maximum number of seen IDs. */
-#define NIDS 8192
+#define NIDS 2048
 
 
 /*
  * Data types
  */
 
+typedef int (*Compar)(const void *, const void *);
+
+
 /*
- * Abstraction over struct passwd and struct group.
- * Requires a 4.4BSD-compatible memory lay-out.
+ * Functions
  */
-typedef struct {
-    char *name;
-    char *passwd;
-    id_t id;
-} Entry;
 
-/* Signature of set(pw|gr)ent. */
-typedef void SetEnt(void);
-
-/* Signature of end(pw|gr)ent. */
-typedef void EndEnt(void);
-
-/* Signature of get(pw|gr)ent. */
-typedef Entry *GetEnt(void);
+static int
+cmpuids(uid_t *a, uid_t *b)
+{
+    if (*a < *b) {
+        return -1;
+    };
+    if (*a > *b) {
+        return 1;
+    }
+    return 0;
+}
 
 
 /*
@@ -75,20 +74,12 @@ typedef Entry *GetEnt(void);
 int
 main(int argc, char **argv)
 {
-    Entry *ent;
-    SetEnt *setent;
-    EndEnt *endent;
-    GetEnt *getent;
-    const char *label;
-    id_t *seen;
+    struct passwd *pwd;
+    uid_t *seen;
     size_t nseen;
     size_t maxseen;
     int ch;
 
-    setent = setpwent;
-    endent = endpwent;
-    getent = (GetEnt *) getpwent;
-    label = "pw";
     nseen = 0;
     maxseen = NIDS;
 
@@ -96,11 +87,10 @@ main(int argc, char **argv)
         switch (ch) {
         case 'h':
             (void) puts(
-"ids - print user or group IDs and names\n\n"
-"Usage:  ids [-g]\n"
-"        ids -h\n\n"
+"uids - print user IDs and names\n\n"
+"Usage:  uids\n"
+"        uids -h\n\n"
 "Options:\n"
-"    -g  Print group IDs and names.\n"
 "    -h  Print this help screen.\n\n"
 "Exit statuses:\n"
 "     0  Success.\n"
@@ -112,12 +102,6 @@ main(int argc, char **argv)
 "This programme comes with ABSOLUTELY NO WARRANTY."
             );
             return EXIT_SUCCESS;
-        case 'g':
-            setent = setgrent;
-            endent = endgrent;
-            getent = (GetEnt *) getgrent;
-            label = "gr";
-            break;
         default:
             return EXIT_FAILURE;
         }
@@ -137,53 +121,50 @@ main(int argc, char **argv)
     }
 
     errno = 0;
-    setent();
+    setpwent();
     if (errno != 0) {
-        err(EXIT_FAILURE, "set%sent", label);
+        err(EXIT_FAILURE, "setpwsent");
     }
 
-    while ((errno = 0, ent = getent()) != NULL) {
-        id_t id = ent->id;
-        char *name = ent->name;
+    while ((errno = 0, pwd = getpwent()) != NULL) {
+        uid_t uid = pwd->pw_uid;
+        uid_t *hit;
 
-        for (size_t j = 0; j < nseen; ++j) {
-            if (seen[j] == id) {
-                goto next_entry;
-            }
-        }
+        hit = lfind(&uid, seen, &nseen, sizeof(*seen), (Compar) cmpuids);
+        if (hit == NULL) {
+            char *name = pwd->pw_name;
 
-        if ((id_t) -1 < (id_t) 1) {
-            (void) printf("%" PRId64 " %s\n", (int64_t) id, name);
-        } else {
-            (void) printf("%" PRIu64 " %s\n", (uint64_t) id, name);
-        }
-
-        if (nseen == maxseen) {
-            maxseen *= 2;
-
-            if (SIZE_MAX / sizeof(*seen) > maxseen) {
-                errx(EXIT_FAILURE, "too many entries");
+            if ((uid_t) -1 < (uid_t) 1) {
+                (void) printf("%" PRId64 " %s\n", (int64_t) uid, name);
+            } else {
+                (void) printf("%" PRIu64 " %s\n", (uint64_t) uid, name);
             }
 
-            seen = realloc(seen, maxseen * sizeof(*seen));
-            if (seen == NULL) {
-                err(EXIT_FAILURE, "realloc");
+            if (nseen == maxseen) {
+                maxseen *= 2;
+
+                if (SIZE_MAX / sizeof(*seen) > maxseen) {
+                    errx(EXIT_FAILURE, "too many entries");
+                }
+
+                seen = realloc(seen, maxseen * sizeof(*seen));
+                if (seen == NULL) {
+                    err(EXIT_FAILURE, "realloc");
+                }
             }
+
+            seen[nseen++] = uid;
         }
-
-        seen[nseen++] = id;
-
-        next_entry:;
     }
 
     if (errno != 0) {
-        err(EXIT_FAILURE, "get%sent", label);
+        err(EXIT_FAILURE, "getpwsent");
     }
 
     errno = 0;
-    endent();
+    endpwent();
     if (errno != 0) {
-        err(EXIT_FAILURE, "end%sent", label);
+        err(EXIT_FAILURE, "endpwent");
     }
 
     return EXIT_SUCCESS;
