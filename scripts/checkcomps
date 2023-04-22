@@ -50,12 +50,12 @@ verbose=
 #
 
 set -Ceu
-tools_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
-src_dir="$(dirname -- "$tools_dir")"
+scripts_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+src_dir="$(dirname -- "$scripts_dir")"
 # shellcheck disable=2034
-readonly tools_dir src_dir
+readonly scripts_dir src_dir
 # shellcheck disable=1091
-. "$tools_dir/funcs.sh" || exit
+. "$scripts_dir/funcs.sh" || exit
 init || exit
 tmpdir tmp "$src_dir"
 
@@ -71,6 +71,34 @@ readonly icc_flags='-diag-disable=161,10441 -std=c99 -O2 -s'
 # Current working directory
 cwd="$(pwd)" || exit
 readonly cwd
+
+# The user who should own logs.
+if [ "$(id -u)" -eq 0 ]
+then user="$(owner "$src_dir")"
+else user="$(id -un)"
+fi
+readonly user
+
+# The primary group of that user.
+group="$(id -gn "$user")"
+readonly group
+
+
+#
+# Functions
+#
+
+mylogged() {
+	: "${cwd:?}"
+	: "${user:?}"
+	: "${group:?}"
+	: "${1:?}"
+
+	case $1 in
+	(-*) logged -d"$cwd" -u"$user" -g"$group" "$@" ;;
+	(*)  logged -d"$cwd" -u"$user" -g"$group" -- "$@" ;;
+	esac
+}
 
 
 #
@@ -95,9 +123,6 @@ Options:
     -q  Be quieter.
     -v  Be verbose, but do not log runs.
     -h  Show this help screen.
-
-Must be called from a directory with a makefile.
-The makefile must provide the standard Autoconf targets.
 EOF
 	    ;;
 	(D) set -x ;;
@@ -121,7 +146,7 @@ warn -q 'copying sources ...'
 cd "$src_dir" || exit
 m4 makefile.m4 >"$TMPDIR/makefile"
 distdir="$TMPDIR/dist"
-make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir" >/dev/null
+mylogged make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir"
 cd "$distdir" || exit
 
 n=0 failures=
@@ -151,47 +176,31 @@ do
 
 	warn 'checking with %s ... ' "$cc"
 
-	logfile="$TMPDIR/check$cc.log"
-	if ! (
-		[ "$verbose" ] || exec >"$logfile" 2>&1
+	[ -e makefile ] && mylogged make distclean
+	[ -e makefile ] && rm -f makefile
 
-		name="${cc%-*}"
-		eval "cflags=\${${name}_flags-}"
+	eval "cflags=\${${cc%%[!a-z]*}_flags-}"
+	m4 -D__CC="$cc" -D__CFLAGS="$cflags" makefile.m4 >makefile
 
-		[ -e makefile ] && make distclean
-		# shellcheck disable=2154
+	mylogged -l"$cc.log" make clean all check ||
+	failures="$failures$cc (w/o configuration), "
 
-		m4 -D__CC="$cc" -D__CFLAGS="$cflags" makefile.m4 >makefile
+	for env in *.env
+	do
+		case $env in
+		('*.env')	break ;;
+		('local.env')	continue ;;
+		esac
 
-		make clean all check ||
-		err '%s failed w/o configuartion' "$cc"
+		[ -e makefile ] && mylogged make distclean
+		CC="$cc" mylogged ./configure -fqc"$env"
 
-		for env in *.env
-		do
-			case $env in
-			('*.env')	break ;;
-			('local.env')	continue ;;
-			esac
-
-			[ -e makefile ] && make distclean
-			CC="$cc" ./configure -fqc"$env"
-
-			make clean all check ||
-			err '%s failed w/ configuartion %s' "$cc" "$env"
-		done
-	)
-	then
-		if ! [ "$verbose" ]
-		then
-			warn 'testing with %s failed.' "$cc"
-			warn 'see %s for details.' "$(basename "$logfile")"
-			[ -e "$logfile" ] && mv -f "$logfile" "$cwd"
-		fi
-		failures="$failures $cc"
-	fi
+		mylogged -l"$cc.log" make clean all check ||
+		failures="$failures$cc (w/ $env), "
+	done
 done
 
 if [ "$failures" ]
-then err -s70 'failures: %s' "${failures# }"
+then err -s70 'failures: %s' "${failures%, }"
 else warn -q 'all compilers passed.'
 fi

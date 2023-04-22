@@ -25,7 +25,7 @@
 # Defaults
 #
 
-# Compiler flags to test for.
+# Compiler flags to test for. Space-separated list.
 cflags=
 
 # Compilers to look for. Space-separated list of commands.
@@ -90,7 +90,7 @@ readonly macros='
 # Where to save the configuration.
 readonly confsave=config.status
 
-# Colon-separated list of integer types used for group IDs and sizes.
+# Integer types used for group IDs and sizes. Colon-separated list.
 inttypes=
 for base in 'int' 'long' 'long long'
 do
@@ -101,10 +101,10 @@ done
 unset base
 readonly inttypes
 
-# Colon-separated list of possible data types for group IDs.
+# Possible data types for group IDs. Colon-separated list.
 readonly grouptypes="gid_t:$inttypes"
 
-# Colon-separated list of possible data types for sizes.
+# Possible data types for sizes. Colon-separated list.
 readonly sizetypes="size_t:$inttypes"
 
 

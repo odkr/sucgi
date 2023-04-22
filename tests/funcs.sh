@@ -37,63 +37,60 @@
 # -o and -e are mutually exclusive.
 # FIXME: Doesn't work with posh.
 check() (
-	exstatus=0 stream=out
-	OPTIND=1 OPTARG='' opt=''
+	__check_status=0 __check_stream=out
+	OPTIND=1 OPTARG='' __check_opt=''
 
-	while getopts 's:o:e:v' opt
+	while getopts 's:o:e:v' __check_opt
 	do
 		# shellcheck disable=2034
-		case $opt in
-		(s) exstatus="$OPTARG" ;;
-		(o) stream=out pattern="$OPTARG" ;;
-		(e) stream=err pattern="$OPTARG" ;;
+		case $__check_opt in
+		(s) __check_status="${OPTARG:?}" ;;
+		(o) __check_stream=out __check_pattern="${OPTARG:?}" ;;
+		(e) __check_stream=err __check_pattern="${OPTARG:?}" ;;
 		(*) return 2
 		esac
 	done
 	shift $((OPTIND - 1))
 
 	: "${1:?no command given}"
-	: "${stdout:=/dev/null}"
-	: "${stderr:=/dev/null}"
 
-	err=0 retval=0
+	__check_err=0 __check_retval=0
 
-	case $stream in
-	(out) output="$(env "$@" 2>/dev/null)" || err=$? ;;
-	(err) output="$(env "$@" 2>&1 >/dev/null)" || err=$? ;;
+	case $__check_stream in
+	(out) __check_output="$(env "$@" 2>/dev/null)" || __check_err=$? ;;
+	(err) __check_output="$(env "$@" 2>&1 >/dev/null)" || __check_err=$? ;;
 	esac
 
-	if [ "$err" -ne "$exstatus" ] && [ "$err" -ne 141 ]
+	if ! inlist -eq "$__check_err" "$__check_status" 141
 	then
-		warn '%s: exited with status %d.' "$*" "$err"
-		retval=70
+		warn '%s: exited with status %d.' "$*" "$__check_err"
+		__check_retval=70
 	fi
 
-	if [ "$stream" ]
+	if [ "$__check_stream" ]
 	then
 		IFS='
 '
-
-		hit=
-		for line in $output
+		__check_match=
+		for __check_line in $__check_output
 		do
-			case $line in (*$pattern*)
-				hit=x
+			case $__check_line in (*$__check_pattern*)
+				__check_match=x
 				break
 			esac
 		done
 
-		if ! [ "$hit" ]
+		if ! [ "$__check_match" ]
 		then
-			retval=70
-			warn '%s printed to std%s:' "$*" "$stream"
-			for line in $output
-			do warn '> %s' "$line"
+			__check_retval=70
+			warn '%s printed to std%s:' "$*" "$__check_stream"
+			for __check_line in $__check_output
+			do warn '> %s' "$__check_line"
 			done
 		fi
 
 		unset IFS
 	fi
 
-	return "$retval"
+	return "$__check_retval"
 )

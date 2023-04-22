@@ -40,12 +40,12 @@ verbose=
 #
 
 set -Cefu
-tools_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
-src_dir="$(dirname -- "$tools_dir")"
+scripts_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+src_dir="$(dirname -- "$scripts_dir")"
 # shellcheck disable=2034
-readonly tools_dir src_dir
+readonly scripts_dir src_dir
 # shellcheck disable=1091
-. "$tools_dir/funcs.sh" || exit
+. "$scripts_dir/funcs.sh" || exit
 init || exit
 cd "$src_dir" || exit
 tmpdir tmp .
@@ -58,6 +58,34 @@ tmpdir tmp .
 # Current working directory
 cwd="$(pwd)" || exit
 readonly cwd
+
+# The user who should own logs.
+if [ "$(id -u)" -eq 0 ]
+then user="$(owner "$src_dir")"
+else user="$(id -un)"
+fi
+readonly user
+
+# The primary group of that user.
+group="$(id -gn "$user")"
+readonly group
+
+
+#
+# Functions
+#
+
+mylogged() {
+	: "${cwd:?}"
+	: "${user:?}"
+	: "${group:?}"
+	: "${1:?}"
+
+	case $1 in
+	(-*) logged -d"$cwd" -u"$user" -g"$group" "$@" ;;
+	(*)  logged -d"$cwd" -u"$user" -g"$group" -- "$@" ;;
+	esac
+}
 
 
 #
@@ -84,9 +112,6 @@ Options:
     -q     Be quieter.
     -v     Be verbose, but do not log runs.
     -h     Show this help screen.
-
-Must be called from a directory with a makefile.
-The makefile must provide the standard Autoconf targets.
 EOF
 	    ;;
 	(D) set -x ;;
@@ -135,28 +160,13 @@ do
 	warn 'checking %s ... ' "$make"
 
 	m4 makefile.m4 >makefile
-	logfile="$TMPDIR/check$make.log"
-	if ! (
-		[ "$verbose" ] || exec >"$logfile" 2>&1
 
-		make distcheck
-		if [ -e makefile ]
-		then make distclean
-		fi
-	)
-	then
-		if ! [ "$verbose" ]
-		then
-			warn '%s failed.' "$make"
-			warn 'see %s for details.' "$(basename "$logfile")"
-			[ -e "$logfile" ] && mv -f "$logfile" "$cwd"
-		fi
-		failures="$failures $make"
-	fi
+	mylogged "$make" distcheck ||
+	failures="$failures$make, "
 done
 
 if [ "$failures" ]
-then err -s70 'failures: %s' "${failures# }"
+then err -s70 'failures: %s' "${failures%, }"
 else warn -q 'all makes passed.'
 fi
 

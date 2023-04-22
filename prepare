@@ -18,15 +18,15 @@ init
 #
 
 hasall() (
-	for cmd
-	do command -v "$cmd" >/dev/null || return
+	for __hasall_cmd
+	do command -v "$__hasall_cmd" >/dev/null || return
 	done
 	return 0
 )
 
 hasany() (
-	for cmd
-	do command -v "$cmd" >/dev/null && return
+	for __hasany_cmd
+	do command -v "$__hasany_cmd" >/dev/null && return
 	done
 	return 1
 )

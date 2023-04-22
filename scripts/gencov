@@ -66,40 +66,29 @@ tmpdir tmp .
 cwd="$(pwd)"
 readonly cwd
 
+# The user who should own logs and coverage data.
+if [ "$(id -u)" -eq 0 ]
+then user="$(owner "$src_dir")"
+else user="$(id -un)"
+fi
+readonly user
+
+# The primary group of that user.
+group="$(id -gn "$user")"
+readonly group
+
 
 #
 # Functions
 #
 
-# Run $@ and log its output.
-logged() (
-	logfile="$(basename "${1:?}").log"
+mylogged() {
+	: "${cwd:?}"
+	: "${user:?}"
+	: "${group:?}"
 
-	if [ "$verbose" ]
-	then
-		"$@"
-	elif "$@" >"$TMPDIR/$logfile" 2>&1
-	then
-		rm "$TMPDIR/$logfile"
-	else
-		warn '%s: exited with status %d.' "$*" "$?"
-		warn 'see %s for details.' "$logfile"
-		mv "$TMPDIR/$logfile" "$cwd"
-		return 8
-	fi
-)
-
-# Print the owner of $fname.
-owner() (
-	fname="${1:?}"
-	pipe="${TMPDIR:-/tmp}/owner-$$.fifo" rc=0
-	mkfifo -m 0700 "$pipe"
-	ls -ld "$fname" >"$pipe" & ls=$!
-	awk '{print $3}' <"$pipe" || rc=$?
-	wait $ls                  || rc=$?
-	rm -f "$pipe"
-	return $rc
-)
+	logged -d"$cwd" -u"$user" -g"$group" -- "$@"
+}
 
 
 #
@@ -173,23 +162,20 @@ uid="$(id -u)"
 [ "$uid" -eq 0 ] ||
 warn "coverage data collected as regular user is inaccurate."
 
-owner="$(owner "$src_dir")"
-group="$(id -g "$owner")"
-
 warn -q 'copying sources ...'
 m4 makefile.m4 > "$TMPDIR/makefile"
 distdir="$TMPDIR/dist"
-logged make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir"
+make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir"
 cd -P "$distdir" || exit
 
 warn -q 'configuring build ... '
 CFLAGS=-O1 logged ./configure
 
 warn -q 'compiling tools and test libraries ...'
-logged make -e tools tests/objs.a tests/mock.so
+mylogged make -e tools tests/objs.a tests/mock.so
 
 warn -q 'compiling tests ...'
-logged make -e CFLAGS=--coverage all checks
+mylogged make -e CFLAGS=--coverage all checks
 
 warn -q 'adapting environment ...'
 export PATH="$distdir/tools:$distdir/tests:$PATH"
@@ -243,25 +229,14 @@ do
 	esac
 
 	basename="$(basename "$check")"
-	logfile="$basename.log" infofile="$basename.info"
+	infofile="$basename.info"
 
-	set +e
+	exstatus=0
+	mylogged "$check" || exstatus=$?
 
-	if [ "$verbose" ]
-	then "$check"
-	else  "$check" >>"$logfile" 2>&1
-	fi
+	inlist -eq "$exstatus" 0 75 || exit 69
 
-	case $? in
-	(0|75)	: ;;
-	(*)	warn '%s: exited with status %d.' "$check" "$?"
-		[ "$verbose" ] || warn 'see %s for details.' "$logfile"
-		mv "$logfile" "$cwd"
-		exit 69
-	esac
-
-	if	{ [ "$htmldir"  ] && [ "$htmldir"  != - ]; } ||
-		{ [ "$lcovinfo" ] && [ "$lcovinfo" != - ]; }
+	if [ "$htmldir"  != - ] || [ "$lcovinfo" != - ]
 	then
 		geninfo --gcov-tool "$gcov" -q -o "$infofile"		\
 			--ignore-errors gcov,source			\
@@ -269,11 +244,9 @@ do
 			--exclude '/usr/*' --exclude '/Library/*' . &&
 		lcov --gcov-tool "$gcov" -q -o lcov.info -a "$infofile"
 	fi
-
-	set -e
 done
 
-if [ "$gcovdir" ] && [ "$gcovdir" != - ]
+if [ "$gcovdir" != - ]
 then
 	warn -q 'saving GCov files in %s ...' "$gcovdir"
 
@@ -288,19 +261,19 @@ then
 		mv -f "$fname" "$gcovdir/$dir"
 	done
 
-	[ "$uid" -eq 0 ] && chown -R "$owner:$group" "$gcovdir"
+	[ "$uid" -eq 0 ] && chown -R "$user:$group" "$gcovdir"
 fi
 
-if [ "$htmldir" ] && [ "$htmldir" != - ]
+if [ "$htmldir" != - ]
 then
 	warn -q 'saving HTML report to %s ...' "$htmldir"
 	genhtml -q -o "$htmldir" lcov.info
-	[ "$uid" -eq 0 ] && chown -R "$owner:$group" "$htmldir"
+	[ "$uid" -eq 0 ] && chown -R "$user:$group" "$htmldir"
 fi
 
-if [ "$lcovinfo" ] && [ "$lcovinfo" != - ]
+if [ "$lcovinfo" != - ]
 then
 	warn -q 'saving LCOV data to %s ...' "$lcovinfo"
 	mv -f lcov.info "$lcovinfo"
-	[ "$uid" -eq 0 ] && chown -R "$owner:$group" "$lcovinfo"
+	[ "$uid" -eq 0 ] && chown -R "$user:$group" "$lcovinfo"
 fi

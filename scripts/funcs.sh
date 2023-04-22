@@ -20,25 +20,25 @@
 
 # shellcheck disable=2015,2031
 
-# Re-raise $signal if $catch is set.
-# Otherwise set $caught to $signal.
+# Re-raise signal $1 if $catch is set.
+# Otherwise set $caught to $1.
 catch() {
-	signal="${1:?}"
+	: "${1:?}"
 	# shellcheck disable=2119
 	clearln
-	warn 'caught %s.' "$signal"
+	warn 'caught %s.' "$1"
 	# shellcheck disable=2034
-	caught="$signal"
+	caught="$1"
 	[ "${catch-}" ] || return 0
 	cleanup
-	trap - "$signal"
-	kill -s "$signal" "$$"
+	trap - "$1"
+	kill -s "$1" "$$"
 }
 
 # Terminate all children, eval $cleanup and exit with status $?.
 cleanup() {
 	# shellcheck disable=2319
-	retval=$?
+	__cleanup_retval=$?
 	set +e
 	trap '' EXIT HUP INT TERM
 	# shellcheck disable=2046
@@ -46,25 +46,25 @@ cleanup() {
 	wait
 	eval "${cleanup-}"
 	cleanup=
-	return $retval
+	return $__cleanup_retval
 }
 
-# Clear the current line of terminal $fd.
+# Clear the current line of terminal $1.
 # shellcheck disable=2120
 clearln() (
-	fd="${1:-2}"
-	[ -t "$fd" ] && printf '\033[0K' >&"$fd"
+	__clearln_fd="${1:-2}"
+	[ -t "$__clearln_fd" ] && printf '\033[0K' >&"$__clearln_fd"
 )
 
 # Print a message to STDERR and exit with a non-zero status.
-# -s sets a different status.
+# Exit with status if -s STATUS is given.
 err() {
-	exstatus=2
-	OPTIND=1 OPTARG='' opt=''
-	while getopts s: opt
+	__err_status=2
+	OPTIND=1 OPTARG='' __err_opt=''
+	while getopts s: __err_opt
 	do
-		case $opt in
-		(s) exstatus="$OPTARG" ;;
+		case $__err_opt in
+		(s) __err_status="$OPTARG" ;;
 		(*) exit 70
 		esac
 	done
@@ -72,7 +72,7 @@ err() {
 
 	warn "$@"
 
-	exit "$exstatus"
+	exit "$__err_status"
 }
 
 # Enforce POSIX-compliance, register signals, and set global variables.
@@ -112,55 +112,130 @@ init() {
 # Check if $needle matches any member of $@ using $op.
 inlist() (
 	# shellcheck disable=2034
-	op="${1:?}" needle="${2?}"
+	__inlist_op="${1:?}" __inlist_needle="${2?}"
 	shift 2
 
 	# shellcheck disable=2034
-	for straw
-	do eval "[ \"\$needle\" $op \"\$straw\" ]" && return
+	for __inlist_straw
+	do
+		test "$__inlist_straw" "$__inlist_op" "$__inlist_needle" &&
+		return
 	done
 
 	return 1
 )
 
-# Find a user whose UID is between $minuid and $maxuid and who
-# only belongs to groups with GIDs between $mingid and $maxgid.
-reguser() (
-	minuid="${1:?}" maxuid="${2:?}" mingid="${3:?}" maxgid="${4:?}"
-	pipe="${TMPDIR:-/tmp}/uids-$$.fifo" retval=0 reguser=
-	mkfifo -m 700 "$pipe"
+# Run $@ and redirect its output to a log file unless $verbose is set.
+# -d DIR     Store log file in DIR if command exit with a non-zero status.
+# -i STATUS  Do not store a log if the command exits with STATUS.
+# -l FNAME   Store the log in FNAME.
+# -u USER    Make USER the owner of FNAME.
+# -g GROUP   Make GROUP the group of FNAME.
+logged() (
+	__logged_dir=.
+	__logged_fname=''
+	__logged_group=''
+	__logged_user=''
+	__logged_mask=0
+	__logged_status=0
 
-	uids >"$pipe" & uids=$!
-	while read -r uid user
+	if [ "$verbose" ]
+	then
+		"$@" || __logged_status=$?
+		return $__logged_status
+	fi
+
+	OPTIND=1 OPTARG='' __logged_opt=''
+	while getopts 'd:g:i:l:u:' __logged_opt
 	do
-		case $user in (_*|*[!A-Za-z0-9_]*)
+		case $__logged_opt in
+		(l) __logged_fname="${OPTARG:?}" ;;
+		(d) __logged_dir="${OPTARG:?}" ;;
+		(g) __logged_group="${OPTARG:?}" ;;
+		(i) __logged_mask="$__logged_mask ${OPTARG:?}" ;;
+		(u) __logged_user="${OPTARG:?}" ;;
+		(*) return 1
+		esac
+	done
+	shift $((OPTIND - 1))
+
+	: "${TMPDIR:-/tmp}"
+	: "${1:?}"
+	: "${__logged_fname:="$(basename "$1").log"}"
+
+	"$@" >>"$TMPDIR/$__logged_fname" 2>&1 || __logged_status=$?
+
+	if inlist -eq "$__logged_status" $__logged_mask
+	then
+		rm -f "$TMPDIR/$__logged_fname"
+	else
+		if [ "$__logged_user" ]
+		then
+			: "${__logged_group:=$(id -gn "$__logged_user")}"
+			chown "$__logged_user:$__logged_group" \
+			      "$TMPDIR/$__logged_fname"
+		fi
+
+		mv "$TMPDIR/$__logged_fname" "$__logged_dir"
+		warn '%s: exited with status %d.' \
+		     "$*" "$__logged_status"
+		warn 'see %s for details.' \
+		     "$__logged_fname"
+	fi
+
+	return $__logged_status
+)
+
+# Print the login name of a file's owner.
+owner() (
+	ls -ld "${1:?}" |
+	awk '{print $3}'
+)
+
+# Find a user with an UID from $1 to $2 who
+# only belongs to groups with GIDs from $3 to $4.
+reguser() (
+	__reguser_minuid="${1:?}"
+	__reguser_maxuid="${2:?}"
+	__reguser_mingid="${3:?}"
+	__reguser_maxgid="${4:?}"
+	__reguser_pipe="${TMPDIR:-/tmp}/uids-$$.fifo"
+	__reguser_retval=0
+	__reguser_user=
+
+	mkfifo -m 700 "$__reguser_pipe"
+	uids >"$__reguser_pipe" & __reguser_uids=$!
+
+	while read -r __reguser_uid __reguser_logname
+	do
+		case $__reguser_logname in (_*|*[!A-Za-z0-9_]*)
 			continue
 		esac
 
-		[ "$uid" -lt "$minuid" ] && continue
-		[ "$uid" -gt "$maxuid" ] && continue
+		[ "$__reguser_uid" -le "$__reguser_minuid" ] && continue
+		[ "$__reguser_uid" -ge "$__reguser_maxuid" ] && continue
 
-		for gid in $(id -G "$user")
-		do
-			[ "$gid" -lt "$mingid" ] && continue 2
-			[ "$gid" -gt "$maxgid" ] && continue 2
-		done
+		__reguser_gids=$(id -G "$__reguser_logname")
 
-		reguser="$user"
+		inlist -lt "$__reguser_mingid" $__reguser_gids && continue
+		inlist -gt "$__reguser_maxgid" $__reguser_gids && continue
+
+		__reguser_user="$__reguser_logname"
 		break
-	done <"$pipe"
+	done <"$__reguser_pipe"
 
-	wait $uids || retval=$?
-	rm -f "$pipe"
-	[ "$retval" -eq 0 ] && [ "$reguser" ] || return 1
+	wait $__reguser_uids	|| __reguser_retval="$?"
+	rm -f "$__reguser_pipe"	|| __reguser_retval="$?"
 
-	printf '%s\n' "$reguser"
+	[ "$__reguser_retval" -eq 0 ] && [ "$__reguser_user" ] || return 1
+
+	printf '%s\n' "$__reguser_user"
 )
 
-# Move to the beginning of the previous line of terminal $fd.
+# Move to the beginning of the previous line of terminal $1.
 rewindln() (
-	fd="${1:-2}"
-	[ -t "$fd" ] && printf '\r\033[1A' >&"$fd"
+	__rewindln_fd="${1:-2}"
+	[ -t "$__rewindln_fd" ] && printf '\r\033[1A' >&"$__rewindln_fd"
 )
 
 # Create a directory with the filename $prefix-$$ in $dir,
@@ -183,16 +258,16 @@ tmpdir() {
 }
 
 # Print $* to stderr.
-# -n suppresses the terminating LF.
-# -q suppresses output if $quiet is set.
-# -v suppresses output unless $verbose is set.
+# -n  Suppress the terminating LF.
+# -q  Suppress output if $quiet is set.
+# -v  Suppress output unless $verbose is set.
 warn() (
-	lf=y
-	OPTIND=1 OPTARG='' opt=''
-	while getopts 'nqv' opt
+	__warn_lf=y
+	OPTIND=1 OPTARG='' __warn_opt=''
+	while getopts 'nqv' __warn_opt
 	do
-		case $opt in
-		(n) lf= ;;
+		case $__warn_opt in
+		(n) __warn_lf= ;;
 		(q) [ "${quiet-}" ] && return 0 ;;
 		(v) [ "${verbose-}" ] || return 0 ;;
 		(*) return 1
@@ -204,7 +279,7 @@ warn() (
 	printf '%s: ' "${prog_name:-$0}"
 	# shellcheck disable=SC2059
 	printf -- "$@"
-	if [ "$lf" ]
+	if [ "$__warn_lf" ]
 	then echo
 	fi
 )

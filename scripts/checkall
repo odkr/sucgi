@@ -36,12 +36,12 @@ args=
 #
 
 set -Cefu
-tools_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
-src_dir="$(dirname -- "$tools_dir")"
+scripts_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+src_dir="$(dirname -- "$scripts_dir")"
 # shellcheck disable=2034
-readonly tools_dir src_dir
+readonly scripts_dir src_dir
 # shellcheck disable=1091
-. "$tools_dir/funcs.sh" || exit
+. "$scripts_dir/funcs.sh" || exit
 init || exit
 
 
@@ -65,9 +65,6 @@ Options:
     -q  Be quieter.
     -v  Be verbose, but do not log runs.
     -h  Show this help screen.
-
-Must be called from a directory with a makefile.
-The makefile must provide the standard Autoconf targets.
 EOF
 	    ;;
 	(D) args="$args -D" ;;
@@ -87,11 +84,9 @@ unset opt
 # Main
 #
 
-cd -P "$src_dir/scripts" || exit
-
 # shellcheck disable=2086
-./checkcomps $args
+"$src_dir/scripts/checkcomps" $args
 # shellcheck disable=2086
-./checkmakes $args
+"$src_dir/scripts/checkmakes" $args
 # shellcheck disable=2086
-./checkshells $args
+"$src_dir/scripts/checkshells" $args

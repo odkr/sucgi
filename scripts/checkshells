@@ -40,12 +40,12 @@ verbose=
 #
 
 set -Ceu
-tools_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
-src_dir="$(dirname -- "$tools_dir")"
+scripts_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+src_dir="$(dirname -- "$scripts_dir")"
 # shellcheck disable=2034
-readonly tools_dir src_dir
+readonly scripts_dir src_dir
 # shellcheck disable=1091
-. "$tools_dir/funcs.sh" || exit
+. "$scripts_dir/funcs.sh" || exit
 init || exit
 cd "$src_dir" || exit
 tmpdir tmp .
@@ -62,11 +62,38 @@ readonly files='config.status makefile compat.h'
 cwd="$(pwd)" || exit
 readonly cwd
 
+# The user who should own logs.
+if [ "$(id -u)" -eq 0 ]
+then user="$(owner "$src_dir")"
+else user="$(id -un)"
+fi
+readonly user
+
+# The primary group of that user.
+group="$(id -gn "$user")"
+readonly group
+
+
+#
+# Functions
+#
+
+mylogged() {
+	: "${cwd:?}"
+	: "${user:?}"
+	: "${group:?}"
+	: "${1:?}"
+
+	case $1 in
+	(-*) logged -d"$cwd" -u"$user" -g"$group" "$@" ;;
+	(*)  logged -d"$cwd" -u"$user" -g"$group" -- "$@" ;;
+	esac
+}
+
 
 #
 # Options
 #
-
 
 OPTIND=1 OPTARG='' opt=''
 # shellcheck disable=2034
@@ -127,12 +154,12 @@ fi
 warn -q 'copying sources ...'
 m4 makefile.m4 >"$TMPDIR/makefile"
 distdir="$TMPDIR/dist"
-make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir" >/dev/null
+mylogged make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir"
 cd "$distdir" || exit
 
 warn -q 'compiling binaries ...'
-./configure -qc'posix.env' >/dev/null
-make all tools checks >/dev/null 2>&1
+CFLAGS=-O1 mylogged ./configure
+mylogged make all tools checks
 
 failures=
 for shell
@@ -141,51 +168,35 @@ do
 
 	warn 'checking %s ... ' "$shell"
 
-	logfile="$TMPDIR/check$shell.log"
-	if ! (
-		set -e
+	# shellcheck disable=2086
+	rm -- $files
 
-		[ "$verbose" ] || exec >"$logfile" 2>&1
+	CFLAGS=-O1 mylogged "$shell" ./configure
 
-		# shellcheck disable=2086
-		rm -- $files
-
-		"$shell" ./configure -c'posix.env'
-
-		for file in $files
-		do
-			if ! [ -e "$file" ]
-			then
-				err '%s ./configure did not generate %s' \
-				    "$shell" "$file"
-			fi
-		done
-
-		for script in tests/*.sh
-		do
-			[ "$script" = 'tests/*.sh' ] && break
-			[ "$script" = 'tests/funcs.sh' ] && continue
-
-			retval=0
-			"$shell" "$script" || retval=$?
-			case $retval in
-			(0|75) : ;;
-			(*) exit "$retval"
-			esac
-		done
-	)
-	then
-		if ! [ "$verbose" ]
+	for file in $files
+	do
+		if ! [ -e "$file" ]
 		then
-			warn '%s failed.' "$shell"
-			warn 'see %s for details.' "$(basename "$logfile")"
-			[ -e "$logfile" ] && mv -f "$logfile" "$cwd"
+			warn '%s ./configure: did not generate %s.' \
+			     "$shell" "$file"
+			failures="$failures$shell ./configure, "
 		fi
-		failures="$failures $shell"
-	fi
+	done
+
+	for script in tests/*.sh
+	do
+		[ "$script" = 'tests/*.sh' ] && break
+		[ "$script" = 'tests/funcs.sh' ] && continue
+
+		retval=0
+		mylogged -i75 -l"$shell-$(basename "$script").log" -- \
+		         "$shell" "$script" || retval=$?
+		inlist -eq "$retval" 0 75 ||
+		failures="$failures$shell $script, "
+	done
 done
 
 if [ "$failures" ]
-then err -s70 'failures: %s' "${failures# }"
+then err -s70 'failures: %s' "${failures%, }"
 else warn -q 'all shells passed.'
 fi

@@ -52,11 +52,14 @@ nskipped=0
 # Functions
 #
 
-# Starting with, but excluding, $dirname run $dircmd for every path segment
-# of $fname. If $fcmd is given, run $dircmd for every path segment up to,
-# but excluding $fname, and run $fcmd for $fname.
+# Starting with, but excluding, $1, run $3 for every path segment of $2.
+# If $4 is given, run $3 for every path segment up to, but excluding $2,
+# and run $4 for $2.
 dirwalk() (
-	dirname="${1:?}" fname="${2:?}" dircmd="${3:?}" fcmd="${4:-"$3"}"
+	dirname="${1:?}"
+	fname="${2:?}"
+	__dirwalk_dircmd="${3:?}"
+	__dirwalk_fcmd="${4:-"$3"}"
 
 	IFS=/
 	# shellcheck disable=2086
@@ -72,11 +75,11 @@ dirwalk() (
 
 		case $# in
 		(0)
-			eval "$fcmd"
+			eval "$__dirwalk_fcmd"
 			return
 			;;
 		(*)
-			eval "$dircmd"
+			eval "$__dirwalk_dircmd"
 			dirname="${dirname%/}/$fname"
 			cd "$fname" || return
 			;;
@@ -84,46 +87,57 @@ dirwalk() (
 	done
 )
 
-# Create a path that is $len characters long in $basepath.
-mklongpath() (
-	basepath="${1:?}" len="${2:?}" max=99999
-	namemax="$(getconf NAME_MAX "$basepath" 2>/dev/null)" || namemax=14
-	dirs=$((len / namemax + 1))
-	dirlen=$((len / dirs))
+# Create a filename, not a file, in $1 that is $2 characters long.
+mkfname() (
+	__mkfname_base="${1:?}"
+	__mkfname_len="${2:?}"
+	__mkfname_max=99999
+	__mkfname_namemax="$(
+		getconf NAME_MAX "$__mkfname_base" 2>/dev/null
+	)" || __mkfname_namemax=14
 
-	dir="$basepath" target=$((len - dirlen - 1))
-	while [ ${#dir} -le $target ]
+	__mkfname_dirs=$((__mkfname_len / __mkfname_namemax + 1))
+	__mkfname_dirlen=$((__mkfname_len / __mkfname_dirs))
+
+	__mkfname_dir="$__mkfname_base"
+	__mkfname_targetlen=$((__mkfname_len - __mkfname_dirlen - 1))
+	while [ "${#__mkfname_dir}" -le "$__mkfname_targetlen" ]
 	do
-		i=0
-		while [ $i -lt "$max" ]
+		__mkfname_i=0
+		while [ "$__mkfname_i" -lt "$__mkfname_max" ]
 		do
-			seg="$(pad "$dirlen" "$i")"
-			if ! [ -e "$dir/$seg" ]
+			__mkfname_seg="$(
+				pad "$__mkfname_dirlen" "$__mkfname_i"
+			)"
+			if ! [ -e "$__mkfname_dir/$__mkfname_seg" ]
 			then
-				dir="$dir/$seg"
+				__mkfname_dir="$__mkfname_dir/$__mkfname_seg"
 				continue 2
 			fi
-			i=$((i + 1))
+			__mkfname_i=$((__mkfname_i + 1))
 		done
 	done
 
-	i=0 fname=
-	while [ $i -lt "$max" ]
+	__mkfname_i=0 __mkfname_fname=
+	while [ "$__mkfname_i" -lt "$__mkfname_max" ]
 	do
-		seg="$(pad "$((len - ${#dir} - 1))" "$i")"
-		if ! [ -e "$dir/$seg" ]
+		__mkfname_seg="$(
+			pad "$((__mkfname_len - ${#__mkfname_dir} - 1))" \
+			    "$__mkfname_i"
+		)"
+		if ! [ -e "$__mkfname_dir/$__mkfname_seg" ]
 		then
-			fname="$dir/$seg"
+			__mkfname_fname="$__mkfname_dir/$__mkfname_seg"
 			break
 		fi
-		i=$((i + 1))
+		__mkfname_i=$((__mkfname_i + 1))
 	done
 
 	# This should be guaranteed, but who knows?
-	[ "${#fname}" -eq "$len" ] ||
-		err 'failed to generate long filename.'
+	[ "${#__mkfname_fname}" -eq "$__mkfname_len" ] ||
+		err 'failed to generate filename.'
 
-	printf '%s\n' "$fname"
+	printf '%s\n' "$__mkfname_fname"
 )
 
 # Take filenames and print non-canonical mutations of those filenames.
@@ -135,63 +149,66 @@ mutatefnames() {
 	sed -n 'p; s/\//\/\//p'
 }
 
-# Pad $str with $fill on $side up to length $n.
+# Pad $2 with $3 on side $4 up to length $1.
 pad() (
-	n="${1:?}" str="${2-}" fill="${3:-x}" side="${4:-l}"
+	__pad_n="${1:?}"
+	__pad_str="${2-}"
+	__pad_fill="${3:-x}"
+	__pad_side="${4:-l}"
 
-	strlen="${#str}" fillen="${#fill}"
-	limit="$((n - fillen))" pad=
-	while [ "$strlen" -le "$limit" ]
-	do pad="$pad$fill" strlen=$((strlen + fillen))
+	__pad_strlen="${#__pad_str}"
+	__pad_fillen="${#__pad_fill}"
+	__pad_limit="$((__pad_n - __pad_fillen))"
+	__pad_padding=
+	while [ "$__pad_strlen" -le "$__pad_limit" ]
+	do
+		__pad_padding="$__pad_padding$__pad_fill"
+		__pad_strlen=$((__pad_strlen + __pad_fillen))
 	done
 
-	case $side in
-	(l) printf '%s%s\n' "$pad" "$str" ;;
-	(r) printf '%s%s\n' "$str" "$pad" ;;
+	case $__pad_side in
+	(l) printf '%s%s\n' "$__pad_padding" "$__pad_str" ;;
+	(r) printf '%s%s\n' "$__pad_str" "$__pad_padding" ;;
 	esac
 )
 
-# Delete every segment of $path up to $stop. Should ignore PATH_MAX.
+# Delete every segment of $1 up to $2, regardless of PATH_MAX.
 # shellcheck disable=2317
 rmtree() (
-	path="${1:?}" stop="${2:?}"
+	__rmtree_path="${1:?}" __rmtree_stop="${2:?}"
 
 	while true
 	do
-		case $path in
-		($stop/*)	: ;;
-		(*)		break ;;
+		case $__rmtree_path in
+		($__rmtree_stop/*) : ;;
+		(*)                break ;;
 		esac
 
-		dirwalk "$stop" "$path" : 'rm -rf "$fname"'
+		dirwalk "$__rmtree_stop" "$__rmtree_path" : 'rm -rf "$fname"'
 
-		path="$(dirname "$path")"
+		__rmtree_path="$(dirname "$__rmtree_path")"
 	done
 )
 
-# Find an unallocated user ID in a given range.
+# Find an unallocated user ID in the range $1 to $2.
 unallocuid() (
-	start="${1:?}" end="${2:?}"
+	__unallocuid_start="${1:?}"
+	__unallocuid_end="${2:?}"
 
-	pipe="${TMPDIR:-/tmp}/uids-$$.fifo" retval=0
-	mkfifo -m 0700 "$pipe"
-	uids >"$pipe" 2>/dev/null & pid=$!
-	# shellcheck disable=2086
-	uids="$(cut -d' ' -f1 <"$pipe")" || retval=$?
-	rm -f "$pipe"
-
-	[ "$retval" -eq 0 ] || return $retval
-	wait "$pid" || [ $? -eq 67 ]
-
-	i="$start"
-	while [ "$i" -le "$end" ]
+	__unallocuid_uids="$(uids | awk '{print $1}')"
+	__unallocuid_uid="$__unallocuid_start"
+	while [ "$__unallocuid_uid" -le "$__unallocuid_end" ]
 	do
 		# shellcheck disable=2086
-		inlist -eq "$i" $uids || break
-		i=$((i + 1))
-	done
+		if ! inlist -eq "$__unallocuid_uid" $__unallocuid_uids
+		then
+			printf '%d\n' "$__unallocuid_uid"
+			return 0
+		fi
 
-	printf '%d\n' "$i"
+		__unallocuid_uid=$((__unallocuid_uid + 1))
+	done
+	return 1
 )
 
 # Wait for the given processes and return 0 iff all of them returned 0.
@@ -202,6 +219,7 @@ waitn() {
 	done
 	return $__waitn_ret
 }
+
 
 #
 # Build configuration
@@ -345,13 +363,13 @@ unset opthdl_args opthdl_var pids
 scrsan_varname='PATH_TRANSLATED='
 scrsan_maxlen="$((MAX_VAR_LEN - ${#scrsan_varname}))"
 [ "$scrsan_maxlen" -gt "$MAX_FNAME_LEN" ] && scrsan_maxlen="$MAX_FNAME_LEN"
-scrsan_longpath="$(mklongpath "$TMPDIR" "$((scrsan_maxlen - 1))")"
+scrsan_longpath="$(mkfname "$TMPDIR" "$((scrsan_maxlen - 1))")"
 mkdir -p "$(dirname -- "$scrsan_longpath")"
 touch "$scrsan_longpath"
 unset scrsan_varname scrsan_maxlen
 
 # Create a path that is longer than suCGI permits.
-scrsan_hugepath="$(mklongpath "$TMPDIR" "$MAX_FNAME_LEN")"
+scrsan_hugepath="$(mkfname "$TMPDIR" "$MAX_FNAME_LEN")"
 readonly scrsan_hugepath
 catch=
 dirwalk "$TMPDIR" "$scrsan_hugepath" 'mkdir "$fname"' 'touch "$fname"'
