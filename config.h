@@ -53,33 +53,33 @@
  *     '%s' carries no special meaning.
  *     printf's escaping rules do not apply.
  */
-#define USER_DIR "public_html"
+/* #define USER_DIR "public_html" */
 
 /*
  * Lowest user ID that may be assigned to a regular user. Integer.
  * On most systems, this will be 500 or 1,000.
  */
-#define MIN_UID 1000
+/* #define MIN_UID 1000 */
 
 /*
  * Highest user ID that may be assigned to a regular user. Integer.
  * On most systems, this will be 30,000 or 60,000.
  */
-#define MAX_UID 30000
+/* #define MAX_UID 30000 */
 
 /*
  * ID of the group with the lowest ID a regular user may be a member of.
  * Integer. Applies to primary and secondary groups.
  * On most systems, this will be 500 or 1,000.
  */
-#define MIN_GID 1000
+/* #define MIN_GID 1000 */
 
 /*
  * ID of the group with the highest ID a regular user may be a member of.
  * Integer. Applies to primary and secondary groups.
  * On most systems, this will be 30,000 or 60,000.
  */
-#define MAX_GID 30000
+/* #define MAX_GID 30000 */
 
 /*
  * Group the members of which may run CGI scripts. Group name.
@@ -88,7 +88,7 @@
  * Set to the empty string in order to NOT restrict the execution of
  * CGI scripts to members of any particular group.
  */
-#define ALLOW_GROUP ""
+/* #define ALLOW_GROUP "" */
 
 /*
  * Groups the members of which to deny outright.
@@ -98,6 +98,7 @@
  * matches any of the given patterns. Set to an array that only contains
  * the empty string to NOT deny members of any group outright.
  */
+/*
 #define DENY_GROUPS {                               \
     "root",                                         \
     "*admin",                                       \
@@ -108,6 +109,7 @@
     "wheel",                                        \
     "_*"                                            \
 }
+*/
 
 /*
  * Environment variables to keep. Array of extended regular expressions.
@@ -139,6 +141,7 @@
  *
  * There should be no need to adapt this list.
  */
+/*
 #define ENV_PATTERNS {                              \
     "^AUTH_TYPE$",                                  \
     "^CONTENT_LENGTH$",                             \
@@ -257,50 +260,60 @@
     "^TIME$",                                       \
     "^TZ$"                                          \
 }
+*/
 
 /*
- * Handlers to run CGI scripts with if their executable bit is unset.
+ * Handlers to run CGI scripts with.
  * Array of filename suffix-handler pairs.
  *
  * The filename suffix must be given including the leading dot (e.g., ".php").
  * The handler is looked up in $PATH if its name is relative (e.g., "php").
  * Keep in mind that $PATH is set to PATH (see below).
+ *
+ * If no handler can be found, CGI scripts are executed directly.
  */
+/*
 #define HANDLERS {                                  \
     {".php", "php"},                                \
 }
+*/
 
 /*
  * Secure $PATH. Colon-separated list of directories.
  */
+/*
 #define PATH "/usr/bin:/bin"
+ */
 
 /*
  * Secure file permission mask. Unsigned integer.
  */
+/*
 #define UMASK (S_ISUID | S_ISGID | S_ISVTX | S_IRWXG | S_IRWXO)
+ */
 
 /*
  * Facility to log to. syslog constant.
  * See syslog(3) for details.
  */
+/*
 #define LOGGING_FACILITY LOG_AUTH
+ */
 
 /*
  * Priorities to log.
  * See syslog(3) for details.
  */
+/*
 #define LOGGING_MASK LOG_UPTO(LOG_ERR)
+ */
 
 /*
  * Syslog options.
  * See syslog(3) for details.
  */
-#if defined(LOG_PERROR)
+/*
 #define LOGGING_OPTIONS (LOG_CONS | LOG_PERROR)
-#else
-#define LOGGING_OPTIONS LOG_CONS
-#endif
-
+ */
 
 #endif /* !defined(CONFIG_H) */
