@@ -119,7 +119,7 @@
 #error MAX_GID is greater than MAXGID.
 #endif
 
-#if defined(NOGROUP) && MAX_GID >= NOGROUP
+#if defined(NOGROUP) && NOGROUP > -1 && MAX_GID >= NOGROUP
 #error MAX_GID is greater than or equal to NOGROUP.
 #endif
 
