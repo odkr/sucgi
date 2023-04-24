@@ -89,7 +89,7 @@ libsucgi.a(handler.o): handler.c handler.h libsucgi.a(pair.o path.o)
 
 libsucgi.a(str.o): str.c str.h
 
-libsucgi.a(userdir.o): userdir.c userdir.h
+libsucgi.a(userdir.o): userdir.c userdir.h libsucgi.a(str.o)
 
 libsucgi.a($(objs)): $(hdrs)
 
@@ -136,7 +136,7 @@ uninstall:
 # Tests
 #
 
-check_objs = tests/check.o tests/priv.o
+check_objs = tests/check.o tests/priv.o tests/str.o
 
 check_libs = tests/libcheck.a $(libs)
 
@@ -145,16 +145,16 @@ macro_check_bins = tests/ISSIGNED tests/NELEMS tests/SIGNEDMAX
 other_check_bins = tests/envcopyvar tests/envisname tests/envrestore \
 	tests/error tests/handlerfind tests/pairfind tests/pathchkloc \
 	tests/pathreal tests/pathsuffix tests/privdrop tests/privsuspend \
-	tests/copystr tests/splitstr tests/userdirexp
+	tests/copystr tests/getspecstrs tests/splitstr tests/userdirexp
 
 check_bins = $(macro_check_bins) $(other_check_bins)
 
 check_scripts = tests/main.sh tests/error.sh
 
 checks = $(check_scripts) $(macro_check_bins) tests/envcopyvar \
-	tests/envisname tests/envrestore tests/handlerfind \
-	tests/pairfind tests/pathchkloc tests/pathsuffix tests/privdrop \
-	tests/privsuspend tests/copystr tests/splitstr tests/userdirexp
+	tests/envisname tests/envrestore tests/handlerfind tests/pairfind \
+	tests/pathchkloc tests/pathsuffix tests/privdrop tests/privsuspend \
+	tests/copystr tests/getspecstrs tests/splitstr tests/userdirexp
 
 tool_bins = tools/badenv tools/badexec tools/uids tools/runpara tools/runas
 
@@ -165,6 +165,8 @@ runpara_flags = -ci75 -j8
 tests/libcheck.a(tests/check.o): tests/check.c tests/check.h
 
 tests/libcheck.a(tests/priv.o): tests/priv.c tests/priv.h
+
+tests/libcheck.a(tests/str.o): tests/str.c tests/str.h
 
 tests/libcheck.a: tests/libcheck.a($(check_objs))
 
@@ -183,6 +185,8 @@ tests/SIGNEDMAX: tests/SIGNEDMAX.c
 tests/envisname: tests/envisname.c libsucgi.a(env.o)
 
 tests/envrestore: tests/envrestore.c defaults.h libsucgi.a(env.o)
+
+tests/envrestore: libcheck.a(str.o)
 
 tests/envcopyvar: tests/envcopyvar.c libsucgi.a(env.o)
 
@@ -207,6 +211,8 @@ tests/privsuspend: tests/privsuspend.c libsucgi.a(priv.o)
 tests/privdrop tests/privsuspend: tests/libcheck.a(tests/priv.o)
 
 tests/copystr: tests/copystr.c libsucgi.a(str.o)
+
+tests/getspecstrs: tests/getspecstrs.c libsucgi.a(str.o)
 
 tests/splitstr: tests/splitstr.c libsucgi.a(str.o)
 

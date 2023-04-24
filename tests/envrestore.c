@@ -39,6 +39,7 @@
 #include "../macros.h"
 #include "../str.h"
 #include "check.h"
+#include "str.h"
 
 
 /*
@@ -403,37 +404,11 @@ __attribute__((nonnull(1, 2)))
 static void report(const char *message, const Args *args,
                    Error retval, int signo);
 
-
 /*
  * Check whether the environment equals VARS.
  */
 __attribute__((nonnull(1), warn_unused_result))
 static bool cmpenv(const char *const vars[MAX_TEST_NVARS]);
-
-/*
- * Concatenate the strings pointed to by DEST and SRC, append a NUL, and
- * return a pointer to the terminating NUL in END, but do not write past
- * LIM, which should be DEST + sizeof(DEST).
- *
- * If NDEBUG is defined, no error checking takes place.
- * Otherwise, aborts if appending SRC to DEST would require to write past LIM.
- */
-__attribute__((nonnull(1, 2, 3, 4)))
-static void catstrs(char *dest, const char *const src,
-                    const char *const lim, char **end);
-
-/*
- * Join the first N strings in STRS using the separator SEP and store the
- * result in DEST, which must be large enough to hold SIZE bytes. If STRS
- * contains a NULL pointer, processing stops at that pointer. STRS must
- * either be NULL-terminated or have at least N elements.
- *
- * If NDEBUG is defined, no error checking takes place.
- * Aborts if SIZE is too small to hold the result otherwise.
- */
-__attribute__((nonnull(2, 3, 5)))
-static void joinstrs(size_t nstrs, const char *const *strs,
-                     const char *sep, size_t size, char *dest);
 
 /*
  * Return the index of KEY within ARR or -1 if KEY cannot be found.
@@ -496,44 +471,6 @@ cmpenv(const char *const vars[MAX_TEST_NVARS])
     }
 
     return true;
-}
-
-static void
-catstrs(char *const dest, const char *const src,
-        const char *const lim, char **const end)
-{
-    assert(dest != NULL);
-    assert(src != NULL);
-    assert(lim != NULL);
-    assert(lim > dest);
-    assert(end != NULL);
-
-    *end = stpncpy(dest, src, (size_t) (lim - dest));
-    assert(src[*end - dest] == '\0');
-}
-
-static void
-joinstrs(const size_t nstrs, const char *const *const strs,
-         const char *const sep, const size_t size, char *const dest)
-{
-    char *ptr;
-    char *lim;
-
-    assert(strs != NULL);
-    assert(sep != NULL);
-    assert(dest != NULL);
-
-    ptr = dest;
-    lim = dest + size - 1U;
-
-    (void) memset(dest, '\0', size);
-    for (size_t i = 0U; i < nstrs && strs[i]; ++i) {
-        if (i > 0U) {
-            catstrs(ptr, sep, lim, &ptr);
-        }
-
-        catstrs(ptr, strs[i], lim, &ptr);
-    }
 }
 
 static int

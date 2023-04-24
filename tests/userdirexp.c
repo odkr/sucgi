@@ -107,25 +107,42 @@ static const Args cases[] = {
     /* Long filename. */
     {xlongfname, &user, NULL, ERR_LEN, 0},
 
+    /* Illegal formats. */
+    {"/%/truncated", &user, NULL, ERR_BAD, 0},
+    {"/%d/notastring", &user, NULL, ERR_BAD, 0},
+    {"/%ö/notaflag", &user, NULL, ERR_BAD, 0},
+    {"/%04s/legal, but forbidden", &user, NULL, ERR_BAD, 0},
+    {"/%1$s/legal, but forbidden", &user, NULL, ERR_BAD, 0},
+    {"/too/%s/many/%s/specs", &user, NULL, ERR_BAD, 0},
+
     /* Simple tests. */
     {"public_html", &user, "/home/jdoe/public_html", OK, 0},
     {"/srv/www", &user, "/srv/www/jdoe", OK, 0},
     {"/srv/www/%s/html", &user, "/srv/www/jdoe/html", OK, 0},
+    {"/srv/www/%%s/%s/html", &user, "/srv/www/%s/jdoe/html", OK, 0},
 
     /* Spaces. */
     {"Web docs", &user, "/home/jdoe/Web docs", OK, 0},
     {"/Server files/Web docs", &user, "/Server files/Web docs/jdoe", OK, 0},
     {"/User files/%s/Web docs", &user, "/User files/jdoe/Web docs", OK, 0},
+    {"/User files/%s/%%s/Web docs", &user, "/User files/jdoe/%s/Web docs", OK, 0},
 
     /* UTF-8. */
     {"ⓟů𝕓ḹḭⓒ﹏𝒽𝚝ṃḹ", &user, "/home/jdoe/ⓟů𝕓ḹḭⓒ﹏𝒽𝚝ṃḹ", OK, 0},
     {"/𝘴ȑṽ/𝙬𝙬𝙬", &user, "/𝘴ȑṽ/𝙬𝙬𝙬/jdoe", OK, 0},
     {"/𝘴ȑṽ/𝙬𝙬𝙬/%s/𝒽𝚝ṃḹ", &user, "/𝘴ȑṽ/𝙬𝙬𝙬/jdoe/𝒽𝚝ṃḹ", OK, 0},
+    {"/𝘴ȑṽ/𝙬𝙬𝙬/%%s/%s/𝒽𝚝ṃḹ", &user, "/𝘴ȑṽ/𝙬𝙬𝙬/%s/jdoe/𝒽𝚝ṃḹ", OK, 0},
+    {"/%/𝓉𝐫ṷ𝖓𝓬⒜𝓉ḕⅆ", &user, NULL, ERR_BAD, 0},
+    {"/%d/𝖓º𝓉⒜𝖘𝓉𝐫ĩ𝖓𝘨", &user, NULL, ERR_BAD, 0},
+    {"/%ö/𝖓º𝓉⒜ⓕℓ⒜𝘨", &user, NULL, ERR_BAD, 0},
+    {"/%04s/ℓḕ𝘨⒜ℓ, ḇṷ𝓉 ⓕº𝐫ḇĩⓓⓓḕ𝖓", &user, NULL, ERR_BAD, 0},
+    {"/%1$s/ℓḕ𝘨⒜ℓ, ḇṷ𝓉 ⓕº𝐫ḇĩⓓⓓḕ𝖓", &user, NULL, ERR_BAD, 0},
+    {"/𝓉ºº/%s/m⒜𝖓⒴/%s/spḕ𝓬𝖘", &user, NULL, ERR_BAD, 0},
 
     /* Long filenames. */
     {longrelfname, &user, NULL, ERR_LEN, 0},
     {longabsname, &user, NULL, ERR_LEN, 0},
-    {longpattern, &user, NULL, ERR_LEN, 0},
+    {longpattern, &user, NULL, ERR_LEN, 0}
 };
 
 

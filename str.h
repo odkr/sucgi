@@ -41,6 +41,20 @@ __attribute__((nonnull(2, 3)))
 Error copystr(size_t nbytes, const char *src, char *dest);
 
 /*
+ * Search STR for printf format specifiers and return the total number
+ * of specifiers in NSPECS and pointers to the character after the '%'
+ * sign of each specifier in SPECS, which must be large enough to hold
+ * MAXNSPECS elements.
+ *
+ * Return value:
+ *      OK       Success.
+ *      ERR_LEN  STR contains more than MAXNSPECS format specifiers.
+ */
+__attribute__((nonnull(1, 3, 4), warn_unused_result))
+Error getspecstrs(const char *str, size_t maxnspecs,
+                  size_t *nspecs, const char **specs);
+
+/*
  * Split STR at the first occurence of any byte in SEP, copy the substring
  * up to, but not including, that byte, to HEAD, terminate it with NUL, and
  * return a pointer to the substring that starts after that byte in TAIL.

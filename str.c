@@ -26,6 +26,7 @@
 #endif
 
 #include <assert.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -56,6 +57,42 @@ copystr(const size_t nbytes, const char *const src, char *const dest)
     }
 
     return OK;
+}
+
+Error
+getspecstrs(const char *const str, const size_t maxnspecs,
+            size_t *const nspecs, const char **const specs)
+{
+    const char *ptr = str;
+
+    assert(str != NULL);
+    assert(strnlen(str, MAX_STR_LEN) < MAX_STR_LEN);
+    assert(nspecs != NULL);
+    assert(specs != NULL);
+
+    *nspecs = 0;
+    while (true) {
+        size_t nchars;
+
+        ptr = strchr(ptr, '%');
+        if (ptr == NULL) {
+            return OK;
+        }
+
+        nchars = strspn(ptr, "%");
+        ptr += nchars;
+
+        if (nchars % 2 == 0) {
+            continue;
+        }
+
+        if (*nspecs >= maxnspecs) {
+            return ERR_LEN;
+        }
+
+        specs[*nspecs] = ptr;
+        ++*nspecs;
+    }
 }
 
 Error
