@@ -115,12 +115,12 @@
 #error MAX_GID is greater than (INT_MAX - 1).
 #endif
 
-#if defined(NOGROUP) && MAX_GID >= NOGROUP
-#error MAX_GID is greater than or equal to NOGROUP.
-#endif
-
 #if defined(MAXGID) && MAX_GID > MAX_GID
 #error MAX_GID is greater than MAXGID.
+#endif
+
+#if defined(NOGROUP) && MAX_GID >= NOGROUP
+#error MAX_GID is greater than or equal to NOGROUP.
 #endif
 
 
