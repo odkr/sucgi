@@ -277,7 +277,7 @@
  * See syslog(3) for details.
  */
 /*
-#define LOGGING_FACILITY LOG_AUTH
+#define SYSLOG_FACILITY LOG_AUTH
  */
 
 
@@ -286,7 +286,7 @@
  * See syslog(3) for details.
  */
 /*
-#define LOGGING_MASK LOG_UPTO(LOG_ERR)
+#define SYSLOG_MASK LOG_UPTO(LOG_ERR)
  */
 
 
@@ -295,7 +295,7 @@
  * See syslog(3) for details.
  */
 /*
-#define LOGGING_OPTIONS (LOG_CONS | LOG_PERROR)
+#define SYSLOG_OPTS (LOG_CONS | LOG_PERROR)
  */
 
 #endif /* !defined(CONFIG_H) */

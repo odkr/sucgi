@@ -149,9 +149,9 @@ config(void)
     }
     (void) printf("\"\n");
 
-    (void) printf("LOGGING_FACILITY=%d\n", LOGGING_FACILITY);
-    (void) printf("LOGGING_MASK=%d\n", LOGGING_MASK);
-    (void) printf("LOGGING_OPTIONS=%d\n", LOGGING_OPTIONS);
+    (void) printf("SYSLOG_FACILITY=%d\n", SYSLOG_FACILITY);
+    (void) printf("SYSLOG_MASK=%d\n", SYSLOG_MASK);
+    (void) printf("SYSLOG_OPTS=%d\n", SYSLOG_OPTS);
 
     (void) printf("PATH=\"%s\"\n", PATH);
     (void) printf("UMASK=0%o\n", (unsigned) UMASK);
@@ -284,13 +284,13 @@ main(int argc, char **argv) {
      * Set up logging.
      */
 
-    openlog("sucgi", LOGGING_OPTIONS, LOGGING_FACILITY);
+    openlog("sucgi", SYSLOG_OPTS, SYSLOG_FACILITY);
     errno = 0;
     if (atexit(closelog) != 0) {
         error("atexit: %m");
     }
 
-    (void) setlogmask(LOGGING_MASK);
+    (void) setlogmask(SYSLOG_MASK);
 
 
     /*

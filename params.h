@@ -268,24 +268,23 @@
 
 
 /* Facility to log to. */
-#if !defined(LOGGING_FACILITY)
-#define LOGGING_FACILITY LOG_AUTH
+#if !defined(SYSLOG_FACILITY)
+#define SYSLOG_FACILITY LOG_AUTH
 #endif
 
-
 /* Priorities to log. */
-#if !defined(LOGGING_MASK)
-#define LOGGING_MASK LOG_UPTO(LOG_ERR)
+#if !defined(SYSLOG_MASK)
+#define SYSLOG_MASK LOG_UPTO(LOG_ERR)
 #endif
 
 /* Syslog options. */
-#if !defined(LOGGING_OPTIONS)
+#if !defined(SYSLOG_OPTS)
 #if defined(LOG_PERROR)
-#define LOGGING_OPTIONS (LOG_CONS | LOG_PERROR)
+#define SYSLOG_OPTS (LOG_CONS | LOG_PERROR)
 #else
-#define LOGGING_OPTIONS LOG_CONS
+#define SYSLOG_OPTS LOG_CONS
 #endif
-#endif /* !defined(LOGGING_OPTIONS) */
+#endif /* !defined(SYSLOG_OPTS) */
 
 
 #endif /* !defined(PARAMS_H) */

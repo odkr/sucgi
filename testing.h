@@ -156,15 +156,19 @@
 #undef HANDLERS
 #define HANDLERS {{".sh", "sh"}, {".empty", ""}}
 
-#undef LOGGING_MASK
-#define LOGGING_MASK LOG_UPTO(LOG_DEBUG)
+#undef SYSLOG_FACILITY
+#define SYSLOG_FACILITY LOG_USER
 
-#undef LOGGING_OPTIONS
+#undef SYSLOG_MASK
+#define SYSLOG_MASK LOG_UPTO(LOG_DEBUG)
+
+#undef SYSLOG_OPTS
 #ifdef LOG_PERROR
-#define LOGGING_OPTIONS (LOG_CONS | LOG_PERROR)
+#define SYSLOG_OPTS (LOG_CONS | LOG_PERROR)
 #else
-#define LOGGING_OPTIONS LOG_CONS
+#define SYSLOG_OPTS LOG_CONS
 #endif
+
 
 #endif /* defined(CHECK) && CHECK */
 #endif /* !defined(TESTING_H) */
