@@ -72,7 +72,7 @@ userdirexp(const char *const str, const struct passwd *const user,
     if (*str != '/') {
         /* RATS: ignore; format is short and a literal. */
         nchars = snprintf(dir, MAX_FNAME_LEN, "%s/%s", user->pw_dir, str);
-    } else if (nspecs == 0) {
+    } else if (nspecs == 0U) {
         /* RATS: ignore; format is short and a literal. */
         nchars = snprintf(dir, MAX_FNAME_LEN, "%s/%s", str, user->pw_name);
     } else if (*spec == 's') {

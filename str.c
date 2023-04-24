@@ -80,9 +80,9 @@ getspecstrs(const char *const str, const size_t maxnspecs,
         }
 
         nchars = strspn(ptr, "%");
-        ptr += nchars;
+        ptr = &ptr[nchars];
 
-        if (nchars % 2 == 0) {
+        if (nchars % 2U == 0U) {
             continue;
         }
 
