@@ -569,6 +569,7 @@ main(int argc, char **argv) {
     case OK:
         break;
     case ERR_SYS:
+        /* Should only be reachable if setgroups runs out of memory. */
         error("privilege drop: %m.");
     default:
         /* Should be unreachable. */
