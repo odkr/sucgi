@@ -254,7 +254,7 @@ tests/mock.o:
 	$(CC) $(LDFLAGS) -c -o $@ -fpic $(CFLAGS) $< $(LDLIBS)
 
 tests/libmock.so:
-	$(CC) $(LDFLAGS) -shared -o $@ -fpic tests/mock.o $(LDLIBS)
+	$(CC) $(LDFLAGS) -shared -o $@ -fpic tests/mockstd.o $(LDLIBS)
 
 ')dnl
 $(macro_check_bins):
@@ -285,7 +285,8 @@ bins = sucgi tests/main $(check_bins) $(tool_bins)
 covclean: clean
 
 clean:
-	rm -f $(libs) tests/libcheck.a tests/libmock.so $(bins)
+	find . \( -name '*.a' -o -name '*.o' -o -name '*.so' \) -exec rm '{}' +
+	rm -f $(bins)
 
 
 #
