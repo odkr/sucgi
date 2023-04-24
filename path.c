@@ -134,7 +134,7 @@ pathsuffix(const char *const fname, const char **const suffix)
         return ERR_SUFFIX;
     }
 
-    if (*suffix == fname) {
+    if (*suffix <= fname) {
         return ERR_SUFFIX;
     }
 
