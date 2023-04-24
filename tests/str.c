@@ -86,7 +86,6 @@ joinstrs(const size_t nstrs, const char *const *const strs,
         if (i > 0U) {
             catstrs(ptr, sep, lim, &ptr);
         }
-
         catstrs(ptr, strs[i], lim, &ptr);
     }
 }
