@@ -29,9 +29,11 @@
 #include <limits.h>
 #include <syslog.h>
 
+#include "compat.h"
 #include "config.h"
 #include "testing.h"
 #include "pregs.h"
+
 
 /* User directory. String. */
 #if !defined(USER_DIR)
@@ -39,14 +41,24 @@
 #endif
 
 /* Lowest user ID that may be assigned to a regular user. */
-/* FIXME: Add Minix and Illumos. */
 #if !defined(MIN_UID)
-#if defined(__MACH__)
+#if defined(__illumos__) || defined(__sun) || defined(__minix)
+#define MIN_UID 100
+#elif defined(__MACH__)
 #define MIN_UID 500
 #else
 #define MIN_UID 1000
 #endif
 #endif
+
+#if MIN_UID < 1
+#error MIN_UID must be greater than 0.
+#endif
+
+#if defined(MINUID) && MIN_UID < MINUID
+#error MIN_UID must be greater than MINUID.
+#endif
+
 
 /* Highest user ID that may be assigned to a regular user. */
 #if !defined(MAX_UID)
@@ -57,31 +69,60 @@
 #endif
 #endif
 
+#if MAX_UID < MIN_UID
+#error MAX_UID is smaller than MIN_UID.
+#endif
+
+#if MAX_UID > (INT_MAX - 1)
+#error MAX_UID is greater than (INT_MAX - 1).
+#endif
+
+#if defined(MAXUID) && MAX_UID > MAXUID
+#error MAX_UID is greater than MAXUID.
+#endif
+
+
 /* ID of the group with the lowest ID a regular user may be a member of. */
 #if !defined(MIN_GID)
-#if defined(__MACH__)
+#if defined(__MACH__) || defined(__illumos__) || defined(__sun)
 #define MIN_GID 1
-#elif defined(__NetBSD__)
+#elif defined(__NetBSD__) || defined(__minix)
 #define MIN_GID 100
 #else
 #define MIN_GID MIN_UID
 #endif
 #endif
 
+#if MIN_GID < 1
+#error MIN_GID must be greater than 0.
+#endif
+
+#if defined(MINGID) && MIN_GID <= MINGID
+#error MIN_GID must be greater than MINGID.
+#endif
+
+
 /* ID of the group with the highest ID a regular user may be a member of. */
 #if !defined(MAX_GID)
 #define MAX_GID MAX_UID
 #endif
 
-/* Group the members of which may run CGI scripts. */
-#if !defined(ALLOW_GROUP)
-#define ALLOW_GROUP ""
+#if MAX_GID < MIN_GID
+#error MAX_GID is smaller than MIN_GID.
 #endif
 
-/* Groups the members of which to deny outright. */
-#if !defined(DENY_GROUPS)
-#define DENY_GROUPS {""}
+#if MAX_GID > (INT_MAX - 1)
+#error MAX_GID is greater than (INT_MAX - 1).
 #endif
+
+#if defined(NOGROUP) && MAX_GID >= NOGROUP
+#error MAX_GID is greater than or equal to NOGROUP.
+#endif
+
+#if defined(MAXGID) && MAX_GID > MAX_GID
+#error MAX_GID is greater than MAXGID.
+#endif
+
 
 /* Environment variables to keep. */
 #if !defined(ENV_PATTERNS)
@@ -205,6 +246,7 @@
 }
 #endif
 
+
 /* Handlers to run CGI scripts with. */
 #if !defined(HANDLERS)
 #define HANDLERS {                                  \
@@ -212,20 +254,24 @@
 }
 #endif
 
+
 /* Secure $PATH. */
 #if !defined(PATH)
 #define PATH "/usr/bin:/bin"
 #endif
+
 
 /* Secure file permission mask. */
 #if !defined(UMASK)
 #define UMASK (S_ISUID | S_ISGID | S_ISVTX | S_IRWXG | S_IRWXO)
 #endif
 
+
 /* Facility to log to. */
 #if !defined(LOGGING_FACILITY)
 #define LOGGING_FACILITY LOG_AUTH
 #endif
+
 
 /* Priorities to log. */
 #if !defined(LOGGING_MASK)
@@ -239,6 +285,7 @@
 #else
 #define LOGGING_OPTIONS LOG_CONS
 #endif
-#endif
+#endif /* !defined(LOGGING_OPTIONS) */
+
 
 #endif /* !defined(DEFAULTS_H) */

@@ -37,12 +37,13 @@
  * This constant mirrors Apache's UserDir directive, save for that a '%s'
  * printf conversion specifier is used instead of an '*'. That is:
  *
- * (1) If USER_DIR is an absolute filename and contains a '%s':
+ * (1) If USER_DIR is an absolute filename and contains '%s':
  *     '%s' is replaced with the user's login name.
  *     For example, '/srv/web/%s/html' -> '/srv/web/jdoe/html'.
- *     There must be at most one specifier. printf's escaping rules apply.
+ *     There must be at most one format specifier, and it must be '%s'.
+ *     printf's escaping rules apply.
  *
- * (2) If USER_DIR is an absolute filename but does *not* contain a '%s':
+ * (2) If USER_DIR is an absolute filename but does *not* contain '%s':
  *     '/' and the user's login name are appended to the filename.
  *     For example, "/srv/web" -> "/srv/web/jdoe".
  *     printf's escaping rules do not apply.
@@ -55,17 +56,20 @@
  */
 /* #define USER_DIR "public_html" */
 
+
 /*
  * Lowest user ID that may be assigned to a regular user. Integer.
  * On most systems, this will be 500 or 1,000.
  */
 /* #define MIN_UID 1000 */
 
+
 /*
  * Highest user ID that may be assigned to a regular user. Integer.
  * On most systems, this will be 30,000 or 60,000.
  */
 /* #define MAX_UID 30000 */
+
 
 /*
  * ID of the group with the lowest ID a regular user may be a member of.
@@ -74,6 +78,7 @@
  */
 /* #define MIN_GID 1000 */
 
+
 /*
  * ID of the group with the highest ID a regular user may be a member of.
  * Integer. Applies to primary and secondary groups.
@@ -81,35 +86,6 @@
  */
 /* #define MAX_GID 30000 */
 
-/*
- * Group the members of which may run CGI scripts. Group name.
- * Users who do not belong to this group are rejected.
- *
- * Set to the empty string in order to NOT restrict the execution of
- * CGI scripts to members of any particular group.
- */
-/* #define ALLOW_GROUP "" */
-
-/*
- * Groups the members of which to deny outright.
- * Array of shell wildcard patterns. See fnmatch(3) for the syntax.
- *
- * Users are rejected if they belong to a group the name of which
- * matches any of the given patterns. Set to an array that only contains
- * the empty string to NOT deny members of any group outright.
- */
-/*
-#define DENY_GROUPS {                               \
-    "root",                                         \
-    "*admin",                                       \
-    "*adm",                                         \
-    "daemon",                                       \
-    "nobody",                                       \
-    "nogroup",                                      \
-    "wheel",                                        \
-    "_*"                                            \
-}
-*/
 
 /*
  * Environment variables to keep. Array of extended regular expressions.
@@ -262,6 +238,7 @@
 }
 */
 
+
 /*
  * Handlers to run CGI scripts with.
  * Array of filename suffix-handler pairs.
@@ -278,6 +255,7 @@
 }
 */
 
+
 /*
  * Secure $PATH. Colon-separated list of directories.
  */
@@ -285,12 +263,14 @@
 #define PATH "/usr/bin:/bin"
  */
 
+
 /*
  * Secure file permission mask. Unsigned integer.
  */
 /*
 #define UMASK (S_ISUID | S_ISGID | S_ISVTX | S_IRWXG | S_IRWXO)
  */
+
 
 /*
  * Facility to log to. syslog constant.
@@ -300,6 +280,7 @@
 #define LOGGING_FACILITY LOG_AUTH
  */
 
+
 /*
  * Priorities to log.
  * See syslog(3) for details.
@@ -307,6 +288,7 @@
 /*
 #define LOGGING_MASK LOG_UPTO(LOG_ERR)
  */
+
 
 /*
  * Syslog options.

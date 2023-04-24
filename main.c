@@ -34,6 +34,7 @@
 #include <fcntl.h>
 #include <fnmatch.h>
 #include <limits.h>
+#include <inttypes.h>
 #include <grp.h>
 #include <pwd.h>
 #include <regex.h>
@@ -62,35 +63,6 @@
 
 
 /*
- * Configuration checks
- */
-
-#if MIN_UID <= 0
-#error MIN_UID must be greater than 0.
-#endif
-
-#if MAX_UID < MIN_UID
-#error MAX_UID is smaller than MIN_UID.
-#endif
-
-#if MAX_UID > (INT_MAX - 1)
-#error MAX_UID is greater than INT_MAX.
-#endif
-
-#if MIN_GID <= 0
-#error MIN_GID must be greater than 0.
-#endif
-
-#if MAX_GID < MIN_GID
-#error MAX_GID is smaller than MIN_GID.
-#endif
-
-#if MAX_GID > (INT_MAX - 1)
-#error MAX_GID is greater than INT_MAX.
-#endif
-
-
-/*
  * Constants
  */
 
@@ -107,11 +79,6 @@
    array of strings, double braces would be wrong, false positive.
    NOLINTNEXTLINE(bugprone-suspicious-missing-comma); literals intended. */
 static const char *const allowedvars[] = ENV_PATTERNS;
-
-/* Denied groups. */
-/* cppcheck-suppress misra-c2012-9.2;
-   array of strings, double braces would be wrong. */
-static const char *const deniedgrps[] = DENY_GROUPS;
 
 /* Script handlers. */
 static const Pair handlers[] = HANDLERS;
@@ -165,18 +132,6 @@ config(void)
     (void) printf("MIN_GID=%d\n", MIN_GID);
     (void) printf("MAX_GID=%d\n", MAX_GID);
 
-    (void) printf("ALLOW_GROUP=\"%s\"\n", ALLOW_GROUP);
-    (void) printf("DENY_GROUPS=\"");
-    for (size_t i = 0; i < NELEMS(deniedgrps); ++i) {
-        /* cppcheck-suppress knownConditionTrueFalse;
-           there could be more handlers. */
-        if (i > 0U) {
-            (void) printf(",");
-        }
-        (void) printf("%s", deniedgrps[i]);
-    }
-    (void) printf("\"\n");
-
     (void) printf("ENV_PATTERNS=\"\n");
     for (size_t i = 0; i < NELEMS(allowedvars); ++i) {
         (void) printf("\t%s\n", allowedvars[i]);
@@ -199,7 +154,7 @@ config(void)
     (void) printf("LOGGING_OPTIONS=%d\n", LOGGING_OPTIONS);
 
     (void) printf("PATH=\"%s\"\n", PATH);
-    (void) printf("UMASK=0%o\n", (unsigned int) UMASK);
+    (void) printf("UMASK=0%o\n", (unsigned) UMASK);
 
     (void) printf("\n\n#\n# Limits\n#\n\n");
 
@@ -296,8 +251,6 @@ main(int argc, char **argv) {
     ERRORIF(sizeof(USER_DIR) <= 1U);
     ERRORIF(sizeof(USER_DIR) >= (size_t) MAX_FNAME_LEN);
     ERRORIF(sizeof(PATH) >= (size_t) MAX_FNAME_LEN);
-    ERRORIF(sizeof(ALLOW_GROUP) < 1U);
-    ERRORIF(sizeof(ALLOW_GROUP) >= MAX_GRPNAME_LEN);
 
     /*
      * setreuid and setregid accept -1 as ID. So -1 is a valid, if weird, ID.
@@ -551,88 +504,39 @@ main(int argc, char **argv) {
     if (ngroups < 0) {
         /* Should be unreachable. */
         if (ISSIGNED(gid_t)) {
-            error("%s:%d: getgrouplist(%s, %lld, -> %p, -> %d [!])",
-                  __FILE__, __LINE__, logname, (long long) gid,
-                  groups, ngroups);
+            error("%s:%d: getgrouplist(%s, " PRId64 ", -> %p, -> %d [!])",
+                  __FILE__, __LINE__, logname, (int64_t) gid, groups, ngroups);
         } else {
-            error("%s:%d: getgrouplist(%s, %llu, -> %p, -> %d [!])",
-                  __FILE__, __LINE__, logname, (long long unsigned) gid,
-                  groups, ngroups);
+            error("%s:%d: getgrouplist(%s, " PRIu64 ", -> %p, -> %d [!])",
+                  __FILE__, __LINE__, logname, (uint64_t) gid, groups, ngroups);
         }
     }
 
     if (ngroups_max < ngroups) {
         /* RATS: ignore; message is short and a literal. */
-        syslog(LOG_NOTICE, "user %s: can only set %ld of %d groups.",
+        syslog(LOG_NOTICE, "user %s: can only join %ld of %d groups.",
                logname, ngroups_max, ngroups);
 
         /* ngroups_max must be <= INT_MAX if this point is reached. */
         ngroups = (int) ngroups_max;
     }
 
-    if (strncmp(ALLOW_GROUP, "", 1) != 0) {
-        const struct group *allowedgrp;
-        bool allowed;
-
-        errno = 0;
-        /* cppcheck-suppress getgrnamCalled; suCGI need not be async-safe. */
-        allowedgrp = getgrnam(ALLOW_GROUP);
-        if (allowedgrp == NULL) {
-            /* cppcheck-suppress misra-c2012-22.10; getgrnam may set errno. */
-            if (errno == 0) {
-                error("group %s: no such group.", ALLOW_GROUP);
-            } else {
-                error("getgrnam: %m.");
-            }
-        }
-
-        allowed = false;
-        for (int i = 0; i < ngroups; ++i) {
-            if (groups[i] == allowedgrp->gr_gid) {
-                allowed = true;
-                break;
-            }
-        }
-
-        if (!allowed) {
-            error("user %s: not a member of group %s.", logname, ALLOW_GROUP);
-        }
-    }
-
     for (int i = 0; i < ngroups; ++i) {
-        const struct group *grp;
+        if (groups[i] < MIN_GID || groups[i] > MAX_GID) {
+            const struct group *grp;
 
-        errno = 0;
-        /* cppcheck-suppress getgrgidCalled; suCGI need not be async-safe. */
-        grp = getgrgid(groups[i]);
-        if (grp == NULL) {
-            /* cppcheck-suppress misra-c2012-22.10; getgrgid may set errno. */
-            if (errno == 0) {
-                /*
-                 * Should only be reachable if a group was deleted between
-                 * the time getgrouplist returned and getgrgid was called.
-                 */
-                if (ISSIGNED(gid_t)) {
-                    error("user %s: member of non-existing group %lld.",
-                          logname, (long long) groups[i]);
-                } else {
-                    error("user %s: member of non-existing group %llu.",
-                          logname, (unsigned long long) groups[i]);
-                }
-            } else {
-                error("getgrgid: %m.");
-            }
-        }
-
-        if (grp->gr_gid < MIN_GID || grp->gr_gid > MAX_GID) {
-            error("user %s: member of privileged group %s.",
-                  logname, grp->gr_name);
-        }
-
-        for (size_t j = 0; j < NELEMS(deniedgrps); ++j) {
-            if (fnmatch(deniedgrps[j], grp->gr_name, 0) == 0) {
-                error("user %s: member of denied group %s.",
+            /* cppcheck-suppress getgrgidCalled;
+               suCGI need not be async-safe. */
+            grp = getgrgid(groups[i]);
+            if (grp != NULL) {
+                error("user %s: member of %s.",
                       logname, grp->gr_name);
+            } else if (ISSIGNED(gid_t)) {
+                error("user %s: member of group " PRId64 ".",
+                      logname, (int64_t) groups[i]);
+            } else {
+                error("user %s: member of group " PRIu64 ".",
+                      logname, (uint64_t) groups[i]);
             }
         }
     }
@@ -669,14 +573,12 @@ main(int argc, char **argv) {
     default:
         /* Should be unreachable. */
         if (ISSIGNED(id_t)) {
-            error("%s:%d: privdrop(%lld, %lld, %d, %p) -> %d [!]",
-                  __FILE__, __LINE__,
-                  (long long) uid, (long long) gid,
+            error("%s:%d: privdrop(" PRId64 ", " PRId64 ", %d, %p) -> %d [!]",
+                  __FILE__, __LINE__, (int64_t) uid, (int64_t) gid,
                   ngroups, groups, ret);
         } else {
-            error("%s:%d: privdrop(%llu, %llu, %d, %p) -> %d [!]",
-                  __FILE__, __LINE__,
-                  (unsigned long long) uid, (unsigned long long) gid,
+            error("%s:%d: privdrop(" PRIu64 ", " PRIu64 ", %d, %p) -> %d [!]",
+                  __FILE__, __LINE__, (uint64_t) uid, (uint64_t) gid,
                   ngroups, groups, ret);
         }
     }
