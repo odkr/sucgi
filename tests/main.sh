@@ -38,6 +38,14 @@ tmpdir
 
 
 #
+# Environment
+#
+
+# Don't use libmock.so.
+unset LD_PRELOAD DYLD_INSERT_LIBRARIES
+
+
+#
 # Globals
 #
 

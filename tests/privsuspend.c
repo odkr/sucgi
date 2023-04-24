@@ -40,8 +40,9 @@
 #include "../macros.h"
 #include "../max.h"
 #include "../priv.h"
-#include "priv.h"
 #include "check.h"
+#include "priv.h"
+
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>

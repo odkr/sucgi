@@ -569,22 +569,22 @@ main (void) {
             checking = 0;
 
             if (retval != args.retval) {
+                result = TEST_FAILED;
                 report("({%s}, %zu, {%s}) → %u [!] → %s ↑ %s", &args,
                        retval, jumpval);
-                result = TEST_FAILED;
             }
 
             if (retval == OK && !cmpenv(args.environ)) {
+                result = TEST_FAILED;
                 report("({%s}, %zu, {%s}) → %u ─→ %s [!] ↑ %s",
                        &args, retval, jumpval);
-                result = TEST_FAILED;
             }
         }
 
         if (jumpval != args.signo) {
+            result = TEST_FAILED;
             report("({%s}, %zu, {%s}) → %u ─→ %s ↑ %s [!]",
                    &args, retval, jumpval);
-            result = TEST_FAILED;
         }
     }
 

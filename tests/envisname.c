@@ -247,14 +247,14 @@ main (void)
             checking = 0;
 
             if (retval != args.retval) {
-                warnx("(%s) → %d [!]", args.str, retval);
                 result = TEST_FAILED;
+                warnx("(%s) → %d [!]", args.str, retval);
             }
         }
 
         if (jumpval != args.signo) {
-            warnx("(%s) ↑ %s [!]", args.str, strsignal(jumpval));
             result = TEST_FAILED;
+            warnx("(%s) ↑ %s [!]", args.str, strsignal(jumpval));
         }
     }
 

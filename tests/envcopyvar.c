@@ -139,15 +139,15 @@ main (void)
             checking = 0;
 
             if (retval != args.retval) {
-                warnx("(%s → %s) → %u [!]", args.key, value, retval);
                 result = TEST_FAILED;
+                warnx("(%s → %s) → %u [!]", args.key, value, retval);
             }
 
             if (retval == OK &&
                 strncmp(value, args.value, sizeof(value)) != 0)
             {
-                warnx("(%s → %s [!]) → %u", args.key, value, retval);
                 result = TEST_FAILED;
+                warnx("(%s → %s [!]) → %u", args.key, value, retval);
             }
 
             (void) memset(value, '\0', sizeof(value));
@@ -156,15 +156,14 @@ main (void)
                 *args.value != '\0' &&
                 strncmp(getenv(args.key), "", sizeof("")) == 0)
             {
-                warnx("changing the copied value changed the environment.");
                 result = TEST_FAILED;
+                warnx("changing the copied value changed the environment.");
             }
         }
 
         if (jumpval != args.signo) {
-            warnx("(%s → %s) ↑ %s [!]",
-                  args.key, value, strsignal(jumpval));
             result = TEST_FAILED;
+            warnx("(%s → %s) ↑ %s [!]", args.key, value, strsignal(jumpval));
         }
     }
 

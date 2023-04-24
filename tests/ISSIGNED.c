@@ -41,8 +41,8 @@
     do {                                                            \
         bool _test_ret = ISSIGNED(type);                            \
         if (_test_ret != (ret)) {                                   \
-            warnx("(" #type ") -> %d [!]", _test_ret);              \
             result = TEST_FAILED;                                   \
+            warnx("(" #type ") -> %d [!]", _test_ret);              \
         }                                                           \
     } while (0)
 

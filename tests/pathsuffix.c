@@ -760,23 +760,23 @@ main (void)
             checking = 0;
 
             if (retval != args.retval) {
-                warnx("(%s, → %s) → %u [!]", args.fname, suffix, retval);
                 result = TEST_FAILED;
+                warnx("(%s, → %s) → %u [!]", args.fname, suffix, retval);
             }
 
             if (retval == OK &&
                 strncmp(args.suffix, suffix, MAX_SUFFIX_LEN) != 0)
             {
-                warnx("(%s, → %s [!]) → %u", args.fname, suffix, retval);
                 result = TEST_FAILED;
+                warnx("(%s, → %s [!]) → %u", args.fname, suffix, retval);
             }
 
         }
 
         if (jumpval != args.signo) {
+            result = TEST_FAILED;
             warnx("(%s, → %s [!]) ↑ %s",
                   args.fname, suffix, strsignal(jumpval));
-            result = TEST_FAILED;
         }
     }
 

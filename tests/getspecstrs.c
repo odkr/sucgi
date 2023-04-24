@@ -289,9 +289,9 @@ main (void) {
         }
 
         if (jumpval != args.signo) {
+            result = TEST_FAILED;
             report("(%s, %zu, → %zu, → {%s}) → %u ↑ %s [!])",
                    &args, nspecs, specs, retval, jumpval);
-            result = TEST_FAILED;
         }
     }
 

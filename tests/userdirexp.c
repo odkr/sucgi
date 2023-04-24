@@ -194,22 +194,22 @@ main(void)
 #endif
 
             if (retval != args.retval) {
+                result = TEST_FAILED;
                 warnx("(%s, %s, → %s) → %u [!]",
                       args.str, args.user->pw_name, dir, retval);
-                result = TEST_FAILED;
             }
 
             if (retval == OK && strcmp(args.dir, dir) != 0) {
+                result = TEST_FAILED;
                 warnx("(%s, %s, → %s [!]) → %u",
                       args.str, args.user->pw_name, dir, retval);
-                result = TEST_FAILED;
             }
         }
 
         if (jumpval != args.signo) {
+            result = TEST_FAILED;
             warnx("(%s, %s, → %s) ↑ %s [!]",
                   args.str, args.user->pw_name, dir, strsignal(jumpval));
-            result = TEST_FAILED;
         }
     }
 

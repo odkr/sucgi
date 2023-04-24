@@ -19,8 +19,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(TESTS_LIB_STR_H)
-#define TESTS_LIB_STR_H
+#if !defined(TESTS_STR_H)
+#define TESTS_STR_H
 
 #include "../cattr.h"
 
@@ -39,4 +39,4 @@ void joinstrs(size_t nstrs, const char *const *strs,
               const char *sep, size_t size, char *dest);
 
 
-#endif /* !defined(TESTS_LIB_STR_H) */
+#endif /* !defined(TESTS_STR_H) */

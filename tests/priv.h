@@ -19,8 +19,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(TESTS_LIB_PRIV_H)
-#define TESTS_LIB_PRIV_H
+#if !defined(TESTS_PRIV_H)
+#define TESTS_LIB_H
 
 #include <sys/types.h>
 
@@ -49,4 +49,4 @@ bool privgetregular(uid_t *const uid);
 __attribute__((nonnull(2)))
 void privgetuser(uid_t uid, struct passwd *pwd);
 
-#endif /* !defined(TESTS_LIB_PRIV_H) */
+#endif /* !defined(TESTS_PRIV_H) */

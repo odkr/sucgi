@@ -40,10 +40,6 @@
 #include "../max.h"
 #include "mockstd.h"
 
-#if HAVE_SYS_PARAM_H
-#include <sys/param.h>
-#endif
-
 
 /*
  * Interposition

@@ -161,16 +161,16 @@ main(void)
             if (retval == OK &&
                 strncmp(handler, args.handler, MAX_STR_LEN) != 0)
             {
+                result = TEST_FAILED;
                 warnx("(<db>, %s, → %s [!]) → %u",
                       args.script, handler, retval);
-                result = TEST_FAILED;
             }
         }
 
         if (jumpval != args.signo) {
+            result = TEST_FAILED;
             warnx("(<db>, %s, → %s) ↑ %s [!]",
                   args.script, handler, strsignal(jumpval));
-            result = TEST_FAILED;
         }
     }
 

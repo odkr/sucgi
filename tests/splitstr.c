@@ -153,30 +153,30 @@ main(void)
             checking = 0;
 
             if (retval != args.retval) {
+                result = TEST_FAILED;
                 warnx("(%s, %s, %u, → %s, → %s) → %u [!]",
                       args.str, args.sep, MAX_LEN, head, tail, retval);
-                result = TEST_FAILED;
             }
 
             if (retval == OK && strncmp(args.head, head, MAX_STR_LEN) != 0) {
+                result = TEST_FAILED;
                 warnx("(%s, %s, %u, → %s [!], → %s) → %u",
                       args.str, args.sep, MAX_LEN, head, tail, retval);
-                result = TEST_FAILED;
             }
 
             if (args.tail != NULL &&
                 strncmp(args.tail, tail, MAX_STR_LEN) != 0)
             {
+                result = TEST_FAILED;
                 warnx("(%s, %s, %u, → %s, → %s [!]) → %u",
                       args.str, args.sep, MAX_LEN, head, tail, retval);
-                result = TEST_FAILED;
             }
         }
 
         if (jumpval != args.signo) {
+            result = TEST_FAILED;
             warnx("(%s, %s, %u, → %s, → %s) ↑ %s [!]",
                   args.str, args.sep, MAX_LEN, head, tail, strsignal(jumpval));
-            result = TEST_FAILED;
         }
     }
 

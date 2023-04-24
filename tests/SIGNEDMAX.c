@@ -43,8 +43,8 @@
         size_t _test_m = SIGNEDMAX(type);               \
                                                         \
         if (_test_n != _test_m) {                       \
-            warnx("(" #type ") -> %zu [!]", _test_m);   \
             result = TEST_FAILED;                       \
+            warnx("(" #type ") -> %zu [!]", _test_m);   \
         }                                               \
     } while (0)
 

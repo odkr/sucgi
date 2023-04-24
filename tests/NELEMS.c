@@ -44,8 +44,8 @@
                                                                         \
             _test_n = NELEMS(_test_arr);                                \
             if (_test_n != _test_i) {                                   \
-                warnx("(" #type "[%zu]) -> %zu [!]", _test_i, _test_n); \
                 result = TEST_FAILED;                                   \
+                warnx("(" #type "[%zu]) -> %zu [!]", _test_i, _test_n); \
             }                                                           \
         }                                                               \
     } while (0)

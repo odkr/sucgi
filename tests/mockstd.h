@@ -19,14 +19,13 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(TESTS_LIB_MOCK_H)
-#define TESTS_LIB_MOCK_H
+#if !defined(TESTS_MOCKSTD_H)
+#define TESTS_MOCKSTD_H
 
 
 #include <sys/types.h>
 
 #include "../cattr.h"
-#include "../compat.h"
 
 
 /*
@@ -105,4 +104,4 @@ NO_SANITIZE
 int mocksetgroups(const NGRPS_T ngroups, const gid_t *const gidset);
 
 
-#endif /* !defined(TESTS_LIB_MOCK_H) */
+#endif /* !defined(TESTS_MOCKSTD_H) */

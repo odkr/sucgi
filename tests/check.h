@@ -19,8 +19,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(TESTS_LIB_CHECK_H)
-#define TESTS_LIB_CHECK_H
+#if !defined(TESTS_CHECK_H)
+#define TESTS_CHECK_H
 
 #include <setjmp.h>
 #include <signal.h>
@@ -64,4 +64,4 @@ extern sigjmp_buf checkenv;
 void checkinit(void);
 
 
-#endif /* !defined(TESTS_LIB_CHECK_H) */
+#endif /* !defined(TESTS_CHECK_H) */

@@ -124,22 +124,22 @@ main (void) {
             checking = 0;
 
             if (retval != args.retval) {
+                result = TEST_FAILED;
                 warnx("(%zu, %s, → %s) → %u [!]",
                       args.n, args.src, dest, retval);
-                result = TEST_FAILED;
             }
 
             if (retval == OK && strncmp(args.dest, dest, MAX_STR_LEN) != 0) {
+                result = TEST_FAILED;
                 warnx("(%zu, %s, → %s [!]) → %u",
                       args.n, args.src, dest, retval);
-                result = TEST_FAILED;
             }
         }
 
         if (jumpval != args.signo) {
+            result = TEST_FAILED;
             warnx("(%zu, %s, → %s) ↑ %s [!]",
                   args.n, args.src, dest, strsignal(jumpval));
-            result = TEST_FAILED;
         }
     }
 

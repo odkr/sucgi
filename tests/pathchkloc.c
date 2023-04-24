@@ -163,16 +163,16 @@ main(void)
             checking = 0;
 
             if (retval != args.retval) {
+                result = TEST_FAILED;
                 warnx("checking (%s, %s) → %u [!]",
                       args.basedir, args.fname, retval);
-                result = TEST_FAILED;
             }
         }
 
         if (jumpval != args.signo) {
+            result = TEST_FAILED;
             warnx("checking (%s, %s) ↑ %s [!]",
                   args.basedir, args.fname, strsignal(jumpval));
-            result = TEST_FAILED;
         }
     }
 
