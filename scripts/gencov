@@ -165,14 +165,14 @@ warn "coverage data collected as regular user is inaccurate."
 warn -q 'copying sources ...'
 m4 makefile.m4 > "$TMPDIR/makefile"
 distdir="$TMPDIR/dist"
-make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir"
+mylogged make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir"
 cd -P "$distdir" || exit
 
 warn -q 'configuring build ... '
 CFLAGS=-O1 logged ./configure
 
 warn -q 'compiling tools and test libraries ...'
-mylogged make -e tools tests/objs.a tests/mock.so
+mylogged make -e tools tests/libcheck.a tests/libmock.so
 
 warn -q 'compiling tests ...'
 mylogged make -e CFLAGS=--coverage all checks
@@ -183,8 +183,8 @@ eval "$(main -C | grep -vE '^PATH=')"
 
 # Permissions changing mid-flight confuses LLVM.
 case $(uname) in
-(Darwin) export DYLD_INSERT_LIBRARIES=tests/mock.so ;;
-(*)      export LD_PRELOAD=tests/mock.so ;;
+(Darwin) export DYLD_INSERT_LIBRARIES=tests/libmock.so ;;
+(*)      export LD_PRELOAD=tests/libmock.so ;;
 esac
 
 if ! reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")" ||
