@@ -32,8 +32,7 @@ typedef enum {
     ERR_LEN,            /* An array or a string is too long. */
     ERR_PRIV,           /* Privileges could be resumed. */
     ERR_SEARCH,         /* Something was not found. */
-    ERR_SUFFIX,         /* Filename has no suffix. */
-    ERR_PERM            /* Permission error. */
+    ERR_SUFFIX          /* Filename has no suffix. */
 } Error;
 
 
