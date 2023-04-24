@@ -24,8 +24,8 @@
 
 #if defined(CHECK) && CHECK
 
-#if !defined(CONFIG_H)
-#error config.h must be included before testing.h.
+#if !defined(DEFAULTS_H)
+#error defaults.h must be included before testing.h.
 #endif
 
 #undef USER_DIR
@@ -152,12 +152,6 @@
     "^TIME$",                                       \
     "^TZ$"                                          \
 }
-
-#undef ALLOW_GROUP
-#define ALLOW_GROUP ""
-
-#undef DENY_GROUPS
-#define DENY_GROUPS {""}
 
 #undef HANDLERS
 #define HANDLERS {{".sh", "sh"}, {".empty", ""}}
