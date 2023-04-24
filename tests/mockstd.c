@@ -38,7 +38,7 @@
 #include "../compat.h"
 #include "../macros.h"
 #include "../max.h"
-#include "mock.h"
+#include "mockstd.h"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>

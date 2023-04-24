@@ -173,9 +173,9 @@ tests/libcheck.a(tests/str.o): tests/str.c tests/str.h
 tests/libcheck.a: tests/libcheck.a($(check_objs))
 
 ifnempty(`__SUCGI_SHARED_LIBS', `dnl
-tests/mock.o: tests/mock.c tests/mock.h
+tests/mockstd.o: tests/mockstd.c tests/mockstd.h
 
-tests/libmock.so: tests/mock.o
+tests/libmock.so: tests/mockstd.o
 
 ')dnl
 tests/ISSIGNED: tests/ISSIGNED.c
