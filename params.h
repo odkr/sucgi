@@ -22,8 +22,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(DEFAULTS_H)
-#define DEFAULTS_H
+#if !defined(PARAMS_H)
+#define PARAMS_H
 
 #include <sys/stat.h>
 #include <limits.h>
@@ -288,4 +288,4 @@
 #endif /* !defined(LOGGING_OPTIONS) */
 
 
-#endif /* !defined(DEFAULTS_H) */
+#endif /* !defined(PARAMS_H) */

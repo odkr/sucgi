@@ -48,12 +48,12 @@
 #include <unistd.h>
 
 #include "compat.h"
-#include "defaults.h"
 #include "env.h"
 #include "error.h"
 #include "handler.h"
 #include "max.h"
 #include "macros.h"
+#include "params.h"
 #include "path.h"
 #include "priv.h"
 #include "str.h"

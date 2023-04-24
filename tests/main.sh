@@ -327,11 +327,11 @@ check -o'suCGI v' main -V || result=70
 # Build configuration.
 (
 	eval "$(main -C | grep -vE ^PATH=)" || exit 70
-	sed -n 's/#define \([[:alnum:]_]*\).*/\1/p' "$src_dir/defaults.h" |
+	sed -n 's/#define \([[:alnum:]_]*\).*/\1/p' "$src_dir/params.h" |
 	sort -u |
 	while read -r opthdl_var
 	do
-		[ "$opthdl_var" != DEFAULTS_H ] || continue
+		[ "$opthdl_var" != PARAMS_H ] || continue
 		eval val="\${$opthdl_var}"
 		if [ "${val-x}" = x ] && [ "${val-}" != x ]
 		then err -s70 'main -C: %s: undefined.' "$opthdl_var"

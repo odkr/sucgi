@@ -71,7 +71,9 @@ libs = libsucgi.a
 
 compat.h: config.h
 
-defaults.h: config.h
+params.h: config.h
+
+testing.h: params.h
 
 max.h: config.h
 
@@ -95,7 +97,7 @@ libsucgi.a($(objs)): $(hdrs)
 
 libsucgi.a: libsucgi.a($(objs))
 
-sucgi: main.c defaults.h testing.h $(hdrs) $(libs)
+sucgi: main.c params.h testing.h $(hdrs) $(libs)
 
 libsucgi.a($(objs)):
 	$(CC) $(LDFLAGS) -c -o $*.o $(CFLAGS) $*.c $(LDLIBS)
@@ -184,9 +186,9 @@ tests/SIGNEDMAX: tests/SIGNEDMAX.c
 
 tests/envisname: tests/envisname.c libsucgi.a(env.o)
 
-tests/envrestore: tests/envrestore.c defaults.h libsucgi.a(env.o)
+tests/envrestore: tests/envrestore.c params.h libsucgi.a(env.o)
 
-tests/envrestore: libcheck.a(str.o)
+tests/envrestore: tests/libcheck.a(tests/str.o)
 
 tests/envcopyvar: tests/envcopyvar.c libsucgi.a(env.o)
 
@@ -194,9 +196,9 @@ tests/error: tests/error.c libsucgi.a(error.o)
 
 tests/handlerfind: tests/handlerfind.c libsucgi.a(handler.o)
 
-tests/main: main.c defaults.h testing.h $(hdrs) libsucgi.a
+tests/main: main.c params.h testing.h $(hdrs) libsucgi.a
 
-tests/pairfind: tests/pairfind.c defaults.h libsucgi.a(pair.o)
+tests/pairfind: tests/pairfind.c params.h libsucgi.a(pair.o)
 
 tests/pathchkloc: tests/pathchkloc.c libsucgi.a(path.o)
 

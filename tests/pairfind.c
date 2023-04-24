@@ -32,7 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../defaults.h"
+#include "../params.h"
 #include "../macros.h"
 #include "../max.h"
 #include "../pair.h"

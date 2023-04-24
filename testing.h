@@ -24,8 +24,8 @@
 
 #if defined(CHECK) && CHECK
 
-#if !defined(DEFAULTS_H)
-#error defaults.h must be included before testing.h.
+#if !defined(PARAMS_H)
+#error params.h must be included before testing.h.
 #endif
 
 #undef USER_DIR
