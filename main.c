@@ -76,7 +76,7 @@
 
 /* Environment variables to keep. */
 /* cppcheck-suppress [misra-c2012-9.2, misra-c2012-9.3];
-   array of strings, double braces would be wrong, false positive.
+   double braces would be wrong, false positive.
    NOLINTNEXTLINE(bugprone-suspicious-missing-comma); literals intended. */
 static const char *const allowedvars[] = ENV_PATTERNS;
 
@@ -255,7 +255,7 @@ main(int argc, char **argv) {
     /*
      * setreuid and setregid accept -1 as ID. So -1 is a valid, if weird, ID.
      * But POSIX.1-2008 allows for uid_t, gid_t, and id_t to be defined as
-     * unsigned integers, and that is how they are defined on most systems.
+     * unsigned integers, and this is how they are defined on most systems.
      * So IDs must be compared against -1 even if uid_t, gid_t, and id_t
      * are unsigned; in other words, the sign change is intentional.
      */
@@ -569,7 +569,7 @@ main(int argc, char **argv) {
     case OK:
         break;
     case ERR_SYS:
-        /* Should only be reachable if setgroups runs out of memory. */
+        /* Should only be reachable if setgroups ran out of memory. */
         error("privilege drop: %m.");
     default:
         /* Should be unreachable. */
