@@ -42,7 +42,7 @@
 
 /* Lowest user ID that may be assigned to a regular user. */
 #if !defined(MIN_UID)
-#if defined(__illumos__) || defined(__sun) || defined(__minix)
+#if defined(__illumos__) || defined(__sun)
 #define MIN_UID 100
 #elif defined(__MACH__)
 #define MIN_UID 500
@@ -86,7 +86,7 @@
 #if !defined(MIN_GID)
 #if defined(__MACH__) || defined(__illumos__) || defined(__sun)
 #define MIN_GID 1
-#elif defined(__NetBSD__) || defined(__minix)
+#elif defined(__NetBSD__)
 #define MIN_GID 100
 #else
 #define MIN_GID MIN_UID
