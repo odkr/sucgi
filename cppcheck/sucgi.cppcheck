@@ -32,9 +32,9 @@
 		<define name='DENY_GROUPS={""}'/>
 		<define name='ENV_PATTERNS={"DUMMY"}'/>
 		<define name='HANDLERS={{".php", "php"}}'/>
-		<define name="LOGGING_FACILITY=LOG_AUTH"/>
-		<define name="LOGGING_MASK=LOG_UPTO(LOG_DEBUG)"/>
-		<define name="LOGGING_OPTIONS=(LOG_CONS | LOG_PERROR)"/>
+		<define name="SYSLOG_FACILITY=LOG_AUTH"/>
+		<define name="SYSLOG_MASK=LOG_UPTO(LOG_WARNING)"/>
+		<define name="SYSLOG_OPTS=(LOG_CONS | LOG_PERROR)"/>
 		<define name='PATH="/bin:/usr/bin"'/>
 		<define name="UMASK=(S_ISUID | S_ISGID | S_ISVTX | S_IRWXG | S_IRWXO)"/>
 		<define name="MAX_ERRMSG_LEN=128U"/>
