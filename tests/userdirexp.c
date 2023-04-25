@@ -33,7 +33,7 @@
 #include <string.h>
 
 #include "../macros.h"
-#include "../max.h"
+#include "../params.h"
 #include "../str.h"
 #include "../userdir.h"
 #include "check.h"
@@ -117,6 +117,7 @@ static const Args cases[] = {
 
     /* Simple tests. */
     {"public_html", &user, "/home/jdoe/public_html", OK, 0},
+    {"public_%s", &user, "/home/jdoe/public_%s", OK, 0},
     {"/srv/www", &user, "/srv/www/jdoe", OK, 0},
     {"/srv/www/%s/html", &user, "/srv/www/jdoe/html", OK, 0},
     {"/srv/www/%%s/%s/html", &user, "/srv/www/%s/jdoe/html", OK, 0},
@@ -129,6 +130,7 @@ static const Args cases[] = {
 
     /* UTF-8. */
     {"ⓟů𝕓ḹḭⓒ﹏𝒽𝚝ṃḹ", &user, "/home/jdoe/ⓟů𝕓ḹḭⓒ﹏𝒽𝚝ṃḹ", OK, 0},
+    {"ⓟů𝕓ḹḭⓒ﹏%s", &user, "/home/jdoe/ⓟů𝕓ḹḭⓒ﹏%s", OK, 0},
     {"/𝘴ȑṽ/𝙬𝙬𝙬", &user, "/𝘴ȑṽ/𝙬𝙬𝙬/jdoe", OK, 0},
     {"/𝘴ȑṽ/𝙬𝙬𝙬/%s/𝒽𝚝ṃḹ", &user, "/𝘴ȑṽ/𝙬𝙬𝙬/jdoe/𝒽𝚝ṃḹ", OK, 0},
     {"/𝘴ȑṽ/𝙬𝙬𝙬/%%s/%s/𝒽𝚝ṃḹ", &user, "/𝘴ȑṽ/𝙬𝙬𝙬/%s/jdoe/𝒽𝚝ṃḹ", OK, 0},

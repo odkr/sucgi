@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "max.h"
+#include "params.h"
 #include "userdir.h"
 #include "str.h"
 #include "types.h"
@@ -51,8 +51,6 @@ Error
 userdirexp(const char *const str, const struct passwd *const user,
            char dir[MAX_FNAME_LEN])
 {
-    const char *spec;
-    size_t nspecs;
     int nchars;
 
     assert(str != NULL);
@@ -64,22 +62,28 @@ userdirexp(const char *const str, const struct passwd *const user,
     /* Some versions of snprintf fail to NUL-terminate strings. */
     (void) memset(dir, '\0', MAX_FNAME_LEN);
 
-    if (getspecstrs(str, 1, &nspecs, &spec) != OK) {
-        return ERR_BAD;
-    }
-
     errno = 0;
     if (*str != '/') {
         /* RATS: ignore; format is short and a literal. */
         nchars = snprintf(dir, MAX_FNAME_LEN, "%s/%s", user->pw_dir, str);
-    } else if (nspecs == 0U) {
-        /* RATS: ignore; format is short and a literal. */
-        nchars = snprintf(dir, MAX_FNAME_LEN, "%s/%s", str, user->pw_name);
-    } else if (*spec == 's') {
-        /* RATS: ignore; str is verified and can only be set by an admin. */
-        nchars = snprintf(dir, MAX_FNAME_LEN, str, user->pw_name);
     } else {
-        return ERR_BAD;
+        const char *spec;
+        size_t nspecs;
+
+        if (getspecstrs(str, 1, &nspecs, &spec) != OK) {
+            return ERR_BAD;
+        }
+
+        if (nspecs == 0U) {
+            /* RATS: ignore; format is short and a literal. */
+            nchars = snprintf(dir, MAX_FNAME_LEN, "%s/%s", str, user->pw_name);
+        } else if (*spec == 's') {
+            /* RATS: ignore; str is verified above. */
+            nchars = snprintf(dir, MAX_FNAME_LEN, str, user->pw_name);
+        } else {
+            return ERR_BAD;
+        }
+
     }
 
     if (nchars < 0) {
