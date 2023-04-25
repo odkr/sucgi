@@ -24,8 +24,8 @@
 
 #if defined(CHECK) && CHECK
 
-#if !defined(PARAMS_H)
-#error params.h must be included before testing.h.
+#if !defined(CONFIG_H)
+#error config.h must be included before testing.h.
 #endif
 
 #undef USER_DIR
@@ -160,7 +160,7 @@
 #define SYSLOG_FACILITY LOG_USER
 
 #undef SYSLOG_MASK
-#define SYSLOG_MASK LOG_UPTO(LOG_DEBUG)
+#define SYSLOG_MASK LOG_UPTO(LOG_WARNING)
 
 #undef SYSLOG_OPTS
 #ifdef LOG_PERROR

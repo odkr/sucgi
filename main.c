@@ -57,7 +57,6 @@
 #include "path.h"
 #include "priv.h"
 #include "str.h"
-#include "testing.h"
 #include "types.h"
 #include "userdir.h"
 
