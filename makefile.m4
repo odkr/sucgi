@@ -71,9 +71,7 @@ libs = libsucgi.a
 
 compat.h: config.h
 
-params.h: config.h
-
-testing.h: params.h
+params.h: config.h testing.h
 
 max.h: config.h
 
@@ -97,7 +95,7 @@ libsucgi.a($(objs)): $(hdrs)
 
 libsucgi.a: libsucgi.a($(objs))
 
-sucgi: main.c params.h testing.h $(hdrs) $(libs)
+sucgi: main.c params.h $(hdrs) $(libs)
 
 libsucgi.a($(objs)):
 	$(CC) $(LDFLAGS) -c -o $*.o $(CFLAGS) $*.c $(LDLIBS)
@@ -196,7 +194,7 @@ tests/error: tests/error.c libsucgi.a(error.o)
 
 tests/handlerfind: tests/handlerfind.c libsucgi.a(handler.o)
 
-tests/main: main.c params.h testing.h $(hdrs) libsucgi.a
+tests/main: main.c params.h $(hdrs) libsucgi.a
 
 tests/pairfind: tests/pairfind.c params.h libsucgi.a(pair.o)
 
