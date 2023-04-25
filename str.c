@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "max.h"
+#include "params.h"
 #include "str.h"
 #include "types.h"
 

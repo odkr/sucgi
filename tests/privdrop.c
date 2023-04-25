@@ -41,7 +41,7 @@
 
 #include "../compat.h"
 #include "../macros.h"
-#include "../max.h"
+#include "../params.h"
 #include "../priv.h"
 #include "check.h"
 #include "priv.h"

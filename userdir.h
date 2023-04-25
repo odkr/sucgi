@@ -25,7 +25,7 @@
 #include <pwd.h>
 
 #include "cattr.h"
-#include "max.h"
+#include "params.h"
 #include "types.h"
 
 

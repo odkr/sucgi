@@ -51,7 +51,6 @@
 #include "env.h"
 #include "error.h"
 #include "handler.h"
-#include "max.h"
 #include "macros.h"
 #include "params.h"
 #include "path.h"

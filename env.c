@@ -36,7 +36,7 @@
 #include <syslog.h>
 
 #include "env.h"
-#include "max.h"
+#include "params.h"
 #include "str.h"
 #include "types.h"
 

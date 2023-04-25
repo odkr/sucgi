@@ -31,9 +31,162 @@
 
 #include "compat.h"
 #include "config.h"
-#include "testing.h"
 #include "pregs.h"
 
+
+/*
+ * Testing
+ */
+
+#if defined(CHECK) && CHECK
+
+#undef USER_DIR
+#define USER_DIR "/tmp/sucgi-check/%s"
+
+#undef ENV_PATTERNS
+#define ENV_PATTERNS {                              \
+    "^GCOV_PREFIX$",                                \
+    "^GCOV_PREFIX_STRIP$",                          \
+    "^AUTH_TYPE$",                                  \
+    "^CONTENT_LENGTH$",                             \
+    "^CONTENT_TYPE$",                               \
+    "^CONTEXT_DOCUMENT_ROOT$",                      \
+    "^CONTEXT_PREFIX$",                             \
+    "^DATE_GMT$",                                   \
+    "^DATE_LOCAL$",                                 \
+    "^DOCUMENT_NAME$",                              \
+    "^DOCUMENT_PATH_INFO$",                         \
+    "^DOCUMENT_URI$",                               \
+    "^GATEWAY_INTERFACE$",                          \
+    "^HANDLER$",                                    \
+    "^HTTP_ACCEPT$",                                \
+    "^HTTP_COOKIE$",                                \
+    "^HTTP_FORWARDED$",                             \
+    "^HTTP_HOST$",                                  \
+    "^HTTP_PROXY_CONNECTION$",                      \
+    "^HTTP_REFERER$",                               \
+    "^HTTP_USER_AGENT$",                            \
+    "^HTTP2$",                                      \
+    "^HTTPS$",                                      \
+    "^IS_SUBREQ$",                                  \
+    "^IPV6$",                                       \
+    "^LAST_MODIFIED$",                              \
+    "^PATH_INFO$",                                  \
+    "^PATH_TRANSLATED$",                            \
+    "^QUERY_STRING$",                               \
+    "^QUERY_STRING_UNESCAPED$",                     \
+    "^REMOTE_ADDR$",                                \
+    "^REMOTE_HOST$",                                \
+    "^REMOTE_IDENT$",                               \
+    "^REMOTE_PORT$",                                \
+    "^REMOTE_USER$",                                \
+    "^REDIRECT_ERROR_NOTES$",                       \
+    "^REDIRECT_HANDLER$",                           \
+    "^REDIRECT_QUERY_STRING$",                      \
+    "^REDIRECT_REMOTE_USER$",                       \
+    "^REDIRECT_SCRIPT_FILENAME$",                   \
+    "^REDIRECT_STATUS$",                            \
+    "^REDIRECT_URL$",                               \
+    "^REQUEST_LOG_ID$",                             \
+    "^REQUEST_METHOD$",                             \
+    "^REQUEST_SCHEME$",                             \
+    "^REQUEST_STATUS$",                             \
+    "^REQUEST_URI$",                                \
+    "^SCRIPT_FILENAME$",                            \
+    "^SCRIPT_NAME$",                                \
+    "^SCRIPT_URI$",                                 \
+    "^SCRIPT_URL$",                                 \
+    "^SERVER_ADMIN$",                               \
+    "^SERVER_NAME$",                                \
+    "^SERVER_ADDR$",                                \
+    "^SERVER_PORT$",                                \
+    "^SERVER_PROTOCOL$",                            \
+    "^SERVER_SIGNATURE$",                           \
+    "^SERVER_SOFTWARE$",                            \
+    "^SSL_CIPHER$",                                 \
+    "^SSL_CIPHER_EXPORT$",                          \
+    "^SSL_CIPHER_USEKEYSIZE$",                      \
+    "^SSL_CIPHER_ALGKEYSIZE$",                      \
+    "^SSL_CLIENT_M_VERSION$",                       \
+    "^SSL_CLIENT_M_SERIAL$",                        \
+    "^SSL_CLIENT_S_DN$",                            \
+    "^SSL_CLIENT_S_DN_" PREG_X509 "$",              \
+    "^SSL_CLIENT_S_DN_" PREG_X509 "_" PREG_N "$",   \
+    "^SSL_CLIENT_SAN_Email_" PREG_N "$",            \
+    "^SSL_CLIENT_SAN_DNS_" PREG_N "$",              \
+    "^SSL_CLIENT_SAN_OTHER_msUPN_" PREG_N "$",      \
+    "^SSL_CLIENT_I_DN$",                            \
+    "^SSL_CLIENT_I_DN_" PREG_X509 "$",              \
+    "^SSL_CLIENT_I_DN_" PREG_X509 "_" PREG_N "$",   \
+    "^SSL_CLIENT_V_START$",                         \
+    "^SSL_CLIENT_V_END$",                           \
+    "^SSL_CLIENT_V_REMAIN$",                        \
+    "^SSL_CLIENT_A_SIG$",                           \
+    "^SSL_CLIENT_A_KEY$",                           \
+    "^SSL_CLIENT_CERT$",                            \
+    "^SSL_CLIENT_CERT_CHAIN_" PREG_N "$",           \
+    "^SSL_CLIENT_CERT_RFC4523_CEA$",                \
+    "^SSL_CLIENT_VERIFY$",                          \
+    "^SSL_COMPRESS_METHOD$",                        \
+    "^SSL_PROTOCOL$",                               \
+    "^SSL_SECURE_RENEG$",                           \
+    "^SSL_SERVER_M_VERSION$",                       \
+    "^SSL_SERVER_M_SERIAL$",                        \
+    "^SSL_SERVER_S_DN_" PREG_X509 "$",              \
+    "^SSL_SERVER_S_DN_" PREG_X509 "_" PREG_N "$",   \
+    "^SSL_SERVER_SAN_Email_" PREG_N "$",            \
+    "^SSL_SERVER_SAN_DNS_" PREG_N "$",              \
+    "^SSL_SERVER_SAN_OTHER_dnsSRV_" PREG_N "$",     \
+    "^SSL_SERVER_I_DN_" PREG_X509 "$",              \
+    "^SSL_SERVER_I_DN_" PREG_X509 "_" PREG_N "$",   \
+    "^SSL_SERVER_V_START$",                         \
+    "^SSL_SERVER_V_END$",                           \
+    "^SSL_SERVER_A_SIG$",                           \
+    "^SSL_SERVER_A_KEY$",                           \
+    "^SSL_SERVER_CERT$",                            \
+    "^SSL_SESSION_ID$",                             \
+    "^SSL_SESSION_RESUMED$",                        \
+    "^SSL_SRP_USER$",                               \
+    "^SSL_SRP_USERINFO$",                           \
+    "^SSL_TLS_SNI$",                                \
+    "^SSL_VERSION_INTERFACE$",                      \
+    "^SSL_VERSION_LIBRARY$",                        \
+    "^UNIQUE_ID$",                                  \
+    "^USER_NAME$",                                  \
+    "^THE_REQUEST$",                                \
+    "^TIME_YEAR$",                                  \
+    "^TIME_MON$",                                   \
+    "^TIME_DAY$",                                   \
+    "^TIME_HOUR$",                                  \
+    "^TIME_MIN$",                                   \
+    "^TIME_SEC$",                                   \
+    "^TIME_WDAY$",                                  \
+    "^TIME$",                                       \
+    "^TZ$"                                          \
+}
+
+#undef HANDLERS
+#define HANDLERS {{".sh", "sh"}, {".empty", ""}}
+
+#undef SYSLOG_FACILITY
+#define SYSLOG_FACILITY LOG_USER
+
+#undef SYSLOG_MASK
+#define SYSLOG_MASK LOG_UPTO(LOG_DEBUG)
+
+#undef SYSLOG_OPTS
+#ifdef LOG_PERROR
+#define SYSLOG_OPTS (LOG_CONS | LOG_PERROR)
+#else
+#define SYSLOG_OPTS LOG_CONS
+#endif
+
+#endif /* defined(CHECK) && CHECK */
+
+
+/*
+ * Defaults
+ */
 
 /* User directory. String. */
 #if !defined(USER_DIR)
@@ -272,10 +425,12 @@
 #define SYSLOG_FACILITY LOG_AUTH
 #endif
 
+
 /* Priorities to log. */
 #if !defined(SYSLOG_MASK)
 #define SYSLOG_MASK LOG_UPTO(LOG_ERR)
 #endif
+
 
 /* Syslog options. */
 #if !defined(SYSLOG_OPTS)
@@ -285,6 +440,173 @@
 #define SYSLOG_OPTS LOG_CONS
 #endif
 #endif /* !defined(SYSLOG_OPTS) */
+
+
+/*
+ * Limits
+ */
+
+
+/*
+ * Maximum length for strings, including the NUL-terminator. Unsigned integer.
+ * Upper limit for all other character limits.
+ */
+#if !defined(MAX_STR_LEN)
+#define MAX_STR_LEN 8192U
+#endif
+
+#if MAX_STR_LEN < 1
+#error MAX_STR_LEN is non-positive.
+#endif
+
+#if MAX_STR_LEN > SHRT_MAX
+#error MAX_STR_LEN is greater than SHRT_MAX.
+#endif
+
+/*
+ * Maximum length for error message formats and error messages,
+ * including the NUL-terminator. Unsigned integer.
+ */
+#if !defined(MAX_ERRMSG_LEN)
+#define MAX_ERRMSG_LEN 256U
+#endif
+
+#if MAX_ERRMSG_LEN > MAX_STR_LEN
+#error MAX_ERRMSG_LEN is greater than MAX_STR_LEN.
+#endif
+
+#if MAX_ERRMSG_LEN < 1
+#error MAX_ERRMSG_LEN is non-positive.
+#endif
+
+/*
+ * Maximum length for filenames, including the NUL-terminator.
+ * Unsigned integer. Longer filenames are rejected.
+ */
+#if !defined(MAX_FNAME_LEN)
+#if defined(PATH_MAX) && PATH_MAX > -1
+#if PATH_MAX < MAX_STR_LEN
+#define MAX_FNAME_LEN PATH_MAX
+#else /* PATH_MAX >= MAX_STR_LEN */
+#define MAX_FNAME_LEN MAX_STR_LEN
+#endif /* PATH_MAX < MAX_STR_LEN */
+#else /* defined(PATH_MAX) && PATH_MAX > -1 */
+#define MAX_FNAME_LEN 1024
+#endif /* defined() &&  > -1 */
+#endif /* !defined(MAX_FNAME_LEN) */
+
+#if MAX_FNAME_LEN > MAX_STR_LEN
+#error MAX_FNAME_LEN is greater than MAX_STR_LEN.
+#endif
+
+#if MAX_FNAME_LEN < 1
+#error MAX_FNAME_LEN is non-positive.
+#endif
+
+
+/*
+ * Maximum length for group names, including the NUL-terminator.
+ * Unsigned integer. Sets the maximum length for ALLOW_GROUP.
+ */
+#if !defined(MAX_GRPNAME_LEN)
+#if defined(LOGIN_NAME_MAX) && LOGIN_NAME_MAX > -1
+#if LOGIN_NAME_MAX < MAX_STR_LEN
+#define MAX_GRPNAME_LEN LOGIN_NAME_MAX
+#else /* LOGIN_NAME_MAX >= MAX_STR_LEN */
+#define MAX_GRPNAME_LEN MAX_STR_LEN
+#endif /* LOGIN_NAME_MAX < MAX_STR_LEN */
+#else /* ! ||  < 0 */
+#define MAX_GRPNAME_LEN 48U
+#endif /* defined() &&  > -1 */
+#endif /* !defined(MAX_GRPNAME_LEN) */
+
+#if MAX_GRPNAME_LEN > MAX_STR_LEN
+#error MAX_GRPNAME_LEN is greater than MAX_STR_LEN.
+#endif
+
+#if MAX_GRPNAME_LEN < 1
+#error MAX_GRPNAME_LEN is non-positive.
+#endif
+
+/*
+ * Maximum length for filename suffices, including the NUL-terminator.
+ * Unsigned integer. Filenames with longer suffices are rejected.
+ */
+#if !defined(MAX_SUFFIX_LEN)
+#define MAX_SUFFIX_LEN 8U
+#endif
+
+#if MAX_SUFFIX_LEN > MAX_STR_LEN
+#error MAX_SUFFIX_LEN is greater than MAX_STR_LEN.
+#endif
+
+#if MAX_SUFFIX_LEN < 1
+#error MAX_SUFFIX_LEN is non-positive.
+#endif
+
+/*
+ * Maximum length for environment variables, including the NUL-terminator.
+ * Unsigned integer. Longer variables are ignored.
+ */
+#if !defined(MAX_VAR_LEN)
+#define MAX_VAR_LEN MAX_FNAME_LEN
+#endif
+
+#if MAX_VAR_LEN > MAX_STR_LEN
+#error MAX_VAR_LEN is greater than MAX_STR_LEN.
+#endif
+
+#if MAX_VAR_LEN < 1
+#error MAX_VAR_LEN is non-positive.
+#endif
+
+/*
+ * Maximum length for environment variable names, including the NUL-terminator.
+ * Unsigned integer. Variables with longer names are ignored.
+ */
+#if !defined(MAX_VARNAME_LEN)
+#define MAX_VARNAME_LEN 32U
+#endif
+
+#if MAX_VARNAME_LEN > MAX_STR_LEN
+#error MAX_VARNAME_LEN is greater than MAX_STR_LEN.
+#endif
+
+#if MAX_VARNAME_LEN < 1
+#error MAX_VARNAME_LEN is non-positive.
+#endif
+
+/*
+ * Maximum number of groups a user may be a member of. Unsigned integer.
+ * Users who are members of more groups are rejected.
+ */
+#if !defined(MAX_NGROUPS)
+#define MAX_NGROUPS 128U
+#endif
+
+#if MAX_NGROUPS > INT_MAX
+#error MAX_NGROUPS is greater than INT_MAX.
+#endif
+
+#if MAX_NGROUPS < 1
+#error MAX_NGROUPS is non-positive.
+#endif
+
+/*
+ * Maximum number of environment variables. Unsigned integer.
+ * If the environment contains more variables, a run-time error is raised.
+ */
+#if !defined(MAX_NVARS)
+#define MAX_NVARS 512U
+#endif
+
+#if MAX_NVARS > SHRT_MAX
+#error MAX_NVARS is greater than SHRT_MAX.
+#endif
+
+#if MAX_NVARS < 1
+#error MAX_NVARS is non-positive.
+#endif
 
 
 #endif /* !defined(PARAMS_H) */

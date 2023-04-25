@@ -36,12 +36,28 @@
 #define MAX_STR_LEN 8192U
 #endif
 
+#if MAX_STR_LEN < 1
+#error MAX_STR_LEN is non-positive.
+#endif
+
+#if MAX_STR_LEN > SHRT_MAX
+#error MAX_STR_LEN is greater than SHRT_MAX.
+#endif
+
 /*
  * Maximum length for error message formats and error messages,
  * including the NUL-terminator. Unsigned integer.
  */
 #if !defined(MAX_ERRMSG_LEN)
 #define MAX_ERRMSG_LEN 256U
+#endif
+
+#if MAX_ERRMSG_LEN > MAX_STR_LEN
+#error MAX_ERRMSG_LEN is greater than MAX_STR_LEN.
+#endif
+
+#if MAX_ERRMSG_LEN < 1
+#error MAX_ERRMSG_LEN is non-positive.
 #endif
 
 /*
@@ -55,10 +71,19 @@
 #else /* PATH_MAX >= MAX_STR_LEN */
 #define MAX_FNAME_LEN MAX_STR_LEN
 #endif /* PATH_MAX < MAX_STR_LEN */
-#else /* ! ||  < 0 */
+#else /* defined(PATH_MAX) && PATH_MAX > -1 */
 #define MAX_FNAME_LEN 1024
 #endif /* defined() &&  > -1 */
 #endif /* !defined(MAX_FNAME_LEN) */
+
+#if MAX_FNAME_LEN > MAX_STR_LEN
+#error MAX_FNAME_LEN is greater than MAX_STR_LEN.
+#endif
+
+#if MAX_FNAME_LEN < 1
+#error MAX_FNAME_LEN is non-positive.
+#endif
+
 
 /*
  * Maximum length for group names, including the NUL-terminator.
@@ -76,81 +101,20 @@
 #endif /* defined() &&  > -1 */
 #endif /* !defined(MAX_GRPNAME_LEN) */
 
-/*
- * Maximum length for filename suffices, including the NUL-terminator.
- * Unsigned integer. Filenames with longer suffices are rejected.
- */
-#if !defined(MAX_SUFFIX_LEN)
-#define MAX_SUFFIX_LEN 8U
-#endif
-
-/*
- * Maximum length for environment variables, including the NUL-terminator.
- * Unsigned integer. Longer variables are ignored.
- */
-#if !defined(MAX_VAR_LEN)
-#define MAX_VAR_LEN MAX_FNAME_LEN
-#endif
-
-/*
- * Maximum length for environment variable names, including the NUL-terminator.
- * Unsigned integer. Variables with longer names are ignored.
- */
-#if !defined(MAX_VARNAME_LEN)
-#define MAX_VARNAME_LEN 32U
-#endif
-
-/*
- * Maximum number of groups a user may be a member of. Unsigned integer.
- * Users who are members of more groups are rejected.
- */
-#if !defined(MAX_NGROUPS)
-#define MAX_NGROUPS 128U
-#endif
-
-/*
- * Maximum number of environment variables. Unsigned integer.
- * If the environment contains more variables, a run-time error is raised.
- */
-#if !defined(MAX_NVARS)
-#define MAX_NVARS 512U
-#endif
-
-
-/*
- * Checks
- */
-
-#if MAX_STR_LEN < 1
-#error MAX_STR_LEN is non-positive.
-#endif
-
-#if MAX_STR_LEN > SHRT_MAX
-#error MAX_STR_LEN is greater than SHRT_MAX.
-#endif
-
-#if MAX_ERRMSG_LEN > MAX_STR_LEN
-#error MAX_ERRMSG_LEN is greater than MAX_STR_LEN.
-#endif
-
-#if MAX_ERRMSG_LEN < 1
-#error MAX_ERRMSG_LEN is non-positive.
-#endif
-
-#if MAX_FNAME_LEN > MAX_STR_LEN
-#error MAX_FNAME_LEN is greater than MAX_STR_LEN.
-#endif
-
-#if MAX_FNAME_LEN < 1
-#error MAX_FNAME_LEN is non-positive.
-#endif
-
 #if MAX_GRPNAME_LEN > MAX_STR_LEN
 #error MAX_GRPNAME_LEN is greater than MAX_STR_LEN.
 #endif
 
 #if MAX_GRPNAME_LEN < 1
 #error MAX_GRPNAME_LEN is non-positive.
+#endif
+
+/*
+ * Maximum length for filename suffices, including the NUL-terminator.
+ * Unsigned integer. Filenames with longer suffices are rejected.
+ */
+#if !defined(MAX_SUFFIX_LEN)
+#define MAX_SUFFIX_LEN 8U
 #endif
 
 #if MAX_SUFFIX_LEN > MAX_STR_LEN
@@ -161,12 +125,28 @@
 #error MAX_SUFFIX_LEN is non-positive.
 #endif
 
+/*
+ * Maximum length for environment variables, including the NUL-terminator.
+ * Unsigned integer. Longer variables are ignored.
+ */
+#if !defined(MAX_VAR_LEN)
+#define MAX_VAR_LEN MAX_FNAME_LEN
+#endif
+
 #if MAX_VAR_LEN > MAX_STR_LEN
 #error MAX_VAR_LEN is greater than MAX_STR_LEN.
 #endif
 
 #if MAX_VAR_LEN < 1
 #error MAX_VAR_LEN is non-positive.
+#endif
+
+/*
+ * Maximum length for environment variable names, including the NUL-terminator.
+ * Unsigned integer. Variables with longer names are ignored.
+ */
+#if !defined(MAX_VARNAME_LEN)
+#define MAX_VARNAME_LEN 32U
 #endif
 
 #if MAX_VARNAME_LEN > MAX_STR_LEN
@@ -177,12 +157,28 @@
 #error MAX_VARNAME_LEN is non-positive.
 #endif
 
+/*
+ * Maximum number of groups a user may be a member of. Unsigned integer.
+ * Users who are members of more groups are rejected.
+ */
+#if !defined(MAX_NGROUPS)
+#define MAX_NGROUPS 128U
+#endif
+
 #if MAX_NGROUPS > INT_MAX
 #error MAX_NGROUPS is greater than INT_MAX.
 #endif
 
 #if MAX_NGROUPS < 1
 #error MAX_NGROUPS is non-positive.
+#endif
+
+/*
+ * Maximum number of environment variables. Unsigned integer.
+ * If the environment contains more variables, a run-time error is raised.
+ */
+#if !defined(MAX_NVARS)
+#define MAX_NVARS 512U
 #endif
 
 #if MAX_NVARS > SHRT_MAX

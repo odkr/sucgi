@@ -29,7 +29,7 @@
 #include <string.h>
 
 #include "handler.h"
-#include "max.h"
+#include "params.h"
 #include "pair.h"
 #include "path.h"
 #include "types.h"

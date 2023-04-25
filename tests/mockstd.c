@@ -37,7 +37,7 @@
 
 #include "../compat.h"
 #include "../macros.h"
-#include "../max.h"
+#include "../params.h"
 #include "mockstd.h"
 
 

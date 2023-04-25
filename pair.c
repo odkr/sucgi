@@ -29,7 +29,7 @@
 #include <string.h>
 
 #include "pair.h"
-#include "max.h"
+#include "params.h"
 #include "types.h"
 
 

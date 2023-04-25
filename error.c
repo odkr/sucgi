@@ -35,7 +35,7 @@
 #include <syslog.h>
 
 #include "error.h"
-#include "max.h"
+#include "params.h"
 
 
 /* message cannot be a literal. */

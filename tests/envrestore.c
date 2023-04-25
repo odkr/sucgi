@@ -35,8 +35,8 @@
 #include <string.h>
 
 #include "../env.h"
-#include "../params.h"
 #include "../macros.h"
+#include "../params.h"
 #include "../str.h"
 #include "check.h"
 #include "str.h"

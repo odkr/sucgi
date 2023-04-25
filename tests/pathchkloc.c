@@ -32,7 +32,7 @@
 #include <string.h>
 
 #include "../macros.h"
-#include "../max.h"
+#include "../params.h"
 #include "../path.h"
 #include "check.h"
 

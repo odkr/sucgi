@@ -26,7 +26,7 @@
 /* Pattern that matches X.509 distinguished name components. */
 #define PREG_X509 "(C|ST|L|O|OU|CN|T|I|G|S|D|UID|Email)"
 
-/* Pattern that matches decimal numbers equal to or greater than zero. */
+/* Pattern that matches decimal integers equal to or greater than zero. */
 #define PREG_N "(0|[1-9][0-9]*)"
 
 

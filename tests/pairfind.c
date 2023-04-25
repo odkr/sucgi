@@ -32,9 +32,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../params.h"
 #include "../macros.h"
-#include "../max.h"
+#include "../params.h"
 #include "../pair.h"
 #include "check.h"
 
