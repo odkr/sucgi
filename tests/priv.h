@@ -20,7 +20,7 @@
  */
 
 #if !defined(TESTS_PRIV_H)
-#define TESTS_LIB_H
+#define TESTS_PRIV_H
 
 #include <sys/types.h>
 
