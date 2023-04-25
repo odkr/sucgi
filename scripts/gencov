@@ -54,8 +54,6 @@ readonly scripts_dir src_dir
 # shellcheck disable=1091
 . "$src_dir/scripts/funcs.sh" || exit
 init || exit
-cd -P "$src_dir" || exit
-tmpdir tmp .
 
 
 #
@@ -158,6 +156,9 @@ readonly htmldir
 # Main
 #
 
+cd -P "$src_dir" || exit
+tmpdir tmp .
+
 uid="$(id -u)"
 [ "$uid" -eq 0 ] ||
 warn "coverage data collected as regular user is inaccurate."
@@ -187,19 +188,15 @@ case $(uname) in
 (*)      export LD_PRELOAD=tests/libmock.so ;;
 esac
 
-if ! reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")" ||
-   ! [ "$reguser" ]
-then err 'no regular user found.'
-fi
+reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")" ||
+err 'no regular user found.'
 
-if ! reggroup="$(id -gn "$reguser")" ||
-   ! [ "$reggroup" ]
-then err 'no regular group found.'
-fi
+reggroup="$(id -gn "$reguser")" && [ "$reggroup" ] ||
+err 'no regular group found.'
 
 # Neither umask 0 nor extensive write privileges work, because gcov and
 # llvm-cov both appear to ignore permissions, main also calls umask, and
-# permissions would have to be changed while the tests are running.
+# permissions would have to be changed while tests are running.
 if [ "$uid" -eq 0 ]
 then
 	chown -R "$reguser:$reggroup" "$TMPDIR"
@@ -209,7 +206,7 @@ fi
 
 warn -q 'collecting coverage data ...'
 
-if	[ "$htmldir"  != - ] || [ "$lcovinfo" != - ]
+if	[ "$htmldir" != - ] || [ "$lcovinfo" != - ]
 then
 	geninfo --gcov-tool "$gcov" -q -o initial.info	\
 	--ignore-errors gcov,source			\
@@ -236,7 +233,7 @@ do
 
 	inlist -eq "$exstatus" 0 75 || exit 69
 
-	if [ "$htmldir"  != - ] || [ "$lcovinfo" != - ]
+	if [ "$htmldir" != - ] || [ "$lcovinfo" != - ]
 	then
 		geninfo --gcov-tool "$gcov" -q -o "$infofile"		\
 			--ignore-errors gcov,source			\
