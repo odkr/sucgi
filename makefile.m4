@@ -63,17 +63,11 @@ makefile compat.h:
 # Build
 #
 
-hdrs = cattr.h compat.h macros.h max.h types.h
+hdrs = cattr.h compat.h config.h macros.h params.h types.h
 
 objs = env.o error.o handler.o pair.o path.o priv.o str.o userdir.o
 
 libs = libsucgi.a
-
-compat.h: config.h
-
-params.h: config.h testing.h
-
-max.h: config.h
 
 libsucgi.a(env.o): env.c env.h libsucgi.a(str.o)
 
@@ -95,7 +89,7 @@ libsucgi.a($(objs)): $(hdrs)
 
 libsucgi.a: libsucgi.a($(objs))
 
-sucgi: main.c config.h params.h testing.h $(hdrs) $(libs)
+sucgi: main.c $(hdrs) $(libs)
 
 libsucgi.a($(objs)):
 	$(CC) $(LDFLAGS) -c -o $*.o $(CFLAGS) $*.c $(LDLIBS)
@@ -142,12 +136,19 @@ check_libs = tests/libcheck.a $(libs)
 
 macro_check_bins = tests/ISSIGNED tests/NELEMS tests/SIGNEDMAX
 
-other_check_bins = tests/envcopyvar tests/envisname tests/envrestore \
-	tests/error tests/handlerfind tests/pairfind tests/pathchkloc \
-	tests/pathreal tests/pathsuffix tests/privdrop tests/privsuspend \
-	tests/copystr tests/getspecstrs tests/splitstr tests/userdirexp
+env_check_bins = tests/envcopyvar tests/envisname tests/envrestore
 
-check_bins = $(macro_check_bins) $(other_check_bins)
+path_check_bins = tests/pathchkloc tests/pathreal tests/pathsuffix
+
+priv_check_bins = tests/privdrop tests/privsuspend
+
+str_check_bins = tests/copystr tests/getspecstrs tests/splitstr
+
+nonmacro_check_bins = $(env_check_bins) $(path_check_bins) \
+	$(priv_check_bins) $(str_check_bins) tests/error \
+	tests/handlerfind tests/pairfind tests/userdirexp
+
+check_bins = $(macro_check_bins) $(nonmacro_check_bins)
 
 check_scripts = tests/main.sh tests/error.sh
 
@@ -182,45 +183,49 @@ tests/NELEMS: tests/NELEMS.c
 
 tests/SIGNEDMAX: tests/SIGNEDMAX.c
 
-tests/envisname: tests/envisname.c libsucgi.a(env.o)
+tests/envcopyvar: tests/envcopyvar.c
 
-tests/envrestore: tests/envrestore.c config.h params.h testing.h libsucgi.a(env.o)
+tests/envisname: tests/envisname.c
 
-tests/envrestore: tests/libcheck.a(tests/str.o)
+tests/envrestore: tests/envrestore.c params.h tests/libcheck.a(tests/str.o)
 
-tests/envcopyvar: tests/envcopyvar.c libsucgi.a(env.o)
+$(env_check_bins): libsucgi.a(env.o)
 
 tests/error: tests/error.c libsucgi.a(error.o)
 
 tests/handlerfind: tests/handlerfind.c libsucgi.a(handler.o)
 
-tests/main: main.c config.h params.h testing.h $(hdrs) libsucgi.a
+tests/main: main.c $(hdrs) libsucgi.a
 
-tests/pairfind: tests/pairfind.c config.h params.h testing.h libsucgi.a(pair.o)
+tests/pairfind: tests/pairfind.c params.h libsucgi.a(pair.o)
 
-tests/pathchkloc: tests/pathchkloc.c libsucgi.a(path.o)
+tests/pathchkloc: tests/pathchkloc.c
 
-tests/pathreal: tests/pathreal.c libsucgi.a(path.o)
+tests/pathreal: tests/pathreal.c
 
-tests/pathsuffix: tests/pathsuffix.c libsucgi.a(path.o)
+tests/pathsuffix: tests/pathsuffix.c
 
-tests/privdrop: tests/privdrop.c libsucgi.a(priv.o)
+$(path_check_bins): libsucgi.a(path.o)
 
-tests/privsuspend: tests/privsuspend.c libsucgi.a(priv.o)
+tests/privdrop: tests/privdrop.c
 
-tests/privdrop tests/privsuspend: tests/libcheck.a(tests/priv.o)
+tests/privsuspend: tests/privsuspend.c
 
-tests/copystr: tests/copystr.c libsucgi.a(str.o)
+$(priv_check_bins): libsucgi.a(priv.o) tests/libcheck.a(tests/priv.o)
 
-tests/getspecstrs: tests/getspecstrs.c libsucgi.a(str.o)
+tests/copystr: tests/copystr.c
 
-tests/splitstr: tests/splitstr.c libsucgi.a(str.o)
+tests/getspecstrs: tests/getspecstrs.c
+
+tests/splitstr: tests/splitstr.c
+
+$(str_check_bins): libsucgi.a(str.o)
 
 tests/userdirexp: tests/userdirexp.c libsucgi.a(userdir.o)
 
 $(check_bins): $(hdrs) tests/check.h
 
-$(other_check_bins): tests/libcheck.a(tests/check.o)
+$(nonmacro_check_bins): tests/libcheck.a(tests/check.o)
 
 tests/main.sh: tests/main tools/badenv tools/badexec tools/uids tools/runas
 
@@ -248,7 +253,7 @@ tests/libcheck.a($(check_objs)):
 	rm -f $*.o
 
 ifnempty(`__SUCGI_SHARED_LIBS', `dnl
-tests/mock.o:
+tests/mockstd.o:
 	$(CC) $(LDFLAGS) -c -o $@ -fpic $(CFLAGS) $< $(LDLIBS)
 
 tests/libmock.so:
@@ -258,7 +263,7 @@ tests/libmock.so:
 $(macro_check_bins):
 	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c $(LDLIBS)
 
-$(other_check_bins):
+$(nonmacro_check_bins):
 	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c $(check_libs) $(LDLIBS)
 
 tests/main:
