@@ -82,16 +82,14 @@ getspecstrs(const char *const str, const size_t maxnspecs,
         nchars = strspn(ptr, "%");
         ptr = &ptr[nchars];
 
-        if (nchars % 2U == 0U) {
-            continue;
-        }
+        if (nchars % 2U != 0U) {
+            if (*nspecs >= maxnspecs) {
+                return ERR_LEN;
+            }
 
-        if (*nspecs >= maxnspecs) {
-            return ERR_LEN;
+            specs[*nspecs] = ptr;
+            ++*nspecs;
         }
-
-        specs[*nspecs] = ptr;
-        ++*nspecs;
     }
 }
 
