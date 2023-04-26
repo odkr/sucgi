@@ -20,9 +20,8 @@
 compat.h
 config.status
 cov
+etc/local.env
 gcov
-local.env
 makefile
-speed.env
 sucgi
 tmp-*
