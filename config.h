@@ -37,19 +37,19 @@
  * This constant mirrors Apache's UserDir directive, save for that a '%s'
  * printf conversion specifier is used instead of an '*'. That is:
  *
- * (1) If USER_DIR is an absolute filename and contains '%s':
+ * (1) If USER_DIR is an absolute filename and contains '%s',
  *     '%s' is replaced with the user's login name.
  *     For example, '/srv/web/%s/html' -> '/srv/web/jdoe/html'.
  *     There must be at most one format specifier, and it must be '%s'.
  *     printf's escaping rules apply.
  *
- * (2) If USER_DIR is an absolute filename but does *not* contain '%s':
+ * (2) If USER_DIR is an absolute filename but does *not* contain '%s',
  *     '/' and the user's login name are appended to the filename.
  *     For example, "/srv/web" -> "/srv/web/jdoe".
  *     printf's escaping rules do not apply.
  *
- * (3) If USER_DIR is a relative filename:
- *     The filename is prefixed with the user's home directory and '/'.
+ * (3) If USER_DIR is a relative filename,
+ *     the filename is prefixed with the user's home directory and '/'.
  *     For example, "public_html" -> "/home/jdoe/public_html".
  *     '%s' carries no special meaning.
  *     printf's escaping rules do not apply.
