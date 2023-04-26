@@ -46,9 +46,9 @@ misra-c2012-16.6:main.c
 misra-c2012-17.1:error.c
 
 // Rule 20.5 advises that #undef not be used.
-// #undef is used in testing.h to override the build configuration for tests.
+// #undef is used in params.h to override the build configuration for tests.
 // It is not used for anything else.
-misra-c2012-20.5:testing.h
+misra-c2012-20.5:params.h
 
 // Rule 21.1 requires that reserved identifies not be used as macro names.
 // But Cppcheck applies this rule to feature test macros.
