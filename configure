@@ -32,7 +32,7 @@ cflags=
 compilers='gcc clang tcc icx icc c99 cc'
 
 # Configuration file.
-conf=prod.env
+conf=etc/prod.env
 
 # Files to generate. Space-separated list.
 files='compat.h makefile'
@@ -41,7 +41,10 @@ files='compat.h makefile'
 force=
 
 # Headers to look for. Space-separated list of filenames.
-headers='sys/param.h features.h'
+headers='sys/param.h features.h security/pam_appl.h shadow.h'
+
+# Libraries to look for. Space-separated list of library names.
+libs=pam
 
 # Maximum number of child processes to spawn.
 maxnjobs=4
@@ -139,7 +142,7 @@ testcomp() (
 		"$CC" -xc -Wall -Werror $testflags -o/dev/null "$@"
 		;;
 	(tcc)
-		# TCC unlinks /dev/null when given -o/dev/null.
+		# Some versions of TCC unlink /dev/null when given -o/dev/null.
 		# shellcheck disable=2086
 		"$CC" -Wunsupported \
 		      -xc -Wall -Werror $testflags -o"$TMPDIR/a.out" "$@"
@@ -157,14 +160,7 @@ testcomp() (
 
 # Test compiler flags.
 testflags() {
-	printf 'int main(void) {return 0;}\n' |
-	testcomp "$@" -
-}
-
-# Test whether a header file is available.
-testhdr() {
-	printf '#include <%s>\n' "${1:?}" |
-	testcomp -E -
+	printf 'int main(void) {return 0;}\n' | testcomp "$@" -
 }
 
 
@@ -190,7 +186,7 @@ Operands:
 
 Options:
     -c FILE  Read build configuration from FILE (default: $conf).
-    -d       Short for -c devel.env.
+    -d       Short for -c etc/devel.env.
     -f       Overwrite existing files.
     -j N     Run N configuration tests in parallel (default: $maxnjobs).
     -p DIR   Add DIR to the search path for static analysers.
@@ -207,7 +203,7 @@ EOF
 		;;
 	(D) set -x ;;
 	(c) conf="$OPTARG" ;;
-	(d) conf=devel.env ;;
+	(d) conf=etc/devel.env ;;
 	(f) force=x ;;
 	(j) maxnjobs="$OPTARG" ;;
 	(p) statpath="$statpath:$OPTARG" ;;
@@ -515,7 +511,7 @@ do
 			tr '[:lower:]' '[:upper:]'
 		)"
 
-		case $headervar in (HAVE_|*[!A-Z0-9_]*)
+		case $headervar in (SUCGI_HAVE_|*[!A-Z0-9_]*)
 			warn '%s: could not derive macro name.'
 			continue
 		esac
@@ -533,7 +529,12 @@ do
 			printf ' %s' "$header"
 			;;
 		(*)
-			testhdr "$header" &
+			(
+				src="$TMPDIR/${header%.h}.c"
+				mkdir -p "$(dirname "$src")"
+				printf '#include <%s>\n' "$header" >"$src"
+				"$CC" -E "$src" >/dev/null 2>&1
+			) &
 			njobs=$((njobs + 1)) jobs="$jobs$! "
 			eval "header_$!"='$header'
 			eval "headervar_$!"='$headervar'
@@ -570,6 +571,130 @@ case $nheaders in
 esac
 
 
+# #
+# # Check which libraries are available
+# #
+#
+# printf 'Libraries:'
+#
+#
+# # shellcheck disable=2086,SC2154
+# set -- $libs
+# nlibs=0 njobs=0 jobs=''
+# while [ "$njobs" -gt 0 ] || [ $# -gt 0 ]
+# do
+# 	# Start jobs.
+# 	while [ "$njobs" -lt "$maxnjobs" ] && [ $# -gt 0 ]
+# 	do
+# 		lib="$1"
+# 		shift
+#
+# 		libvar="SUCGI_HAVE_LIB$(
+# 			printf '%s\n' "$lib"	|
+# 			sed 's/[^a-z]/_/g'	|
+# 			tr '[:lower:]' '[:upper:]'
+# 		)"
+#
+# 		case $libvar in (SUCGI_HAVE_LIB_|*[!A-Z0-9_]*)
+# 			warn '%s: could not derive macro name.'
+# 			continue
+# 		esac
+#
+# 		eval libavail="\${$libvar-}"
+#
+# 		# shellcheck disable=2154
+# 		case $libavail in
+# 		(0)
+# 			eval "$libvar=0"
+# 			;;
+# 		(1)
+# 			eval "$libvar=1"
+# 			nlibs=$((nlibs + 1))
+# 			printf ' %s' "$lib"
+# 			;;
+# 		(*)
+# 			src="$TMPDIR/lib.c"
+# 			printf 'int main(void) {return 0;}\n' >"$src"
+#
+# 			"$CC" -o"${src%.c}.out" "$src" -l"$lib" 2>/dev/null &
+# 			njobs=$((njobs + 1)) jobs="$jobs$! "
+# 			eval "lib_$!"='$lib'
+# 			eval "libvar_$!"='$libvar'
+# 		esac
+#
+# 		unset lib libvar libavail
+# 	done
+#
+# 	# Collect the job on top of the pile.
+# 	if [ "$njobs" -gt 0 ]
+# 	then
+# 		job="${jobs%% *}"
+# 		eval lib="\"\${lib_$job-}\""
+# 		eval libvar="\"\${libvar_$job-}\""
+# 		unset "lib_$job" "libvar_$job"
+#
+# 		if wait "$job"
+# 		then
+# 			eval "$libvar=1"
+# 			LDLIBS="${LDLIBS-} -l$lib" nlibs=$((nlibs + 1))
+# 			printf -- ' %s' "$lib"
+# 		else
+# 			eval "$libvar=0"
+# 		fi
+#
+# 		njobs=$((njobs - 1)) jobs="${jobs#* }"
+# 		unset lib libvar job
+# 	fi
+# done
+#
+# case $nlibs in
+# (0) printf ' none found\n' ;;
+# (*) printf '\n' ;;
+# esac
+#
+#
+# #
+# # How to validate accounts
+# #
+#
+# printf 'Account validation: '
+#
+# if	[ "${SUCGI_HAVE_SECURITY_PAM_APPL_H-0}" -ne 0 ] &&
+# 	[ "${SUCGI_HAVE_LIBPAM-0}" -ne 0 ]
+# then
+# 	printf 'PAM\n'
+# elif	[ "${SUCGI_HAVE_SHADOW-0}" -ne 0 ]
+# then
+# 	printf 'shadow\n'
+# else
+# 	if ! [ "${SUCGI_HAVE_EXPIRE-}" ]
+# 	then
+# 		src="$TMPDIR/pw_expire.c"
+# 		cat <<-'EOF' >"$src"
+# 			#define _BSD_SOURCE
+# 			#define _DARWIN_C_SOURCE
+# 			#define _DEFAULT_SOURCE
+# 			#define _GNU_SOURCE
+#
+# 			#include <sys/types.h>
+# 			#include <pwd.h>
+#
+# 			struct passwd pwd = {.pw_expire = 0};
+# 		EOF
+#
+# 		if "$CC" -c -o"$TMPDIR/pw_expire.o" "$src" >/dev/null 2>&1
+# 		then SUCGI_HAVE_EXPIRE=1
+# 		else SUCGI_HAVE_EXPIRE=0
+# 		fi
+# 	fi
+#
+# 	case ${SUCGI_HAVE_EXPIRE-0} in
+# 	(0) printf 'not supported\n' ;;
+# 	(*) printf 'passwd\n' ;;
+# 	esac
+# fi
+
+
 #
 # Check what data type getgrouplist returns GIDs as.
 #
@@ -593,8 +718,8 @@ then
 		int
 		main(void)
 		{
-			SUCGI_GRP_T basegid = 0;
-			SUCGI_GRP_T groups[1] = {0};
+			GRP_T basegid = 0;
+			GRP_T groups[1] = {0};
 			int n = 1;
 
 			getgrouplist("dummy", basegid, groups, &n);
@@ -610,7 +735,7 @@ then
 		[ "$grouptype" ] || continue
 
 		# shellcheck disable=2086
-		if testcomp $wconvflags -DSUCGI_GRP_T="$grouptype" "$src"
+		if testcomp $wconvflags -DGRP_T="$grouptype" "$src"
 		then
 			SUCGI_GRP_T="$grouptype"
 			break
@@ -649,7 +774,7 @@ then
 		int
 		main(void)
 		{
-			SUCGI_NGRPS_T ngroups = 0;
+			NGRPS_T ngroups = 0;
 			gid_t gidset[1] = {0};
 
 			(void) setgroups(ngroups, gidset);
@@ -665,7 +790,7 @@ then
 		[ "$sizetype" ] || continue
 
 		# shellcheck disable=2086
-		if testcomp $wconvflags -DSUCGI_NGRPS_T="$sizetype" "$src"
+		if testcomp $wconvflags -DNGRPS_T="$sizetype" "$src"
 		then
 			SUCGI_NGRPS_T="$sizetype"
 			break
