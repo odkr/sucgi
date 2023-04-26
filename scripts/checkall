@@ -30,6 +30,12 @@ readonly shells='sh bash dash ksh mksh oksh posh sash yash zsh'
 # Arguments for check*.
 args=
 
+# Be quieter?
+quiet=
+
+# Be verbose?
+verbose=
+
 
 #
 # Initialiation
@@ -43,6 +49,7 @@ readonly scripts_dir src_dir
 # shellcheck disable=1091
 . "$scripts_dir/funcs.sh" || exit
 init || exit
+tmpdir tmp "$src_dir"
 
 
 #
@@ -68,8 +75,8 @@ Options:
 EOF
 	    ;;
 	(D) args="$args -D" ;;
-	(q) args="$args -q" ;;
-	(v) args="$args -v" ;;
+	(q) args="$args -q" quiet=y ;;
+	(v) args="$args -v" verbose=y ;;
 	(*) exit 1
 	esac
 done
@@ -84,9 +91,21 @@ unset opt
 # Main
 #
 
+failures=
+
+[ "$verbose" ] || warn 'checking compilers ...'
 # shellcheck disable=2086
-"$src_dir/scripts/checkcomps" $args
+logged "$src_dir/scripts/checkcomps" $args || failures=compilers
+
+[ "$verbose" ] || warn 'checking makes ...'
 # shellcheck disable=2086
-"$src_dir/scripts/checkmakes" $args
+logged "$src_dir/scripts/checkmakes" $args || failures="$failures, makes"
+
+[ "$verbose" ] || warn 'checking shells ...'
 # shellcheck disable=2086
-"$src_dir/scripts/checkshells" $args
+logged "$src_dir/scripts/checkshells" $args || failures="$failures, shells"
+
+if [ "$failures" ]
+then err "failures: %s" "${failures#, }"
+else warn -q 'all checks passed.'
+fi

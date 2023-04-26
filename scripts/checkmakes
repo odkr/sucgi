@@ -47,8 +47,7 @@ readonly scripts_dir src_dir
 # shellcheck disable=1091
 . "$scripts_dir/funcs.sh" || exit
 init || exit
-cd "$src_dir" || exit
-tmpdir tmp .
+tmpdir tmp "$src_dir"
 
 
 #
@@ -147,6 +146,7 @@ fi
 #
 
 warn -q 'copying sources ...'
+cd "$src_dir" || exit
 m4 makefile.m4 >"$TMPDIR/makefile"
 distdir="$TMPDIR/dist"
 make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir" >/dev/null

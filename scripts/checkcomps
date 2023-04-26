@@ -27,8 +27,8 @@
 
 # Compilers to test.
 readonly compilers='
-	gcc-12 gcc-11 gcc-10 gcc-9 gcc-8
-	gcc12 gcc11 gcc10 gcc9 gcc8
+	gcc-12 gcc-11 gcc-10 gcc-9 gcc-8 gcc-7
+	gcc12 gcc11 gcc10 gcc9 gcc8 gcc7
 	gcc musl-gcc
 	clang-16 clang-15 clang-14 clang-13
 	clang-12 clang-11 clang-10 clang-9
@@ -180,6 +180,7 @@ do
 	[ -e makefile ] && rm -f makefile
 
 	eval "cflags=\${${cc%%[!a-z]*}_flags-}"
+	# shellcheck disable=2154
 	m4 -D__CC="$cc" -D__CFLAGS="$cflags" makefile.m4 >makefile
 
 	mylogged -l"$cc.log" make clean all check ||

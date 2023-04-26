@@ -165,6 +165,7 @@ logged() (
 
 	"$@" >>"$TMPDIR/$_logged_fname" 2>&1 || _logged_status=$?
 
+	# shellcheck disable=2086
 	if inlist -eq "$_logged_status" $_logged_mask
 	then
 		rm -f "$TMPDIR/$_logged_fname"
@@ -188,6 +189,7 @@ logged() (
 
 # Print the login name of a file's owner.
 owner() (
+	# shellcheck disable=2012
 	ls -ld "${1:?}" | awk '{print $3}'
 )
 
@@ -208,7 +210,9 @@ reguser() (
 
 			_reguser_gids=$(id -G "$_reguser_logname")
 
+			# shellcheck disable=2086
 			inlist -lt "$3" $_reguser_gids && continue
+			# shellcheck disable=2086
 			inlist -gt "$4" $_reguser_gids && continue
 
 			printf '%s\n' "$_reguser_logname"
