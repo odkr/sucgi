@@ -21,14 +21,15 @@ Requirements
 suCGI should work on any system that is compatible with `4.4BSD`_ and
 compliant with `POSIX.1-2008`_, including the X/Open System Interface
 extension; any Unix-like system that has been released recently-ish
-and that does *not* target embedded systems should do.
+and that does *not* target embedded systems should do so.
 
 
 Installation
 ============
 
 **Do NOT use suCGI at this point!**
-suCGI is work in progess and has *not* been reviewed, let alone audited.
+suCGI is work in progess, does not yet validate users,
+and has *not* been reviewed, let alone audited.
 
 ----
 
