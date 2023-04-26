@@ -285,6 +285,7 @@ main(int argc, char **argv) {
     openlog("sucgi", SYSLOG_OPTS, SYSLOG_FACILITY);
     errno = 0;
     if (atexit(closelog) != 0) {
+        /* Should be reachable by atexit running out of memory. */
         error("atexit: %m");
     }
 
@@ -307,10 +308,19 @@ main(int argc, char **argv) {
 
     assert(getuid() == geteuid());
     assert(getgid() == getegid());
+
     /*
-     * getgroups is unreliable on some systems,
-     * so supplementary groups cannot be verified.
+     * TODO: Factor out group handling, so that
+     *       _DARWIN_C_SOURCE need not be set.
      */
+
+    /* getgroups is unreliable on macOS if _DARWIN_C_SOURCE is set. */
+#if !defined(NDEBUG) && !defined(_DARWIN_C_SOURCE)
+    gid_t setgroups[MAX_NGROUPS];
+
+    assert(getgroups(MAX_NGROUPS, setgroups) == 1);
+    assert(setgroups[1] == getegid());
+#endif
 
 
     /*
@@ -567,7 +577,7 @@ main(int argc, char **argv) {
     case OK:
         break;
     case ERR_SYS:
-        /* Should only be reachable if setgroups ran out of memory. */
+        /* Should only be reachable by setgroups running out of memory. */
         error("privilege drop: %m.");
     default:
         /* Should be unreachable. */
@@ -586,6 +596,32 @@ main(int argc, char **argv) {
     assert(getegid() == gid);
     assert(getuid() == uid);
     assert(getgid() == gid);
+
+    /* getgroups is unreliable on macOS if _DARWIN_C_SOURCE is set. */
+#if !defined(NDEBUG) && !defined(_DARWIN_C_SOURCE)
+    int nsetgroups;
+
+    nsetgroups = ((long) ngroups < ngroups_max) ? ngroups : (int) ngroups_max;
+    assert(nsetgroups == getgroups(MAX_NGROUPS, setgroups));
+
+    /* TODO: Use lfind. */
+    for (int i = 0; i < nsetgroups; ++i) {
+        bool found;
+
+        found = false;
+        for (int j = 0; j < ngroups; ++j) {
+            if (nsetgroups[i] == groups[j]) {
+                found = true;
+                break
+            }
+        }
+
+        assert(found);
+    }
+#endif
+
+
+
     /*
      * getgroups is unreliable on some systems,
      * so supplementary groups cannot be verified.
@@ -607,6 +643,7 @@ main(int argc, char **argv) {
     case ERR_LEN:
         error("user %s: user directory is too long.", logname);
     case ERR_SYS:
+        /* Should only be reachable if USER_DIR contains an invalid wchar. */
         error("snprintf: %m.");
     default:
         /* Should be unreachable. */
@@ -740,8 +777,7 @@ main(int argc, char **argv) {
         /* If this point is reached, execution has failed. */
         error("execlp %s %s: %m.", handler, script_log);
     case ERR_SEARCH:
-        ; /* Empty on purpose. */
-        __attribute__((fallthrough));
+        ; /* Falls through. */
     case ERR_SUFFIX:
         break;
     case ERR_BAD:
