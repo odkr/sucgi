@@ -31,7 +31,7 @@ src_dir="$(cd -P "$tests_dir/.." && pwd)"
 # shellcheck disable=2034
 readonly tests_dir src_dir
 # shellcheck disable=1091
-. "$tests_dir/funcs.sh" || exit
+. "$tests_dir/lib/funcs.sh" || exit
 init || exit
 tmpdir tmp .
 
@@ -55,19 +55,18 @@ eval "$(main -C | grep -E ^NDEBUG=)"
 # Assertions
 #
 
-if [ "${NDEBUG-}" ]
+if ! [ "${NDEBUG-}" ]
 then
-	trap 'catch ABRT' ABRT
-	
-	catch=
-	check -s134 -e"*message" error ''
-	catch=x
-
-	case $caught in
-	(''|ABRT) : ;;
-	(*) kill -s"$caught" "$$"
+	case ${KSH_VERSION-} in
+	(''|*PD*|*MIR*) retval=134 ;;
+	(*)             retval=262 ;;
 	esac
+
+	trap : ABRT
+	check -s"$retval" -e"*message" error ''
+	trap - ABRT
 fi
+
 
 #
 # Messages

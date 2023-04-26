@@ -26,10 +26,12 @@
 
 #include <err.h>
 #include <limits.h>
+#include <setjmp.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include "../macros.h"
-#include "check.h"
+#include "lib/check.h"
 
 
 /*
@@ -37,16 +39,27 @@
  */
 
 /* Check whether SIGNEDMAX returns N for TYPE. */
-#define TEST(type, n)                                   \
-    do {                                                \
-        size_t _test_n = (n);                           \
-        size_t _test_m = SIGNEDMAX(type);               \
-                                                        \
-        if (_test_n != _test_m) {                       \
-            result = TEST_FAILED;                       \
-            warnx("(" #type ") -> %zu [!]", _test_m);   \
-        }                                               \
-    } while (0)
+#define TEST(type, n)                                       \
+    do {                                                    \
+        size_t _test_n = (n);                               \
+        int _test_jumpval;                                  \
+                                                            \
+        _test_jumpval = sigsetjmp(checkenv, true);          \
+        if (_test_jumpval == 0) {                           \
+            size_t _test_m;                                 \
+                                                            \
+            checking = 1;                                   \
+            _test_m = SIGNEDMAX(type);                      \
+            checking = 0;                                   \
+                                                            \
+            if (_test_m != _test_n) {                       \
+                result = TEST_FAILED;                       \
+                warnx("(" #type ") → %zu [!]", _test_m);    \
+            }                                               \
+        } else {                                            \
+            warnx("(" #type ") ↑ %d [!]", _test_jumpval);   \
+        }                                                   \
+    } while (false)
 
 
 /*
@@ -63,6 +76,10 @@ static int result = TEST_PASSED;
 
 int
 main (void) {
+    if (checkinit() != 0) {
+        err(TEST_ERROR, "sigaction");
+    }
+
     TEST(signed char, CHAR_MAX);
     TEST(unsigned char, CHAR_MAX);
     TEST(signed short, SHRT_MAX);

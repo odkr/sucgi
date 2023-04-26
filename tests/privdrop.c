@@ -43,8 +43,8 @@
 #include "../macros.h"
 #include "../params.h"
 #include "../priv.h"
-#include "check.h"
-#include "priv.h"
+#include "lib/check.h"
+#include "lib/user.h"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -158,18 +158,49 @@ main (void) {
     ERRORIF((uint64_t) INT_MAX > (uint64_t) SIGNEDMAX(GRP_T));
 
     if (getuid() == 0) {
-        if (!privgetregular(&reguid)) {
-            struct passwd pwd;
+        struct passwd pwd;
+        UserError usererr;
 
-            if (errno == 0) {
+        usererr = usergetregular(&reguid);
+        switch (usererr) {
+            case USER_SUCCESS:
+                break;
+            case USER_NOTFOUND:
                 errx(TEST_SKIPPED, "no regular user found");
-            } else {
+            case USER_ERROR:
                 err(TEST_ERROR, "getpwent");
-            }
-
-            privgetuser(reguid, &pwd);
-            reggid = pwd.pw_gid;
+            default:
+                errx(TEST_ERROR, "%s:%d: usergetregular(→ %p) → %u [!]",
+                     __FILE__, __LINE__, (void *) &reguid, usererr);
         }
+
+        usererr = userget(reguid, &pwd);
+        switch (usererr) {
+            case USER_SUCCESS:
+                break;
+            case USER_NOTFOUND:
+                if (ISSIGNED(uid_t)) {
+                    errx(TEST_SKIPPED, "user %lld: not found",
+                         (long long) reguid);
+                } else {
+                    errx(TEST_SKIPPED, "user %llu: not found",
+                         (unsigned long long) reguid);
+                }
+            case USER_ERROR:
+                err(TEST_ERROR, "userget");
+            default:
+                if (ISSIGNED(uid_t)) {
+                    errx(TEST_ERROR, "%s:%d: userget(%lld, → %p) → %u [!]",
+                         __FILE__, __LINE__,
+                         (long long) reguid, (void *) &pwd, usererr);
+                } else {
+                    errx(TEST_ERROR, "%s:%d: userget(%llu, → %p) → %u [!]",
+                         __FILE__, __LINE__,
+                         (unsigned long long) reguid, (void *) &pwd, usererr);
+                }
+        }
+
+        reggid = pwd.pw_gid;
     } else {
         reguid = getuid();
         reggid = getgid();
@@ -181,10 +212,85 @@ main (void) {
         uid_t dropuid;
         gid_t dropgid;
         pid_t pid;
+        UserError usererr;
 
-        privgetuser(*args.ruid, &ruser);
-        privgetuser(*args.euid, &euser);
-        privgetuser(*args.dropuid, &drop);
+        usererr = userget(*args.ruid, &ruser);
+        switch (usererr) {
+            case USER_SUCCESS:
+                break;
+            case USER_NOTFOUND:
+                if (ISSIGNED(uid_t)) {
+                    errx(TEST_ERROR, "user %lld: not found",
+                         (long long) *args.ruid);
+                } else {
+                    errx(TEST_ERROR, "user %llu: not found",
+                         (unsigned long long) *args.ruid);
+                }
+            case USER_ERROR:
+                err(TEST_ERROR, "userget");
+            default:
+                if (ISSIGNED(uid_t)) {
+                    errx(TEST_ERROR, "%s:%d: userget(%lld, → %p) → %u [!]",
+                         __FILE__, __LINE__, (long long) *args.ruid,
+                         (void *) &ruser, usererr);
+                } else {
+                    errx(TEST_ERROR, "%s:%d: userget(%llu, → %p) → %u [!]",
+                         __FILE__, __LINE__, (unsigned long long) *args.ruid,
+                         (void *) &ruser, usererr);
+                }
+        }
+
+        usererr = userget(*args.euid, &euser);
+        switch (usererr) {
+            case USER_SUCCESS:
+                break;
+            case USER_NOTFOUND:
+                if (ISSIGNED(uid_t)) {
+                    errx(TEST_ERROR, "user %lld: not found",
+                         (long long) *args.euid);
+                } else {
+                    errx(TEST_ERROR, "user %llu: not found",
+                         (unsigned long long) *args.euid);
+                }
+            case USER_ERROR:
+                err(TEST_ERROR, "userget");
+            default:
+                if (ISSIGNED(uid_t)) {
+                    errx(TEST_ERROR, "%s:%d: userget(%lld, → %p) → %u [!]",
+                         __FILE__, __LINE__, (long long) *args.euid,
+                         (void *) &euser, usererr);
+                } else {
+                    errx(TEST_ERROR, "%s:%d: userget(%llu, → %p) → %u [!]",
+                         __FILE__, __LINE__, (unsigned long long) *args.euid,
+                         (void *) &euser, usererr);
+                }
+        }
+
+        usererr = userget(*args.dropuid, &drop);
+        switch (usererr) {
+            case USER_SUCCESS:
+                break;
+            case USER_NOTFOUND:
+                if (ISSIGNED(uid_t)) {
+                    errx(TEST_ERROR, "user %lld: not found",
+                         (long long) *args.dropuid);
+                } else {
+                    errx(TEST_ERROR, "user %llu: not found",
+                         (unsigned long long) *args.dropuid);
+                }
+            case USER_ERROR:
+                err(TEST_ERROR, "userget");
+            default:
+                if (ISSIGNED(uid_t)) {
+                    errx(TEST_ERROR, "%s:%d: userget(%lld, → %p) → %u [!]",
+                         __FILE__, __LINE__, (long long) *args.dropuid,
+                         (void *) &drop, usererr);
+                } else {
+                    errx(TEST_ERROR, "%s:%d: userget(%llu, → %p) → %u [!]",
+                         __FILE__, __LINE__, (unsigned long long) *args.dropuid,
+                         (void *) &drop, usererr);
+                }
+        }
 
         dropuid = drop.pw_uid;
         dropgid = (args.dropgid == NULL) ? drop.pw_gid : *args.dropgid;

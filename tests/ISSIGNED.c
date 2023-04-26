@@ -25,11 +25,13 @@
 #define _GNU_SOURCE
 
 #include <err.h>
+#include <setjmp.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdbool.h>
 
 #include "../macros.h"
-#include "check.h"
+#include "lib/check.h"
 
 
 /*
@@ -39,12 +41,22 @@
 /* Test whether ISSIGNED returns RET for TYPE. */
 #define TEST(type, ret)                                             \
     do {                                                            \
-        bool _test_ret = ISSIGNED(type);                            \
-        if (_test_ret != (ret)) {                                   \
-            result = TEST_FAILED;                                   \
-            warnx("(" #type ") -> %d [!]", _test_ret);              \
+        int _test_jumpval;                                          \
+                                                                    \
+        _test_jumpval = sigsetjmp(checkenv, true);                  \
+        if (_test_jumpval == 0) {                                   \
+            checking = 1;                                           \
+            bool _test_ret = ISSIGNED(type);                        \
+            checking = 0;                                           \
+                                                                    \
+            if (_test_ret != (ret)) {                               \
+                result = TEST_FAILED;                               \
+                warnx("(" #type ") → %d [!]", _test_ret);           \
+            }                                                       \
+        } else {                                                    \
+                warnx("(" #type ") ↑ %d [!]", _test_jumpval);       \
         }                                                           \
-    } while (0)
+    } while (false)
 
 
 /*
@@ -61,6 +73,10 @@ static int result = TEST_PASSED;
 
 int
 main (void) {
+    if (checkinit() != 0) {
+        err(TEST_ERROR, "sigaction");
+    }
+
     TEST(signed char, true);
     TEST(unsigned char, false);
     TEST(signed short, true);

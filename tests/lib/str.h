@@ -1,5 +1,5 @@
 /*
- * Header for priv.c.
+ * Header for str.c.
  *
  * Copyright 2023 Odin Kroeger.
  *
@@ -19,34 +19,27 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(TESTS_PRIV_H)
-#define TESTS_PRIV_H
+#if !defined(TESTS_LIB_STR_H)
+#define TESTS_LIB_STR_H
 
-#include <sys/types.h>
+#include <stdbool.h>
 
-#include "../cattr.h"
+#include "../../attr.h"
 
-
-/*
- * Functions
- */
 
 /*
- * Return the user ID of a non-superuser in UID.
+ * Join the first N strings in STRS using the separator SEP and store the
+ * result in DEST, which must be large enough to hold SIZE bytes. If STRS
+ * contains a NULL pointer, processing stops at that pointer. STRS must
+ * either be NULL-terminated or have at least N elements.
  *
  * Return value:
- *     true   A non-superuser was found.
- *     false  No non-superuser was found.
- *            errno is set to a non-zero value if getpwent failed.
+ *     true   Success.
+ *     false  SIZE is too small to hold the joined string.
  */
-__attribute__((nonnull(1), warn_unused_result))
-bool privgetregular(uid_t *const uid);
+__attribute__((nonnull(2, 3, 5), warn_unused_result))
+bool joinstrs(size_t nstrs, const char *const *strs,
+              const char *sep, size_t size, char *dest);
 
-/*
- * Return the passwd entry of the user whose ID is UID in PWD.
- * Exit with TEST_ERROR if an error occurs.
- */
-__attribute__((nonnull(2)))
-void privgetuser(uid_t uid, struct passwd *pwd);
 
-#endif /* !defined(TESTS_PRIV_H) */
+#endif /* !defined(TESTS_LIB_STR_H) */

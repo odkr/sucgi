@@ -35,8 +35,8 @@
 #include "../macros.h"
 #include "../params.h"
 #include "../str.h"
-#include "check.h"
-#include "str.h"
+#include "lib/check.h"
+#include "lib/str.h"
 
 
 /*
@@ -198,7 +198,9 @@ report(const char *const message, const Args *const args,
 {
     char specstr[MAX_STR_LEN];
 
-    (void) joinstrs(nspecs, specs, ", ", sizeof(specstr), specstr);
+    if (!joinstrs(nspecs, specs, ", ", sizeof(specstr), specstr)) {
+        errx(TEST_ERROR, "joinstrs: joined string is too long");
+    }
 
 /* message is not a literal. */
 #if defined(__GNUC__) && __GNUC__ >= 3
@@ -246,7 +248,9 @@ int
 main (void) {
     volatile int result = TEST_PASSED;
 
-    checkinit();
+    if (checkinit() != 0) {
+        err(TEST_ERROR, "sigaction");
+    }
 
 #if !defined(NDEBUG)
     (void) memset(hugestr, 'x', sizeof(hugestr) - 1U);

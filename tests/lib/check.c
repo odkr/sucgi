@@ -32,7 +32,7 @@
 #include <string.h>
 
 #include "check.h"
-#include "../macros.h"
+#include "../../macros.h"
 
 
 /*
@@ -79,9 +79,10 @@ catch(const int signo)
     (void) raise(signo);
 }
 
-void
+int
 checkinit(void)
 {
+    /* Signals that abort execution by default. */
     const int signos[] = {
         SIGABRT, SIGBUS, SIGFPE, SIGILL, SIGQUIT,
         SIGSEGV, SIGSYS, SIGXCPU, SIGXFSZ
@@ -92,7 +93,9 @@ checkinit(void)
 
         errno = 0;
         if (sigaction(signos[i], &action, NULL) != 0) {
-            err(EXIT_FAILURE, "sigaction");
+            return errno;
         }
     }
+
+    return 0;
 }

@@ -1,5 +1,5 @@
 /*
- * Utility functions for testing priv.o.
+ * Utility functions for searching users.
  *
  * Copyright 2023 Odin Kroeger.
  *
@@ -35,41 +35,49 @@
 #include <unistd.h>
 
 #include "check.h"
-#include "priv.h"
+#include "user.h"
 
 
 /*
  * Functions
  */
 
-bool
-privgetregular(uid_t *const uid) {
-    int retval = false;
-    int olderr = 0;
+UserError
+usergetregular(uid_t *const uid) {
     struct passwd *pwd;
+    int olderr;
+    UserError retval;
 
+    assert(uid != NULL);
+
+    retval = USER_NOTFOUND;
     setpwent();
     while ((errno = 0, pwd = getpwent()) != NULL) {
         if (pwd->pw_uid > 0) {
             *uid = pwd->pw_uid;
-            retval = true;
+            retval = USER_SUCCESS;
             break;
         }
     }
     olderr = errno;
     endpwent();
 
-    errno = olderr;
-    return retval;
+    if (pwd == NULL && olderr != 0) {
+        errno = olderr;
+        return USER_ERROR;
+    }
+
+    return USER_SUCCESS;
 }
 
-void
-privgetuser(uid_t uid, struct passwd *pwd)
+UserError
+userget(uid_t uid, struct passwd *pwd)
 {
     long bufsize;
     char *buffer;
     struct passwd *result;
 
+    errno = 0;
     bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
     assert(bufsize > 0L);
     assert((uint64_t) bufsize < (uint64_t) SIZE_MAX);
@@ -78,15 +86,17 @@ privgetuser(uid_t uid, struct passwd *pwd)
     errno = 0;
     buffer = malloc((size_t) bufsize);
     if (buffer == NULL) {
-        errx(TEST_ERROR, "malloc");
+        return USER_ERROR;
     }
 
+    result = NULL;
     errno = getpwuid_r(uid, pwd, buffer, (size_t) bufsize, &result);
     if (result == NULL) {
         if (errno == 0) {
-            errx(TEST_ERROR, "user ID %llu: unallocated",
-                 (unsigned long long) uid);
+            return USER_NOTFOUND;
         }
-        err(TEST_ERROR, "getpwuid_r");
+        return USER_ERROR;
     }
+
+    return USER_SUCCESS;
 }

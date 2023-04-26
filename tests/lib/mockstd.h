@@ -19,20 +19,20 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(TESTS_MOCKSTD_H)
-#define TESTS_MOCKSTD_H
+#if !defined(TESTS_LIB_MOCKSTD_H)
+#define TESTS_LIB_MOCKSTD_H
 
 
 #include <sys/types.h>
 
-#include "../cattr.h"
+#include "../../attr.h"
 
 
 /*
  * Interposition
  */
 
-#if defined(__linux__) && __linux__
+#if !defined(__MACH__)
 #define mockgetuid getuid
 #define mockgeteuid geteuid
 #define mocksetuid setuid
@@ -54,7 +54,7 @@
  */
 
 #if     !defined(__INTEL_COMPILER)                          \
-    &&  (   (defined(__GNUC__) && __GNUC__ >= 5)            \
+    &&  (   (defined(__GNUC__) && __GNUC__ >= 7)            \
         ||  (defined(__clang__) && __clang_major__ >= 4))
 #define NO_SANITIZE __attribute__((no_sanitize("all")))
 #else
@@ -104,4 +104,4 @@ NO_SANITIZE
 int mocksetgroups(const NGRPS_T ngroups, const gid_t *const gidset);
 
 
-#endif /* !defined(TESTS_MOCKSTD_H) */
+#endif /* !defined(TESTS_LIB_MOCKSTD_H) */

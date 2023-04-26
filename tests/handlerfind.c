@@ -36,7 +36,7 @@
 #include "../handler.h"
 #include "../macros.h"
 #include "../params.h"
-#include "check.h"
+#include "lib/check.h"
 
 
 /*
@@ -132,7 +132,9 @@ main(void)
 {
     volatile int result = TEST_PASSED;
 
-    checkinit();
+    if (checkinit() != 0) {
+        err(TEST_ERROR, "sigaction");
+    }
 
 #if !defined(NDEBUG)
     (void) memset(hugefname, 'x', sizeof(hugefname) - 1U);

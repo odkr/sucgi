@@ -38,8 +38,8 @@
 #include "../macros.h"
 #include "../params.h"
 #include "../str.h"
-#include "check.h"
-#include "str.h"
+#include "lib/check.h"
+#include "lib/str.h"
 
 
 /*
@@ -430,12 +430,23 @@ report(const char *const message, const Args *const args,
     char patstr[MAX_TEST_STR_LEN];
     char envstr[MAX_TEST_STR_LEN];
 
-    (void) joinstrs(MAX_TEST_NVARS, args->vars, ", ",
-                    sizeof(varstr), varstr);
-    (void) joinstrs(args->npatterns, args->patterns, ", ",
-                    sizeof(patstr), patstr);
-    (void) joinstrs(MAX_TEST_NVARS, (const char *const *) environ, " ",
-                    sizeof(envstr), envstr);
+    if (!joinstrs(MAX_TEST_NVARS, args->vars, ", ",
+                  sizeof(varstr), varstr))
+    {
+        errx(TEST_ERROR, "joinstrs: joined string is too long");
+    }
+
+    if (!joinstrs(args->npatterns, args->patterns, ", ",
+                  sizeof(patstr), patstr))
+    {
+        errx(TEST_ERROR, "joinstrs: joined string is too long");
+    }
+
+    if (!joinstrs(MAX_TEST_NVARS, (const char *const *) environ, " ",
+                  sizeof(envstr), envstr))
+    {
+        errx(TEST_ERROR, "joinstrs: joined string is too long");
+    }
 
 /* message is not a literal. */
 #if defined(__GNUC__) && __GNUC__ >= 3
@@ -503,7 +514,9 @@ main (void) {
     char *null = NULL;
     size_t nvars = NELEMS(toomanyvars) - 1U;
 
-    checkinit();
+    if (checkinit() != 0) {
+        err(TEST_ERROR, "sigaction");
+    }
 
     /* Initialise dynamic test cases. */
     for (size_t i = 0; i < nvars; ++i) {

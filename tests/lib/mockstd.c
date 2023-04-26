@@ -35,9 +35,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../compat.h"
-#include "../macros.h"
-#include "../params.h"
+#include "../../compat.h"
+#include "../../macros.h"
+#include "../../params.h"
 #include "mockstd.h"
 
 

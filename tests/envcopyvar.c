@@ -34,7 +34,7 @@
 
 #include "../env.h"
 #include "../macros.h"
-#include "check.h"
+#include "lib/check.h"
 
 
 /*
@@ -110,7 +110,9 @@ main (void)
 {
     volatile int result = TEST_PASSED;
 
-    checkinit();
+    if (checkinit() != 0) {
+        err(TEST_ERROR, "sigaction");
+    }
 
 #if !defined(NDEBUG)
     (void) memset(hugename, 'x', sizeof(hugename) - 1U);

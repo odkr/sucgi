@@ -24,8 +24,8 @@
 #define _DEFAULT_SOURCE
 #define _GNU_SOURCE
 
-
 #include <assert.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -41,11 +41,12 @@
  * return a pointer to the terminating NUL in END, but do not write past
  * LIM, which should be DEST + sizeof(DEST).
  *
- * If NDEBUG is defined, no error checking takes place.
- * Otherwise, aborts if appending SRC to DEST would require to write past LIM.
+ * Return value:
+ *     true   Success.
+ *     false  Appending SRC to DEST requires crossing LIM.
  */
 __attribute__((nonnull(1, 2, 3, 4)))
-static void catstrs(char *dest, const char *const src,
+static bool catstrs(char *dest, const char *const src,
                     const char *const lim, char **end);
 
 
@@ -53,7 +54,7 @@ static void catstrs(char *dest, const char *const src,
  * Functions
  */
 
-static void
+static bool
 catstrs(char *const dest, const char *const src,
         const char *const lim, char **const end)
 {
@@ -64,10 +65,10 @@ catstrs(char *const dest, const char *const src,
     assert(end != NULL);
 
     *end = stpncpy(dest, src, (size_t) (lim - dest));
-    assert(src[*end - dest] == '\0');
+    return src[*end - dest] == '\0';
 }
 
-void
+bool
 joinstrs(const size_t nstrs, const char *const *const strs,
          const char *const sep, const size_t size, char *const dest)
 {
@@ -76,6 +77,7 @@ joinstrs(const size_t nstrs, const char *const *const strs,
 
     assert(strs != NULL);
     assert(sep != NULL);
+    assert(size > 0);
     assert(dest != NULL);
 
     ptr = dest;
@@ -84,8 +86,14 @@ joinstrs(const size_t nstrs, const char *const *const strs,
     (void) memset(dest, '\0', size);
     for (size_t i = 0U; i < nstrs && strs[i]; ++i) {
         if (i > 0U) {
-            catstrs(ptr, sep, lim, &ptr);
+            if (!catstrs(ptr, sep, lim, &ptr)) {
+                return false;
+            }
         }
-        catstrs(ptr, strs[i], lim, &ptr);
+        if (!catstrs(ptr, strs[i], lim, &ptr)) {
+            return false;
+        }
     }
+
+    return true;
 }

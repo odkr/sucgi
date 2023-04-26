@@ -34,7 +34,7 @@
 #include "../macros.h"
 #include "../params.h"
 #include "../str.h"
-#include "check.h"
+#include "lib/check.h"
 
 
 /*
@@ -101,7 +101,9 @@ int
 main (void) {
     volatile int result = TEST_PASSED;
 
-    checkinit();
+    if (checkinit() != 0) {
+        err(TEST_ERROR, "sigaction");
+    }
 
 #if !defined(NDEBUG)
     (void) memset(hugestr, 'x', sizeof(hugestr) - 1U);
