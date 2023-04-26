@@ -20,7 +20,6 @@ cov
 gcov
 local.env
 makefile
-speed.env
 sucgi
 sucgi-*
 tests/*
