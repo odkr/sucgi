@@ -60,7 +60,8 @@ envcopyvar(const char *const name, char value[MAX_VAR_LEN])
         if (errno == 0) {
             return ERR_SEARCH;
         }
-        /* Should be unreachable unless NDEBUG is defined. */
+
+        /* Should only be reachable if NDEBUG is set. */
         return ERR_SYS;
     }
 
