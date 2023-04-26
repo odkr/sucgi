@@ -26,7 +26,7 @@
 #include <regex.h>
 #include <stdbool.h>
 
-#include "cattr.h"
+#include "attr.h"
 #include "params.h"
 #include "types.h"
 

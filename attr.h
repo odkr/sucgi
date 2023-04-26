@@ -19,8 +19,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(CATTR_H)
-#define CATTR_H
+#if !defined(ATTR_H)
+#define ATTR_H
 
 /*
  * Excise function attributes if the compiler does not
@@ -31,4 +31,4 @@
 #endif
 
 
-#endif /* !defined(CATTR_H) */
+#endif /* !defined(ATTR_H) */

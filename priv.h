@@ -25,7 +25,7 @@
 #include <sys/types.h>
 #include <pwd.h>
 
-#include "cattr.h"
+#include "attr.h"
 #include "compat.h"
 #include "types.h"
 

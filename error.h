@@ -22,7 +22,7 @@
 #if !defined(ERROR_H)
 #define ERROR_H
 
-#include "cattr.h"
+#include "attr.h"
 
 
 /* Log MESSAGE as an error and exit with status EXIT_FAILURE. */
