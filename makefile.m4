@@ -63,7 +63,7 @@ makefile compat.h:
 # Build
 #
 
-hdrs = cattr.h compat.h config.h macros.h params.h types.h
+hdrs = attr.h compat.h config.h macros.h params.h types.h
 
 objs = env.o error.o handler.o pair.o path.o priv.o str.o userdir.o
 
@@ -130,32 +130,37 @@ uninstall:
 # Tests
 #
 
-check_objs = tests/check.o tests/priv.o tests/str.o
+check_objs = tests/lib/check.o tests/lib/user.o tests/lib/str.o
 
-check_libs = tests/libcheck.a $(libs)
-
-macro_check_bins = tests/ISSIGNED tests/NELEMS tests/SIGNEDMAX
-
-env_check_bins = tests/envcopyvar tests/envisname tests/envrestore
-
-path_check_bins = tests/pathchkloc tests/pathreal tests/pathsuffix
-
-priv_check_bins = tests/privdrop tests/privsuspend
-
-str_check_bins = tests/copystr tests/getspecstrs tests/splitstr
-
-nonmacro_check_bins = $(env_check_bins) $(path_check_bins) \
-	$(priv_check_bins) $(str_check_bins) tests/error \
-	tests/handlerfind tests/pairfind tests/userdirexp
-
-check_bins = $(macro_check_bins) $(nonmacro_check_bins)
+check_libs = tests/lib/libcheck.a $(libs)
 
 check_scripts = tests/main.sh tests/error.sh
 
-checks = $(check_scripts) $(macro_check_bins) tests/envcopyvar \
-	tests/envisname tests/envrestore tests/handlerfind tests/pairfind \
-	tests/pathchkloc tests/pathsuffix tests/privdrop tests/privsuspend \
-	tests/copystr tests/getspecstrs tests/splitstr tests/userdirexp
+macro_test_bins = tests/ISSIGNED tests/NELEMS tests/SIGNEDMAX
+
+env_test_bins = tests/envcopyvar tests/envisname tests/envrestore
+
+handler_test_bins = tests/handlerfind
+
+pair_test_bins = tests/pairfind
+
+path_test_bins = tests/pathchkloc tests/pathsuffix
+
+priv_test_bins = tests/privdrop tests/privsuspend
+
+str_test_bins = tests/copystr tests/getspecstrs tests/splitstr
+
+userdir_test_bins = tests/userdirexp
+
+unit_test_bins = $(macro_test_bins) $(env_test_bins) $(handler_test_bins) \
+	$(pair_test_bins) $(path_test_bins) $(priv_test_bins) \
+	$(str_test_bins) $(userdir_test_bins)
+
+script_test_bins = $(check_scripts:.sh=)
+
+check_bins = $(unit_test_bins) $(script_test_bins)
+
+checks = $(check_scripts) $(unit_test_bins)
 
 tool_bins = tools/badenv tools/badexec tools/uids tools/runpara tools/runas
 
@@ -163,18 +168,18 @@ preloadvar = default(`__SUCGI_PRELOAD_VAR', `LD_PRELOAD')
 
 runpara_flags = -ci75 -j8
 
-tests/libcheck.a(tests/check.o): tests/check.c tests/check.h
+tests/lib/libcheck.a(tests/lib/check.o): tests/lib/check.c tests/lib/check.h
 
-tests/libcheck.a(tests/priv.o): tests/priv.c tests/priv.h
+tests/lib/libcheck.a(tests/lib/user.o): tests/lib/user.c tests/lib/user.h
 
-tests/libcheck.a(tests/str.o): tests/str.c tests/str.h
+tests/lib/libcheck.a(tests/lib/str.o): tests/lib/str.c tests/lib/str.h
 
-tests/libcheck.a: tests/libcheck.a($(check_objs))
+tests/lib/libcheck.a: tests/lib/libcheck.a($(check_objs))
 
 ifnempty(`__SUCGI_SHARED_LIBS', `dnl
-tests/mockstd.o: tests/mockstd.c tests/mockstd.h
+tests/lib/mockstd.o: tests/lib/mockstd.c tests/lib/mockstd.h
 
-tests/libmock.so: tests/mockstd.o
+tests/lib/libmock.so: tests/lib/mockstd.o
 
 ')dnl
 tests/ISSIGNED: tests/ISSIGNED.c
@@ -187,53 +192,60 @@ tests/envcopyvar: tests/envcopyvar.c
 
 tests/envisname: tests/envisname.c
 
-tests/envrestore: tests/envrestore.c params.h tests/libcheck.a(tests/str.o)
-
-$(env_check_bins): libsucgi.a(env.o)
+tests/envrestore: tests/envrestore.c params.h \
+	tests/lib/libcheck.a(tests/lib/str.o)
 
 tests/error: tests/error.c libsucgi.a(error.o)
 
-tests/handlerfind: tests/handlerfind.c libsucgi.a(handler.o)
+tests/handlerfind: tests/handlerfind.c
 
-tests/main: main.c $(hdrs) libsucgi.a
+tests/main: main.c $(hdrs) $(libs)
 
-tests/pairfind: tests/pairfind.c params.h libsucgi.a(pair.o)
+tests/pairfind: tests/pairfind.c params.h
 
 tests/pathchkloc: tests/pathchkloc.c
 
-tests/pathreal: tests/pathreal.c
-
 tests/pathsuffix: tests/pathsuffix.c
-
-$(path_check_bins): libsucgi.a(path.o)
 
 tests/privdrop: tests/privdrop.c
 
 tests/privsuspend: tests/privsuspend.c
 
-$(priv_check_bins): libsucgi.a(priv.o) tests/libcheck.a(tests/priv.o)
-
 tests/copystr: tests/copystr.c
 
-tests/getspecstrs: tests/getspecstrs.c
+tests/getspecstrs: tests/getspecstrs.c \
+	tests/lib/libcheck.a(tests/lib/str.o)
 
 tests/splitstr: tests/splitstr.c
 
-$(str_check_bins): libsucgi.a(str.o)
+tests/userdirexp: tests/userdirexp.c
 
-tests/userdirexp: tests/userdirexp.c libsucgi.a(userdir.o)
+$(env_test_bins): libsucgi.a(env.o)
 
-$(check_bins): $(hdrs) tests/check.h
+$(handler_test_bins): libsucgi.a(handler.o)
 
-$(nonmacro_check_bins): tests/libcheck.a(tests/check.o)
+$(pair_test_bins): libsucgi.a(pair.o)
+
+$(path_test_bins): libsucgi.a(path.o)
+
+$(priv_test_bins): libsucgi.a(priv.o) \
+	tests/lib/libcheck.a(tests/lib/user.o)
+
+$(str_test_bins): libsucgi.a(str.o)
+
+$(userdir_test_bins): libsucgi.a(userdir.o)
+
+$(check_bins): $(hdrs) tests/lib/check.h
+
+$(unit_test_bins): tests/lib/libcheck.a(tests/lib/check.o)
+
+scripts/funcs.sh: tools/uids
+
+tests/funcs.sh: tools/uids scripts/funcs.sh
 
 tests/main.sh: tests/main tools/badenv tools/badexec tools/uids tools/runas
 
 tests/error.sh: tests/error tests/main
-
-tests/funcs.sh: tools/uids
-
-scripts/funcs.sh: tests/funcs.sh
 
 $(check_scripts): tests/main tests/funcs.sh
 
@@ -242,38 +254,39 @@ tools: $(tool_bins)
 checks: $(checks)
 
 ifnempty(`__SUCGI_SHARED_LIBS', `dnl
-check: tools/runpara $(checks) tests/libmock.so
+check: tools/runpara $(checks) tests/lib/libmock.so
 ', `dnl
 check: tools/runpara $(checks)
 ')dnl
 
-tests/libcheck.a($(check_objs)):
+tests/lib/libcheck.a($(check_objs)):
 	$(CC) $(LDFLAGS) -c -o $*.o $(CFLAGS) $*.c $(LDLIBS)
-	$(AR) $(ARFLAGS) tests/libcheck.a $*.o
+	$(AR) $(ARFLAGS) tests/lib/libcheck.a $*.o
 	rm -f $*.o
 
 ifnempty(`__SUCGI_SHARED_LIBS', `dnl
-tests/mockstd.o:
+tests/lib/mockstd.o:
 	$(CC) $(LDFLAGS) -c -o $@ -fpic $(CFLAGS) $< $(LDLIBS)
 
-tests/libmock.so:
-	$(CC) $(LDFLAGS) -shared -o $@ -fpic tests/mockstd.o $(LDLIBS)
+tests/lib/libmock.so:
+	$(CC) $(LDFLAGS) -shared -o $@ -fpic tests/lib/mockstd.o $(LDLIBS)
 
 ')dnl
-$(macro_check_bins):
-	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c $(LDLIBS)
-
-$(nonmacro_check_bins):
+$(unit_test_bins):
 	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c $(check_libs) $(LDLIBS)
+
+tests/error:
+	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c $(libs) $(LDLIBS)
 
 tests/main:
 	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ main.c $(libs) $(LDLIBS)
+
 
 check:
 ifnempty(`__SUCGI_SHARED_LIBS', `dnl
 	[ "$$(id -u)" -eq 0 ] \
 && tools/runpara $(runpara_flags) $(checks) \
-|| tools/runpara $(runpara_flags) $(preloadvar)=tests/libmock.so $(checks)
+|| tools/runpara $(runpara_flags) $(preloadvar)=tests/lib/libmock.so $(checks)
 ', `dnl
 	tools/runpara $(runpara_flags) $(checks)
 ')dnl
@@ -283,7 +296,7 @@ ifnempty(`__SUCGI_SHARED_LIBS', `dnl
 # Cleanup
 #
 
-bins = sucgi tests/main $(check_bins) $(tool_bins)
+bins = sucgi $(check_bins) $(tool_bins)
 
 covclean: clean
 
@@ -300,8 +313,8 @@ package = sucgi
 version = 0
 dist_name = $(package)-$(version)
 dist_ar = $(dist_name).tgz
-dist_files = *.c *.h *.env *.excl *.m4 README.rst LICENSE.txt \
-	clang-tidy.yml configure prepare cppcheck docs tests tools scripts
+dist_files = *.c *.h *.m4 README.rst LICENSE.txt \
+	configure prepare cppcheck docs etc tests tools scripts
 
 distclean: clean
 
@@ -326,28 +339,29 @@ $(dist_name):
 	cp -a $(dist_files) $(dist_name)
 
 $(dist_ar):
-	tar -X dist.excl -czf $(dist_ar) $(dist_name)
+	tar -X etc/dist.excl -czf $(dist_ar) $(dist_name)
 
 $(dist_ar).asc:
 	gpg -qab --batch --yes $(dist_ar)
+
+dist: $(dist_ar)
+	rm -rf $(dist_name)
 
 distcheck:
 	tar -xzf $(dist_ar)
 	$(dist_name)/configure
 	cd $(dist_name) && $(MAKE) -e all check dist
 	rm -rf $(dist_name)
-	rm -f $(dist_ar)
-
 
 #
 # Static code analysis
 #
 
 inspect = *.h *.c
-scripts = configure prepare scripts/* tests/*.sh
+scripts = configure prepare scripts/* tests/*.sh tests/lib/*.sh
 
 ifnempty(`__SUCGI_CLANG_TIDY', `dnl
-clang_tidy_flags = --config-file=clang-tidy.yml
+clang_tidy_flags = --config-file=etc/clang-tidy.yml
 
 ')dnl
 ifnempty(`__SUCGI_CPPCHECK', `dnl
