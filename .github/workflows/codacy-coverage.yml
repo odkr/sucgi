@@ -20,7 +20,7 @@ jobs:
       - name: Build
         run: |
             ./configure
-            make all tools checks
+            make all utils checks
             sudo make check
       - name: Generate coverage report
         run: sudo scripts/gencov -Llcov.info -H-

@@ -23,7 +23,7 @@ jobs:
       - name: Run tests
         run: |
           ./configure -d
-          make all tools checks
+          make all utils checks
           sudo make check
       - name: Generate coverage reports
         run: |

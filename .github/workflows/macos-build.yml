@@ -13,8 +13,8 @@ jobs:
     - uses: actions/checkout@v3
     - name: ./configure
       run: ./configure
-    - name: make all tools checks
-      run: make all tools checks
+    - name: make all utils checks
+      run: make all utils checks
     - name: sudo make check
       run: sudo make check runpara_flags=-Si75
     - name: sudo make install
