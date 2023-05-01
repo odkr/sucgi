@@ -340,8 +340,8 @@ check -o'suCGI v' main -V || result=70
 	while read -r opthdl_var
 	do
 		[ "$opthdl_var" != PARAMS_H ] || continue
-		eval val="\${$opthdl_var}"
-		if [ "${val-x}" = x ] && [ "${val-}" != x ]
+		eval val="\${$opthdl_var-}"
+		if ! [ "${val-}" ]
 		then err -s70 'main -C: %s: undefined.' "$opthdl_var"
 		fi
 	done
