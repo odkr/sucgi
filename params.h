@@ -506,7 +506,7 @@
 #endif /* defined() &&  > -1 */
 #endif /* !defined(MAX_FNAME_LEN) */
 
-#if !defined(MAXPATHLEN) && MAX_NAME_LEN > MAXPATHLEN
+#if defined(MAXPATHLEN) && MAX_NAME_LEN > MAXPATHLEN
 #error MAX_FNAME_LEN is greater than MAXPATHLEN.
 #endif
 
