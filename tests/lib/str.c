@@ -23,7 +23,6 @@
 
 #include <assert.h>
 #include <errno.h>
-#include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
@@ -61,9 +60,9 @@ idtostr(id_t id)
 
     errno = 0;
     if (ISSIGNED(id_t)) {
-        len = snprintf(NULL, 0, PRId64, (int64_t) id);
+        len = snprintf(NULL, 0, "%lld", (long long) id);
     } else {
-        len = snprintf(NULL, 0, PRIu64, (uint64_t) id);
+        len = snprintf(NULL, 0, "%llu", (unsigned long long) id);
     }
 
     if (len < 0) {
@@ -83,9 +82,9 @@ idtostr(id_t id)
 
     errno = 0;
     if (ISSIGNED(id_t)) {
-        len = snprintf(str, size, PRId64, (int64_t) id);
+        len = snprintf(str, size, "%lld", (long long) id);
     } else {
-        len = snprintf(str, size, PRIu64, (uint64_t) id);
+        len = snprintf(str, size, "%llu", (unsigned long long) id);
     }
 
     if (len < 0) {

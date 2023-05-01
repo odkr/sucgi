@@ -38,7 +38,7 @@ typedef enum {
 } LongPRole;
 
 /* Function signature for longpdo. */
-typedef int (*LongPFunc)(LongPRole role, const char *path, const va_list argp);
+typedef int (*LongPFunc)(LongPRole role, const char *path, va_list argp);
 
 
 /*
