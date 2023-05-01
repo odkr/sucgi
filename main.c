@@ -74,7 +74,9 @@
 
 /* Environment variables to keep. */
 /* cppcheck-suppress [misra-c2012-9.2, misra-c2012-9.3];
-   double braces would be wrong, false positive.
+   ┌──────────────────┘             ┌──┘
+   └→ double braces would be wrong. └→ false positive.
+
    NOLINTNEXTLINE(bugprone-suspicious-missing-comma); literals intended. */
 static const char *const allowedvars[] = ENV_PATTERNS;
 
@@ -665,6 +667,7 @@ main(int argc, char **argv) {
     case OK:
         break;
     case ERR_LEN:
+        /* Probably unreachable, depending on your system. */
         error("user %s: user directory is too long.", logname);
     case ERR_SYS:
         error("realpath %s: %m.", userdir_log);
