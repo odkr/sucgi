@@ -113,7 +113,8 @@ splitstr(const char *const str, const char *const sep,
     }
 
     /* cppcheck-suppress [misra-c2012-10.8, misra-c2012-18.4];
-       cast is safe and portable, *tail must be greater than str. */
+       ┌──────────────────┘          ┌──────┘
+       └→ cast is safe and portable. └→ *tail must be greater than str. */
     len = (size_t) (*tail - str);
     if (len >= size) {
         return ERR_LEN;
