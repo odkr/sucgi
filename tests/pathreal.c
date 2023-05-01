@@ -461,7 +461,6 @@ main (void)
             case FTW_SLN:
                 errno = 0;
                 if (symlink_lp(absreal, absfname) != 0) {
-                                    system("bash");
                     err(TEST_ERROR, "symlink_lp %s %s", absreal, absfname);
                 }
                 break;
