@@ -87,7 +87,7 @@ init() {
 
 	# Environment variables.
 	# shellcheck disable=2154
-	PATH="$src_dir/tests:$src_dir/tools:$PATH"
+	PATH="$src_dir/tests:$src_dir/utils:$PATH"
 	unset IFS
 
 	# Signal handling.

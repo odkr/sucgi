@@ -159,7 +159,7 @@ cd "$distdir" || exit
 
 warn -q 'compiling binaries ...'
 CFLAGS=-O1 mylogged ./configure
-mylogged make all tools checks
+mylogged make all utils checks
 
 failures=
 for shell

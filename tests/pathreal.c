@@ -47,7 +47,7 @@
 #include "../types.h"
 #include "util/check.h"
 #include "util/ftree.h"
-#include "util/errlist.h"
+#include "util/errlst.h"
 #include "util/longp.h"
 #include "util/str.h"
 #include "util/tmp.h"
@@ -478,7 +478,7 @@ main (void)
             retval = pathreal(args.fname, &real);
             checking = 0;
 
-            if (!errlistcontains(&args.retvals, retval)) {
+            if (!errlstcontains(&args.retvals, retval)) {
                 result = TEST_FAILED;
                 if (retval == ERR_SYS) {
                     warn("(%s, → %s) → %u [!]", args.fname, real, retval);

@@ -172,20 +172,20 @@ cd -P "$distdir" || exit
 warn -q 'configuring build ... '
 CFLAGS=-O1 logged ./configure
 
-warn -q 'compiling tools and test libraries ...'
-mylogged make -e tools tests/lib/libcheck.a tests/lib/libmock.so
+warn -q 'compiling utilities ...'
+mylogged make -e utils tests/libutil.a tests/libmock.so
 
 warn -q 'compiling tests ...'
 mylogged make -e CFLAGS=--coverage all checks
 
 warn -q 'adapting environment ...'
-export PATH="$distdir/tools:$distdir/tests:$PATH"
+export PATH="$distdir/utils:$distdir/tests:$PATH"
 eval "$(main -C | grep -vE '^PATH=')"
 
 # Permissions changing mid-flight confuses LLVM.
 case $(uname) in
-(Darwin) export DYLD_INSERT_LIBRARIES=tests/lib/libmock.so ;;
-(*)      export LD_PRELOAD=tests/lib/libmock.so ;;
+(Darwin) export DYLD_INSERT_LIBRARIES=tests/libmock.so ;;
+(*)      export LD_PRELOAD=tests/libmock.so ;;
 esac
 
 reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")" ||
@@ -215,18 +215,17 @@ then
 	lcov --gcov-tool "$gcov" -q -o lcov.info -a initial.info
 fi
 
-find tests -type f '(' -perm +=x -o -name '*.sh' ')' |
+find tests -type f -perm +=x |
 while read -r check
 do
-	case $check in
-	(*/funcs.sh) continue ;;
-	(*.sh)       : ;;
-	(*.*)        continue ;;
-	(*)         [ -e "$check.sh" ] && continue
-	esac
-
 	basename="$(basename "$check")"
 	infofile="$basename.info"
+
+	case $check in
+	(*.*) continue ;;
+	(tests/scripts/*) : ;;
+	(*) [ -e "tests/scripts/$basename" ] && continue
+	esac
 
 	exstatus=0
 	mylogged "$check" || exstatus=$?
