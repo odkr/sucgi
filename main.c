@@ -156,6 +156,7 @@ config(void)
 
     (void) printf("\n\n#\n# Limits\n#\n\n");
 
+    (void) printf("INVALID_GID=%d\n", INVALID_GID);
     (void) printf("MAX_STR_LEN=%u\n", MAX_STR_LEN);
     (void) printf("MAX_ERRMSG_LEN=%u\n", MAX_ERRMSG_LEN);
     (void) printf("MAX_FNAME_LEN=%d\n", MAX_FNAME_LEN);
@@ -482,6 +483,10 @@ main(int argc, char **argv) {
     gid_t groups[MAX_NGROUPS];
     long ngroups_max;
     int ngroups;
+
+    for (size_t i = 0; i < NELEMS(groups); ++i) {
+        groups[i] = (gid_t) INVALID_GID;
+    }
 
     ngroups_max = sysconf(_SC_NGROUPS_MAX);
     if (ngroups_max < 0L || (uint64_t) ngroups_max > (uint64_t) MAX_NGROUPS) {
