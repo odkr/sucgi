@@ -45,8 +45,9 @@ Error pathchkloc(const char *basedir, const char *fname);
  * path, and return a pointer to that memory in REAL; that memory should
  * be freed by the caller.
  *
- * Differs from realpath only by checking the length of FNAME as well as
- * of the canonicalised path.
+ * Differs from realpath by checking whether the length of FNAME is longer
+ * than MAX_FNAME_LEN. If REAL is NULL, then FNAME is too long; otherwise
+ * REAL is too long.
  *
  * Return value:
  *     OK       Success.
@@ -56,7 +57,7 @@ Error pathchkloc(const char *basedir, const char *fname);
  * FIXME: Not unit-tested.
  */
 __attribute__((nonnull(1, 2), warn_unused_result))
-Error pathreal(const char *fname, const char **real);
+Error pathreal(const char *fname, char **real);
 
 /*
  * Return a pointer to the filename suffix of FNAME in SUFFIX.
