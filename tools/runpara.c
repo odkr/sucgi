@@ -108,7 +108,7 @@ static void cleanup(void);
  * other than ECHILD, store that error in WAITPIDERR, if a process ID
  * cannot be found, store that process ID in UNKNOWNPID.
  */
-static void collect(int signo);
+static void collect(int);
 
 /*
  * Store SIGNO in CAUGHT.
