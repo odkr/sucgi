@@ -1,5 +1,5 @@
 /*
- * Header for util.c.
+ * Header for tmp.c.
  *
  * Copyright 2023 Odin Kroeger.
  *
@@ -19,54 +19,41 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(TESTS_LIB_CHECK_H)
-#define TESTS_LIB_CHECK_H
+#if !defined(TESTS_UTIL_TMP_H)
+#define TESTS_UTIL_TMP_H
 
-#include <setjmp.h>
-#include <signal.h>
-#include <stdarg.h>
-#include <unistd.h>
+#include <stdbool.h>
 
 #include "../../attr.h"
 
 
 /*
- * Data types
- */
-
-/* Exit statuses for tests. */
-typedef enum {
-    TEST_PASSED  =  0,  /* Test passed. */
-    TEST_ERROR   = 69,  /* An error occurred. */
-    TEST_FAILED  = 70,  /* Test failed. */
-    TEST_SKIPPED = 75   /* Test was skipped. */
-} Result;
-
-
-/*
- * Global variables
- */
-
-/* Is a test running? */
-extern volatile sig_atomic_t checking;
-
-/* Environment to run tests in. */
-extern sigjmp_buf checkenv;
-
-
-/*
- * Functions
- */
-
-/*
- * Register signal handler.
+ * Create a temporary directory and returns its canonical name.
+ * Subsequent invocations are ignored until tmpdirremove was called.
  *
  * Return value:
- *     0         Success.
- *     Non-zero  Error raised by sigaction.
+ *     Non-NULL  Success.
+ *     NULL      Something went wrong; errno should be set.
+ *
+ * Caveats:
+ *     Not fully async-safe.
  */
 __attribute__((warn_unused_result))
-int checkinit(void);
+char *tmpdirmake(void);
+
+/*
+ * Remove the temporary directory created by tmpdirmake.
+ * Subsequent invocations are ignored until tmpdirmake is called again.
+ *
+ * Return value:
+ *      0  Success.
+ *     -1  Something went wrong; errno should be set.
+ *
+ * Caveats:
+ *     Not fully async-safe.
+ */
+__attribute__((warn_unused_result))
+int tmpdirremove(void);
 
 
-#endif /* !defined(TESTS_LIB_CHECK_H) */
+#endif /* !defined(TESTS_UTIL_TMP_H) */

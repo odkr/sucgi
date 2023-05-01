@@ -35,7 +35,7 @@
 #include "../macros.h"
 #include "../params.h"
 #include "../pair.h"
-#include "lib/check.h"
+#include "util/check.h"
 
 
 /*

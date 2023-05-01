@@ -41,9 +41,9 @@
 #include "../macros.h"
 #include "../params.h"
 #include "../priv.h"
-#include "lib/check.h"
-#include "lib/str.h"
-#include "lib/user.h"
+#include "util/check.h"
+#include "util/str.h"
+#include "util/user.h"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>

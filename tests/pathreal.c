@@ -45,13 +45,13 @@
 #include "../path.h"
 #include "../str.h"
 #include "../types.h"
-#include "lib/check.h"
-#include "lib/ftree.h"
-#include "lib/errlist.h"
-#include "lib/longp.h"
-#include "lib/str.h"
-#include "lib/tmp.h"
-#include "lib/trap.h"
+#include "util/check.h"
+#include "util/ftree.h"
+#include "util/errlist.h"
+#include "util/longp.h"
+#include "util/str.h"
+#include "util/tmp.h"
+#include "util/trap.h"
 
 
 /*

@@ -1,5 +1,5 @@
 /*
- * Header for errlist.c.
+ * Header for util.c.
  *
  * Copyright 2023 Odin Kroeger.
  *
@@ -19,24 +19,39 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(TESTS_LIB_ERRLIST_H)
-#define TESTS_LIB_ERRLIST_H
+#if !defined(TESTS_UTIL_CHECK_H)
+#define TESTS_UTIL_CHECK_H
 
-#include <stdbool.h>
+#include <setjmp.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <unistd.h>
 
 #include "../../attr.h"
-#include "../../types.h"
 
 
 /*
  * Data types
  */
 
-/* List of errors. */
-typedef struct {
-    size_t nelems;          /* Number of errors. */
-    const Error *elems;     /* Errors. */
-} ErrList;
+/* Exit statuses for tests. */
+typedef enum {
+    TEST_PASSED  =  0,  /* Test passed. */
+    TEST_ERROR   = 69,  /* An error occurred. */
+    TEST_FAILED  = 70,  /* Test failed. */
+    TEST_SKIPPED = 75   /* Test was skipped. */
+} Result;
+
+
+/*
+ * Global variables
+ */
+
+/* Is a test running? */
+extern volatile sig_atomic_t checking;
+
+/* Environment to run tests in. */
+extern sigjmp_buf checkenv;
 
 
 /*
@@ -44,14 +59,14 @@ typedef struct {
  */
 
 /*
- * Check whether HAYSTACK contains NEEDLE.
+ * Register signal handler.
  *
  * Return value:
- *     true   HAYSTACK contains NEEDLE.
- *     false  HAYSTACK does not contain NEEDLE.
+ *     0         Success.
+ *     Non-zero  Error raised by sigaction.
  */
-__attribute__((nonnull(1), warn_unused_result))
-bool errlistcontains(const ErrList *haystack, const Error needle);
+__attribute__((warn_unused_result))
+int checkinit(void);
 
 
-#endif /* !defined(TESTS_LIB_ERRLIST_H) */
+#endif /* !defined(TESTS_UTIL_CHECK_H) */

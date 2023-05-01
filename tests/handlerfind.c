@@ -36,7 +36,7 @@
 #include "../handler.h"
 #include "../macros.h"
 #include "../params.h"
-#include "lib/check.h"
+#include "util/check.h"
 
 
 /*

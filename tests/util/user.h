@@ -19,8 +19,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(TESTS_LIB_USER_H)
-#define TESTS_LIB_USER_H
+#if !defined(TESTS_UTIL_USER_H)
+#define TESTS_UTIL_USER_H
 
 #include <sys/types.h>
 
@@ -64,4 +64,4 @@ UserError usergetregular(uid_t *const uid);
 __attribute__((nonnull(2)))
 UserError userget(uid_t uid, struct passwd *pwd);
 
-#endif /* !defined(TESTS_LIB_USER_H) */
+#endif /* !defined(TESTS_UTIL_USER_H) */

@@ -130,13 +130,13 @@ uninstall:
 # Tests
 #
 
-check_objs = tests/lib/check.o tests/lib/ftree.o tests/lib/errlist.o \
-	tests/lib/longp.o tests/lib/user.o tests/lib/str.o tests/lib/tmp.o \
-	tests/lib/trap.o
+check_objs = tests/util/check.o tests/util/ftree.o tests/util/errlist.o \
+	tests/util/longp.o tests/util/user.o tests/util/str.o \
+	tests/util/tmp.o tests/util/trap.o
 
-check_libs = tests/lib/libcheck.a $(libs)
+check_libs = tests/libutil.a $(libs)
 
-check_scripts = tests/main.sh tests/error.sh
+check_scripts = tests/scripts/main tests/scripts/error
 
 macro_test_bins = tests/ISSIGNED tests/NELEMS tests/SIGNEDMAX
 
@@ -174,29 +174,29 @@ preloadvar = ifdef(`__SUCGI_UNAME',
 
 runpara_flags = -ci75 -j8
 
-tests/lib/libcheck.a(tests/lib/check.o): tests/lib/check.c tests/lib/check.h
+tests/libutil.a(tests/util/check.o): tests/util/check.c tests/util/check.h
 
-tests/lib/libcheck.a(tests/lib/ftree.o): tests/lib/check.c tests/lib/ftree.h
+tests/libutil.a(tests/util/ftree.o): tests/util/check.c tests/util/ftree.h
 
-tests/lib/libcheck.a(tests/lib/errlist.o): tests/lib/errlist.c tests/lib/errlist.h
+tests/libutil.a(tests/util/errlist.o): tests/util/errlist.c tests/util/errlist.h
 
-tests/lib/libcheck.a(tests/lib/longp.o): tests/lib/longp.c tests/lib/longp.h
+tests/libutil.a(tests/util/longp.o): tests/util/longp.c tests/util/longp.h
 
-tests/lib/libcheck.a(tests/lib/user.o): tests/lib/user.c tests/lib/user.h
+tests/libutil.a(tests/util/user.o): tests/util/user.c tests/util/user.h
 
-tests/lib/libcheck.a(tests/lib/str.o): tests/lib/str.c tests/lib/str.h
+tests/libutil.a(tests/util/str.o): tests/util/str.c tests/util/str.h
 
-tests/lib/libcheck.a(tests/lib/tmp.o): tests/lib/str.c tests/lib/tmp.h \
-	tests/lib/libcheck.a(tests/lib/ftree.o)
+tests/libutil.a(tests/util/tmp.o): tests/util/str.c tests/util/tmp.h \
+	tests/libutil.a(tests/util/ftree.o)
 
-tests/lib/libcheck.a(tests/lib/trap.o): tests/lib/trap.c tests/lib/trap.h
+tests/libutil.a(tests/util/trap.o): tests/util/trap.c tests/util/trap.h
 
-tests/lib/libcheck.a: tests/lib/libcheck.a($(check_objs))
+tests/libutil.a: tests/libutil.a($(check_objs))
 
 ifnempty(`__SUCGI_SHARED_LIBS', `dnl
-tests/lib/mockstd.o: tests/lib/mockstd.c tests/lib/mockstd.h
+tests/mock/unistd.o: tests/mock/unistd.c tests/mock/unistd.h
 
-tests/lib/libmock.so: tests/lib/mockstd.o
+tests/libmock.so: tests/mock/unistd.o
 
 ')dnl
 tests/ISSIGNED: tests/ISSIGNED.c
@@ -209,8 +209,7 @@ tests/envcopyvar: tests/envcopyvar.c
 
 tests/envisname: tests/envisname.c
 
-tests/envrestore: tests/envrestore.c \
-	tests/lib/libcheck.a(tests/lib/str.o)
+tests/envrestore: tests/envrestore.c tests/libutil.a(tests/util/str.o)
 
 tests/error: tests/error.c libsucgi.a(error.o)
 
@@ -222,8 +221,7 @@ tests/pairfind: tests/pairfind.c params.h
 
 tests/pathchkloc: tests/pathchkloc.c
 
-tests/pathreal: tests/pathreal.c libsucgi.a(str.o) \
-	tests/lib/libcheck.a
+tests/pathreal: tests/pathreal.c libsucgi.a(str.o) tests/libutil.a
 
 tests/pathsuffix: tests/pathsuffix.c
 
@@ -233,8 +231,7 @@ tests/privsuspend: tests/privsuspend.c
 
 tests/copystr: tests/copystr.c
 
-tests/getspecstrs: tests/getspecstrs.c \
-	tests/lib/libcheck.a(tests/lib/str.o)
+tests/getspecstrs: tests/getspecstrs.c tests/libutil.a(tests/util/str.o)
 
 tests/splitstr: tests/splitstr.c
 
@@ -249,15 +246,15 @@ $(pair_test_bins): libsucgi.a(pair.o)
 $(path_test_bins): libsucgi.a(path.o)
 
 $(priv_test_bins): libsucgi.a(priv.o) \
-	tests/lib/libcheck.a(tests/lib/str.o tests/lib/user.o)
+	tests/libutil.a(tests/util/str.o tests/util/user.o)
 
 $(str_test_bins): libsucgi.a(str.o)
 
 $(userdir_test_bins): libsucgi.a(userdir.o)
 
-$(check_bins): $(hdrs) tests/lib/check.h
+$(check_bins): $(hdrs) tests/util/check.h
 
-$(unit_test_bins): tests/lib/libcheck.a(tests/lib/check.o)
+$(unit_test_bins): tests/libutil.a(tests/util/check.o)
 
 scripts/funcs.sh: tools/uids
 
@@ -274,22 +271,22 @@ tools: $(tool_bins)
 checks: $(checks)
 
 ifnempty(`__SUCGI_SHARED_LIBS', `dnl
-check: tools/runpara $(checks) tests/lib/libmock.so
+check: tools/runpara $(checks) tests/libmock.so
 ', `dnl
 check: tools/runpara $(checks)
 ')dnl
 
-tests/lib/libcheck.a($(check_objs)):
+tests/libutil.a($(check_objs)):
 	$(CC) $(LDFLAGS) -c -o $*.o $(CFLAGS) $*.c $(LDLIBS)
-	$(AR) $(ARFLAGS) tests/lib/libcheck.a $*.o
+	$(AR) $(ARFLAGS) tests/libutil.a $*.o
 	rm -f $*.o
 
 ifnempty(`__SUCGI_SHARED_LIBS', `dnl
-tests/lib/mockstd.o:
+tests/mock/unistd.o:
 	$(CC) $(LDFLAGS) -c -o $@ -fpic $(CFLAGS) $< $(LDLIBS)
 
-tests/lib/libmock.so:
-	$(CC) $(LDFLAGS) -shared -o $@ -fpic tests/lib/mockstd.o $(LDLIBS)
+tests/libmock.so:
+	$(CC) $(LDFLAGS) -shared -o $@ -fpic tests/mock/unistd.o $(LDLIBS)
 
 ')dnl
 $(unit_test_bins):
@@ -306,7 +303,7 @@ check:
 ifnempty(`__SUCGI_SHARED_LIBS', `dnl
 	[ "$$(id -u)" -eq 0 ]\
 && tools/runpara $(runpara_flags) $(checks)\
-|| tools/runpara $(runpara_flags) $(preloadvar)=tests/lib/libmock.so $(checks)
+|| tools/runpara $(runpara_flags) $(preloadvar)=tests/libmock.so $(checks)
 ', `dnl
 	tools/runpara $(runpara_flags) $(checks)
 ')dnl
@@ -378,7 +375,7 @@ distcheck:
 #
 
 inspect = *.h *.c
-scripts = configure prepare scripts/* tests/*.sh tests/lib/*.sh
+scripts = configure prepare scripts/* $(check_scripts)
 
 ifnempty(`__SUCGI_CLANG_TIDY', `dnl
 clang_tidy_flags = --config-file=etc/clang-tidy.yml

@@ -19,8 +19,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(TESTS_LIB_LONGP_H)
-#define TESTS_LIB_LONGP_H
+#if !defined(TESTS_UTIL_LONGP_H)
+#define TESTS_UTIL_LONGP_H
 
 #include <stdarg.h>
 
@@ -71,4 +71,4 @@ __attribute__((nonnull(1), warn_unused_result))
 int longpmake(const char *path, const mode_t perms);
 
 
-#endif /* !defined(TESTS_LIB_LONGP_H) */
+#endif /* !defined(TESTS_UTIL_LONGP_H) */

@@ -1,5 +1,5 @@
 /*
- * Header for tmp.c.
+ * Header for trap.c.
  *
  * Copyright 2023 Odin Kroeger.
  *
@@ -19,8 +19,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(TESTS_LIB_TMP_H)
-#define TESTS_LIB_TMP_H
+#if !defined(TESTS_UTIL_TRAP_H)
+#define TESTS_UTIL_TRAP_H
 
 #include <stdbool.h>
 
@@ -28,32 +28,35 @@
 
 
 /*
- * Create a temporary directory and returns its canonical name.
- * Subsequent invocations are ignored until tmpdirremove was called.
- *
- * Return value:
- *     Non-NULL  Success.
- *     NULL      Something went wrong; errno should be set.
- *
- * Caveats:
- *     Not fully async-safe.
+ * Globals
  */
-__attribute__((warn_unused_result))
-char *tmpdirmake(void);
+
+/* Last signal caught. */
+extern int trapped;
+
 
 /*
- * Remove the temporary directory created by tmpdirmake.
- * Subsequent invocations are ignored until tmpdirmake is called again.
+ * Functions
+ */
+
+/*
+ * Trap the first NSIGNALS signal numbers in SIGNOS in TRAPPED.
+ * SIGNOS must have at least NSIGNALS elements.
  *
  * Return value:
  *      0  Success.
- *     -1  Something went wrong; errno should be set.
- *
- * Caveats:
- *     Not fully async-safe.
+ *     -1  sigaction failed, errno should be set.
  */
-__attribute__((warn_unused_result))
-int tmpdirremove(void);
+int trapsigs(size_t nsignals, const int *signos);
+
+/*
+ * If TRAPPED is greater than 0, run CLEANUP, then restore
+ * the default signal handler and re-raise the signal.
+ *
+ * Side-effects:
+ *    Prints a message to STDERR.
+ */
+void traphandle(void (*cleanup)(void));
 
 
-#endif /* !defined(TESTS_LIB_TMP_H) */
+#endif /* !defined(TESTS_UTIL_TRAP_H) */

@@ -36,7 +36,7 @@
 #include "../params.h"
 #include "../str.h"
 #include "../userdir.h"
-#include "lib/check.h"
+#include "util/check.h"
 
 
 /*

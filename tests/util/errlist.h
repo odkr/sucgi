@@ -1,5 +1,5 @@
 /*
- * Header for trap.c.
+ * Header for errlist.c.
  *
  * Copyright 2023 Odin Kroeger.
  *
@@ -19,20 +19,24 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(TESTS_LIB_TRAP_H)
-#define TESTS_LIB_TRAP_H
+#if !defined(TESTS_UTIL_ERRLIST_H)
+#define TESTS_UTIL_ERRLIST_H
 
 #include <stdbool.h>
 
 #include "../../attr.h"
+#include "../../types.h"
 
 
 /*
- * Globals
+ * Data types
  */
 
-/* Last signal caught. */
-extern int trapped;
+/* List of errors. */
+typedef struct {
+    size_t nelems;          /* Number of errors. */
+    const Error *elems;     /* Errors. */
+} ErrList;
 
 
 /*
@@ -40,23 +44,14 @@ extern int trapped;
  */
 
 /*
- * Trap the first NSIGNALS signal numbers in SIGNOS in TRAPPED.
- * SIGNOS must have at least NSIGNALS elements.
+ * Check whether HAYSTACK contains NEEDLE.
  *
  * Return value:
- *      0  Success.
- *     -1  sigaction failed, errno should be set.
+ *     true   HAYSTACK contains NEEDLE.
+ *     false  HAYSTACK does not contain NEEDLE.
  */
-int trapsigs(size_t nsignals, const int *signos);
-
-/*
- * If TRAPPED is greater than 0, run CLEANUP, then restore
- * the default signal handler and re-raise the signal.
- *
- * Side-effects:
- *    Prints a message to STDERR.
- */
-void traphandle(void (*cleanup)(void));
+__attribute__((nonnull(1), warn_unused_result))
+bool errlistcontains(const ErrList *haystack, const Error needle);
 
 
-#endif /* !defined(TESTS_LIB_TRAP_H) */
+#endif /* !defined(TESTS_UTIL_ERRLIST_H) */

@@ -19,8 +19,8 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#if !defined(TESTS_LIB_FTREE_H)
-#define TESTS_LIB_FTREE_H
+#if !defined(TESTS_UTIL_FTREE_H)
+#define TESTS_UTIL_FTREE_H
 
 #include "../../attr.h"
 
@@ -72,4 +72,4 @@ __attribute__((nonnull(1, 2), warn_unused_result))
 int ftreewalk(const char *fname, FTreeFunc func, FTreeOrder order);
 
 
-#endif /* !defined(TESTS_LIB_FTREE_H) */
+#endif /* !defined(TESTS_UTIL_FTREE_H) */
