@@ -19,7 +19,10 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#define _XOPEN_SOURCE 700
+#define _BSD_SOURCE
+#define _DARWIN_C_SOURCE
+#define _DEFAULT_SOURCE
+#define _GNU_SOURCE
 
 #include <sys/stat.h>
 #include <dirent.h>
@@ -27,6 +30,7 @@
 #include <fcntl.h>
 #include <assert.h>
 #include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>

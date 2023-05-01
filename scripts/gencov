@@ -173,7 +173,7 @@ warn -q 'configuring build ... '
 CFLAGS=-O1 logged ./configure
 
 warn -q 'compiling tools and test libraries ...'
-mylogged make -e tools tests/libcheck.a tests/libmock.so
+mylogged make -e tools tests/lib/libcheck.a tests/lib/libmock.so
 
 warn -q 'compiling tests ...'
 mylogged make -e CFLAGS=--coverage all checks
@@ -184,8 +184,8 @@ eval "$(main -C | grep -vE '^PATH=')"
 
 # Permissions changing mid-flight confuses LLVM.
 case $(uname) in
-(Darwin) export DYLD_INSERT_LIBRARIES=tests/libmock.so ;;
-(*)      export LD_PRELOAD=tests/libmock.so ;;
+(Darwin) export DYLD_INSERT_LIBRARIES=tests/lib/libmock.so ;;
+(*)      export LD_PRELOAD=tests/lib/libmock.so ;;
 esac
 
 reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")" ||

@@ -27,6 +27,7 @@
 #include <limits.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <stdarg.h>
 #include <stdbool.h>
 #include <string.h>
 
@@ -49,7 +50,7 @@
 
 /* Wrapper around mkdir(2) for longpmake. */
 __attribute__((nonnull(2), warn_unused_result))
-static int mkdir_w(LongPRole role, const char *fname, const va_list argp);
+static int mkdir_w(LongPRole role, const char *fname, va_list argp);
 
 
 /*
@@ -57,7 +58,7 @@ static int mkdir_w(LongPRole role, const char *fname, const va_list argp);
  */
 
 static int
-mkdir_w(LongPRole role, const char *fname, const va_list argp)
+mkdir_w(LongPRole role, const char *fname, va_list argp)
 {
     assert(fname != NULL);
     assert(*fname != '\0');

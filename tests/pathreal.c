@@ -209,15 +209,15 @@ static int symlink_lp(const char *real, const char *link);
 
 /* FIXME */
 __attribute__((nonnull(2), warn_unused_result))
-static int mkdir_w(LongPRole, const char *fname, const va_list argp);
+static int mkdir_w(LongPRole, const char *fname, va_list argp);
 
 /* FIXME */
 __attribute__((nonnull(2), warn_unused_result))
-static int symlink_w(LongPRole role, const char *fname, const va_list argp);
+static int symlink_w(LongPRole role, const char *fname, va_list argp);
 
 /* FIXME */
 __attribute__((nonnull(3), warn_unused_result))
-static int touch_w(LongPRole role, const char *fname, const va_list argp);
+static int touch_w(LongPRole role, const char *fname, va_list argp);
 
 
 /*
@@ -274,7 +274,7 @@ topseg(const char *const fname, const size_t size, char *const dir)
 
 static int
 mkdir_w(LongPRole role __attribute__((unused)),
-        const char *const fname, const va_list argp)
+        const char *const fname, va_list argp)
 {
     int retval;
 
@@ -290,7 +290,7 @@ mkdir_w(LongPRole role __attribute__((unused)),
 }
 
 static int
-symlink_w(const LongPRole role, const char *const fname, const va_list argp)
+symlink_w(const LongPRole role, const char *const fname, va_list argp)
 {
     assert(fname != NULL);
     assert(*fname != '\0');
@@ -303,7 +303,7 @@ symlink_w(const LongPRole role, const char *const fname, const va_list argp)
 }
 
 static int
-touch_w(const LongPRole role, const char *const fname, const va_list argp)
+touch_w(const LongPRole role, const char *const fname, va_list argp)
 {
     assert(fname != NULL);
     assert(*fname != '\0');
