@@ -446,6 +446,15 @@
  * Limits
  */
 
+/*
+ * An invalid GID to initialise memory with.
+ */
+#if defined(NOGROUP)
+#define INVALID_GID NOGROUP
+#else
+#define INVALID_GID MAX_INT
+#endif
+
 
 /*
  * Maximum length for strings, including the NUL-terminator. Unsigned integer.
@@ -463,6 +472,7 @@
 #error MAX_STR_LEN is greater than SHRT_MAX.
 #endif
 
+
 /*
  * Maximum length for error message formats and error messages,
  * including the NUL-terminator. Unsigned integer.
@@ -478,6 +488,7 @@
 #if MAX_ERRMSG_LEN < 1
 #error MAX_ERRMSG_LEN is non-positive.
 #endif
+
 
 /*
  * Maximum length for filenames, including the NUL-terminator.
@@ -532,6 +543,7 @@
 #error MAX_GRPNAME_LEN is non-positive.
 #endif
 
+
 /*
  * Maximum length for filename suffices, including the NUL-terminator.
  * Unsigned integer. Filenames with longer suffices are rejected.
@@ -547,6 +559,7 @@
 #if MAX_SUFFIX_LEN < 1
 #error MAX_SUFFIX_LEN is non-positive.
 #endif
+
 
 /*
  * Maximum length for environment variables, including the NUL-terminator.
@@ -564,6 +577,7 @@
 #error MAX_VAR_LEN is non-positive.
 #endif
 
+
 /*
  * Maximum length for environment variable names, including the NUL-terminator.
  * Unsigned integer. Variables with longer names are ignored.
@@ -580,6 +594,7 @@
 #error MAX_VARNAME_LEN is non-positive.
 #endif
 
+
 /*
  * Maximum number of groups a user may be a member of. Unsigned integer.
  * Users who are members of more groups are rejected.
@@ -595,6 +610,7 @@
 #if MAX_NGROUPS < 1
 #error MAX_NGROUPS is non-positive.
 #endif
+
 
 /*
  * Maximum number of environment variables. Unsigned integer.
