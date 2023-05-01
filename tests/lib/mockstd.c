@@ -190,7 +190,7 @@ unumtostr(unsigned long long num, char str[MAX_STR_LEN])
 static void
 idtostr(id_t id, char str[MAX_STR_LEN])
 {
-    if (ISSIGNED(gid_t)) {
+    if (ISSIGNED(id_t)) {
         numtostr((long long) id, str);
     } else {
         unumtostr((unsigned long long) id, str);
@@ -356,7 +356,6 @@ getsgid(void)
 static int
 geterrno(const char *const name)
 {
-    /* FIXME */
     long long num;
 
     if (getnumenv(name, &num) == 0) {

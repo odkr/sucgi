@@ -40,7 +40,7 @@
 /* Test NELEMS for the given TYPE for up to N elements. */
 #define TESTN(type, n)                                                      \
     do {                                                                    \
-        for (size_t _test_i = 1; _test_i < (n); ++_test_i) {                \
+        for (volatile size_t _test_i = 1; _test_i < (n); ++_test_i) {       \
             type _test_arr[_test_i];                                        \
             size_t _test_n;                                                 \
             int _test_jumpval;                                              \

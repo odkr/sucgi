@@ -19,56 +19,84 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#define _BSD_SOURCE
-#define _DARWIN_C_SOURCE
-#define _DEFAULT_SOURCE
-#define _GNU_SOURCE
+#define _XOPEN_SOURCE 700
 
 #include <assert.h>
+#include <errno.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
+#include "../../macros.h"
 #include "str.h"
-
-
-/*
- * Prototypes
- */
-
-/*
- * Concatenate the strings pointed to by DEST and SRC, append a NUL, and
- * return a pointer to the terminating NUL in END, but do not write past
- * LIM, which should be DEST + sizeof(DEST).
- *
- * Return value:
- *     true   Success.
- *     false  Appending SRC to DEST requires crossing LIM.
- */
-__attribute__((nonnull(1, 2, 3, 4)))
-static bool catstrs(char *dest, const char *const src,
-                    const char *const lim, char **end);
 
 
 /*
  * Functions
  */
 
-static bool
-catstrs(char *const dest, const char *const src,
-        const char *const lim, char **const end)
+char *
+catstrs(const size_t size, char *const dest, const char *const src)
 {
     assert(dest != NULL);
     assert(src != NULL);
-    assert(lim != NULL);
-    assert(lim > dest);
-    assert(end != NULL);
+    assert(size > 0);
 
-    *end = stpncpy(dest, src, (size_t) (lim - dest));
-    return src[*end - dest] == '\0';
+    char *end = stpncpy(dest, src, size);
+    if (src[end - dest] != '\0') {
+        return NULL;
+    }
+
+    return end;
 }
 
-bool
+char *
+idtostr(id_t id)
+{
+    char *str;
+    size_t size;
+    int len;
+
+    errno = 0;
+    if (ISSIGNED(id_t)) {
+        len = snprintf(NULL, 0, PRId64, (int64_t) id);
+    } else {
+        len = snprintf(NULL, 0, PRIu64, (uint64_t) id);
+    }
+
+    if (len < 0) {
+        /* Should be unreachable. */
+        return NULL;
+    }
+
+    size = (size_t) len + 1U;
+
+    errno = 0;
+    str = malloc(size);
+    if (str == NULL) {
+        return NULL;
+    }
+
+    (void) memset(str, '\0', size);
+
+    errno = 0;
+    if (ISSIGNED(id_t)) {
+        len = snprintf(str, size, PRId64, (int64_t) id);
+    } else {
+        len = snprintf(str, size, PRIu64, (uint64_t) id);
+    }
+
+    if (len < 0) {
+        /* Should be unreachable. */
+        return NULL;
+    }
+
+    return str;
+}
+
+int
 joinstrs(const size_t nstrs, const char *const *const strs,
          const char *const sep, const size_t size, char *const dest)
 {
@@ -86,14 +114,18 @@ joinstrs(const size_t nstrs, const char *const *const strs,
     (void) memset(dest, '\0', size);
     for (size_t i = 0U; i < nstrs && strs[i]; ++i) {
         if (i > 0U) {
-            if (!catstrs(ptr, sep, lim, &ptr)) {
-                return false;
+            ptr = catstrs((size_t) (lim - ptr), ptr, sep);
+            if (ptr == NULL) {
+                return -1;
             }
         }
-        if (!catstrs(ptr, strs[i], lim, &ptr)) {
-            return false;
+
+        ptr = catstrs((size_t) (lim - ptr), ptr, strs[i]);
+        if (ptr == NULL) {
+            return -1;
         }
     }
 
-    return true;
+    return 0;
 }
+

@@ -37,6 +37,7 @@
 #include "../str.h"
 #include "lib/check.h"
 #include "lib/str.h"
+#include "../types.h"
 
 
 /*
@@ -198,7 +199,7 @@ report(const char *const message, const Args *const args,
 {
     char specstr[MAX_STR_LEN];
 
-    if (!joinstrs(nspecs, specs, ", ", sizeof(specstr), specstr)) {
+    if (joinstrs(nspecs, specs, ", ", sizeof(specstr), specstr) != 0) {
         errx(TEST_ERROR, "joinstrs: joined string is too long");
     }
 
@@ -216,6 +217,7 @@ report(const char *const message, const Args *const args,
 #endif
 }
 
+/* FIXME: misnomer and could be made more general. */
 static bool
 cmpstrs(const size_t nelems,
         const char *const *const a, const char *const *const b)

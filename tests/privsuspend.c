@@ -36,13 +36,14 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "../attr.h"
 #include "../compat.h"
 #include "../macros.h"
 #include "../params.h"
 #include "../priv.h"
 #include "lib/check.h"
+#include "lib/str.h"
 #include "lib/user.h"
-
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -81,6 +82,39 @@ const Args cases[] = {
 
 
 /*
+ * Prototypes
+ */
+
+/* Wrapper around userget. */
+__attribute__((nonnull(2)))
+static void myuserget(const uid_t uid, struct passwd *pwd);
+
+
+/*
+ * Functions
+ */
+
+static void
+myuserget(const uid_t uid, struct passwd *pwd)
+{
+    UserError retval;
+
+    retval = userget(uid, pwd);
+    switch (retval) {
+    case USER_SUCCESS:
+        break;
+    case USER_NOTFOUND:
+        errx(TEST_ERROR, "user %s: not found", idtostr(uid));
+    case USER_ERROR:
+        err(TEST_ERROR, "userget");
+    default:
+        errx(TEST_ERROR, "%s:%d: userget(%s, → %p) → %u [!]",
+             __FILE__, __LINE__, idtostr(uid), (void *) pwd, retval);
+    }
+}
+
+
+/*
  * Main
  */
 
@@ -109,7 +143,7 @@ main (void) {
                      __FILE__, __LINE__, (void *) &reguid, usererr);
         }
 
-        userget(reguid, &pwd);
+        myuserget(reguid, &pwd);
     } else {
         reguid = getuid();
     }
@@ -118,59 +152,9 @@ main (void) {
         const Args args = cases[i];
         struct passwd ruser, euser;
         int jumpval;
-        UserError usererr;
 
-        usererr = userget(*args.ruid, &ruser);
-        switch (usererr) {
-            case USER_SUCCESS:
-                break;
-            case USER_NOTFOUND:
-                if (ISSIGNED(uid_t)) {
-                    errx(TEST_ERROR, "user %lld: not found",
-                         (long long) *args.ruid);
-                } else {
-                    errx(TEST_ERROR, "user %llu: not found",
-                         (unsigned long long) *args.ruid);
-                }
-            case USER_ERROR:
-                err(TEST_ERROR, "userget");
-            default:
-                if (ISSIGNED(uid_t)) {
-                    errx(TEST_ERROR, "%s:%d: userget(%lld, → %p) → %u [!]",
-                         __FILE__, __LINE__, (long long) *args.ruid,
-                         (void *) &ruser, usererr);
-                } else {
-                    errx(TEST_ERROR, "%s:%d: userget(%llu, → %p) → %u [!]",
-                         __FILE__, __LINE__, (unsigned long long) *args.ruid,
-                         (void *) &ruser, usererr);
-                }
-        }
-
-        usererr = userget(*args.euid, &euser);
-        switch (usererr) {
-            case USER_SUCCESS:
-                break;
-            case USER_NOTFOUND:
-                if (ISSIGNED(uid_t)) {
-                    errx(TEST_ERROR, "user %lld: not found",
-                         (long long) *args.euid);
-                } else {
-                    errx(TEST_ERROR, "user %llu: not found",
-                         (unsigned long long) *args.euid);
-                }
-            case USER_ERROR:
-                err(TEST_ERROR, "userget");
-            default:
-                if (ISSIGNED(uid_t)) {
-                    errx(TEST_ERROR, "%s:%d: userget(%lld, → %p) → %u [!]",
-                         __FILE__, __LINE__, (long long) *args.euid,
-                         (void *) &euser, usererr);
-                } else {
-                    errx(TEST_ERROR, "%s:%d: userget(%llu, → %p) → %u [!]",
-                         __FILE__, __LINE__, (unsigned long long) *args.euid,
-                         (void *) &euser, usererr);
-                }
-        }
+        myuserget(*args.ruid, &ruser);
+        myuserget(*args.euid, &euser);
 
         jumpval = sigsetjmp(checkenv, true);
         if (jumpval == 0) {
@@ -210,33 +194,29 @@ main (void) {
             ruid = getuid();
             if (ruid != ruser.pw_uid) {
                 result = TEST_FAILED;
-                warnx("(%s, %s) ─→ <ruid> = %llu [!]",
-                      ruser.pw_name, euser.pw_name,
-                      (unsigned long long) ruid);
+                warnx("(%s, %s) ─→ <ruid> = %s [!]",
+                      ruser.pw_name, euser.pw_name, idtostr(ruid));
             }
 
             euid = geteuid();
             if (euid != ruser.pw_uid) {
                 result = TEST_FAILED;
-                warnx("(%s, %s) ─→ <euid> = %llu [!]",
-                      ruser.pw_name, euser.pw_name,
-                      (unsigned long long) euid);
+                warnx("(%s, %s) ─→ <euid> = %s [!]",
+                      ruser.pw_name, euser.pw_name, idtostr(euid));
             }
 
             rgid = getgid();
             if (rgid != ruser.pw_gid) {
                 result = TEST_FAILED;
-                warnx("(%s, %s) ─→ <rgid> = %llu [!]",
-                      ruser.pw_name, euser.pw_name,
-                      (unsigned long long) rgid);
+                warnx("(%s, %s) ─→ <rgid> = %s [!]",
+                      ruser.pw_name, euser.pw_name, idtostr(rgid));
             }
 
             egid = getegid();
             if (egid != ruser.pw_gid) {
                 result = TEST_FAILED;
-                warnx("(%s, %s) ─→ <egid> = %llu [!]",
-                      ruser.pw_name, euser.pw_name,
-                      (unsigned long long) egid);
+                warnx("(%s, %s) ─→ <egid> = %s [!]",
+                      ruser.pw_name, euser.pw_name, idtostr(egid));
             }
 
             if (super) {
@@ -254,9 +234,8 @@ main (void) {
 
                 if (groups[0] != ruser.pw_gid) {
                     result = TEST_FAILED;
-                    warnx("(%s, %s) ─→ <groups[0]> = %llu [!]",
-                          ruser.pw_name, euser.pw_name,
-                          (unsigned long long) groups[0]);
+                    warnx("(%s, %s) ─→ <groups[0]> = %s [!]",
+                          ruser.pw_name, euser.pw_name, idtostr(groups[0]));
                 }
 
                 errno = 0;

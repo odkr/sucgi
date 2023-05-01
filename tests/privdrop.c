@@ -39,12 +39,14 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "../attr.h"
 #include "../compat.h"
 #include "../macros.h"
 #include "../params.h"
 #include "../priv.h"
 #include "lib/check.h"
 #include "lib/user.h"
+#include "lib/str.h"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -121,7 +123,12 @@ const Args cases[] = {
  *    0  A is equal to B.
  *    1  A is greater than B.
  */
+__attribute__((nonnull(1, 2)))
 static int cmpgids(gid_t *a, gid_t *b);
+
+/* Wrapper around userget. */
+__attribute__((nonnull(2)))
+static void myuserget(const uid_t uid, struct passwd *pwd);
 
 
 /*
@@ -140,6 +147,25 @@ cmpgids(gid_t *a, gid_t *b)
     }
 
     return 0;
+}
+
+static void
+myuserget(const uid_t uid, struct passwd *pwd)
+{
+    UserError retval;
+
+    retval = userget(uid, pwd);
+    switch (retval) {
+    case USER_SUCCESS:
+        break;
+    case USER_NOTFOUND:
+        errx(TEST_ERROR, "user %s: not found", idtostr(uid));
+    case USER_ERROR:
+        err(TEST_ERROR, "userget");
+    default:
+        errx(TEST_ERROR, "%s:%d: userget(%s, → %p) → %u [!]",
+             __FILE__, __LINE__, idtostr(uid), (void *) pwd, retval);
+    }
 }
 
 
@@ -174,32 +200,7 @@ main (void) {
                      __FILE__, __LINE__, (void *) &reguid, usererr);
         }
 
-        usererr = userget(reguid, &pwd);
-        switch (usererr) {
-            case USER_SUCCESS:
-                break;
-            case USER_NOTFOUND:
-                if (ISSIGNED(uid_t)) {
-                    errx(TEST_SKIPPED, "user %lld: not found",
-                         (long long) reguid);
-                } else {
-                    errx(TEST_SKIPPED, "user %llu: not found",
-                         (unsigned long long) reguid);
-                }
-            case USER_ERROR:
-                err(TEST_ERROR, "userget");
-            default:
-                if (ISSIGNED(uid_t)) {
-                    errx(TEST_ERROR, "%s:%d: userget(%lld, → %p) → %u [!]",
-                         __FILE__, __LINE__,
-                         (long long) reguid, (void *) &pwd, usererr);
-                } else {
-                    errx(TEST_ERROR, "%s:%d: userget(%llu, → %p) → %u [!]",
-                         __FILE__, __LINE__,
-                         (unsigned long long) reguid, (void *) &pwd, usererr);
-                }
-        }
-
+        myuserget(reguid, &pwd);
         reggid = pwd.pw_gid;
     } else {
         reguid = getuid();
@@ -212,85 +213,10 @@ main (void) {
         uid_t dropuid;
         gid_t dropgid;
         pid_t pid;
-        UserError usererr;
 
-        usererr = userget(*args.ruid, &ruser);
-        switch (usererr) {
-            case USER_SUCCESS:
-                break;
-            case USER_NOTFOUND:
-                if (ISSIGNED(uid_t)) {
-                    errx(TEST_ERROR, "user %lld: not found",
-                         (long long) *args.ruid);
-                } else {
-                    errx(TEST_ERROR, "user %llu: not found",
-                         (unsigned long long) *args.ruid);
-                }
-            case USER_ERROR:
-                err(TEST_ERROR, "userget");
-            default:
-                if (ISSIGNED(uid_t)) {
-                    errx(TEST_ERROR, "%s:%d: userget(%lld, → %p) → %u [!]",
-                         __FILE__, __LINE__, (long long) *args.ruid,
-                         (void *) &ruser, usererr);
-                } else {
-                    errx(TEST_ERROR, "%s:%d: userget(%llu, → %p) → %u [!]",
-                         __FILE__, __LINE__, (unsigned long long) *args.ruid,
-                         (void *) &ruser, usererr);
-                }
-        }
-
-        usererr = userget(*args.euid, &euser);
-        switch (usererr) {
-            case USER_SUCCESS:
-                break;
-            case USER_NOTFOUND:
-                if (ISSIGNED(uid_t)) {
-                    errx(TEST_ERROR, "user %lld: not found",
-                         (long long) *args.euid);
-                } else {
-                    errx(TEST_ERROR, "user %llu: not found",
-                         (unsigned long long) *args.euid);
-                }
-            case USER_ERROR:
-                err(TEST_ERROR, "userget");
-            default:
-                if (ISSIGNED(uid_t)) {
-                    errx(TEST_ERROR, "%s:%d: userget(%lld, → %p) → %u [!]",
-                         __FILE__, __LINE__, (long long) *args.euid,
-                         (void *) &euser, usererr);
-                } else {
-                    errx(TEST_ERROR, "%s:%d: userget(%llu, → %p) → %u [!]",
-                         __FILE__, __LINE__, (unsigned long long) *args.euid,
-                         (void *) &euser, usererr);
-                }
-        }
-
-        usererr = userget(*args.dropuid, &drop);
-        switch (usererr) {
-            case USER_SUCCESS:
-                break;
-            case USER_NOTFOUND:
-                if (ISSIGNED(uid_t)) {
-                    errx(TEST_ERROR, "user %lld: not found",
-                         (long long) *args.dropuid);
-                } else {
-                    errx(TEST_ERROR, "user %llu: not found",
-                         (unsigned long long) *args.dropuid);
-                }
-            case USER_ERROR:
-                err(TEST_ERROR, "userget");
-            default:
-                if (ISSIGNED(uid_t)) {
-                    errx(TEST_ERROR, "%s:%d: userget(%lld, → %p) → %u [!]",
-                         __FILE__, __LINE__, (long long) *args.dropuid,
-                         (void *) &drop, usererr);
-                } else {
-                    errx(TEST_ERROR, "%s:%d: userget(%llu, → %p) → %u [!]",
-                         __FILE__, __LINE__, (unsigned long long) *args.dropuid,
-                         (void *) &drop, usererr);
-                }
-        }
+        myuserget(*args.ruid, &ruser);
+        myuserget(*args.euid, &euser);
+        myuserget(*args.dropuid, &drop);
 
         dropuid = drop.pw_uid;
         dropgid = (args.dropgid == NULL) ? drop.pw_gid : *args.dropgid;
@@ -313,15 +239,10 @@ main (void) {
                 }
             } else {
                 if (getuid() != *args.ruid || geteuid() != *args.euid) {
-                    errx(
-                        TEST_SKIPPED,
-                        "skipping (%s, %s, %llu, %llu, %d) ...",
-                        ruser.pw_name,
-                        euser.pw_name,
-                        (long long unsigned) dropuid,
-                        (long long unsigned) dropgid,
-                        args.ndropgrps
-                    );
+                    errx(TEST_SKIPPED, "skipping (%s, %s, %s, %s, %d) ...",
+                         ruser.pw_name, euser.pw_name,
+                         idtostr(dropuid), idtostr(dropgid),
+                         args.ndropgrps);
                 }
             }
 
@@ -338,16 +259,10 @@ main (void) {
                               (NGRPS_T) ngroups, groups);
             if (retval != args.retval) {
                 /* Should be unreachable. */
-                errx(
-                    TEST_FAILED,
-                    "(%s, %s, %llu, %llu, %d) → %u [!]",
-                    ruser.pw_name,
-                    euser.pw_name,
-                    (long long unsigned) dropuid,
-                    (long long unsigned) dropgid,
-                    args.ndropgrps,
-                    retval
-                );
+                errx(TEST_FAILED, "(%s, %s, %s, %s, %d) → %u [!]",
+                     ruser.pw_name, euser.pw_name,
+                     idtostr(dropuid), idtostr(dropgid),
+                     args.ndropgrps, retval);
             }
 
             if (retval != OK) {
@@ -356,58 +271,38 @@ main (void) {
 
             ruid = getuid();
             if (ruid != dropuid) {
-                errx(
-                    TEST_FAILED,
-                    "(%s, %s, %llu, %llu, %d) ─→ <ruid> = %llu [!]",
-                    ruser.pw_name,
-                    euser.pw_name,
-                    (long long unsigned) dropuid,
-                    (long long unsigned) dropgid,
-                    args.ndropgrps,
-                    (unsigned long long) ruid
-                );
+                errx(TEST_FAILED,
+                     "(%s, %s, %s, %s, %d) ─→ <ruid> = %s [!]",
+                     ruser.pw_name, euser.pw_name,
+                     idtostr(dropuid), idtostr(dropgid),
+                     args.ndropgrps, idtostr(ruid));
             }
 
             euid = geteuid();
             if (euid != dropuid) {
-                errx(
-                    TEST_FAILED,
-                    "(%s, %s, %llu, %llu, %d) ─→ <euid> = %llu [!]",
-                    ruser.pw_name,
-                    euser.pw_name,
-                    (long long unsigned) dropuid,
-                    (long long unsigned) dropgid,
-                    args.ndropgrps,
-                    (unsigned long long) euid
-                );
+                errx(TEST_FAILED,
+                     "(%s, %s, %s, %s, %d) ─→ <euid> = %s [!]",
+                     ruser.pw_name, euser.pw_name,
+                     idtostr(dropuid), idtostr(dropgid),
+                     args.ndropgrps, idtostr(euid));
             }
 
             rgid = getgid();
             if (rgid != dropgid) {
-                errx(
-                    TEST_FAILED,
-                    "(%s, %s, %llu, %llu, %d) ─→ <rgid> = %llu [!]",
-                    ruser.pw_name,
-                    euser.pw_name,
-                    (long long unsigned) dropuid,
-                    (long long unsigned) dropgid,
-                    args.ndropgrps,
-                    (unsigned long long) rgid
-                );
+                errx(TEST_FAILED,
+                     "(%s, %s, %s, %s, %d) ─→ <rgid> = %s [!]",
+                     ruser.pw_name, euser.pw_name,
+                     idtostr(dropuid), idtostr(dropgid),
+                     args.ndropgrps, idtostr(rgid));
             }
 
             egid = getegid();
             if (egid != dropgid) {
-                errx(
-                    TEST_FAILED,
-                    "(%s, %s, %llu, %llu, %d) ─→ <egid> = %llu [!]",
-                    ruser.pw_name,
-                    euser.pw_name,
-                    (long long unsigned) dropuid,
-                    (long long unsigned) dropgid,
-                    args.ndropgrps,
-                    (unsigned long long) egid
-                );
+                errx(TEST_FAILED,
+                     "(%s, %s, %s, %s, %d) ─→ <egid> = %s [!]",
+                     ruser.pw_name, euser.pw_name,
+                     idtostr(dropuid), idtostr(dropgid),
+                     args.ndropgrps, idtostr(egid));
             }
 
             errno = 0;
@@ -425,16 +320,11 @@ main (void) {
                     grpp = lfind(&grp, dropgroups, &nelems,
                                  sizeof(*dropgroups), (Compar) cmpgids);
                     if (grpp == NULL) {
-                        errx(
-                            TEST_FAILED,
-                            "(%s, %s, %llu, %llu, %d) ─→ missing GID %llu [!]",
-                            ruser.pw_name,
-                            euser.pw_name,
-                            (long long unsigned) dropuid,
-                            (long long unsigned) dropgid,
-                            args.ndropgrps,
-                            (unsigned long long) grp
-                        );
+                        errx(TEST_FAILED,
+                             "(%s, %s, %s, %s, %d) ─→ missing GID %s [!]",
+                             ruser.pw_name, euser.pw_name,
+                             idtostr(dropuid), idtostr(dropgid),
+                             args.ndropgrps, idtostr(grp));
                     }
                 }
             }
@@ -447,16 +337,11 @@ main (void) {
                 grpp = lfind(&grp, groups, &nelems,
                              sizeof(*groups), (Compar) cmpgids);
                 if (grpp == NULL && grp != dropgid) {
-                    errx(
-                        TEST_FAILED,
-                        "(%s, %s, %llu, %llu, %d) ─→ wrong GID %llu [!]",
-                        ruser.pw_name,
-                        euser.pw_name,
-                        (long long unsigned) dropuid,
-                        (long long unsigned) dropgid,
-                        args.ndropgrps,
-                        (unsigned long long) grp
-                    );
+                    errx(TEST_FAILED,
+                         "(%s, %s, %s, %s, %d) ─→ wrong GID %s [!]",
+                         ruser.pw_name, euser.pw_name,
+                         idtostr(dropuid), idtostr(dropgid),
+                         args.ndropgrps, idtostr(grp));
                 }
             }
 
@@ -496,19 +381,11 @@ main (void) {
 
                 signo = WTERMSIG(status);
                 if (signo != args.signo) {
-                    const char *signame;
-
                     result = TEST_FAILED;
-                    signame = strsignal(signo);
-                    warnx(
-                        "(%s, %s, %llu, %llu, %d) ↑ %s [!]",
-                        ruser.pw_name,
-                        euser.pw_name,
-                        (long long unsigned) dropuid,
-                        (long long unsigned) dropgid,
-                        args.ndropgrps,
-                        signame
-                    );
+                    warnx("(%s, %s, %s, %s, %d) ↑ %s [!]",
+                         ruser.pw_name, euser.pw_name,
+                         idtostr(dropuid), idtostr(dropgid),
+                         args.ndropgrps, strsignal(signo));
                 }
             } else {
                 errx(TEST_ERROR, "child %d exited abnormally", pid);
@@ -516,5 +393,6 @@ main (void) {
         }
     }
 
+    /* Running atexit functions tends to break coverage reports. */
     _exit(result);
 }

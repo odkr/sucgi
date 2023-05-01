@@ -28,18 +28,41 @@
 
 
 /*
+ * Convert the given ID into a string and return a pointer to that string.
+ * The memory pointed to should be freed by the caller.
+ *
+ * Return value:
+ *     NULL      Conversion failed. errno should be set.
+ *     Non-NULL  A pointer to the converted ID.
+ */
+__attribute__((warn_unused_result))
+char *idtostr(id_t id);
+
+/*
+ * Append at most SIZE bytes from SRC to DEST and
+ * return a pointer to the terminating NUL.
+ *
+ * Return value:
+ *     Non-NULL  Success.
+ *     NULL      String was truncated.
+ */
+__attribute__((nonnull(2, 3)))
+char *catstrs(size_t size, char *dest, const char *src);
+
+
+/*
  * Join the first N strings in STRS using the separator SEP and store the
  * result in DEST, which must be large enough to hold SIZE bytes. If STRS
  * contains a NULL pointer, processing stops at that pointer. STRS must
  * either be NULL-terminated or have at least N elements.
  *
  * Return value:
- *     true   Success.
- *     false  SIZE is too small to hold the joined string.
+ *      0  Success.
+ *     -1  SIZE is too small to hold the joined string.
  */
 __attribute__((nonnull(2, 3, 5), warn_unused_result))
-bool joinstrs(size_t nstrs, const char *const *strs,
-              const char *sep, size_t size, char *dest);
+int joinstrs(size_t nstrs, const char *const *strs,
+             const char *sep, size_t size, char *dest);
 
 
 #endif /* !defined(TESTS_LIB_STR_H) */

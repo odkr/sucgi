@@ -429,22 +429,23 @@ report(const char *const message, const Args *const args,
     char varstr[MAX_TEST_STR_LEN];
     char patstr[MAX_TEST_STR_LEN];
     char envstr[MAX_TEST_STR_LEN];
+    int strerr;
 
-    if (!joinstrs(MAX_TEST_NVARS, args->vars, ", ",
-                  sizeof(varstr), varstr))
-    {
+    strerr = joinstrs(MAX_TEST_NVARS, args->vars, ", ",
+                      sizeof(varstr), varstr);
+    if (strerr != 0) {
         errx(TEST_ERROR, "joinstrs: joined string is too long");
     }
 
-    if (!joinstrs(args->npatterns, args->patterns, ", ",
-                  sizeof(patstr), patstr))
-    {
+    strerr = joinstrs(args->npatterns, args->patterns, ", ",
+                      sizeof(patstr), patstr);
+    if (strerr != 0) {
         errx(TEST_ERROR, "joinstrs: joined string is too long");
     }
 
-    if (!joinstrs(MAX_TEST_NVARS, (const char *const *) environ, " ",
-                  sizeof(envstr), envstr))
-    {
+    strerr = joinstrs(MAX_TEST_NVARS, (const char *const *) environ, " ",
+                      sizeof(envstr), envstr);
+    if (strerr != 0) {
         errx(TEST_ERROR, "joinstrs: joined string is too long");
     }
 

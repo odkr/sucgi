@@ -56,7 +56,7 @@ typedef struct {
  */
 
 #if !defined(NDEBUG)
-/* A filename that that exceeds MAX_STR_LEN. */
+/* A filename that that exceeds MAX_FNAME_LEN. */
 static char hugefname[MAX_FNAME_LEN + 1U] = {0};
 #endif
 
@@ -777,7 +777,7 @@ main (void)
 
         if (jumpval != args.signo) {
             result = TEST_FAILED;
-            warnx("(%s, → %s [!]) ↑ %s",
+            warnx("(%s, → %s) ↑ %s [!]",
                   args.fname, suffix, strsignal(jumpval));
         }
     }

@@ -130,7 +130,9 @@ uninstall:
 # Tests
 #
 
-check_objs = tests/lib/check.o tests/lib/user.o tests/lib/str.o
+check_objs = tests/lib/check.o tests/lib/ftree.o tests/lib/errlist.o \
+	tests/lib/longp.o tests/lib/user.o tests/lib/str.o tests/lib/tmp.o \
+	tests/lib/trap.o
 
 check_libs = tests/lib/libcheck.a $(libs)
 
@@ -144,7 +146,7 @@ handler_test_bins = tests/handlerfind
 
 pair_test_bins = tests/pairfind
 
-path_test_bins = tests/pathchkloc tests/pathsuffix
+path_test_bins = tests/pathchkloc tests/pathreal tests/pathsuffix
 
 priv_test_bins = tests/privdrop tests/privsuspend
 
@@ -152,9 +154,9 @@ str_test_bins = tests/copystr tests/getspecstrs tests/splitstr
 
 userdir_test_bins = tests/userdirexp
 
-unit_test_bins = $(macro_test_bins) $(env_test_bins) $(handler_test_bins) \
-	$(pair_test_bins) $(path_test_bins) $(priv_test_bins) \
-	$(str_test_bins) $(userdir_test_bins)
+unit_test_bins = $(macro_test_bins) $(env_test_bins) \
+	$(handler_test_bins) $(pair_test_bins) $(path_test_bins) \
+	$(priv_test_bins) $(str_test_bins) $(userdir_test_bins)
 
 script_test_bins = $(check_scripts:.sh=)
 
@@ -164,15 +166,30 @@ checks = $(check_scripts) $(unit_test_bins)
 
 tool_bins = tools/badenv tools/badexec tools/uids tools/runpara tools/runas
 
-preloadvar = default(`__SUCGI_PRELOAD_VAR', `LD_PRELOAD')
+preloadvar = ifdef(`__SUCGI_UNAME',
+	`ifelse(__SUCGI_UNAME, `Darwin',
+		`DYLD_INSERT_LIBRARIES',
+		`LD_PRELOAD')',
+	`LD_PRELOAD')
 
 runpara_flags = -ci75 -j8
 
 tests/lib/libcheck.a(tests/lib/check.o): tests/lib/check.c tests/lib/check.h
 
+tests/lib/libcheck.a(tests/lib/ftree.o): tests/lib/check.c tests/lib/ftree.h
+
+tests/lib/libcheck.a(tests/lib/errlist.o): tests/lib/errlist.c tests/lib/errlist.h
+
+tests/lib/libcheck.a(tests/lib/longp.o): tests/lib/longp.c tests/lib/longp.h
+
 tests/lib/libcheck.a(tests/lib/user.o): tests/lib/user.c tests/lib/user.h
 
 tests/lib/libcheck.a(tests/lib/str.o): tests/lib/str.c tests/lib/str.h
+
+tests/lib/libcheck.a(tests/lib/tmp.o): tests/lib/str.c tests/lib/tmp.h \
+	tests/lib/libcheck.a(tests/lib/ftree.o)
+
+tests/lib/libcheck.a(tests/lib/trap.o): tests/lib/trap.c tests/lib/trap.h
 
 tests/lib/libcheck.a: tests/lib/libcheck.a($(check_objs))
 
@@ -192,7 +209,7 @@ tests/envcopyvar: tests/envcopyvar.c
 
 tests/envisname: tests/envisname.c
 
-tests/envrestore: tests/envrestore.c params.h \
+tests/envrestore: tests/envrestore.c \
 	tests/lib/libcheck.a(tests/lib/str.o)
 
 tests/error: tests/error.c libsucgi.a(error.o)
@@ -204,6 +221,9 @@ tests/main: main.c $(hdrs) $(libs)
 tests/pairfind: tests/pairfind.c params.h
 
 tests/pathchkloc: tests/pathchkloc.c
+
+tests/pathreal: tests/pathreal.c libsucgi.a(str.o) \
+	tests/lib/libcheck.a
 
 tests/pathsuffix: tests/pathsuffix.c
 
@@ -229,7 +249,7 @@ $(pair_test_bins): libsucgi.a(pair.o)
 $(path_test_bins): libsucgi.a(path.o)
 
 $(priv_test_bins): libsucgi.a(priv.o) \
-	tests/lib/libcheck.a(tests/lib/user.o)
+	tests/lib/libcheck.a(tests/lib/str.o tests/lib/user.o)
 
 $(str_test_bins): libsucgi.a(str.o)
 
@@ -284,8 +304,8 @@ tests/main:
 
 check:
 ifnempty(`__SUCGI_SHARED_LIBS', `dnl
-	[ "$$(id -u)" -eq 0 ] \
-&& tools/runpara $(runpara_flags) $(checks) \
+	[ "$$(id -u)" -eq 0 ]\
+&& tools/runpara $(runpara_flags) $(checks)\
 || tools/runpara $(runpara_flags) $(preloadvar)=tests/lib/libmock.so $(checks)
 ', `dnl
 	tools/runpara $(runpara_flags) $(checks)
