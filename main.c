@@ -396,9 +396,9 @@ main(int argc, char **argv) {
      * Get the script's filename and filesystem metadata.
      */
 
-    /* RATS: ignore; copystr is bounded by MAX_FNAME_LEN. */
+    /* RATS: ignore; envcopyvar is bounded by MAX_VAR_LEN. */
     char script_log[MAX_VAR_LEN];
-    const char *script_phys;
+    char *script_phys;
     struct stat script_stat;
 
     ret = envcopyvar("PATH_TRANSLATED", script_log);
@@ -634,7 +634,7 @@ main(int argc, char **argv) {
 
     /* RATS: ignore; userdirexp repects MAX_FNAME_LEN. */
     char userdir_log[MAX_FNAME_LEN];
-    const char *userdir_phys;
+    char *userdir_phys;
 
     ret = userdirexp(USER_DIR, owner, userdir_log);
     switch (ret) {
