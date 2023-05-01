@@ -94,11 +94,13 @@ pathchkloc(const char *const basedir, const char *const fname)
 }
 
 Error
-pathreal(const char *const fname, const char **const real)
+pathreal(const char *const fname, char **const real)
 {
     assert(fname != NULL);
     assert(*fname != '\0');
     assert(real != NULL);
+
+    *real = NULL;
 
     if (strnlen(fname, MAX_FNAME_LEN) >= (size_t) MAX_FNAME_LEN) {
         return ERR_LEN;
@@ -112,6 +114,7 @@ pathreal(const char *const fname, const char **const real)
     }
 
     if (strnlen(*real, MAX_FNAME_LEN) >= (size_t) MAX_FNAME_LEN) {
+        /* Probably unreachable, depending on your system. */
         return ERR_LEN;
     }
 
