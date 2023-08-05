@@ -1,0 +1,27 @@
+Checks: |
+    bugprone-*,
+    cert-*,
+    clang-analyzer-*,
+    misc-*,
+    performance-*,
+    portability-*,
+    readability-*,
+    -bugprone-easily-swappable-parameters,
+    -readability-function-cognitive-complexity,
+    -cert-*-cpp
+
+CheckOptions:
+    - key: bugprone-reserved-identifier.AllowedIdentifiers
+      value: _XOPEN_SOURCE;_BSD_SOURCE;_DARWIN_C_SOURCE;_DEFAULT_SOURCE;_GNU_SOURCE;_FORTIFY_SOURCE
+    - key: cert-dcl37-c.AllowedIdentifiers
+      value: _XOPEN_SOURCE;_BSD_SOURCE;_DARWIN_C_SOURCE;_DEFAULT_SOURCE;_GNU_SOURCE;_FORTIFY_SOURCE
+    - key: cert-dcl51-cpp.AllowedIdentifiers
+      value: _XOPEN_SOURCE;_BSD_SOURCE;_DARWIN_C_SOURCE;_DEFAULT_SOURCE;_GNU_SOURCE;_FORTIFY_SOURCE
+    - key: readability-function-cognitive-complexity.Threshold
+      value: 30
+    - key: readability-function-cognitive-complexity.DescribeBasicIncrements
+      value: false
+    - key: readability-identifier-length.IgnoredParameterNames
+      value: "^(id|wd)$"
+    - key: readability-identifier-length.IgnoredVariableNames
+      value: "^(id|wd)$"
