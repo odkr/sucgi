@@ -1,0 +1,403 @@
+<?xml version="1.0"?>
+<suppressions>
+    <!--
+        Cppcheck
+    -->
+
+    <!--
+        Cppcheck sometimes reports that a suppression is unmatched,
+        only to report a violation when the suppresion is removed.
+    -->
+    <suppress>
+        <id>unmatchedSuppression</id>
+    </suppress>
+
+    <!--
+        Including the system headers would trigger suCGI's pre-processor
+        bound checks, so that the analysis could not proceed.
+    -->
+    <suppress>
+        <id>missingIncludeSystem</id>
+    </suppress>
+
+
+    <!-- suCGI need not be async-safe. -->
+    <suppress><id>getgrgidCalled</id></suppress>
+    <suppress><id>getpwentCalled</id></suppress>
+    <suppress><id>getpwuidCalled</id></suppress>
+
+    <!--
+        Cppcheck wrongly assumes that enums always resolve
+        to signed integers. And suCGI is compiled with
+
+            -Wformat=2 -Wformat-overflow=2 -Wformat-signedness -Werror
+
+        during development at any rate.
+    -->
+    <suppress>
+        <id>invalidPrintfArgType_uint</id>
+        <fileName>tests/*</fileName>
+    </suppress>
+
+    <!--
+        str is used by an snprintf call,
+        and snprintf accepts NULL in this context.
+    -->
+    <suppress>
+        <id>nullPointer</id>
+        <fileName>tests/util/user.c</fileName>
+        <symbolName>str</symbolName>
+    </suppress>
+
+
+    <!--
+        MISRA C
+    -->
+
+    <!--
+        Rule 2.5 advises that there should be no unused macros. However,
+        Cppcheck treats include guards and feature test macros as "unused"
+        and consequently reports a lot of false positives.
+    -->
+    <suppress>
+        <id>misra-c2012-2.5</id>
+    </suppress>
+
+    <!--
+        Rule 3.1 requires that comments do not contain "/*" or "//".
+        However, license statements contain URLs.
+    -->
+    <suppress>
+        <id>misra-c2012-3.1</id>
+        <lineNumber>1</lineNumber>
+    </suppress>
+
+    <!--
+        Rule 8.6 requires that identifiers with external linkage be unique
+        across all files. However, Cppcheck applies this rule to `main`.
+    -->
+    <suppress>
+        <id>misra-c2012-8.6</id>
+    </suppress>
+
+    <!--
+        Rule 12.1 advises that operator precedence should be made explicit.
+        But Cppcheck's interpretation of this rule is overly zealous.
+    -->
+    <suppress>
+        <id>misra-c2012-12.1</id>
+    </suppress>
+
+    <!--
+        Rule 15.5 advises that functions should have a single point of exit.
+        This is to ensure that clean-up is not skipped.
+        However, none of suCGI's functions performs any clean-up.
+    -->
+    <suppress>
+        <id>misra-c2012-15.5</id>
+    </suppress>
+
+    <!--
+        Rule 16.3 requires that every switch clause be terminated by a break.
+        However, suCGI is compiled with
+
+            -Wimplicit-fallthrough=2 -Werror
+
+        during development at any rate, and switch clauses in main.c are
+        often terminated by `error`, which does not return. So adding
+        `break` statements would just add dead code.
+    -->
+    <suppress>
+        <id>misra-c2012-16.3</id>
+        <fileName>main.c</fileName>
+    </suppress>
+
+    <!--
+        Rule 16.6 requires that every switch statement has at least two
+        clauses. However, Cppcheck appears to count breaks, not causes,
+        and reports too many false positives as a consequence.
+    -->
+    <suppress>
+        <id>misra-c2012-16.6</id>
+        <fileName>main.c</fileName>
+    </suppress>
+
+    <!--
+        Rule 17.1 requires that variadic arguments not be used.
+        However, error is a wrapper around syslog, and cannot
+        be implemented without variadic arguments.
+    -->
+    <suppress>
+        <id>misra-c2012-17.1</id>
+        <fileName>error.c</fileName>
+    </suppress>
+
+    <!--
+        Rule 20.5 advises that #undef not be used. However, params.h
+        needs to override the build configuration for testing;
+        #undef is not use anywhere else.
+    -->
+    <suppress>
+        <id>misra-c2012-20.5</id>
+        <fileName>params.h</fileName>
+    </suppress>
+
+    <!--
+        Rule 21.1 requires that reserved identifies not be used as macro
+        names. But Cppcheck applies this rule to feature test macros.
+    -->
+    <suppress>
+        <id>misra-c2012-21.1</id>
+        <fileName>*.c</fileName>
+    </suppress>
+
+    <!-- Rule 21.6 requires that stdio.h not be used, but ... -->
+
+    <!-- ... main.c needs printf for handling -h, -C, and -V. -->
+    <suppress>
+        <id>misra-c2012-21.6</id>
+        <fileName>main.c</fileName>
+    </suppress>
+
+    <!-- ... userdir_exp needs snprintf for pattern expansion. -->
+    <suppress>
+        <id>misra-c2012-21.6</id>
+        <fileName>userdir.c</fileName>
+    </suppress>
+
+    <!--
+        Rule 21.8 requires that, among other functions, getenv not be used.
+        But the CGI protocol involves the environment.
+    -->
+    <suppress>
+        <id>misra-c2012-21.8</id>
+        <fileName>env.c</fileName>
+    </suppress>
+
+
+    <!-- Test suite -->
+
+    <!--
+        Rule 2.7 advises that every function parameter be used.
+        But this cannot always be done with signal handlers or callbacks.
+        Also, the test suite is compiled with
+
+            -Wunused-parameter -Werror
+
+        during development at any rate.
+    -->
+    <suppress>
+        <id>misra-c2012-2.7</id>
+        <fileName>tests/*</fileName>
+    </suppress>
+
+    <!--
+        Rules 5.9 advises that function and object identifiers be unique
+        accross all files. However, I prefer that unit tests re-use certain
+        names in order for them to be more consistent.
+    -->
+    <suppress>
+        <id>misra-c2012-5.9</id>
+        <fileName>tests/*.c</fileName>
+    </suppress>
+
+    <!--
+        Rule 7.4 requires that pointers to literals be const-qualified.
+        But logname and homedir in tests/userdirexp.c are arrays, not
+        pointers. Cppcheck conflates assignment with initialisation.
+    -->
+    <suppress>
+        <id>misra-c2012-7.4</id>
+        <fileName>tests/userdir_exp.c</fileName>
+    </suppress>
+
+    <!--
+        Rule 8.2 requires that function types be in prototype form.
+        They are, but Cppcheck does not recognise function pointers.
+    -->
+    <suppress>
+        <id>misra-c2012-8.2</id>
+        <fileName>tests/util/dir.*</fileName>
+    </suppress>
+
+    <suppress>
+        <id>misra-c2012-8.2</id>
+        <fileName>tests/util/path.*</fileName>
+    </suppress>
+
+    <suppress>
+        <id>misra-c2012-8.2</id>
+        <fileName>tests/util/sigs.*</fileName>
+    </suppress>
+
+    <!--
+        Rule 8.4 requires that there is a declaration for each object
+        or function with external linkage. The rule is met, but the
+        declarations are not recognised by Cppcheck.
+    -->
+
+    <suppress>
+        <id>misra-c2012-8.4</id>
+        <fileName>tests/mock/*</fileName>
+    </suppress>
+
+    <!--
+        Rule 10.4 requires that operands belong to the same type category.
+        They do. But tests/NELEMS.c uses unsyntactic macros, which Cppcheck,
+        apparently, cannot parse.
+    -->
+    <suppress>
+        <id>misra-c2012-10.4</id>
+        <fileName>tests/NELEMS.c</fileName>
+    </suppress>
+
+    <!--
+        Rule 11.4 advises that pointers not be converted to integers,
+        and vice versa. They are not, but Cppcheck, again, appears to
+        be confused by function pointers.
+    -->
+    <suppress>
+        <id>misra-c2012-11.4</id>
+        <fileName>tests/util/dir.*</fileName>
+    </suppress>
+
+    <!--
+        Rule 15.1 advises that goto not be used. However, goto is the
+        idiomatic way to do ensure that functions have a single point
+        of exit for cleanup, at least in C99. So, I use goto in the
+        test suite if a function needs to perform cleanup.
+    -->
+    <suppress>
+        <id>misra-c2012-15.1</id>
+        <fileName>tests/util/*</fileName>
+    </suppress>
+
+    <!-- Some callbacks would be hard to implement without stdarg.h. -->
+    <suppress>
+        <id>misra-c2012-17.1</id>
+        <fileName>tests/*</fileName>
+    </suppress>
+
+    <!--
+        Rule 18.8 requires that variable-length arrays not be used.
+        But tests/NELEMS cannot be implemented otherwise.
+    -->
+    <suppress>
+        <id>misra-c2012-18.8</id>
+        <fileName>tests/NELEMS.c</fileName>
+    </suppress>
+
+    <!--
+        Rule 20.7 requires that macro parameters be enclosed in parentheses.
+        But tests/NELEMS' macros are unsyntactic; doing so would break them.
+    -->
+    <suppress>
+        <id>misra-c2012-20.7</id>
+        <fileName>tests/NELEMS.c</fileName>
+    </suppress>
+
+    <!--
+        Rule 20.10 requires that # and ## not be used.
+        But the macro tests cannot be implement otherwise.
+    -->
+    <suppress>
+        <id>misra-c2012-20.10</id>
+        <fileName>tests/ISSIGNED.c</fileName>
+    </suppress>
+
+    <suppress>
+        <id>misra-c2012-20.10</id>
+        <fileName>tests/NELEMS.c</fileName>
+    </suppress>
+
+    <suppress>
+        <id>misra-c2012-20.10</id>
+        <fileName>tests/MAXSVAL.c</fileName>
+    </suppress>
+
+    <!--
+        Rule 21.3 requires that dynamic memory allocation not be used.
+        But it's just the test suite, and it makes things easier.
+    -->
+    <suppress>
+        <id>misra-c2012-21.3</id>
+        <fileName>tests/*</fileName>
+    </suppress>
+
+    <!--
+        Rule 21.4 requires that setjmp.h not be used. However, tests use
+        sigsetjmp and siglongjmp to catch abnormal programme termination.
+        Strictly speaking, this is undefined behaviour, of course.
+    -->
+    <suppress>
+        <id>misra-c2012-21.4</id>
+        <fileName>tests/*.c</fileName>
+    </suppress>
+
+    <suppress>
+        <id>misra-c2012-21.4</id>
+        <fileName>tests/util/abort.*</fileName>
+    </suppress>
+
+    <!--
+        Rule 21.5 requires that signal.h not be used.
+        But tests need to check for abortion, bus errors, segfaults, etc.
+    -->
+    <suppress>
+        <id>misra-c2012-21.5</id>
+        <fileName>tests/*</fileName>
+    </suppress>
+
+    <!-- Tests need snprintf for string concatenation and conversion. -->
+    <suppress>
+        <id>misra-c2012-21.6</id>
+        <fileName>tests/*</fileName>
+    </suppress>
+
+    <!-- The environment interface cannot be tested w/o getenv. -->
+    <suppress>
+        <id>misra-c2012-21.8</id>
+        <fileName>tests/env*.c</fileName>
+    </suppress>
+
+    <!-- tmpdirmake must read $TMPDIR. -->
+    <suppress>
+        <id>misra-c2012-21.8</id>
+        <fileName>tests/util/tmpdir.c</fileName>
+    </suppress>
+
+    <!-- libmock.so uses environment variables for setting up tests. -->
+    <suppress>
+        <id>misra-c2012-21.8</id>
+        <fileName>tests/mock/*</fileName>
+    </suppress>
+
+    <!-- privdrop forks and must call exit to quit the child process -->.
+    <suppress>
+        <id>misra-c2012-21.8</id>
+        <fileName>tests/priv_drop.c</fileName>
+    </suppress>
+
+
+    <!--
+        CERT C
+    -->
+
+    <!--
+        Rule INT31 requires that integer conversions do not alter data.
+        But no integer conversions take place in tests/ISSIGNED.c.
+    -->
+    <suppress>
+        <id>cert-INT31-c</id>
+        <fileName>tests/ISSIGNED.c</fileName>
+    </suppress>
+
+    <!--
+        Rule STR05 is equivalent to MISRA C rule 7.4.
+        See above for details.
+    -->
+    <suppress>
+        <id>cert-STR05-C</id>
+        <fileName>tests/userdir_exp.c</fileName>
+    </suppress>
+</suppressions>

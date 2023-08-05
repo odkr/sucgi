@@ -1,54 +1,24 @@
 <?xml version="1.0"?>
 <project version="1">
-	<paths>
-		<dir name="."/>
-	</paths>
-	<defines>
-		<!-- C99 -->
-		<define name="NDEBUG=0"/>
-		<define name="CHAR_BIT=8"/>
-		<define name="SHRT_MAX=32767"/>
-		<define name="INT_MAX=2147483647"/>
-
-		<!-- POSIX -->
-		<define name="LOGIN_NAME_MAX=16"/>
-		<define name="PATH_MAX=1024"/>
-
-		<!-- GNU C -->
-		<define name="__GNUC__=4"/>
-		<define name="__GNUC_MINOR__=0"/>
-
-		<!-- Apple Libc and glibc -->
-		<define name="LOG_PERROR=32"/>
-
-		<!-- suCGI -->
-		<define name="CHECK=0"/>
-		<define name='USER_DIR="public_html"'/>
-		<define name="MIN_UID=1000"/>
-		<define name="MAX_UID=60000"/>
-		<define name="MIN_GID=1000"/>
-		<define name="MAX_GID=60000"/>
-		<define name='ALLOW_GROUP=""'/>
-		<define name='DENY_GROUPS={""}'/>
-		<define name='ENV_PATTERNS={"DUMMY"}'/>
-		<define name='HANDLERS={{".php", "php"}}'/>
-		<define name="SYSLOG_FACILITY=LOG_AUTH"/>
-		<define name="SYSLOG_MASK=LOG_UPTO(LOG_WARNING)"/>
-		<define name="SYSLOG_OPTS=(LOG_CONS | LOG_PERROR)"/>
-		<define name='PATH="/bin:/usr/bin"'/>
-		<define name="UMASK=(S_ISUID | S_ISGID | S_ISVTX | S_IRWXG | S_IRWXO)"/>
-		<define name="MAX_ERRMSG_LEN=128U"/>
-		<define name="MAX_FNAME_LEN=1024"/>
-		<define name="MAX_GRPNAME_LEN=16U"/>
-		<define name="MAX_SUFFIX_LEN=8U"/>
-		<define name="MAX_VAR_LEN=1024"/>
-		<define name="MAX_VARNAME_LEN=64U"/>
-		<define name="MAX_NGROUPS=128U"/>
-		<define name="MAX_NVARS=512U"/>
-		<define name="GRP_T=gid_t"/>
-		<define name="NGRPS_T=int"/>
-	</defines>
-	<platform>unix64</platform>
-	<analyze-all-vs-configs>true</analyze-all-vs-configs>
-	<check-headers>true</check-headers>
+    <platform>unix64</platform>
+    <analyze-all-vs-configs>true</analyze-all-vs-configs>
+    <check-headers>true</check-headers>
+    <builddir>build</builddir>
+    <paths>
+        <dir name="."/>
+    </paths>
+    <defines>
+        <define name='PATH="/bin:/usr/bin"'/>
+        <define name="MAX_ERRMSG_LEN=128U"/>
+        <define name="MAX_FNAME_LEN=1024"/>
+        <define name="MAX_SUFFIX_LEN=8U"/>
+        <define name="MAX_VAR_LEN=1024"/>
+        <define name="MAX_VARNAME_LEN=32U"/>
+        <define name="MAX_NGROUPS=128U"/>
+        <define name="MAX_NVARS=512U"/>
+        <define name="MAX_UID_VAL=4294967295"/>
+        <define name="MAX_GID_VAL=4294967295"/>
+        <define name="MAX_GRP_VAL=2147483647"/>
+        <define name="GRP_T=gid_t"/>
+    </defines>
 </project>
