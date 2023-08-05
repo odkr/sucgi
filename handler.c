@@ -34,30 +34,51 @@
 #include "path.h"
 #include "types.h"
 
-
+#include <err.h>
 Error
-handlerfind(const size_t nhandlers, const Pair *const handlerdb,
-            const char *const script, const char **const handler)
+handler_find(const size_t nhandlers, const Pair *const handlerdb,
+             const size_t fnamelen, const char *const fname,
+             const char **const handler)
 {
     const char *suffix;
+    size_t basenamelen;
+    size_t suffixlen;
     Error ret;
 
     assert(handlerdb != NULL);
-    assert(script != NULL);
-    assert(*script != '\0');
-    assert(strnlen(script, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
+    assert(fname != NULL);
+    assert(*fname != '\0');
+    assert(strnlen(fname, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
     assert(handler != NULL);
 
-    ret = pathsuffix(script, &suffix);
+    *handler = NULL;
+
+    ret = path_suffix(fname, &suffix);
     if (ret != OK) {
         return ret;
     }
 
-    if (strnlen(suffix, MAX_SUFFIX_LEN) >= MAX_SUFFIX_LEN) {
+    assert(suffix != NULL);
+    assert(suffix >= fname);
+
+    /*
+     * The cast is safe and portable.
+     * And MISRA C permits pointer subtraction.
+     */
+    basenamelen = (size_t)          /* cppcheck-suppress misra-c2012-10.8 */
+                  (suffix - fname); /* cppcheck-suppress misra-c2012-18.4 */
+
+    assert(fnamelen > basenamelen);
+
+    suffixlen = fnamelen - basenamelen;
+
+    assert(strnlen(suffix, MAX_STR_LEN) == suffixlen);
+
+    if (suffixlen >= MAX_SUFFIX_LEN) {
         return ERR_LEN;
     }
 
-    ret = pairfind(nhandlers, handlerdb, suffix, handler);
+    ret = pair_find(nhandlers, handlerdb, suffixlen, suffix, handler);
     if (ret != OK) {
         return ret;
     }

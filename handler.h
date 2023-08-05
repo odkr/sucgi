@@ -27,22 +27,29 @@
 #include "attr.h"
 #include "types.h"
 
-
 /*
- * Search for the handler that matches the filename suffix of SCRIPT
- * in the array of filename suffix-handler pairs HANDLERDB and return
- * it in HANDLER. HANDLERDB must contain at least NHANDLERS elements;
- * supernumery elements are ignored.
+ * Search for the first handler matching the suffix of the given filename in
+ * the given array of filename suffix-handler pairs and return a pointer to
+ * that handler in the variable pointed to by the parameter "handler"; if no
+ * matching handler was found or an error occurred, return a null pointer
+ * instead.
+ *
+ * The array of filename suffix-handler pairs must contain at least
+ * "nhandlers" pairs; supernumery pairs are ignored.
+ *
+ * The filename must be of the given length.
  *
  * Return value:
  *     OK          Success.
- *     ERR_BAD     Handler is NULL or the empty string.
- *     ERR_LEN     Filename suffix is too long.
- *     ERR_SEARCH  No handler found.
- *     ERR_SUFFIX  Filename has no suffix.
+ *     ERR_BAD     The handler that was found is NULL.
+ *     ERR_LEN     The filename suffix is too long.
+ *     ERR_SEARCH  None of the given suffixes matches the filename.
+ *     ERR_SUFFIX  The filename has no suffix.
  */
-__attribute__((nonnull(2, 3, 4), warn_unused_result))
-Error handlerfind(size_t nhandlers, const Pair *handlerdb,
-                  const char *script, const char **handler);
+
+_read_only(2, 1) _read_only(4, 3) _write_only(5) _nonnull(2, 4, 5) _nodiscard
+Error handler_find(size_t nhandlers, const Pair *handlerdb,
+                   size_t fnamelen, const char *fname,
+                   const char **handler);
 
 #endif /* !defined(HANDLER_H) */
