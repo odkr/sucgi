@@ -119,17 +119,29 @@ readonly sizetypes="size_t:$inttypes"
 
 # Check if the given compiler supports the given flags.
 addflags() {
-	case ${1:?} in
-	(-*)
+	__addflags_ncomps=0 __addflags_comps=
+
+	for __addflags_arg
+	do
+		case $__addflags_arg in (-*)
+			break
+		esac
+
+		__addflags_ncomps=$((__addflags_ncomps + 1))
+		__addflags_comps="$__addflags_comps $1"
+	done
+
+	if [ "$__addflags_ncomps" -gt 0 ]
+	then
+		shift "$__addflags_ncomps"
+		for __addflags_comp in $__addflags_comps
+		do eval "cflags_${__addflags_comp}"="\"\${cflags_${__addflags_comp-}-} \$*\""
+		done
+	else
 		cflags="${cflags-} $*"
-		;;
-	(*)
-		__addflags_var="cflags_$1"
-		shift
-		eval "$__addflags_var"="\"\${$__addflags_var-} \$*\""
-		unset __addflags_var
-		;;
-	esac
+	fi
+
+	unset __addflags_arg __addflags_ncomps __addflags_comps __addflags_comp
 }
 
 # Test compilation.
@@ -354,7 +366,7 @@ then
 		CFLAGS="-O1 -s"
 		printf ' %s\n' "$CFLAGS"
 	else
-		eval specflags="\${cflags_$compprefix-}"
+		eval specflags="\${cflags_$compname-}"
 
 		# shellcheck disable=2086,SC2154
 		set -- $cflags $specflags
