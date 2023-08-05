@@ -26,6 +26,7 @@
 #include <sys/types.h>
 
 #include "../../attr.h"
+#include "../../params.h"
 
 
 /*
@@ -53,55 +54,55 @@
  * Attributes
  */
 
+/* NOLINTBEGIN(bugprone-reserved-identifier,cert-dcl37-c); see attr.h. */
 #if     !defined(__INTEL_COMPILER)                          \
     &&  (   (defined(__GNUC__) && __GNUC__ >= 7)            \
-        ||  (defined(__clang__) && __clang_major__ >= 4))
-#define NO_SANITIZE __attribute__((no_sanitize("all")))
+        ||  (defined(__clang__) && __clang_major__ >= 4)    )
+#define _no_sanitize_all __attribute__((no_sanitize("all")))
 #else
-#define NO_SANITIZE
+#define _no_sanitize_all
 #endif
-
+/* NOLINTEND(bugprone-reserved-identifier,cert-dcl37-c) */
 
 
 /*
  * Functions
  */
 
-NO_SANITIZE
-uid_t mockgetuid(void);
+_no_sanitize_all
+uid_t mock_getuid(void);
 
-NO_SANITIZE
-uid_t mockgeteuid(void);
+_no_sanitize_all
+uid_t mock_geteuid(void);
 
-NO_SANITIZE
-int mocksetuid(uid_t uid);
+_no_sanitize_all
+int mock_setuid(uid_t uid);
 
-NO_SANITIZE
-int mockseteuid(uid_t euid);
+_no_sanitize_all
+int mock_seteuid(uid_t euid);
 
-NO_SANITIZE
-int mocksetreuid(uid_t uid, uid_t euid);
+_no_sanitize_all
+int mock_setreuid(uid_t uid, uid_t euid);
 
-NO_SANITIZE
-gid_t mockgetgid(void);
+_no_sanitize_all
+gid_t mock_getgid(void);
 
-NO_SANITIZE
-gid_t mockgetegid(void);
+_no_sanitize_all
+gid_t mock_getegid(void);
 
-NO_SANITIZE
-int mocksetgid(gid_t gid);
+_no_sanitize_all
+int mock_setgid(gid_t gid);
 
-NO_SANITIZE
-int mocksetegid(gid_t egid);
+_no_sanitize_all
+int mock_setegid(gid_t egid);
 
-NO_SANITIZE
-int mocksetregid(gid_t gid, gid_t egid);
+_no_sanitize_all
+int mock_setregid(gid_t gid, gid_t egid);
 
-NO_SANITIZE
-int mockgetgroups(int gidsetlen, gid_t *gidset);
+_no_sanitize_all
+int mock_getgroups(int gidsetlen, gid_t *gidset);
 
-NO_SANITIZE
-int mocksetgroups(const NGRPS_T ngroups, const gid_t *const gidset);
-
+_no_sanitize_all
+int mock_setgroups(NGRPS_T ngroups, const gid_t *gidset);
 
 #endif /* !defined(TESTS_MOCK_UNISTD_H) */

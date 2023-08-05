@@ -1,5 +1,5 @@
 /*
- * Test SIGNEDMAX.
+ * Test MAXSVAL.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -19,45 +19,43 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#define _BSD_SOURCE
-#define _DARWIN_C_SOURCE
-#define _DEFAULT_SOURCE
-#define _GNU_SOURCE
+#define _XOPEN_SOURCE 700
 
 #include <err.h>
+#include <inttypes.h>
 #include <limits.h>
 #include <setjmp.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
 #include "../macros.h"
-#include "util/check.h"
+#include "util/abort.h"
+#include "util/types.h"
 
 
 /*
  * Macros
  */
 
-/* Check whether SIGNEDMAX returns N for TYPE. */
+/* Check whether MAXSVAL returns "n" for the given type. */
 #define TEST(type, n)                                       \
     do {                                                    \
-        size_t _test_n = (n);                               \
-        int _test_jumpval;                                  \
+        unsigned long long _test_n = (n);                   \
                                                             \
-        _test_jumpval = sigsetjmp(checkenv, true);          \
-        if (_test_jumpval == 0) {                           \
-            size_t _test_m;                                 \
+        if (sigsetjmp(abort_env, 1) == 0) {                 \
+            unsigned long long _test_m;                     \
                                                             \
-            checking = 1;                                   \
-            _test_m = SIGNEDMAX(type);                      \
-            checking = 0;                                   \
+            (void) abort_catch(err);                        \
+            abort_signal = 0;                               \
+            _test_m = MAXSVAL(type);                        \
+            (void) abort_reset(err);                        \
                                                             \
             if (_test_m != _test_n) {                       \
-                result = TEST_FAILED;                       \
-                warnx("(" #type ") → %zu [!]", _test_m);    \
+                result = FAIL;                              \
+                warnx("(" #type ") → %llu [!]", _test_m);   \
             }                                               \
         } else {                                            \
-            warnx("(" #type ") ↑ %d [!]", _test_jumpval);   \
+            warnx("(" #type ") ↑ %d [!]", abort_signal);    \
         }                                                   \
     } while (false)
 
@@ -66,8 +64,8 @@
  * Module variables
  */
 
-/* The result. */
-static int result = TEST_PASSED;
+/* cppcheck-suppress misra-c2012-8.9; TEST need not not be local to main. */
+static int result = PASS;
 
 
 /*
@@ -75,10 +73,11 @@ static int result = TEST_PASSED;
  */
 
 int
-main (void) {
-    if (checkinit() != 0) {
-        err(TEST_ERROR, "sigaction");
-    }
+main(void)
+{
+    /*
+     * These tests will fail on systems that pad integer types.
+     */
 
     TEST(signed char, CHAR_MAX);
     TEST(unsigned char, CHAR_MAX);
@@ -87,7 +86,11 @@ main (void) {
     TEST(signed int, INT_MAX);
     TEST(unsigned int, INT_MAX);
     TEST(signed long, LONG_MAX);
-    TEST(unsigned long long, LONG_MAX);
+    TEST(unsigned long, LONG_MAX);
+    TEST(signed long long, LLONG_MAX);
+    TEST(unsigned long long, LLONG_MAX);
+    TEST(intmax_t, INTMAX_MAX);
+    TEST(uintmax_t, INTMAX_MAX);
 
     return result;
 }

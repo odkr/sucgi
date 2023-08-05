@@ -22,47 +22,16 @@
 #if !defined(TESTS_UTIL_STR_H)
 #define TESTS_UTIL_STR_H
 
-#include <stdbool.h>
-
 #include "../../attr.h"
 
-
 /*
- * Convert the given ID into a string and return a pointer to that string.
- * The memory pointed to should be freed by the caller.
+ * Check whether two pointers point to equal strings.
  *
  * Return value:
- *     NULL      Conversion failed. errno should be set.
- *     Non-NULL  A pointer to the converted ID.
+ *     Zero      Strings are equal.
+ *     Non-zero  Otherwise.
  */
-__attribute__((warn_unused_result))
-char *idtostr(id_t id);
-
-/*
- * Append at most SIZE bytes from SRC to DEST and
- * return a pointer to the terminating NUL.
- *
- * Return value:
- *     Non-NULL  Success.
- *     NULL      String was truncated.
- */
-__attribute__((nonnull(2, 3)))
-char *catstrs(size_t size, char *dest, const char *src);
-
-
-/*
- * Join the first N strings in STRS using the separator SEP and store the
- * result in DEST, which must be large enough to hold SIZE bytes. If STRS
- * contains a NULL pointer, processing stops at that pointer. STRS must
- * either be NULL-terminated or have at least N elements.
- *
- * Return value:
- *      0  Success.
- *     -1  SIZE is too small to hold the joined string.
- */
-__attribute__((nonnull(2, 3, 5), warn_unused_result))
-int joinstrs(size_t nstrs, const char *const *strs,
-             const char *sep, size_t size, char *dest);
-
+_read_only(1) _read_only(2) _nonnull(1, 2) _nodiscard
+int str_cmp_ptrs(const char *const *str1, const char *const *str2);
 
 #endif /* !defined(TESTS_UTIL_STR_H) */

@@ -33,7 +33,10 @@ readonly script_dir src_dir
 # shellcheck disable=1091
 . "$script_dir/funcs.sh" || exit
 init || exit
-tmpdir tmp .
+tmpdir
+
+# Always exit with a status indicating failure unless $fin is set.
+cleanup="${cleanup-:}; [ \"\${fin-}\" ] || exit 69"
 
 
 #
@@ -42,6 +45,38 @@ tmpdir tmp .
 
 # Test result
 result=0
+
+
+#
+# Options
+#
+
+OPTIND=1 OPTARG='' opt=''
+while getopts Xh opt
+do
+	# shellcheck disable=2154
+	case $opt in
+	(h) exec cat <<EOF >&2
+error - test error
+
+Usage:  error [-X]
+        error -h
+
+Options:
+    -X  Enable debugging.
+    -h  Show this help screen.
+
+Copyright 2022 and 2023 Odin Kroeger.
+Released under the GNU General Public License.
+This programme comes with ABSOLUTELY NO WARRANTY.
+EOF
+            ;;
+	(X) set -x ;;
+	(*) exit 1
+	esac
+done
+shift $((OPTIND - 1))
+unset opt
 
 
 #
@@ -91,4 +126,5 @@ done
 # Result
 #
 
+fin=y
 exit "$result"

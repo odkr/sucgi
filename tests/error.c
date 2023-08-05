@@ -32,13 +32,18 @@
 
 #include "../error.h"
 
-int
-main (int argc, char **argv) {
-    char *format;
-    char *arg;
+#if !defined LOG_PERROR
+#error LOG_PERROR is not defined.
+#endif
 
-    if (argc < 2 || argc > 3) {
-        fputs("usage: error FORMAT [ARG]\n", stderr);
+int
+main(int argc, char **argv)
+{
+    const char *format;
+    const char *arg;
+
+    if (argc < 2) {
+        (void) fputs("usage: error FORMAT [ARG]\n", stderr);
         return EXIT_FAILURE;
     }
 
@@ -54,6 +59,6 @@ main (int argc, char **argv) {
 
     (void) error(format, arg);
 
-    /* This point should be unreachable. */
+    /* NOTREACHED */
     return EXIT_SUCCESS;
 }

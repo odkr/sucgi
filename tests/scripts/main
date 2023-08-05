@@ -28,12 +28,16 @@
 set -Cefu
 script_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
 src_dir="$(cd -P "$script_dir/../.." && pwd)"
-readonly script_dir src_dir
+tests_dir="$src_dir/tests"
+readonly script_dir src_dir tests_dir
 # shellcheck disable=1091
 . "$script_dir/funcs.sh" || exit
 init || exit
 # shellcheck disable=2119
 tmpdir
+
+# Always exit with a status indicating failure unless $fin is set.
+cleanup="${cleanup-:}; [ \"\${fin-}\" ] || exit 69"
 
 
 #
@@ -41,6 +45,7 @@ tmpdir
 #
 
 # Don't use libmock.so.
+# System utilities tend to by-pass mock-ups.
 unset LD_PRELOAD DYLD_INSERT_LIBRARIES
 
 
@@ -229,6 +234,38 @@ waitn() {
 
 
 #
+# Options
+#
+
+OPTIND=1 OPTARG='' opt=''
+while getopts Xh opt
+do
+	# shellcheck disable=2154
+	case $opt in
+	(h) exec cat <<EOF >&2
+main - test main
+
+Usage:  main [-X]
+        main -h
+
+Options:
+    -X  Enable debugging.
+    -h  Show this help screen.
+
+Copyright 2022 and 2023 Odin Kroeger.
+Released under the GNU General Public License.
+This programme comes with ABSOLUTELY NO WARRANTY.
+EOF
+            ;;
+	(X) set -x ;;
+	(*) exit 1
+	esac
+done
+shift $((OPTIND - 1))
+unset opt
+
+
+#
 # Build configuration
 #
 
@@ -269,7 +306,7 @@ check -s1 -e"discarding \$$envsan_varname" \
 # Variable name is too long.
 envsan_varname="$(pad "$MAX_VARNAME_LEN" v)"
 envsan_var="$envsan_varname=foo"
-check -s1 -e'discarding variable with overly long name.' \
+check -s1 -e'discarding variable with too long a name.' \
       "$envsan_var" main	|| result=70
 
 # Variable has maximum length.
@@ -279,14 +316,14 @@ check -s1 -e"discarding \$${envsan_var%=*}" \
 
 # Variable is too long.
 envsan_var="$(pad "$MAX_VAR_LEN" var= x r)"
-check -s1 -e'discarding overly long variable.'	\
+check -s1 -e'discarding variable that is too long.'	\
       "$envsan_var" main	|| result=70
 
 # Variable name is illegal.
 pids=
 for envsan_varname in 'foo ' '0foo' '$(echo foo)' '`echo foo`'
 do
-	check -s1 -e"variable \$$envsan_varname: bad name." \
+	check -s1 -e"\$$envsan_varname: bad name." \
 	      badenv "$envsan_varname=" "$tests_dir/main" & pids="$pids $!"
 done
 # shellcheck disable=2086
@@ -294,9 +331,9 @@ waitn $pids || result=70
 
 # Variable is not of the form <key>=<value>.
 pids=
-for envsan_var in 'foo' '0foo' 'foo '
+for envsan_var in foo bar baz
 do
-	check -s1 -e"variable \$$envsan_var: no value." \
+	check -s1 -e"\$$envsan_var: no value." \
 	      badenv -n1 "$envsan_var" "$tests_dir/main" & pids="$pids $!"
 done
 # shellcheck disable=2086
@@ -338,7 +375,7 @@ check -o'suCGI v' main -V || result=70
 	sort -u |
 	while read -r opthdl_var
 	do
-		[ "$opthdl_var" != PARAMS_H ] || continue
+		inlist '=' "$opthdl_var" PARAMS_H REQ_ENV_CS && continue
 		eval val="\${$opthdl_var-}"
 		if ! [ "${val-}" ]
 		then err -s70 'main -C: %s: undefined.' "$opthdl_var"
@@ -380,7 +417,7 @@ scrsan_hugepath="$(mkfname "$TMPDIR" "$MAX_FNAME_LEN")"
 readonly scrsan_hugepath
 catch=
 dirwalk "$TMPDIR" "$scrsan_hugepath" 'mkdir "$fname"' 'touch "$fname"'
-cleanup="rmtree \"$scrsan_hugepath\" \"$TMPDIR\"; ${cleanup-}"
+cleanup="rmtree \"$scrsan_hugepath\" \"$TMPDIR\"; ${cleanup-:}"
 catch=x
 [ "$caught" ] && kill -s"$caught" $$
 
@@ -390,7 +427,7 @@ scrsan_hugelink="$TMPDIR/$(dirwalk "$TMPDIR" "$scrsan_hugepath" \
 	'ln -s "$fname" s.d && printf s.d/' \
 	'ln -s "$fname" s.f && printf s.f\\n')"
 readonly scrsan_hugelink
-cleanup="rmtree \"$scrsan_hugelink\" \"$TMPDIR\"; ${cleanup-}"
+cleanup="rmtree \"$scrsan_hugelink\" \"$TMPDIR\"; ${cleanup-:}"
 catch=x
 [ "$caught" ] && kill -s"$caught" $$
 
@@ -429,15 +466,15 @@ case $uid in
 	;;
 (*)
 	isreguser=x logname="$(id -un)"
-	if	[ "$uid" -lt "$MIN_UID" ] ||
-		[ "$uid" -gt "$MAX_UID" ]
+	if	[ "$uid" -lt "$START_UID" ] ||
+		[ "$uid" -gt "$STOP_UID" ]
 	then
 		isreguser=
 	else
 		for gid in $(id -G "$logname")
 		do
-			if	[ "$gid" -lt "$MIN_GID" ] ||
-				[ "$gid" -gt "$MAX_GID" ]
+			if	[ "$gid" -lt "$START_GID" ] ||
+				[ "$gid" -gt "$STOP_GID" ]
 			then
 				isreguser=
 				break
@@ -485,6 +522,8 @@ unset scrsan_err scrsan_longpath scrsan_script scrsan_fname scrsan_wrongftype
 
 if [ "$uid" -ne 0 ]
 then
+        fin=y
+
 	case $result in
 	(0) err -s75 'skipping superuser tests.' ;;
 	(*) err -s"$result" 'skipping superuser tests.' ;;
@@ -501,21 +540,21 @@ usrval_script="$TMPDIR/usrval-script.sh"
 touch "$usrval_script"
 
 # Find an unallocated user ID.
-usrval_unallocuid="$(unallocuid "$MIN_UID" "$MAX_UID")"
+usrval_unallocuid="$(unallocuid "$START_UID" "$STOP_UID")"
 
 # Store a list of all user IDs.
 usrval_uids="$TMPDIR/usrval-uids.list"
 uids >"$usrval_uids"
 
-# Find a user with an ID < $MIN_UID
+# Find a user with an ID < $START_UID
 usrval_lowuid="$(
-	awk -vmax="$MIN_UID" \
+	awk -vmax="$START_UID" \
 	    '0 < $1 && $1 < max {print $2; exit}' "$usrval_uids"
 )"
 
-# Find a user with an ID > $MAX_UID
+# Find a user with an ID > $STOP_UID
 usrval_highuid="$(
-	awk -vmin="$MAX_UID" \
+	awk -vmin="$STOP_UID" \
 	    '$1 > min {print $2; exit}' "$usrval_uids"
 )"
 
@@ -549,7 +588,7 @@ unset usrval_script usrval_fname usrval_uid usrval_lowuid usrval_highuid \
 #
 
 # Search for a regular user.
-if ! reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")"
+if ! reguser="$(reguser "$START_UID" "$STOP_UID" "$START_GID" "$STOP_GID")"
 then
 	case $result in
 	(0) err -s75 'no regular user found.' ;;
@@ -973,6 +1012,8 @@ unset envcln_homedir envcln_script envcln_logfile envcln_var
 #
 # Success
 #
+
+fin=y
 
 case $result in
 (0) [ "$nskipped" -gt 0 ] && err -s75 'skipped %d tests.' "$nskipped" ;;

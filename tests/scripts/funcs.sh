@@ -31,9 +31,10 @@
 # Functions
 #
 
-# Check if calling a programme produces a result.
-# -s checks for an exit status (defaults to 0),
-# -o STR check for STR on stdout, -e on stderr;
+# Check if a programme behaves as expected.
+# -s STATUS   Check for exit status STATUS (default: 0).
+# -o STR      Check for STR on stdout.
+# -e STR      Check for STR on stderr.
 # -o and -e are mutually exclusive.
 # FIXME: Doesn't work with posh.
 check() (
@@ -84,7 +85,7 @@ check() (
 
 # Try to create lockfile $1. Wait at most $2 seconds to acquire the lock.
 lock() {
-	_lock_file="${1:?}" _lock_timeout="${2:-5}"
+	_lock_file="${1:?}" _lock_timeout="${2:-10}"
 
 	set -C
 

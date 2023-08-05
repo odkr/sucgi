@@ -25,46 +25,35 @@
 #define _GNU_SOURCE
 
 #include <err.h>
-#include <setjmp.h>
-#include <stdbool.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <stdbool.h>
 
 #include "../macros.h"
-#include "util/check.h"
+#include "util/types.h"
 
 
 /*
  * Macros
  */
 
-/* Test whether ISSIGNED returns RET for TYPE. */
+/* Test whether ISSIGNED returns "ret" for the given type. */
 #define TEST(type, ret)                                             \
     do {                                                            \
-        int _test_jumpval;                                          \
-                                                                    \
-        _test_jumpval = sigsetjmp(checkenv, true);                  \
-        if (_test_jumpval == 0) {                                   \
-            checking = 1;                                           \
-            bool _test_ret = ISSIGNED(type);                        \
-            checking = 0;                                           \
-                                                                    \
-            if (_test_ret != (ret)) {                               \
-                result = TEST_FAILED;                               \
-                warnx("(" #type ") → %d [!]", _test_ret);           \
-            }                                                       \
-        } else {                                                    \
-                warnx("(" #type ") ↑ %d [!]", _test_jumpval);       \
+        bool _test_ret = ISSIGNED(type);                            \
+        if (_test_ret != (ret)) {                                   \
+            warnx("(" #type ") → %d [!]", _test_ret);               \
+            result = FAIL;                                          \
         }                                                           \
-    } while (false)
+    } while (0)
 
 
 /*
  * Module variables
  */
 
-/* The result. */
-static int result = TEST_PASSED;
+/* cppcheck-suppress misra-c2012-8.9; TEST need not not be local to main. */
+static int result = PASS;
 
 
 /*
@@ -73,21 +62,19 @@ static int result = TEST_PASSED;
 
 int
 main (void) {
-    if (checkinit() != 0) {
-        err(TEST_ERROR, "sigaction");
-    }
-
-    TEST(signed char, true);
+    TEST(char, true);
     TEST(unsigned char, false);
-    TEST(signed short, true);
+    TEST(short, true);
     TEST(unsigned short, false);
-    TEST(signed int, true);
+    TEST(int, true);
     TEST(unsigned int, false);
-    TEST(signed long, true);
+    TEST(long, true);
     TEST(unsigned long long, false);
     TEST(float, true);
     TEST(double, true);
     TEST(long double, true);
+    TEST(intmax_t, true);
+    TEST(uintmax_t, false);
 
     return result;
 }

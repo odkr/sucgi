@@ -19,10 +19,7 @@
  * with suCGI. If not, see <https://www.gnu.org/licenses>.
  */
 
-#define _BSD_SOURCE
-#define _DARWIN_C_SOURCE
-#define _DEFAULT_SOURCE
-#define _GNU_SOURCE
+#define _XOPEN_SOURCE 700
 
 #include <err.h>
 #include <setjmp.h>
@@ -30,38 +27,38 @@
 #include <stdlib.h>
 
 #include "../macros.h"
-#include "util/check.h"
+#include "util/abort.h"
+#include "util/types.h"
 
 
 /*
  * Macros
  */
 
-/* Test NELEMS for the given TYPE for up to N elements. */
+/* Test NELEMS for the given type for up to "n" elements. */
 #define TESTN(type, n)                                                      \
     do {                                                                    \
         for (volatile size_t _test_i = 1; _test_i < (n); ++_test_i) {       \
             type _test_arr[_test_i];                                        \
             size_t _test_n;                                                 \
-            int _test_jumpval;                                              \
                                                                             \
-            _test_jumpval = sigsetjmp(checkenv, true);                      \
-            if (_test_jumpval == 0) {                                       \
-                checking = 1;                                               \
+            if (sigsetjmp(abort_env, 1) == 0) {                             \
+                (void) abort_catch(err);                                    \
+                abort_signal = 0;                                           \
                 _test_n = NELEMS(_test_arr);                                \
-                checking = 0;                                               \
+                (void) abort_reset(err);                                    \
                                                                             \
                 if (_test_n != _test_i) {                                   \
-                    result = TEST_FAILED;                                   \
+                    result = FAIL;                                          \
                     warnx("(" #type "[%zu]) → %zu [!]", _test_i, _test_n);  \
                 }                                                           \
             } else {                                                        \
-                warnx("(" #type "[%zu]) ↑ %d [!]", _test_i, _test_jumpval); \
+                warnx("(" #type "[%zu]) ↑ %d [!]", _test_i, abort_signal);  \
             }                                                               \
         }                                                                   \
     } while (false)
 
-/* Test NELEMS for the given TYPE for up to SHRT_MAX elements. */
+/* Test NELEMS for the given type for up to SHRT_MAX elements. */
 #define TEST(type) TESTN(type, SHRT_MAX)
 
 
@@ -69,8 +66,8 @@
  * Module variables
  */
 
-/* The result. */
-static int result = TEST_PASSED;
+/* cppcheck-suppress misra-c2012-8.9; TEST need not not be local to main. */
+static int result = PASS;
 
 
 /*
@@ -78,11 +75,8 @@ static int result = TEST_PASSED;
  */
 
 int
-main (void) {
-    if (checkinit() != 0) {
-        err(TEST_ERROR, "sigaction");
-    }
-
+main(void)
+{
     TEST(signed char);
     TEST(unsigned char);
     TEST(signed short);

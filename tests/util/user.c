@@ -23,77 +23,185 @@
 
 #include <sys/types.h>
 #include <assert.h>
-#include <err.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <pwd.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <syslog.h>
 #include <unistd.h>
 
-#include "check.h"
+#include "../../attr.h"
+#include "../../macros.h"
 #include "user.h"
+#include "types.h"
+
+
+/*
+ * Prototypes
+ */
+
+/*
+ * Convert the given UID into a string and copy it to the memory
+ * area pointed to by "str", which must be of the given size, and
+ * return the length of the string. The memory area must be large
+ * enough to accomodate the resulting string, including the
+ * terminating NUL. "str" may be NULL iff the given size is 0.
+ *
+ * Return value:
+ *     Non-negative  Length of the string.
+ *     Negative      Something went wrong; errno may be set.
+ */
+_write_only(3, 2) _nodiscard
+static int uid_to_str(id_t id, size_t size, char *str);
 
 
 /*
  * Functions
  */
 
-UserError
-usergetregular(uid_t *const uid) {
+static int
+uid_to_str(id_t id, const size_t size, char *const str)
+{
+    if (str != NULL) {
+        /* Some versions of snprintf fail to NUL-terminate strings. */
+        (void) memset(str, '\0', size);
+    }
+
+    errno = 0;
+    return ISSIGNED(id_t) ?
+        /* RATS: ignore; format is a literal and expansion is bounded. */
+        snprintf(str, size, "%lld", (long long) id) :
+        /* RATS: ignore */
+        snprintf(str, size, "%llu", (unsigned long long) id);
+}
+
+int
+user_get_gid(const uid_t uid, gid_t *gid, const ErrorFn errh)
+{
     struct passwd *pwd;
-    int olderr;
-    UserError retval;
 
-    assert(uid != NULL);
+    errno = 0;
+    pwd = getpwuid(uid);
+    if (pwd == NULL) {
+        /* cppcheck-suppress misra-c2012-22.10; getpwuid sets errno. */
+        if (errno != 0) {
+            if (errh != NULL) {
+                errh(EXIT_FAILURE, "getpwuid");
+            }
 
-    retval = USER_NOTFOUND;
+            return -1;
+        }
+
+        return -1;
+    }
+
+    *gid = pwd->pw_gid;
+
+    return 0;
+}
+
+
+int
+user_get_regular(struct passwd *const pwd, const ErrorFn errh)
+{
+    struct passwd *ptr;
+    int fatalerr = 0;
+    int retval = 1;
+
+    assert(pwd != NULL);
+
+    errno = 0;
     setpwent();
-    while ((errno = 0, pwd = getpwent()) != NULL) {
-        if (pwd->pw_uid > 0) {
-            *uid = pwd->pw_uid;
-            retval = USER_SUCCESS;
+    /* cppcheck-suppress misra-c2012-22.10; setpwent sets errno. */
+    if (errno != 0) {
+        if (errh != NULL) {
+            errh(EXIT_FAILURE, "setpwent");
+        }
+        return -1;
+    }
+
+    while ((errno = 0, ptr = getpwent()) != NULL) {
+        if (ptr->pw_uid > 0) {
+            /* RATS: ignore; can neither over- nor underflow. */
+            (void) memcpy(pwd, ptr, sizeof(*ptr));
+            retval = 0;
             break;
         }
     }
-    olderr = errno;
-    endpwent();
 
-    if (pwd == NULL && olderr != 0) {
-        errno = olderr;
-        return USER_ERROR;
+    /* cppcheck-suppress misra-c2012-22.10; getpwent sets errno. */
+    if (ptr == NULL && errno != 0) {
+        fatalerr = errno;
+        retval = -1;
+    }
+
+    errno = 0;
+    endpwent();
+    /* cppcheck-suppress misra-c2012-22.10; endpwent sets errno. */
+    if (errno != 0) {
+        /* Only reached if an I/O error prevented closing the database. */
+        if (retval != -1) {
+            if (errh != NULL) {
+                errh(EXIT_FAILURE, "endpwent");
+            }
+            retval = -1;
+        } else {
+            /* RATS: ignore; format string is short and a literal. */
+            syslog(LOG_ERR, "endpwent");
+        }
+    }
+
+    errno = fatalerr;
+    if (retval == -1 && errh != NULL) {
+        errh(EXIT_FAILURE, "getpwent");
     }
 
     return retval;
 }
 
-UserError
-userget(uid_t uid, struct passwd *pwd)
+char *
+user_id_to_str(const id_t id, const ErrorFn errh)
 {
-    long bufsize;
-    char *buffer;
-    struct passwd *result;
+    char *str = NULL;
+    size_t size = 0;
+    int olderr = errno;
+    int len = -1;
 
-    errno = 0;
-    bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
-    assert(bufsize > 0L);
-    assert((uint64_t) bufsize < (uint64_t) SIZE_MAX);
-
-    /* buffer will leak, of course. */
-    errno = 0;
-    buffer = malloc((size_t) bufsize);
-    if (buffer == NULL) {
-        return USER_ERROR;
-    }
-
-    result = NULL;
-    errno = getpwuid_r(uid, pwd, buffer, (size_t) bufsize, &result);
-    if (result == NULL) {
-        if (errno == 0) {
-            return USER_NOTFOUND;
+    len = uid_to_str(id, 0, NULL);
+    if (len < 0) {
+        /* NOTREACHED */
+        if (errh != NULL) {
+            errh(EXIT_FAILURE, "%s:%d: snprintf", __FILE__, __LINE__);
         }
-        return USER_ERROR;
+        return NULL;
     }
 
-    return USER_SUCCESS;
+    size = (size_t) len + 1U;
+
+    errno = 0;
+    /* cppcheck-suppress misra-c2012-11.5; bad advice for malloc. */
+    str = malloc(size);
+    if (str == NULL) {
+        if (errh != NULL) {
+            errh(EXIT_FAILURE, "malloc");
+        }
+        return NULL;
+    }
+
+    len = uid_to_str(id, size, str);
+    if (len < 0) {
+        /* NOTREACHED */
+        free(str);
+
+        if (errh != NULL) {
+            errh(EXIT_FAILURE, "%s:%d: snprintf", __FILE__, __LINE__);
+        }
+        return NULL;
+    }
+
+    errno = olderr;
+    return str;
 }

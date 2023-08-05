@@ -22,109 +22,25 @@
 #define _XOPEN_SOURCE 700
 
 #include <assert.h>
-#include <errno.h>
-#include <stdbool.h>
-#include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
-#include "../../macros.h"
 #include "str.h"
 
 
-/*
- * Functions
- */
-
-char *
-catstrs(const size_t size, char *const dest, const char *const src)
-{
-    assert(dest != NULL);
-    assert(src != NULL);
-    assert(size > 0);
-
-    char *end = stpncpy(dest, src, size);
-    if (src[end - dest] != '\0') {
-        return NULL;
-    }
-
-    return end;
-}
-
-char *
-idtostr(id_t id)
-{
-    char *str;
-    size_t size;
-    int len;
-
-    errno = 0;
-    if (ISSIGNED(id_t)) {
-        len = snprintf(NULL, 0, "%lld", (long long) id);
-    } else {
-        len = snprintf(NULL, 0, "%llu", (unsigned long long) id);
-    }
-
-    if (len < 0) {
-        /* Should be unreachable. */
-        return NULL;
-    }
-
-    size = (size_t) len + 1U;
-
-    errno = 0;
-    str = malloc(size);
-    if (str == NULL) {
-        return NULL;
-    }
-
-    (void) memset(str, '\0', size);
-
-    errno = 0;
-    if (ISSIGNED(id_t)) {
-        len = snprintf(str, size, "%lld", (long long) id);
-    } else {
-        len = snprintf(str, size, "%llu", (unsigned long long) id);
-    }
-
-    if (len < 0) {
-        /* Should be unreachable. */
-        return NULL;
-    }
-
-    return str;
-}
-
 int
-joinstrs(const size_t nstrs, const char *const *const strs,
-         const char *const sep, const size_t size, char *const dest)
+str_cmp_ptrs(const char *const *const str1, const char *const *const str2)
 {
-    char *ptr;
-    char *lim;
+    assert(str1 != NULL);
+    assert(str2 != NULL);
 
-    assert(strs != NULL);
-    assert(sep != NULL);
-    assert(size > 0);
-    assert(dest != NULL);
-
-    ptr = dest;
-    lim = dest + size - 1U;
-
-    (void) memset(dest, '\0', size);
-    for (size_t i = 0U; i < nstrs && strs[i]; ++i) {
-        if (i > 0U) {
-            ptr = catstrs((size_t) (lim - ptr), ptr, sep);
-            if (ptr == NULL) {
-                return -1;
-            }
-        }
-
-        ptr = catstrs((size_t) (lim - ptr), ptr, strs[i]);
-        if (ptr == NULL) {
-            return -1;
-        }
+    if (*str1 == *str2) {
+        return 0;
     }
 
-    return 0;
+    if (*str1 == NULL || *str2 == NULL) {
+        return -1;
+    }
+
+    return strcmp(*str1, *str2);
 }
 
