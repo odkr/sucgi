@@ -88,14 +88,18 @@ environment variables and M4, Make, or C preprocessor macros respectively.
 ```mermaid
 graph TD
 
-Configuration --> configure
-Environment --> configure
-configure --> M4
-M4 --> makefile
-M4 --> compat.h
-makefile --> Compiler
-compat.h --> config.h --> Compiler
-compat.h --> params.h --> Compiler
+Configuration -- controls --> configure
+Environment -- controls --> configure
+
+configure -- calls --> M4
+
+M4 -- generates --> makefile
+M4 -- generates --> compat.h
+
+makefile -- calls --> Compiler
+
+config.h -- overrides --> compat.h -- included by --> Compiler
+config.h -- overrides --> params.h -- included by --> Compiler
 ```
 
 Setting environment variables or changing configuration files changes
@@ -365,18 +369,6 @@ The **makefile** supports the following 'phony' targets:
 | uninstall | Uninstall suCGI (see [install.md]).                   |
 
 
-```mermaid
-graph TD;
-    all <-- sucgi;
-    distclean <-- mrproper <-- clean <-- tidy;
-    dist <-- distclean;
-    distcheck <-- distclean;
-    distcheck <-- check;
-    sigdist <-- dist;
-    install <-- all;
-```
-
-
 ## Troubleshooting
 
 ### "size of unnamed array is negative", "array size is negative", etc.
@@ -385,8 +377,8 @@ suCGI's *ASSERT*() macro expands to an expression that tries to declare
 an array with a negative size when a condition that suCGI takes for granted
 turns out to be false at compile-time.
 
-This indicates that the build configuration is wrong.
-The error message should indicate which setting.
+Such an assertion failing indicates that the build configuration is wrong;
+the error message should indicate which setting.
 
 For example, the error
 
