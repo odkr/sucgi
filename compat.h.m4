@@ -4,19 +4,18 @@ dnl Copyright 2023 Odin Kroeger
 dnl
 dnl This file is part of suCGI.
 dnl
-dnl suCGI is free software: you can redistribute it and/or modify it under
-dnl the terms of the GNU General Public License as published by the Free
-dnl Software Foundation, either version 3 of the License, or (at your option)
-dnl any later version.
+dnl suCGI is free software: you can redistribute it and/or modify it
+dnl under the terms of the GNU Affero General Public License as published
+dnl by the Free Software Foundation, either version 3 of the License,
+dnl or (at your option) any later version.
 dnl
 dnl suCGI is distributed in the hope that it will be useful, but WITHOUT
-dnl ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-dnl FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
-dnl for more details.
+dnl ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+dnl or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
+dnl Public License for more details.
 dnl
-dnl You should have received a copy of the GNU General Public License along
-dnl with suCGI. If not, see <https://www.gnu.org/licenses>.
-dnl
+dnl You should have received a copy of the GNU Affero General Public
+dnl License along with suCGI. If not, see <https://www.gnu.org/licenses/>.
 include(`macros.m4')dnl
 /*
  * System-dependent values.
@@ -28,18 +27,18 @@ include(`macros.m4')dnl
  *
  * This file is part of suCGI.
  *
- * suCGI is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option)
- * any later version.
+ * suCGI is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License,
+ * or (at your option) any later version.
  *
  * suCGI is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
- * for more details.
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
+ * Public License for more details.
  *
- * You should have received a copy of the GNU General Public License along
- * with suCGI. If not, see <https://www.gnu.org/licenses>.
+ * You should have received a copy of the GNU Affero General Public
+ * License along with suCGI. If not, see <https://www.gnu.org/licenses/>.
  */
 
 #if !defined(COMPAT_H)
