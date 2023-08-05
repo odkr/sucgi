@@ -29,23 +29,25 @@
 #include "compat.h"
 #include "types.h"
 
-
 /*
- * Set the real and effective user and group IDs to UID and GID and the
- * supplementary groups to GROUPS respectively. GROUPS must have at least
- * NGROUPS elements; supernumery elements are ignored.
+ * Set the real and the effective user, group, and supplementary groups to the
+ * given user, group, and supplementary groups respectively. At least "ngroups"
+ * supplementary groups must be given; supernumery groups are ignored.
  *
  * Return value:
- *     OK        Success.
- *     ERR_SYS   setuid/setgid/setgroups failed.
- *     ERR_PRIV  Superuser privileges could be resumed.
+ *     OK         Success.
+ *     ERR_SYS    setuid/setgid/setgroups failed.
+ *     ERR_PRIV*  Superuser privileges could be resumed.
+ *
+ *     * This error should be unreachable.
  */
-__attribute__((nonnull(4), warn_unused_result))
-Error privdrop(uid_t uid, gid_t gid, NGRPS_T ngroups, const gid_t *groups);
+_read_only(4, 3) _nonnull(4) _nodiscard
+/* cppcheck-suppress misra-c2012-8.4; this *is* the declaration. */
+Error priv_drop(uid_t uid, gid_t gid, NGRPS_T ngroups, const gid_t *groups);
 
 /*
- * Set the effective user, group, and supplementary groups IDs
- * to the real user and group IDs respectively.
+ * Set the effective user, group, and supplementary groups
+ * to the real user and group respectively.
  *
  * Return value:
  *     OK         Success.
@@ -54,8 +56,7 @@ Error privdrop(uid_t uid, gid_t gid, NGRPS_T ngroups, const gid_t *groups);
  *
  *     * These errors should be unreachable.
  */
-__attribute__((warn_unused_result))
-Error privsuspend(void);
-
+_nodiscard
+Error priv_suspend(void);
 
 #endif /* !defined(PRIV_H) */

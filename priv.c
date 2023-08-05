@@ -32,17 +32,21 @@
 #include <assert.h>
 #include <errno.h>
 #include <grp.h>
+#include <search.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <unistd.h>
 
 #include "compat.h"
+#include "groups.h"
 #include "macros.h"
+#include "params.h"
 #include "priv.h"
 #include "types.h"
 
-
 Error
-privdrop(const uid_t uid, const gid_t gid,
-         const NGRPS_T ngroups, const gid_t *const groups)
+priv_drop(const uid_t uid, const gid_t gid,
+          const NGRPS_T ngroups, const gid_t *const groups)
 {
     assert(uid > 0);
     assert(gid > 0);
@@ -55,36 +59,46 @@ privdrop(const uid_t uid, const gid_t gid,
 
     errno = 0;
     if (setgid(gid) != 0) {
-        /* Should be unreachable. */
+        /* NOTREACHED */
         return ERR_SYS;
     }
 
     errno = 0;
     if (setuid(uid) != 0) {
-        /* Should be unreachable. */
+        /* NOTREACHED */
         return ERR_SYS;
     }
 
     if (setgroups(1, (gid_t [1]) {0}) != -1) {
-        /* Should be unreachable. */
+        /* NOTREACHED */
         return ERR_PRIV;
     }
 
     if (setgid(0) != -1) {
-        /* Should be unreachable. */
+        /* NOTREACHED */
         return ERR_PRIV;
     }
 
     if (setuid(0) != -1) {
-        /* Should be unreachable. */
+        /* NOTREACHED */
         return ERR_PRIV;
     }
+
+    assert(geteuid() == uid);
+    assert(getegid() == gid);
+    assert(getuid() == uid);
+    assert(getgid() == gid);
+
+/* getgroups is unreliable on macOS. */
+#if !defined(__MACH__)
+    assert(groups_match((size_t) ngroups, groups));
+#endif
 
     return OK;
 }
 
 Error
-privsuspend(void)
+priv_suspend(void)
 {
     const uid_t uid = getuid();
     const gid_t gid = getgid();
@@ -93,32 +107,40 @@ privsuspend(void)
     if (geteuid() == 0) {
         errno = 0;
         if (setgroups(NELEMS(gids), gids) != 0) {
-            /* Should be unreachable. */
+            /* NOTREACHED */
             return ERR_SYS;
         }
     }
 
     errno = 0;
     if (setegid(gid) != 0) {
-        /* Should be unreachable. */
+        /* NOTREACHED */
         return ERR_SYS;
     }
 
     errno = 0;
     if (seteuid(uid) != 0) {
-        /* Should be unreachable. */
+        /* NOTREACHED */
         return ERR_SYS;
     }
 
     if (geteuid() != uid) {
-        /* Should be unreachable. */
+        /* NOTREACHED */
         return ERR_PRIV;
     }
 
     if (getegid() != gid) {
-        /* Should be unreachable. */
+        /* NOTREACHED */
         return ERR_PRIV;
     }
+
+    assert(getuid() == geteuid());
+    assert(getgid() == getegid());
+
+/* getgroups is unreliable on macOS. */
+#if !defined(__MACH__)
+    assert(groups_match(NELEMS(gids), (gids)));
+#endif /* !defined(__MACH__) */
 
     return OK;
 }
