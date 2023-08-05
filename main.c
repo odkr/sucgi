@@ -40,13 +40,12 @@
 #include <regex.h>
 #include <stdbool.h>
 #include <stdlib.h>
-/* cppcheck-suppress misra-c2012-21.6; needed for -h, -C, and -V. */
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <syslog.h>
 #include <unistd.h>
 
+#include "attr.h"
 #include "compat.h"
 #include "env.h"
 #include "error.h"
@@ -72,15 +71,11 @@
  * Module variables
  */
 
-/* Environment variables to keep. */
-/* cppcheck-suppress [misra-c2012-9.2, misra-c2012-9.3];
-   ┌──────────────────┘             ┌──┘
-   └→ double braces would be wrong. └→ false positive.
+/* Regular expressions that control which environment variables are kept. */
+static const char *const safe_var_patterns[] = /* cppcheck-suppress misra-c2012-9.2 */
+    SAFE_ENV_VARS;
 
-   NOLINTNEXTLINE(bugprone-suspicious-missing-comma); literals intended. */
-static const char *const allowedvars[] = ENV_PATTERNS;
-
-/* Script handlers. */
+/* Filename suffix-script interpreter pairs. */
 static const Pair handlers[] = HANDLERS;
 
 
@@ -88,17 +83,20 @@ static const Pair handlers[] = HANDLERS;
  * Prototypes
  */
 
-/* Print help. */
+/* Print help and exit with EXIT_SUCCESS. */
+_noreturn
 static void help(void);
 
-/* Print build configuration. */
+/* Print build configuration and exit with EXIT_SUCCESS. */
+_noreturn
 static void config(void);
 
-/* Print version. */
+/* Print version and exit with EXIT_SUCCESS. */
+_noreturn
 static void version(void);
 
 /* Print usage information to stderr and exit with EXIT_FAILURE. */
-__attribute__((noreturn))
+_noreturn
 static void usage(void);
 
 
@@ -114,98 +112,108 @@ help(void)
 "Usage:  sucgi\n"
 "        sucgi [-C|-V|-h]\n\n"
 "Options:\n"
-"    -C  Print build configuration.\n"
-"    -V  Print version and license.\n"
+"    -C  Print the build configuration.\n"
+"    -V  Print version and license information.\n"
 "    -h  Print this help screen."
     );
+
+    /* cppcheck-suppress misra-c2012-21.8; least bad option. */
+    exit(EXIT_SUCCESS);
 }
 
 static void
 config(void)
 {
-    (void) printf("#\n# Configuration\n#\n\n");
+    (void) printf("# Configuration\n");
 
-    (void) printf("USER_DIR=\"%s\"\n", USER_DIR);
+    (void) printf("USER_DIR='%s'\n", USER_DIR);
+    (void) printf("START_UID=%d\n",  START_UID);
+    (void) printf("STOP_UID=%d\n",   STOP_UID);
+    (void) printf("START_GID=%d\n",  START_GID);
+    (void) printf("STOP_GID=%d\n",   STOP_GID);
 
-    (void) printf("MIN_UID=%d\n", MIN_UID);
-    (void) printf("MAX_UID=%d\n", MAX_UID);
-    (void) printf("MIN_GID=%d\n", MIN_GID);
-    (void) printf("MAX_GID=%d\n", MAX_GID);
-
-    (void) printf("ENV_PATTERNS=\"\n");
-    for (size_t i = 0; i < NELEMS(allowedvars); ++i) {
-        (void) printf("\t%s\n", allowedvars[i]);
-    }
-    (void) printf("\"\n");
-
-    (void) printf("HANDLERS=\"");
+    (void) printf("HANDLERS='");
     for (size_t i = 0; i < NELEMS(handlers); ++i) {
-        /* cppcheck-suppress knownConditionTrueFalse;
-           there could be more handlers. */
+        /* cppcheck-suppress knownConditionTrueFalse; there could be more. */
         if (i > 0U) {
             (void) printf(",");
         }
         (void) printf("%s=%s", handlers[i].key, handlers[i].value);
     }
-    (void) printf("\"\n");
+    (void) printf("'\n");
+
+    (void) printf("SAFE_ENV_VARS='\n");
+    for (size_t i = 0; i < NELEMS(safe_var_patterns); ++i) {
+        (void) printf("\t%s\n", safe_var_patterns[i]);
+    }
+    (void) printf("'\n");
 
     (void) printf("SYSLOG_FACILITY=%d\n", SYSLOG_FACILITY);
-    (void) printf("SYSLOG_MASK=%d\n", SYSLOG_MASK);
-    (void) printf("SYSLOG_OPTS=%d\n", SYSLOG_OPTS);
+    (void) printf("SYSLOG_MASK=%d\n",     SYSLOG_MASK);
+    (void) printf("SYSLOG_OPTS=%d\n",     SYSLOG_OPTS);
 
-    (void) printf("PATH=\"%s\"\n", PATH);
+    (void) printf("PATH='%s'\n", PATH);
     (void) printf("UMASK=0%o\n", (unsigned) UMASK);
 
-    (void) printf("\n\n#\n# Limits\n#\n\n");
+    (void) printf("\n# Limits\n");
 
-    (void) printf("INVALID_GID=%d\n", INVALID_GID);
-    (void) printf("MAX_STR_LEN=%u\n", MAX_STR_LEN);
-    (void) printf("MAX_ERRMSG_LEN=%u\n", MAX_ERRMSG_LEN);
-    (void) printf("MAX_FNAME_LEN=%d\n", MAX_FNAME_LEN);
-    (void) printf("MAX_GRPNAME_LEN=%lld\n", (long long) MAX_GRPNAME_LEN);
-    (void) printf("MAX_SUFFIX_LEN=%u\n", MAX_SUFFIX_LEN);
-    (void) printf("MAX_VAR_LEN=%d\n", MAX_VAR_LEN);
-    (void) printf("MAX_VARNAME_LEN=%u\n", MAX_VARNAME_LEN);
-    (void) printf("MAX_NGROUPS=%u\n", MAX_NGROUPS);
-    (void) printf("MAX_NVARS=%u\n", MAX_NVARS);
+    (void) printf("INVALID_GID=%llu\n",
+                  (unsigned long long) INVALID_GID);
+    (void) printf("MAX_STR_LEN=%llu\n",
+                  (unsigned long long) MAX_STR_LEN);
+    (void) printf("MAX_ERRMSG_LEN=%llu\n",
+                  (unsigned long long) MAX_ERRMSG_LEN);
+    (void) printf("MAX_FNAME_LEN=%llu\n",
+                  (unsigned long long) MAX_FNAME_LEN);
+    (void) printf("MAX_SUFFIX_LEN=%llu\n",
+                  (unsigned long long) MAX_SUFFIX_LEN);
+    (void) printf("MAX_VAR_LEN=%llu\n",
+                  (unsigned long long) MAX_VAR_LEN);
+    (void) printf("MAX_VARNAME_LEN=%llu\n",
+                  (unsigned long long) MAX_VARNAME_LEN);
+    (void) printf("MAX_NGROUPS=%llu\n",
+                  (unsigned long long) MAX_NGROUPS);
+    (void) printf("MAX_NVARS=%llu\n",
+                  (unsigned long long) MAX_NVARS);
+    (void) printf("MAX_UID_VAL=%llu\n",
+                  (unsigned long long) MAX_UID_VAL);
+    (void) printf("MAX_GID_VAL=%llu\n",
+                  (unsigned long long) MAX_GID_VAL);
+    (void) printf("MAX_GRP_VAL=%llu\n",
+                  (unsigned long long) MAX_GRP_VAL);
+    (void) printf("MAX_NGRPS_VAL=%llu\n",
+                  (unsigned long long) MAX_NGRPS_VAL);
 
-    (void) printf("\n\n#\n# System\n#\n\n");
+    (void) printf("\n# System\n");
 
-#if defined(__GLIBC__)
-    (void) printf("LIBC=glibc\n");
-#elif defined(__GNU_LIBRARY__)
-    (void) printf("LIBC=glibc\n");
-#elif defined(__KLIBC__)
-    (void) printf("LIBC=klibc\n");
-#elif defined(__UCLIBC__)
-    (void) printf("LIBC=uClibc\n");
-#elif defined(__DragonFly__)
-    (void) printf("LIBC=DragonFly\n");
-#elif defined(__FreeBSD__)
-    (void) printf("LIBC=FreeBSD\n");
-#elif defined(__NetBSD__)
-    (void) printf("LIBC=NetBSD\n");
-#elif defined(__OpenBSD__)
-    (void) printf("LIBC=OpenBSD\n");
-#elif defined(__MACH__)
-    (void) printf("LIBC=Apple\n");
+#if defined(LIBC)
+    (void) printf("LIBC=%s\n", LIBC);
 #else
-    (void) printf("#LIBC=?\n");
+    (void) printf("#LIBC=???\n");
 #endif
 
-    (void) printf("\n\n#\n# Debugging\n#\n\n");
+    (void) printf("\n# Debugging\n");
+
+#if defined(TESTING)
+    (void) printf("TESTING=%d\n", TESTING);
+#else
+    (void) printf("TESTING=0\n");
+#endif
+
+#if defined(NATTR)
+    (void) printf("NATTR=%d\n", NATTR);
+#else
+    (void) printf("NATTR=0\n");
+#endif
 
 #if defined(NDEBUG)
     (void) printf("NDEBUG=%d\n", NDEBUG);
 #else
-    (void) printf("#NDEBUG=\n");
-#endif
-#if defined(CHECK) && CHECK
-    (void) printf("CHECK=%d\n", CHECK);
-#else
-    (void) printf("#CHECK=\n");
+    (void) printf("NDEBUG=0\n");
 #endif
 
+    /* cppcheck-suppress misra-c2012-21.8; least bad option. */
+    exit(EXIT_SUCCESS);
 }
 
 static void
@@ -217,13 +225,17 @@ version(void)
 "Released under the GNU General Public License.\n"
 "This programme comes with ABSOLUTELY NO WARRANTY.\n",
            VERSION);
+
+    /* cppcheck-suppress misra-c2012-21.8; least bad option. */
+    exit(EXIT_SUCCESS);
 }
 
 static void
 usage(void)
 {
     (void) fputs("usage: sucgi [-C|-V|-h]\n", stderr);
-    /* cppcheck-suppress misra-c2012-21.8; exit is the least bad option. */
+
+    /* cppcheck-suppress misra-c2012-21.8; least bad option. */
     exit(EXIT_FAILURE);
 }
 
@@ -238,31 +250,59 @@ main(int argc, char **argv) {
 
 
     /*
-     * Check system-dependent types.
+     * Check build configuration.
      */
-
-    ERRORIF(sizeof(GRP_T) != sizeof(gid_t));
-    ERRORIF(SIGNEDMAX(NGRPS_T) < SIGNEDMAX(int));
-
 
     /*
-     * Check whether configuration values are within bounds.
+     * The maximum values below should have been determined by ./configure.
+     * But if that failed, they were approximated at compile-time; and that
+     * approximation cannot take padding bits into account, so it needs to
+     * be checked whether each maximum value can, in fact, be represented
+     * by the type that it's supposed to be the maximum value of.
      */
 
-    ERRORIF(sizeof(USER_DIR) <= 1U);
-    ERRORIF(sizeof(USER_DIR) >= (size_t) MAX_FNAME_LEN);
-    ERRORIF(sizeof(PATH) >= (size_t) MAX_FNAME_LEN);
+    /* cppcheck-suppress [misra-c2012-10.4, misra-c2012-10.8] */
+    ASSERT((uid_t) MAX_UID_VAL == MAX_UID_VAL);
+    /* cppcheck-suppress [misra-c2012-10.4, misra-c2012-10.8] */
+    ASSERT((gid_t) MAX_GID_VAL == MAX_GID_VAL);
+    ASSERT((GRP_T) MAX_GRP_VAL == MAX_GRP_VAL);
+    ASSERT((NGRPS_T) MAX_NGRPS_VAL == MAX_NGRPS_VAL);
+
+    /* System-dependent types. */
+    ASSERT(sizeof(GRP_T) == sizeof(gid_t));
+    ASSERT(MAX_NGRPS_VAL >= INT_MAX);
+
+    /* NOLINTBEGIN(bugprone-sizeof-expression); yes, I am that paranoid. */
+
+    /* Are configuration values are within bounds? */
+    ASSERT(sizeof(USER_DIR) > 1U);
+    ASSERT(sizeof(USER_DIR) <= (size_t) MAX_FNAME_LEN);
+    ASSERT(sizeof(PATH) > 0U);
+    ASSERT(sizeof(PATH) <= (size_t) MAX_FNAME_LEN);
+
+    /* NOLINTEND(bugprone-sizeof-expression). */
 
     /*
      * setreuid and setregid accept -1 as ID. So -1 is a valid, if weird, ID.
-     * But POSIX.1-2008 allows for uid_t, gid_t, and id_t to be defined as
-     * unsigned integers, and this is how they are defined on most systems.
-     * So IDs must be compared against -1 even if uid_t, gid_t, and id_t
-     * are unsigned; in other words, the sign change is intentional.
+     * However, POSIX.1-2008 allows for uid_t, gid_t, and id_t to be defined
+     * as unsigned integers. Moreover, this is how they are defined on most
+     * systems; on such systems, -1 just wraps around to the maximum value
+     * that ID types can represent. So that value is *not* a valid ID.
      */
-    ERRORIF((uint64_t) MAX_UID > (uint64_t) (SIGNEDMAX(uid_t) - 1U));
-    ERRORIF((uint64_t) MAX_GID > (uint64_t) (SIGNEDMAX(gid_t) - 1U));
-    ERRORIF((uint64_t) MAX_GID > (uint64_t) (SIGNEDMAX(GRP_T) - 1U));
+    ASSERT((uintmax_t) STOP_UID <= ((uintmax_t) MAX_UID_VAL - (uintmax_t) 1));
+    ASSERT((uintmax_t) STOP_GID <= ((uintmax_t) MAX_GID_VAL - (uintmax_t) 1));
+    ASSERT((uintmax_t) STOP_GID <= ((uintmax_t) MAX_GRP_VAL - (uintmax_t) 1));
+
+    /* Make sure the start and stop UIDs and GIDs can be represented. */
+    ASSERT((uid_t) START_UID == START_UID);
+    ASSERT((uid_t) STOP_UID == STOP_UID);
+    ASSERT((gid_t) START_GID == START_GID);
+    ASSERT((gid_t) STOP_GID == STOP_GID);
+    ASSERT((GRP_T) START_GID == START_GID);
+    ASSERT((GRP_T) STOP_GID == STOP_GID);
+
+    /* Make sure the number of groups can be represented. */
+    ASSERT((NGRPS_T) INT_MAX == INT_MAX);
 
 
     /*
@@ -286,9 +326,9 @@ main(int argc, char **argv) {
      */
 
     openlog("sucgi", SYSLOG_OPTS, SYSLOG_FACILITY);
+
     errno = 0;
     if (atexit(closelog) != 0) {
-        /* Should be reachable by atexit running out of memory. */
         error("atexit: %m");
     }
 
@@ -299,74 +339,82 @@ main(int argc, char **argv) {
      * Drop privileges temporarily.
      */
 
-    ret = privsuspend();
-    switch (ret) {
-    case OK:
-        break;
-    default:
-        /* Should be unreachable. */
-        error("%s:%d: privsuspend() -> %d [!]",
-              __FILE__, __LINE__, ret);
+    ret = priv_suspend();
+    if (ret != OK) {
+        /* NOTREACHED */
+        BUG("priv_suspend() -> %d [!]", ret);
     }
 
-    assert(getuid() == geteuid());
-    assert(getgid() == getegid());
 
     /*
-     * TODO: Factor out group handling, so that
-     *       _DARWIN_C_SOURCE need not be set.
+     * Options.
      */
 
-    /* getgroups is unreliable on macOS if _DARWIN_C_SOURCE is set. */
-#if !defined(NDEBUG) && !defined(_DARWIN_C_SOURCE)
-    gid_t setgroups[MAX_NGROUPS];
-
-    assert(getgroups(MAX_NGROUPS, setgroups) == 1);
-    assert(setgroups[1] == getegid());
-#endif
-
-
-    /*
-     * Parse arguments.
-     */
-
-    /* Systems differ on whether argc may be 0. */
-    if (argc == 0 || *argv == NULL || **argv == '\0') {
+    if (argc == 0 || argv == NULL || *argv == NULL || **argv == '\0') {
         error("empty argument vector.");
     }
 
-    switch (argc) {
-    case 1:
-        break;
-    case 2:
-        /* Some getopt implementations are insecure. */
-        if        (strncmp(argv[1], "-h", sizeof("-h")) == 0) {
-            help();
-        } else if (strncmp(argv[1], "-C", sizeof("-C")) == 0) {
-            config();
-        } else if (strncmp(argv[1], "-V", sizeof("-V")) == 0) {
-            version();
-        } else {
-            usage();
+    if (argc > 2) {
+        usage();
+    }
+
+    /* Some versions of getopt are insecure. */
+    for (int i = 1; i < argc; ++i) {
+        char *arg = argv[i];
+
+        if (arg == NULL) {
+            /* NOTREACHED */
+            error("argument no. %d is the null pointer.", i);
         }
-        /* cppcheck-suppress misra-c2012-21.8;
-           return segfaults when compiled with gcc and --coverage. */
-        exit(EXIT_SUCCESS);
-    default:
+
+        if (strnlen(arg, 3U) == 2U && arg[0] == '-') {
+            switch (arg[1]) {
+            case 'C':
+                config();
+            case 'V':
+                version();
+            case 'h':
+                help();
+            default:
+                ; /* Empty on purpose. */
+            }
+        }
+
         usage();
     }
 
 
     /*
-     * Restore the environment variables used by CGI scripts.
+     * Restore environment.
      */
 
-    regex_t pregs[NELEMS(allowedvars)];
+/* FIXME: Make nicer. */
+#if defined(REQ_ENV_CS)
+    char *envbuf[MAX_STR_LEN];
 
-    for (size_t i = 0; i < NELEMS(allowedvars); ++i) {
+    if (confstr(REQ_ENV_CS, envbuf, sizeof(envbuf)) > sizeof(envbuf)) {
+        error("minimal conforming environment is too large");
+    }
+
+    ret = env_init(envbuf);
+    switch (ret) {
+    case OK:
+        break;
+    case ERR_SYS:
+        error("setenv: %m.");
+    default:
+        /* NOTREACHED */
+        BUG("env_init(%s) -> %d [!]", envbuf, ret);
+    }
+#endif
+
+    regex_t safe_var_pregs[NELEMS(safe_var_patterns)];
+
+    for (size_t i = 0; i < NELEMS(safe_var_patterns); ++i) {
         int err;
 
-        err = regcomp(&pregs[i], allowedvars[i], REG_EXTENDED | REG_NOSUB);
+        err = regcomp(&safe_var_pregs[i], safe_var_patterns[i],
+                      REG_EXTENDED | REG_NOSUB);
         if (err != 0) {
             /* RATS: ignore; regerror respects the size of errmsg. */
             char errmsg[MAX_ERRMSG_LEN];
@@ -375,12 +423,13 @@ main(int argc, char **argv) {
              * TODO: Document that regular expression error
              *       messages may get truncated.
              */
-            (void) regerror(err, &pregs[i], errmsg, sizeof(errmsg));
+            (void) regerror(err, &safe_var_pregs[i], errmsg, sizeof(errmsg));
             error("regcomp: %s", errmsg);
         }
     }
 
-    ret = envrestore((const char *const *) vars, NELEMS(pregs), pregs);
+    ret = env_restore((const char *const *) vars,
+                      NELEMS(safe_var_pregs), safe_var_pregs);
     switch (ret) {
     case OK:
         break;
@@ -389,9 +438,9 @@ main(int argc, char **argv) {
     case ERR_SYS:
         error("setenv: %m.");
     default:
-        /* Should be unreachable. */
-        error("%s:%d: envrestore(%p, %zu, %p) -> %d [!]",
-              __FILE__, __LINE__, vars, NELEMS(pregs), pregs, ret);
+        /* NOTREACHED */
+        BUG("env_restore(%p, %zu, %p) -> %d [!]",
+            vars, NELEMS(safe_var_pregs), safe_var_pregs, ret);
     }
 
 
@@ -399,55 +448,57 @@ main(int argc, char **argv) {
      * Get the script's filename and filesystem metadata.
      */
 
-    /* RATS: ignore; envcopyvar is bounded by MAX_VAR_LEN. */
-    char script_log[MAX_VAR_LEN];
-    char *script_phys;
-    struct stat script_stat;
+    /* RATS: ignore; env_copy_var respects the size of scriptname. */
+    char scriptname[MAX_VAR_LEN];
+    char *realscriptname;
+    struct stat scriptstatus;
+    size_t scriptnamelen;
+    size_t realscriptnamelen;
 
-    ret = envcopyvar("PATH_TRANSLATED", script_log);
+    ret = env_copy_var("PATH_TRANSLATED", sizeof(scriptname) - 1U,
+                       &scriptnamelen, scriptname);
     switch (ret) {
     case OK:
         break;
+    case ERR_LEN:
+        error("$PATH_TRANSLATED: too long.");
     case ERR_SEARCH:
         error("$PATH_TRANSLATED: not set.");
     default:
-        /* Should be unreachable. */
-        error("%s:%d: envcopyvar(PATH_TRANSLATED, -> %p) -> %d [!]",
-              __FILE__, __LINE__, script_log, ret);
+        /* NOTREACHED */
+        BUG("env_copy_var(PATH_TRANSLATED, %zu, -> %zu, -> %s) -> %d [!]",
+            sizeof(scriptname) - 1U, scriptnamelen, scriptname, ret);
     }
 
-    if (*script_log == '\0') {
+    if (*scriptname == '\0') {
         error("$PATH_TRANSLATED: empty.");
     }
 
-    ret = pathreal(script_log, &script_phys);
+    ret = path_real(scriptnamelen, scriptname,
+                    &realscriptnamelen, &realscriptname);
     switch (ret) {
     case OK:
         break;
     case ERR_SYS:
-        error("realpath %s: %m.", script_log);
+        error("realpath %s: %m.", scriptname);
     default:
-        /* Should be unreachable. */
-        error("%s:%d: pathreal(%s, -> %s) -> %d [!]",
-              __FILE__, __LINE__, script_log, script_phys, ret);
+        /* NOTREACHED */
+        BUG("path_real(%zu, %s, -> %zu, -> %s) -> %d [!]",
+            scriptnamelen, scriptname,
+            realscriptnamelen, realscriptname, ret);
     }
 
-    assert(script_phys != NULL);
-    assert(*script_phys != '\0');
-    assert(strnlen(script_phys, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
-
-    if (stat(script_phys, &script_stat) != 0) {
-        /* Only reachable if the script was deleted after pathreal. */
-        error("stat %s: %m.", script_log);
+    if (stat(realscriptname, &scriptstatus) != 0) {
+        error("stat %s: %m.", scriptname);
     }
 
-    if ((script_stat.st_mode & S_IFREG) == 0) {
-        error("script %s: not a regular file.", script_log);
+    if ((scriptstatus.st_mode & S_IFREG) == 0) {
+        error("script %s: not a regular file.", scriptname);
     }
 
 
     /*
-     * Check if the script is owned by a regular user.
+     * Check if the script is owned by a non-system user.
      */
 
     const struct passwd *owner;
@@ -456,21 +507,20 @@ main(int argc, char **argv) {
     gid_t gid;
 
     errno = 0;
-    /* cppcheck-suppress getpwuidCalled; suCGI need not be async-safe. */
-    owner = getpwuid(script_stat.st_uid);
+    owner = getpwuid(scriptstatus.st_uid);
     if (owner == NULL) {
-        /* cppcheck-suppress misra-c2012-22.10; getpwuid may set errno. */
+        /* cppcheck-suppress misra-c2012-22.10; getpwuid sets errno. */
         if (errno == 0) {
-            error("script %s: no owner.", script_log);
+            error("script %s: no owner.", scriptname);
         } else {
             error("getpwuid: %m.");
         }
     }
 
-    assert(owner->pw_uid == script_stat.st_uid);
+    assert(owner->pw_uid == scriptstatus.st_uid);
 
-    if (owner->pw_uid < MIN_UID || owner->pw_uid > MAX_UID) {
-        error("script %s: owned by privileged user.", script_log);
+    if (owner->pw_uid < START_UID || owner->pw_uid > STOP_UID) {
+        error("script %s: owned by a privileged user.", scriptname);
     }
 
     logname = owner->pw_name;
@@ -483,16 +533,16 @@ main(int argc, char **argv) {
      */
 
     gid_t groups[MAX_NGROUPS];
-    long ngroups_max;
+    long maxngroups;
     int ngroups;
 
     for (size_t i = 0; i < NELEMS(groups); ++i) {
         groups[i] = (gid_t) INVALID_GID;
     }
 
-    ngroups_max = sysconf(_SC_NGROUPS_MAX);
-    if (ngroups_max < 0L || (uint64_t) ngroups_max > (uint64_t) MAX_NGROUPS) {
-        ngroups_max = (long) MAX_NGROUPS;
+    maxngroups = sysconf(_SC_NGROUPS_MAX);
+    if (maxngroups < 0L || (uintmax_t) maxngroups > (uintmax_t) MAX_NGROUPS) {
+        maxngroups = (long) MAX_NGROUPS;
     }
 
     /*
@@ -503,55 +553,54 @@ main(int argc, char **argv) {
      * (1) a compile-time error is raised if sizeof(GRP_T) != sizeof(gid_t)
      *     (so GRP_T[i] and gid_t[i] cannot refer to different addresses).
      * (2) gid_t and GRP_T use the same integer representation for any value
-     *     in [MIN_GID .. MAX_GID] (so type-casting cannot change values).
+     *     in [START_GID .. STOP_GID] (so type-casting cannot change values).
      * (3) a run-time error is raised if a GID falls outside that range.
      *
      * gid_t and GRP_T are guaranteed to use the same integer representation
      * for any value in that range because a compile-time error is raised if:
-     * (1) MIN_GID < 1 (so values cannot change sign);
-     * (2) MAX_GID > max-signed-value-that-would-fit(gid_t/GRP_T) - 1
-     *     (so values cannot overflow).
+     * (1) START_GID < 1 (so values cannot change sign);
+     * (2) STOP_GID > the highest value that both gid_t and GRP_T
+     *     can represent - 1 (so values cannot overflow).
      */
-
     ngroups = MAX_NGROUPS;
     (void) getgrouplist(logname, (GRP_T) gid, (GRP_T *) groups, &ngroups);
 
     if (ngroups < 0) {
-        /* Should be unreachable. */
+        /* NOTREACHED */
         if (ISSIGNED(gid_t)) {
-            error("%s:%d: getgrouplist(%s, " PRId64 ", -> %p, -> %d [!])",
-                  __FILE__, __LINE__, logname, (int64_t) gid, groups, ngroups);
+            BUG("getgrouplist(%s, %lld, -> %p, -> %d [!])",
+                logname, (long long) gid, groups, ngroups);
         } else {
-            error("%s:%d: getgrouplist(%s, " PRIu64 ", -> %p, -> %d [!])",
-                  __FILE__, __LINE__, logname, (uint64_t) gid, groups, ngroups);
+            BUG("getgrouplist(%s, %llu, -> %p, -> %d [!])",
+                logname, (unsigned long long) gid, groups, ngroups);
         }
     }
 
-    if (ngroups_max < ngroups) {
-        /* RATS: ignore; message is short and a literal. */
-        syslog(LOG_NOTICE, "user %s: can only join %ld of %d groups.",
-               logname, ngroups_max, ngroups);
+    if (maxngroups < ngroups) {
+        /* maxngroups must be <= INT_MAX if this point is reached. */
+        assert((uintmax_t) maxngroups <= (uintmax_t) INT_MAX);
 
-        /* ngroups_max must be <= INT_MAX if this point is reached. */
-        ngroups = (int) ngroups_max;
+        /* RATS: ignore; message is short and a literal. */
+        syslog(LOG_NOTICE, "user %s: joining %ld out of %d groups only.",
+               logname, maxngroups, ngroups);
+
+        ngroups = (int) maxngroups;
     }
 
     for (int i = 0; i < ngroups; ++i) {
-        if (groups[i] < MIN_GID || groups[i] > MAX_GID) {
+        if (groups[i] < START_GID || groups[i] > STOP_GID) {
             const struct group *grp;
 
-            /* cppcheck-suppress getgrgidCalled;
-               suCGI need not be async-safe. */
             grp = getgrgid(groups[i]);
             if (grp != NULL) {
-                error("user %s: member of %s.",
+                error("user %s: member of group %s.",
                       logname, grp->gr_name);
             } else if (ISSIGNED(gid_t)) {
-                error("user %s: member of group " PRId64 ".",
-                      logname, (int64_t) groups[i]);
+                error("user %s: member of group %lld.",
+                      logname, (unsigned long long) groups[i]);
             } else {
-                error("user %s: member of group " PRIu64 ".",
-                      logname, (uint64_t) groups[i]);
+                error("user %s: member of group %llu.",
+                      logname, (unsigned long long) groups[i]);
             }
         }
     }
@@ -563,135 +612,81 @@ main(int argc, char **argv) {
 
     errno = 0;
     if (seteuid(0) != 0) {
-        /*
-         * Should only be reachable if sucgi's set-user-ID on
-         * execute bit is unset or suCGI is not owned by root.
-         */
         error("seteuid: %m.");
     }
 
     /*
-     * NGRPS_T refers to the data type that setgroups takes the number of
-     * groups as; that type may be size_t (Linux) or int (any other system).
+     * NGRPS_T refers to the type of setgroups third argument, the number of
+     * groups; that type may be size_t (glibc) or int (other systems).
      *
-     * Casting int to NGRPS_T is guaranteed to be safe because:
+     * Casting ngroups to NGRPS_T is guaranteed to be safe because:
      * (1) ngroups cannot be negative (so values cannot change sign);
-     * (2) a compile-time error is raised if NGRPS_T is too small
-     *     to hold INT_MAX (so values cannot overflow).
+     * (2) ngroups is capped at MAX_NGROUPS and a compile-time error
+     *     is raised if MAX_NGROUPS > INT_MAX or NGRPS_T cannot represent
+     *     INT_MAX (so values cannot overflow).
      */
-    ret = privdrop(uid, gid, (NGRPS_T) ngroups, groups);
+    ret = priv_drop(uid, gid, (NGRPS_T) ngroups, groups);
     switch (ret) {
     case OK:
         break;
     case ERR_SYS:
-        /* Should only be reachable by setgroups running out of memory. */
-        error("privilege drop: %m.");
+        error("could not drop privileges: %m.");
     default:
-        /* Should be unreachable. */
+        /* NOTREACHED */
         if (ISSIGNED(id_t)) {
-            error("%s:%d: privdrop(" PRId64 ", " PRId64 ", %d, %p) -> %d [!]",
-                  __FILE__, __LINE__, (int64_t) uid, (int64_t) gid,
-                  ngroups, groups, ret);
+            BUG("priv_drop(%lld, %lld, %d, %p) -> %d [!]",
+                (long long) uid, (long long) gid,
+                (int) ngroups, groups, ret);
         } else {
-            error("%s:%d: privdrop(" PRIu64 ", " PRIu64 ", %d, %p) -> %d [!]",
-                  __FILE__, __LINE__, (uint64_t) uid, (uint64_t) gid,
-                  ngroups, groups, ret);
+            BUG("priv_drop(%llu, %llu, %d, %p) -> %d [!]",
+                (unsigned long long) uid, (unsigned long long) gid,
+                (int) ngroups, groups, ret);
         }
     }
-
-    assert(geteuid() == uid);
-    assert(getegid() == gid);
-    assert(getuid() == uid);
-    assert(getgid() == gid);
-
-    /* getgroups is unreliable on macOS if _DARWIN_C_SOURCE is set. */
-#if !defined(NDEBUG) && !defined(_DARWIN_C_SOURCE)
-    int nsetgroups;
-
-    nsetgroups = ((long) ngroups < ngroups_max) ? ngroups : (int) ngroups_max;
-    assert(nsetgroups == getgroups(MAX_NGROUPS, setgroups));
-
-    /* TODO: Use lfind. */
-    for (int i = 0; i < nsetgroups; ++i) {
-        bool found;
-
-        found = false;
-        for (int j = 0; j < ngroups; ++j) {
-            if (nsetgroups[i] == groups[j]) {
-                found = true;
-                break
-            }
-        }
-
-        assert(found);
-    }
-#endif
-
-
-
-    /*
-     * getgroups is unreliable on some systems,
-     * so supplementary groups cannot be verified.
-     */
 
 
     /*
      * Check whether the script is within the user directory.
      */
 
-    /* RATS: ignore; userdirexp repects MAX_FNAME_LEN. */
-    char userdir_log[MAX_FNAME_LEN];
-    char *userdir_phys;
+    /* RATS: ignore; userdir_exp respects the size of userdir. */
+    char userdir[MAX_FNAME_LEN];
+    char *realuserdir;
+    size_t userdirlen;
+    size_t realuserdirlen;
 
-    ret = userdirexp(USER_DIR, owner, userdir_log);
+    ret = userdir_exp(USER_DIR, owner, sizeof(userdir), &userdirlen, userdir);
     switch (ret) {
     case OK:
         break;
     case ERR_LEN:
         error("user %s: user directory is too long.", logname);
     case ERR_SYS:
-        /* Should only be reachable if USER_DIR contains an invalid wchar. */
         error("snprintf: %m.");
     default:
-        /* Should be unreachable. */
-        error("%s:%d: userdirexp(%s, %s -> %p) -> %d [!]",
-              __FILE__, __LINE__, USER_DIR, owner->pw_name, userdir_log, ret);
+        /* NOTREACHED */
+        BUG("userdir_exp(%s, %s -> %zu, -> %p) -> %d [!]",
+            USER_DIR, owner->pw_name, userdirlen, userdir, ret);
     }
 
-    assert(userdir_log != NULL);
-    assert(*userdir_log != '\0');
-    assert(strnlen(userdir_log, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
-
-    ret = pathreal(userdir_log, &userdir_phys);
+    ret = path_real(userdirlen, userdir, &realuserdirlen, &realuserdir);
     switch (ret) {
     case OK:
         break;
     case ERR_LEN:
-        /* Probably unreachable, depending on your system. */
         error("user %s: user directory is too long.", logname);
     case ERR_SYS:
-        error("realpath %s: %m.", userdir_log);
+        error("realpath %s: %m.", userdir);
     default:
-        /* Should be unreachable. */
-        error("%s:%d: pathreal(%s, -> %p) -> %d [!]",
-              __FILE__, __LINE__, userdir_log, userdir_phys, ret);
+        /* NOTREACHED */
+        BUG("path_real(%zu, %s, -> %zu, -> %s) -> %d [!]",
+            userdirlen, userdir, realuserdirlen, realuserdir, ret);
     }
 
-    assert(userdir_phys != NULL);
-    assert(*userdir_phys != '\0');
-    assert(strnlen(userdir_phys, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
-
-    ret = pathchkloc(userdir_phys, script_phys);
-    switch (ret) {
-        case OK:
-            break;
-        case ERR_BASEDIR:
-            error("script %s: not in %s's user directory.",
-                  script_log, logname);
-        default:
-            /* Should be unreachable. */
-            error("%s:%d: pathchkloc(%s, %s) -> %d [!]",
-                  __FILE__, __LINE__, userdir_phys, script_phys, ret);
+    if (!path_within(realscriptnamelen, realscriptname,
+                     realuserdirlen, realuserdir))
+    {
+        error("script %s: not in %s's user directory.", scriptname, logname);
     }
 
 
@@ -701,12 +696,12 @@ main(int argc, char **argv) {
      * one of them is set, this probably indicates a configuration error.
      */
 
-    if ((script_stat.st_mode & S_ISUID) != 0) {
-        error("script %s: set-user-ID on execute bit is set.", script_log);
+    if ((scriptstatus.st_mode & S_ISUID) != 0) {
+        error("script %s: set-user-ID on execute bit is set.", scriptname);
     }
 
-    if ((script_stat.st_mode & S_ISGID) != 0) {
-        error("script %s: set-group-ID on execute bit is set.", script_log);
+    if ((scriptstatus.st_mode & S_ISGID) != 0) {
+        error("script %s: set-group-ID on execute bit is set.", scriptname);
     }
 
 
@@ -716,9 +711,8 @@ main(int argc, char **argv) {
      * a hidden file, this probably indicates a configuration error.
      */
 
-    /* script_phys is canonical. */
-    if (strstr(script_phys, "/.") != NULL) {
-        error("path %s: contains hidden files.", script_log);
+    if (strstr(realscriptname, "/.") != NULL) {
+        error("path %s: contains hidden files.", scriptname);
     }
 
 
@@ -727,7 +721,7 @@ main(int argc, char **argv) {
      */
 
     errno = 0;
-    if (setenv("DOCUMENT_ROOT", userdir_phys, true) != 0) {
+    if (setenv("DOCUMENT_ROOT", realuserdir, true) != 0) {
         error("setenv: %m.");
     }
 
@@ -742,12 +736,12 @@ main(int argc, char **argv) {
     }
 
     errno = 0;
-    if (setenv("PATH_TRANSLATED", script_phys, true) != 0) {
+    if (setenv("PATH_TRANSLATED", realscriptname, true) != 0) {
         error("setenv: %m.");
     }
 
     errno = 0;
-    if (setenv("SCRIPT_FILENAME", script_phys, true) != 0) {
+    if (setenv("SCRIPT_FILENAME", realscriptname, true) != 0) {
         error("setenv: %m.");
     }
 
@@ -757,8 +751,8 @@ main(int argc, char **argv) {
     }
 
     errno = 0;
-    if (chdir(userdir_phys) != 0) {
-        error("chdir %s: %m.", userdir_phys);
+    if (chdir(realuserdir) != 0) {
+        error("chdir %s: %m.", realuserdir);
     }
 
     /* RATS: ignore; the permission mask is set by the administrator. */
@@ -771,38 +765,32 @@ main(int argc, char **argv) {
 
     const char *handler;
 
-    ret = handlerfind(NELEMS(handlers), handlers, script_phys, &handler);
+    ret = handler_find(NELEMS(handlers), handlers,
+                       realscriptnamelen, realscriptname, &handler);
     switch (ret) {
     case OK:
-        assert(handler != NULL);
-        assert(*handler != '\0');
-        assert(strnlen(handler, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
-
         errno = 0;
         /* RATS: ignore; suCGI's whole point is to do this safely. */
-        (void) execlp(handler, handler, script_phys, NULL);
+        (void) execlp(handler, handler, realscriptname, NULL);
 
-        /* If this point is reached, execution has failed. */
-        error("execlp %s %s: %m.", handler, script_log);
+        error("execlp %s %s: %m.", handler, scriptname);
+    case ERR_BAD:
+        error("script %s: bad handler.", scriptname);
+    case ERR_LEN:
+        error("script %s: filename suffix too long.", scriptname);
     case ERR_SEARCH:
         ; /* Falls through. */
     case ERR_SUFFIX:
         break;
-    case ERR_BAD:
-        error("script %s: bad handler.", script_log);
-    case ERR_LEN:
-        error("script %s: filename suffix too long.", script_log);
     default:
-        /* Should be unreachable. */
-        error("%s:%d: handlerfind(%zu, %p, %s, -> %p) -> %d [!]",
-              __FILE__, __LINE__, NELEMS(handlers), handlers,
-              script_phys, handler, ret);
+        /* NOTREACHED */
+        BUG("handler_find(%zu, %p, %s, -> %p) -> %d [!]",
+            NELEMS(handlers), handlers, realscriptname, handler, ret);
     }
 
     errno = 0;
     /* RATS: ignore; suCGI's whole point is to do this safely. */
-    (void) execl(script_phys, script_phys, NULL);
+    (void) execl(realscriptname, realscriptname, NULL);
 
-    /* If this point is reached, execution has failed. */
-    error("execl %s: %m.", script_log);
+    error("execl %s: %m.", scriptname);
 }
