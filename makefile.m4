@@ -20,7 +20,7 @@ include(`macros.m4')dnl
 
 all: sucgi
 
-.PHONY: all analysis check clean distcheck distclean shellcheck
+.PHONY: all analysis check clean distcheck distclean mrproper shellcheck tidy
 
 .IGNORE: analysis shellcheck
 
@@ -65,7 +65,7 @@ makefile compat.h:
 
 hdrs = attr.h compat.h config.h macros.h params.h types.h
 
-objs = env.o error.o handler.o pair.o path.o priv.o str.o userdir.o
+objs = env.o error.o groups.o handler.o pair.o path.o priv.o str.o userdir.o
 
 libs = libsucgi.a
 
@@ -73,11 +73,13 @@ libsucgi.a(env.o): env.c env.h libsucgi.a(str.o)
 
 libsucgi.a(error.o): error.c error.h
 
+libsucgi.a(groups.o): groups.c groups.h
+
 libsucgi.a(pair.o): pair.c pair.h
 
 libsucgi.a(path.o): path.c path.h libsucgi.a(str.o)
 
-libsucgi.a(priv.o): priv.c priv.h
+libsucgi.a(priv.o): priv.c priv.h libsucgi.a(groups.o)
 
 libsucgi.a(handler.o): handler.c handler.h libsucgi.a(pair.o path.o)
 
@@ -98,6 +100,14 @@ libsucgi.a($(objs)):
 
 sucgi:
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ main.c $(libs) $(LDLIBS)
+
+
+#
+# Manual
+#
+
+man/sucgi.8: docs/manual.md
+	pandoc -stman -o$@ $<
 
 
 #
@@ -131,26 +141,31 @@ uninstall:
 #
 
 # tests/libutil.a
-util_objs = tests/util/check.o tests/util/ftree.o tests/util/errlst.o\
-	tests/util/longp.o tests/util/user.o tests/util/str.o\
-	tests/util/tmp.o tests/util/trap.o
+util_objs = tests/util/abort.o tests/util/array.o tests/util/dir.o \
+	tests/util/path.o tests/util/sigs.o tests/util/str.o \
+	tests/util/tmpdir.o tests/util/user.o
 
-tests/libutil.a(tests/util/check.o): tests/util/check.c tests/util/check.h
+tests/libutil.a(tests/util/abort.o): tests/util/abort.c tests/util/abort.h \
+	tests/libutil.a(tests/util/sigs.o)
 
-tests/libutil.a(tests/util/ftree.o): tests/util/check.c tests/util/ftree.h
+tests/libutil.a(tests/util/array.o): tests/util/array.c tests/util/array.h
 
-tests/libutil.a(tests/util/errlst.o): tests/util/errlst.c tests/util/errlst.h
+tests/libutil.a(tests/util/dir.o): tests/util/dir.c tests/util/dir.h \
+	tests/libutil.a(tests/util/sigs.o)
 
-tests/libutil.a(tests/util/longp.o): tests/util/longp.c tests/util/longp.h
+tests/libutil.a(tests/util/path.o): tests/util/path.c tests/util/path.h \
+	tests/libutil.a(tests/util/sigs.o)
 
-tests/libutil.a(tests/util/user.o): tests/util/user.c tests/util/user.h
+tests/libutil.a(tests/util/sigs.o): tests/util/sigs.c tests/util/sigs.h
 
 tests/libutil.a(tests/util/str.o): tests/util/str.c tests/util/str.h
 
-tests/libutil.a(tests/util/tmp.o): tests/util/str.c tests/util/tmp.h\
-	tests/libutil.a(tests/util/ftree.o)
+tests/libutil.a(tests/util/tmpdir.o): tests/util/tmpdir.c tests/util/tmpdir.h \
+	tests/libutil.a(tests/util/path.o)
 
-tests/libutil.a(tests/util/trap.o): tests/util/trap.c tests/util/trap.h
+tests/libutil.a(tests/util/user.o): tests/util/user.c tests/util/user.h
+
+$(util_objs): tests/util/types.h
 
 tests/libutil.a: tests/libutil.a($(util_objs))
 
@@ -159,17 +174,16 @@ tests/libutil.a($(util_objs)):
 	$(AR) $(ARFLAGS) tests/libutil.a $*.o
 	rm -f $*.o
 
-
 # tests/libmock.so
-mock_objs = tests/mock/unistd.o
+mock_objs = tests/mock/mockstd.o
 
 ifnempty(`__SUCGI_SHARED_LIBS', `dnl
-tests/mock/unistd.o: tests/mock/unistd.c tests/mock/unistd.h
+tests/mock/mockstd.o: tests/mock/mockstd.c tests/mock/mockstd.h
 
 tests/libmock.so: $(mock_objs)
 
 $(mock_objs):
-	$(CC) $(LDFLAGS) -c -o $@ -fpic $(CFLAGS) $< $(LDLIBS)
+	$(CC) $(LDFLAGS) -c -o $@ $(CFLAGS) -fpic $< $(LDLIBS)
 
 tests/libmock.so:
 	$(CC) $(LDFLAGS) -shared -o $@ -fpic $(mock_objs) $(LDLIBS)
@@ -177,61 +191,63 @@ tests/libmock.so:
 ')dnl
 
 # Unit tests
-macro_test_bins = tests/ISSIGNED tests/NELEMS tests/SIGNEDMAX
+macro_test_bins = tests/ISSIGNED tests/NELEMS tests/MAXSVAL
 
-env_test_bins = tests/envcopyvar tests/envisname tests/envrestore
+env_test_bins = tests/env_copy_var tests/env_is_name tests/env_restore
 
-handler_test_bins = tests/handlerfind
+handler_test_bins = tests/handler_find
 
-pair_test_bins = tests/pairfind
+pair_test_bins = tests/pair_find
 
-path_test_bins = tests/pathchkloc tests/pathreal tests/pathsuffix
+path_test_bins = tests/path_real tests/path_suffix tests/path_within
 
-priv_test_bins = tests/privdrop tests/privsuspend
+priv_test_bins = tests/priv_drop tests/priv_suspend
 
-str_test_bins = tests/copystr tests/getspecstrs tests/splitstr
+str_test_bins = tests/str_copy tests/str_fmtspecs tests/str_split
 
-userdir_test_bins = tests/userdirexp
+userdir_test_bins = tests/userdir_exp
 
 unit_libs = libsucgi.a tests/libutil.a
 
-unit_bins = $(macro_test_bins) $(env_test_bins) $(handler_test_bins)\
-	$(pair_test_bins) $(path_test_bins) $(priv_test_bins)\
+unit_bins = $(macro_test_bins) $(env_test_bins) $(handler_test_bins) \
+	$(pair_test_bins) $(path_test_bins) $(priv_test_bins) \
 	$(str_test_bins) $(userdir_test_bins)
 
 tests/ISSIGNED: tests/ISSIGNED.c
 
 tests/NELEMS: tests/NELEMS.c
 
-tests/SIGNEDMAX: tests/SIGNEDMAX.c
+tests/MAXSVAL: tests/MAXSVAL.c
 
-tests/envcopyvar: tests/envcopyvar.c
+tests/env_copy_var: tests/env_copy_var.c
 
-tests/envisname: tests/envisname.c
+tests/env_is_name: tests/env_is_name.c
 
-tests/envrestore: tests/envrestore.c tests/libutil.a(tests/util/str.o)
+tests/env_restore: tests/env_restore.c \
+	tests/libutil.a(tests/util/array.o tests/util/str.o)
 
-tests/handlerfind: tests/handlerfind.c
+tests/handler_find: tests/handler_find.c
 
-tests/pairfind: tests/pairfind.c params.h
+tests/pair_find: tests/pair_find.c params.h
 
-tests/pathchkloc: tests/pathchkloc.c
+tests/path_real: tests/path_real.c libsucgi.a(str.o) tests/libutil.a
 
-tests/pathreal: tests/pathreal.c libsucgi.a(str.o) tests/libutil.a
+tests/path_suffix: tests/path_suffix.c
 
-tests/pathsuffix: tests/pathsuffix.c
+tests/path_within: tests/path_within.c
 
-tests/privdrop: tests/privdrop.c
+tests/priv_drop: tests/priv_drop.c tests/libutil.a(tests/util/array.o)
 
-tests/privsuspend: tests/privsuspend.c
+tests/priv_suspend: tests/priv_suspend.c
 
-tests/copystr: tests/copystr.c
+tests/str_copy: tests/str_copy.c
 
-tests/getspecstrs: tests/getspecstrs.c tests/libutil.a(tests/util/str.o)
+tests/str_fmtspecs: tests/str_fmtspecs.c \
+	tests/libutil.a(tests/util/array.o tests/util/str.o)
 
-tests/splitstr: tests/splitstr.c
+tests/str_split: tests/str_split.c
 
-tests/userdirexp: tests/userdirexp.c
+tests/userdir_exp: tests/userdir_exp.c
 
 $(env_test_bins): libsucgi.a(env.o)
 
@@ -241,17 +257,16 @@ $(pair_test_bins): libsucgi.a(pair.o)
 
 $(path_test_bins): libsucgi.a(path.o)
 
-$(priv_test_bins): libsucgi.a(priv.o)\
-	tests/libutil.a(tests/util/str.o tests/util/user.o)
+$(priv_test_bins): libsucgi.a(priv.o) tests/libutil.a(tests/util/user.o)
 
 $(str_test_bins): libsucgi.a(str.o)
 
 $(userdir_test_bins): $(hdrs) libsucgi.a(userdir.o)
 
-$(unit_bins): tests/libutil.a(tests/util/check.o)
+$(unit_bins): tests/libutil.a(tests/util/abort.o)
 
 $(unit_bins):
-	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c $(unit_libs) $(LDLIBS)
+	$(CC) $(LDFLAGS) -DTESTING $(CFLAGS) -o $@ $@.c $(unit_libs) $(LDLIBS)
 
 
 # Utilities
@@ -279,13 +294,13 @@ tests/scripts/main: utils/badenv utils/badexec utils/uids utils/runas
 
 $(check_scripts): tests/main tests/scripts/funcs.sh
 
-$(script_bins): $(hdrs) tests/util/check.h
+$(script_bins): $(hdrs) tests/util/types.h
 
 tests/error:
-	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ $@.c $(libs) $(LDLIBS)
+	$(CC) $(LDFLAGS) -DTESTING $(CFLAGS) -o $@ $@.c $(libs) $(LDLIBS)
 
 tests/main:
-	$(CC) $(LDFLAGS) -DCHECK $(CFLAGS) -o $@ main.c $(libs) $(LDLIBS)
+	$(CC) $(LDFLAGS) -DTESTING $(CFLAGS) -o $@ main.c $(libs) $(LDLIBS)
 
 
 # Execution
@@ -311,8 +326,8 @@ check: utils/runpara $(checks)
 
 check:
 ifnempty(`__SUCGI_SHARED_LIBS', `dnl
-	[ "$$(id -u)" -eq 0 ]\
-&& utils/runpara $(runpara_flags) $(checks)\
+	[ "$$(id -u)" -eq 0 ] \
+&& utils/runpara $(runpara_flags) $(checks) \
 || utils/runpara $(runpara_flags) $(preloadvar)=tests/libmock.so $(checks)
 ', `dnl
 	utils/runpara $(runpara_flags) $(checks)
@@ -325,11 +340,32 @@ ifnempty(`__SUCGI_SHARED_LIBS', `dnl
 
 bins = sucgi $(check_bins) $(util_bins)
 
-covclean: clean
+tidy:
+	rm -f $(dist_name).tgz
+	find . '(' \
+	-name '*.bak' -o \
+	-name '*.ctu-info' -o \
+	-name '*.dump' -o \
+	-name '*.log' \
+	')' -exec rm -f '{}' +
+	find . -type d -name 'tmp-*' -exec rm -rf '{}' +
 
-clean:
-	find . \( -name '*.a' -o -name '*.o' -o -name '*.so' \) -exec rm '{}' +
+clean: tidy
 	rm -f $(bins)
+	find . '(' \
+	-name '*.a' -o \
+	-name '*.o' -o \
+	-name '*.so' \
+	')' -exec rm -f '{}' +
+
+mrproper: clean
+	rm -f cppcheck/build/*
+	find . '(' \
+	-name '*.gcda' -o \
+	-name '*.gcno' -o \
+	-name '*.gcov' -o \
+	-name '*.info' \
+	')' -exec rm -f '{}' +
 
 
 #
@@ -341,11 +377,11 @@ version = 0
 dist_name = $(package)-$(version)
 dist_ar = $(dist_name).tgz
 dist_files = *.c *.h *.m4 README.rst LICENSE.txt \
-	configure prepare cppcheck docs etc tests utils scripts
+	configure prepare conf cppcheck docs man tests utils scripts
 
-distclean: clean
+distclean: mrproper
 
-$(dist_name): distclean
+$(dist_name): distclean man/sucgi.8
 
 $(dist_ar): $(dist_name)
 
@@ -358,7 +394,7 @@ sigdist: dist $(dist_ar).asc
 distcheck: dist
 
 distclean:
-	rm -f compat.h config.status makefile *.tgz
+	rm -f compat.h config.status makefile $(dist_ar)
 	rm -rf $(dist_name)
 
 $(dist_name):
@@ -366,7 +402,7 @@ $(dist_name):
 	cp -a $(dist_files) $(dist_name)
 
 $(dist_ar):
-	tar -X etc/dist.excl -czf $(dist_ar) $(dist_name)
+	tar -X conf/dist.excl -czf $(dist_ar) $(dist_name)
 
 $(dist_ar).asc:
 	gpg -qab --batch --yes $(dist_ar)
@@ -380,22 +416,29 @@ distcheck:
 	cd $(dist_name) && $(MAKE) -e all check dist
 	rm -rf $(dist_name)
 
+
 #
 # Static code analysis
 #
 
-inspect = *.h *.c
-scripts = configure prepare scripts/* $(check_scripts)
+srcs = *.h *.c \
+	tests/*.c \
+	tests/util/*.h tests/util/*.c \
+	tests/mock/*.h tests/mock/*.c
+
+scripts = configure prepare scripts/*
 
 ifnempty(`__SUCGI_CLANG_TIDY', `dnl
-clang_tidy_flags = --config-file=etc/clang-tidy.yml
+clang_tidy_flags = --quiet
 
 ')dnl
 ifnempty(`__SUCGI_CPPCHECK', `dnl
-cppcheck_flags = --quiet --force --language=c --std=c99\
-	--project=cppcheck/sucgi.cppcheck --library=posix\
-	--library=cppcheck/bsd.cfg --library=cppcheck/funcs.cfg\
-	--suppressions-list=cppcheck/suppr.txt --inline-suppr\
+cppcheck_flags = --quiet --force --language=c --std=c99 \
+	--project=cppcheck/sucgi.cppcheck --library=posix \
+	--library=cppcheck/c99.cfg --library=cppcheck/gnuc.cfg \
+	--library=cppcheck/posix.cfg --library=cppcheck/bsd.cfg \
+	--library=cppcheck/linux.cfg --library=cppcheck/sucgi.cfg \
+	--suppress-xml=cppcheck/suppress.xml --inline-suppr \
 	--enable=all --addon=cppcheck/cert.py --addon=misra.py
 
 ')dnl
@@ -412,22 +455,23 @@ shellcheck_flags = -x
 
 ')dnl
 analysis:
-	! grep -i FIXME $(inspect)
+	! grep -i FIXME $(srcs)
 ifnempty(`__SUCGI_CLANG_TIDY', `dnl
-	__SUCGI_CLANG_TIDY $(clang_tidy_flags) $(inspect) -- -std=c99
+	__SUCGI_CLANG_TIDY $(clang_tidy_flags) $(srcs) -- -std=c99
 ')dnl
 ifnempty(`__SUCGI_CPPCHECK', `dnl
-	__SUCGI_CPPCHECK $(cppcheck_flags) $(inspect)
+	__SUCGI_CPPCHECK $(cppcheck_flags) $(srcs)
 ')dnl
 ifnempty(`__SUCGI_FLAWFINDER', `dnl
-	__SUCGI_FLAWFINDER $(flawfinder_flags) $(inspect)
+	__SUCGI_FLAWFINDER $(flawfinder_flags) $(srcs)
 ')dnl
 ifnempty(`__SUCGI_RATS', `dnl
-	__SUCGI_RATS $(rats_flags) $(inspect)
+	__SUCGI_RATS $(rats_flags) $(srcs)
 ')dnl
 
 shellcheck:
 	! grep -i FIXME $(scripts)
 ifnempty(`__SUCGI_SHELLCHECK', `dnl
-	__SUCGI_SHELLCHECK $(shellcheck_flags) $(scripts)
+	__SUCGI_SHELLCHECK $(shellcheck_flags) $(scripts) $(check_scripts)
 ')dnl
+
