@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
+#include <unistd.h>
 
 #include "env.h"
 #include "params.h"
@@ -42,9 +43,11 @@
 
 
 Error
-envcopyvar(const char *const name, char value[MAX_VAR_LEN])
+env_copy_var(const char *const name, const size_t maxlen,
+             size_t *const len, char *const value)
 {
     const char *var;
+    Error ret;
 
     assert(name != NULL);
     assert(*name != '\0');
@@ -52,25 +55,72 @@ envcopyvar(const char *const name, char value[MAX_VAR_LEN])
     assert(strnlen(name, MAX_VARNAME_LEN) < MAX_VARNAME_LEN);
     assert(value != NULL);
 
+    /* Return an empty string if an error occurs. */
+    (void) memset(value, '\0', maxlen);
+
     errno = 0;
     /* RATS: ignore; CGI requires reading environment variables. */
     var = getenv(name);
     if (var == NULL) {
-        /* cppcheck-suppress misra-c2012-22.10; getenv may set errno. */
+        /* cppcheck-suppress misra-c2012-22.10; getenv sets errno. */
         if (errno == 0) {
             return ERR_SEARCH;
         }
 
-        /* Should only be reachable if NDEBUG is set. */
         return ERR_SYS;
     }
 
-    return copystr(MAX_VAR_LEN - 1, var, value);
+    ret = str_copy(maxlen, var, len, value);
+    if (ret != OK) {
+        return ret;
+    }
+
+    assert(value != NULL);
+    assert(strnlen(value, MAX_VAR_LEN) == *len);
+    assert(*len < MAX_VAR_LEN);
+    assert(value[*len] == '\0');
+
+    return ret;
+}
+
+
+
+
+
+/* FIXME: better take a string as arg! makes it testable */
+Error
+env_init(const char *const vars)
+{
+    for (const char *ptr = vars; ptr != NULL; ) {
+        char var[MAX_VAR_LEN];
+        char name[MAX_VARNAME_LEN];
+        const char *value;
+
+        if (str_split(ptr, " ", sizeof(var), var, &ptr) != OK) {
+            /* RATS: ignore; format is short and a literal. */
+            syslog(LOG_INFO, "discarding variable that is too long.");
+        } else if (str_split(var, "=", sizeof(name), name, &value) != OK) {
+            /* RATS: ignore; format is short and a literal. */
+            syslog(LOG_INFO, "discarding variable with too long a name.");
+        } else if (!env_is_name(name)) {
+            /* RATS: ignore; format is short and a literal. */
+            syslog(LOG_INFO, "$%s: bad name.", name);
+        } else if (value == NULL) {
+            /* RATS: ignore; format is short and a literal. */
+            syslog(LOG_INFO, "$%s: no value.", name);
+        } else {
+            errno = 0;
+            if (setenv(name, value, true) != 0) {
+                return ERR_SYS;
+            }
+        }
+    }
+
+    return OK;
 }
 
 bool
-/* cppcheck-suppress misra-c2012-8.7; external linkage needed for testing. */
-envisname(const char *const str)
+env_is_name(const char *const str)
 {
     assert(str != NULL);
     assert(strnlen(str, MAX_VARNAME_LEN) < MAX_VARNAME_LEN);
@@ -89,8 +139,8 @@ envisname(const char *const str)
 }
 
 Error
-envrestore(const char *const *const vars, const size_t npregs,
-           const regex_t *const pregs)
+env_restore(const char *const *const vars, const size_t npregs,
+            const regex_t *const pregs)
 {
     size_t varidx;
 
@@ -98,7 +148,7 @@ envrestore(const char *const *const vars, const size_t npregs,
     assert(pregs != NULL);
 
     for (varidx = 0; vars[varidx] != NULL; ++varidx) {
-        /* RATS: ignore; splitstr respects MAX_VARNAME_LEN. */
+        /* RATS: ignore; str_split respects MAX_VARNAME_LEN. */
         char name[MAX_VARNAME_LEN];
         const char *value;
         const char *var;
@@ -107,16 +157,16 @@ envrestore(const char *const *const vars, const size_t npregs,
 
         if (strnlen(var, MAX_VAR_LEN) >= (size_t) MAX_VAR_LEN) {
             /* RATS: ignore; format is short and a literal. */
-            syslog(LOG_INFO, "discarding overly long variable.");
-        } else if (splitstr(var, "=", MAX_VARNAME_LEN, name, &value) != OK) {
+            syslog(LOG_INFO, "discarding variable that is too long.");
+        } else if (str_split(var, "=", sizeof(name), name, &value) != OK) {
             /* RATS: ignore; format is short and a literal. */
-            syslog(LOG_INFO, "discarding variable with overly long name.");
+            syslog(LOG_INFO, "discarding variable with too long a name.");
+        } else if (!env_is_name(name)) {
+            /* RATS: ignore; format is short and a literal. */
+            syslog(LOG_INFO, "$%s: bad name.", name);
         } else if (value == NULL) {
             /* RATS: ignore; format is short and a literal. */
-            syslog(LOG_INFO, "variable $%s: no value.", name);
-        } else if (!envisname(name)) {
-            /* RATS: ignore; format is short and a literal. */
-            syslog(LOG_INFO, "variable $%s: bad name.", name);
+            syslog(LOG_INFO, "$%s: no value.", name);
         } else {
             size_t pregidx;
 
@@ -140,7 +190,7 @@ envrestore(const char *const *const vars, const size_t npregs,
         }
     }
 
-    if (varidx >= MAX_NVARS) {
+    if (varidx >= (size_t) MAX_NVARS) {
         return ERR_LEN;
     }
 
