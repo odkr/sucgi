@@ -55,13 +55,11 @@ main (int argc, char **argv)
     long nenv;
     long nvars;
     bool inherit;
-    bool count;
     int opt;
 
     nenv = 0;
     nvars = 0;
     inherit = true;
-    count = true;
 
     while ((opt = getopt(argc, argv, "in:h")) != -1) {
         switch (opt) {
@@ -98,7 +96,6 @@ main (int argc, char **argv)
             if (nvars > SHRT_MAX) {
                 errx(EXIT_FAILURE, "-n: %ld is too large", nvars);
             }
-            count = false;
             break;
         default:
             return EXIT_FAILURE;
@@ -119,11 +116,11 @@ main (int argc, char **argv)
     }
 
     if (nenv > SHRT_MAX) {
-        errx(EXIT_FAILURE, "too many variables in current environment");
+        errx(EXIT_FAILURE, "environment contains too many variables");
     }
 
-    if (count) {
-        while (   nvars < argc
+    if (nvars == 0) {
+        while (nvars < argc
                && argv[nvars] != NULL
                && strchr(argv[nvars], '='))
         {
@@ -139,12 +136,12 @@ main (int argc, char **argv)
 
     /*
      * New variables are simply inserted before the current ones,
-     * so there maybe duplicates; this is BADenv, after all.
+     * so there may be duplicates; this is BADenv, after all.
      */
 
     if (nvars > 0) {
         if ((size_t) nvars > SIZE_MAX / sizeof(*argv)) {
-            /* Should be unreachable. */
+            /* NOTREACHED */
             errx(EXIT_FAILURE, "too many variables given");
         }
 
@@ -153,8 +150,8 @@ main (int argc, char **argv)
 
     if (nenv > 0) {
         if ((size_t) nenv > SIZE_MAX / sizeof(*environ)) {
-            /* Should be unreachable. */
-            errx(EXIT_FAILURE, "too many variables in environment");
+            /* NOTREACHED */
+            errx(EXIT_FAILURE, "environment contains too many variables");
         }
 
         (void) memcpy(&vars[nvars], environ, (size_t) nenv * sizeof(*environ));

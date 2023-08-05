@@ -40,10 +40,7 @@ main (int argc, char **argv)
 {
     struct passwd *pwd;
     char **comm;
-    bool real;
     int opt;
-
-    real = false;
 
     while ((opt = getopt(argc, argv, "hr")) != -1) {
         switch (opt) {
@@ -57,16 +54,12 @@ main (int argc, char **argv)
 "    COMM     Command to run.\n"
 "    ARG      Argument to COMM.\n\n"
 "Options:\n"
-"    -r       Only set the real user and group IDs.\n"
 "    -h       Print this help screen.\n\n"
 "Copyright 2022 and 2023 Odin Kroeger.\n"
 "Released under the GNU General Public License.\n"
 "This programme comes with ABSOLUTELY NO WARRANTY."
             );
             return EXIT_SUCCESS;
-        case 'r':
-            real = true;
-            break;
         default:
             return EXIT_FAILURE;
         }
@@ -90,28 +83,21 @@ main (int argc, char **argv)
         }
     }
 
-    if (real) {
-        if (setreuid(pwd->pw_uid, geteuid()) != 0) {
-            err(EXIT_FAILURE, "setreuid");
-        }
-        if (setregid(pwd->pw_gid, getegid()) != 0) {
-            err(EXIT_FAILURE, "setregid");
-        }
-    } else {
-        if (setgroups(1, (gid_t[1]) {(gid_t) pwd->pw_gid}) != 0) {
-            err(EXIT_FAILURE, "setgroups");
-        }
-        if (setgid(pwd->pw_gid) != 0) {
-            err(EXIT_FAILURE, "setgid");
-        }
-        if (setuid(pwd->pw_uid) != 0) {
-            err(EXIT_FAILURE, "setuid");
-        }
+    if (setgroups(1, (gid_t[1]) {(gid_t) pwd->pw_gid}) != 0) {
+        err(EXIT_FAILURE, "setgroups");
+    }
+
+    if (setgid(pwd->pw_gid) != 0) {
+        err(EXIT_FAILURE, "setgid");
+    }
+
+    if (setuid(pwd->pw_uid) != 0) {
+        err(EXIT_FAILURE, "setuid");
     }
 
     comm = &argv[1];
     (void) execvp(*comm, comm);
 
-    /* This point should not be reached. */
+    /* NOTREACHED */
     err(EXIT_FAILURE, "exec %s", *comm);
 }

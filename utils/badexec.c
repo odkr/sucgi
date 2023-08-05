@@ -35,7 +35,7 @@ main (int argc, char **argv)
 {
     int opt;
 
-    while ((opt = getopt(argc, argv, "in:h")) != -1) {
+    while ((opt = getopt(argc, argv, "h")) != -1) {
         switch (opt) {
         case 'h':
             (void) puts(

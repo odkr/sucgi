@@ -25,6 +25,7 @@
 #define _GNU_SOURCE
 
 #include <sys/types.h>
+#include <assert.h>
 #include <err.h>
 #include <errno.h>
 #include <pwd.h>
@@ -56,7 +57,7 @@ typedef int (*Compar)(const void *, const void *);
  */
 
 /* Compare two user IDs. */
-static int cmpuids(const uid_t *a, const uid_t *b);
+static int cmpuids(const uid_t *uid1, const uid_t *uid2);
 
 
 /*
@@ -64,14 +65,19 @@ static int cmpuids(const uid_t *a, const uid_t *b);
  */
 
 static int
-cmpuids(const uid_t *const a, const uid_t *const b)
+cmpuids(const uid_t *const uid1, const uid_t *const uid2)
 {
-    if (*a < *b) {
+    assert(uid1 != NULL);
+    assert(uid2 != NULL);
+
+    if (*uid1 < *uid2) {
         return -1;
     };
-    if (*a > *b) {
+
+    if (*uid1 > *uid2) {
         return 1;
     }
+
     return 0;
 }
 
@@ -86,11 +92,11 @@ main(int argc, char **argv)
     struct passwd *pwd;
     uid_t *seen;
     size_t nseen;
-    size_t maxseen;
+    size_t maxnseen;
     int opt;
 
     nseen = 0;
-    maxseen = NIDS;
+    maxnseen = NIDS;
 
     while ((opt = getopt(argc, argv, "gh")) != -1) {
         switch (opt) {
@@ -124,7 +130,7 @@ main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    seen = malloc(maxseen * sizeof(*seen));
+    seen = malloc(maxnseen * sizeof(*seen));
     if (seen == NULL) {
         err(EXIT_FAILURE, "malloc");
     }
@@ -144,19 +150,19 @@ main(int argc, char **argv)
             char *name = pwd->pw_name;
 
             if ((uid_t) -1 < (uid_t) 1) {
-                (void) printf("%" PRId64 " %s\n", (int64_t) uid, name);
+                (void) printf("%lld %s\n", (long long) uid, name);
             } else {
-                (void) printf("%" PRIu64 " %s\n", (uint64_t) uid, name);
+                (void) printf("%llu %s\n", (unsigned long long) uid, name);
             }
 
-            if (nseen == maxseen) {
-                maxseen *= 2;
+            if (nseen == maxnseen) {
+                maxnseen *= 2;
 
-                if (SIZE_MAX / sizeof(*seen) > maxseen) {
+                if (SIZE_MAX / sizeof(*seen) > maxnseen) {
                     errx(EXIT_FAILURE, "too many entries");
                 }
 
-                seen = realloc(seen, maxseen * sizeof(*seen));
+                seen = realloc(seen, maxnseen * sizeof(*seen));
                 if (seen == NULL) {
                     err(EXIT_FAILURE, "realloc");
                 }

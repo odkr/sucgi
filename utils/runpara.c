@@ -209,11 +209,11 @@ cleanup(void)
         (void) signaljobs(SIGTERM);
 
         now = time(NULL);
-        for (long rem = grace; nrun > 0 && rem > 0;
-             rem = grace - (long) difftime(time(NULL), now))
+        for (double rem = (double) grace; nrun > 0 && rem > 0;
+             rem = (double) grace - difftime(time(NULL), now))
         {
             clearln(stderr);
-            warnx("waiting %lds for %ld job(s) to terminate ...",
+            warnx("waiting %.0fs for %ld job(s) to terminate ...",
                   rem, (long) nrun);
             rewindln(stderr);
             (void) sleep(1);
@@ -225,6 +225,8 @@ cleanup(void)
         } else {
             warnx("all jobs terminated");
         }
+
+        (void) signaljobs(SIGKILL);
 
         errno = 0;
         if (sigprocmask(SIG_BLOCK, &oldmask, NULL) != 0) {
@@ -269,7 +271,7 @@ collect(const int signo __attribute__((unused)))
         }
 
         if (i == maxnrun) {
-            /* Should be unreachable. */
+            /* NOTREACHED */
             unknownpid = pid;
             break;
         }
@@ -601,7 +603,7 @@ main (int argc, char **argv)
                         }
                     }
                 } else {
-                    /* Should be unreachable. */
+                    /* NOTREACHED */
                     warnx("%s[%d] exited abnormally", job->comm, job->pid);
                     return EXIT_FAILURE;
                 }
@@ -648,12 +650,12 @@ main (int argc, char **argv)
     clearln(stderr);
 
     if (waitpiderr > 0) {
-        /* Should be unreachable. */
+        /* NOTREACHED */
         errx(EXIT_FAILURE, "waitpid: %s", strerror((int) waitpiderr));
     }
 
     if (unknownpid > 0) {
-        /* Should be unreachable. */
+        /* NOTREACHED */
         errx(EXIT_FAILURE, "forgot about process %ld", (long) unknownpid);
     }
 
@@ -665,7 +667,7 @@ main (int argc, char **argv)
         (void) sigaction((int) caught, &defhdl, NULL);
         (void) raise((int) caught);
 
-        /* Should be unreachable. */
+        /* NOTREACHED */
         return (int) caught + 128;
     }
 
