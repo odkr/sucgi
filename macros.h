@@ -24,19 +24,23 @@
 
 #include <limits.h>
 
+/* Trigger a compile-time error if the given condition is false. */
+#define ASSERT(cond) ((void) sizeof(char[(cond) ? 1 : -1]))
 
-/* Trigger a compile-time error if COND is false. */
-#define ERRORIF(cond) (void) sizeof(char[(cond) ? -1 : 1])
+/* FIXME: Untested. */
+/* Log the given message as an error and exit with status EXIT_FAILURE. */
+#define BUG(msg, ...) error("%s:%d: " msg, __FILE__, __LINE__, __VA_ARGS__);
 
-/* Check whether a given integer TYPE is signed. */
+/* Size of a type in bits. */
+#define BITS(type) (sizeof(type) * (size_t) CHAR_BIT)
+
+/* Check whether a type is signed. */
 #define ISSIGNED(type) ((type) -1 < (type) 1)
 
-/* Calculate the number of elements in ARRAY. */
+/* Get the number of elements in the given array. */
 #define NELEMS(array) (sizeof((array)) / sizeof(*(array)))
 
-/* Calculate the maximum signed value that a given integer TYPE can hold. */
-#define SIGNEDMAX(type) \
-    ((1UL << ((size_t) CHAR_BIT * sizeof(type) - 1UL)) - 1UL)
-
+/* Get the maximum value a type could hold if it were signed and unpadded. */
+#define MAXSVAL(type) (((uintmax_t) 1 << (BITS(type) - 1U)) - 1U)
 
 #endif /* !defined(MACROS_H) */
