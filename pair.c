@@ -34,20 +34,23 @@
 
 
 Error
-pairfind(const size_t npairs, const Pair *const pairs,
-         const char *const key, const char **const value)
+pair_find(const size_t npairs, const Pair *const pairs,
+          const size_t keylen, const char *const key,
+          const char **const value)
 {
-    size_t len = strnlen(key, MAX_STR_LEN);
+    const size_t keysize = keylen + 1U;
 
     assert(pairs != NULL);
     assert(key != NULL);
-    assert(len < MAX_STR_LEN);
+    assert(keysize <= (size_t) MAX_STR_LEN);
     assert(value != NULL);
+    assert(strnlen(key, MAX_STR_LEN) == keylen);
+    assert(keylen < MAX_STR_LEN);
 
     for (size_t i = 0; i < npairs; ++i) {
         const Pair *pair = &pairs[i];
 
-        if (strncmp(key, pair->key, len + 1U) == 0) {
+        if (pair->key != NULL && strncmp(key, pair->key, keysize) == 0) {
             *value = pair->value;
             return OK;
         }

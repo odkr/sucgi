@@ -27,18 +27,17 @@
 #include "attr.h"
 #include "types.h"
 
-
 /*
- * Search for the value of KEY in the array of key-value pairs PAIRS and
- * return its value in VALUE. PAIRS must contain at least NPAIRS elements;
- * supernumery elements are ignored.
+ * Search for the value of the given key in the given array of key-value pairs
+ * and return that value in "value". The array of key-value pairs must contain
+ * at least "npairs" elements; supernumery elements are ignored.
  *
  * Return value:
  *     OK          Success.
- *     ERR_SEARCH  KEY was not found.
+ *     ERR_SEARCH  There is no pair with the given key.
  */
-__attribute__((nonnull(2, 3, 4), warn_unused_result))
-Error pairfind(size_t npairs, const Pair *pairs,
-               const char *key, const char **value);
+_read_only(2, 1) _read_only(4, 3) _write_only(5) _nonnull(2, 4, 5) _nodiscard
+Error pair_find(size_t npairs, const Pair *pairs,
+                size_t keylen, const char *key, const char **value);
 
 #endif /* !defined(PAIR_H) */
