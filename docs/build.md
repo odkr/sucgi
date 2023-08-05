@@ -86,15 +86,16 @@ safety checks. It is intended for testing only.
 environment variables and M4, Make, or C preprocessor macros respectively.
 
 ```mermaid
-graph TD;
+graph TD
 
-    Build configuration file --> *configure*;
-    Environment --> *configure*;
-    *configure* --> M4;
-    M4 --> **makefile**;
-    M4 --> **compat.h**;
-    **makefile** --> C compiler;
-    **compat.h** --> **config.h** --> C compiler;
+Configuration --> configure
+Environment --> configure
+configure --> M4
+M4 --> makefile
+M4 --> compat.h
+makefile --> Compiler
+compat.h --> config.h --> Compiler
+compat.h --> params.h --> Compiler
 ```
 
 Setting environment variables or changing configuration files changes
@@ -114,7 +115,7 @@ if the **makefile** and **compat.h** are created without *configure*
 | Make        | CC                  |
 | C compiler  | -                   |
 
-Set the default compiler in the **makefile** using *configure*:
+Set the default compiler when generating the **makefile** with *configure*:
 
     CC=/usr/local/bin/obscurecc ./configure
 
@@ -135,11 +136,12 @@ Use a non-default compiler when compiling:
 | Make        | CFLAGS              |
 | C compiler  | -                   |
 
-Add flags to test for or macros using *configure*:
+
+Add flags to test for or macros with *configure*:
 
     ./configure -F-fstack-protector-all -DNDEBUG
 
-Set the default compiler flags in the **makefile** using *configure*:
+Set the default compiler flags in the **makefile** with *configure*:
 
     CFLAGS="-DNDEBUG -O2" ./configure
 
@@ -321,10 +323,9 @@ See [install.md].
 suCGI's run-time behaviour is configured at compile-time.
 See **[config.h]** for details. Defaults are set in **[params.h]**.
 
-You can override any macro in **[compat.h]** and **[params.h]** by either
-using *configure*'s **-D** option or by defining a macro of the same name
-in **config.h**.
-
+You can override any macro in **[compat.h]** and **[params.h]** by
+using *configure*'s **-D** option or by defining a macro of the same
+name in **config.h**.
 
 [compat.h]: ../compat.h
 [config.h]: ../config.h
