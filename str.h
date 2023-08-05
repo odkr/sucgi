@@ -29,48 +29,58 @@
 
 
 /*
- * Copy at most NBYTES bytes, excluding the terminating NUL, from SRC
- * to DEST and terminate the string at DEST with NUL. DEST must be large
- * enough to hold NBYTES + 1 bytes.
+ * Copy each byte of the given string to the memory area the parameter "dest"
+ * points to, but stop when a null byte is encountered or the given number of
+ * bytes has been copied, then terminate the copied value with a null byte
+ * and return the length of the destination in the variable pointed to by
+ * "destlen".
+ *
+ * The given memory area must be large enough to hold the result; that is,
+ * it must be at least one byte larger than the given number of bytes.
  *
  * Return value:
  *      OK       Success.
- *      ERR_LEN  Source is longer than LEN bytes.
+ *      ERR_LEN  Source string is too long.
  */
-__attribute__((nonnull(2, 3)))
-Error copystr(size_t nbytes, const char *src, char *dest);
+_read_only(2, 1) _write_only(3) _write_only(4) _nonnull(2, 4)
+Error str_copy(size_t nbytes, const char *src, size_t *destlen, char *dest);
 
 /*
- * Search STR for printf format specifiers and return the total number
- * of specifiers in NSPECS and pointers to the character after the '%'
- * sign of each specifier in SPECS, which must be large enough to hold
- * MAXNSPECS elements.
+ * Search the given string for printf format specifiers and return the number
+ * of specifiers found in the variable that the parameter "nspecs" points to
+ * and the format characters that follow the '%' signs in the memory area
+ * "fmtchars" points to; that memory area must be large enough to hold the
+ * given maximum number of format specifiers.
+ *
+ * Caveats:
+ *      Does not support format modifiers.
  *
  * Return value:
  *      OK       Success.
- *      ERR_LEN  STR contains more than MAXNSPECS format specifiers.
+ *      ERR_LEN  Too many format specifiers.
  */
-__attribute__((nonnull(1, 3, 4), warn_unused_result))
-Error getspecstrs(const char *str, size_t maxnspecs,
-                  size_t *nspecs, const char **specs);
+_read_only(1) _write_only(3) _write_only(4, 2) _nonnull(1, 3, 4) _nodiscard
+Error str_fmtspecs(const char *str, size_t maxnspecs,
+                  size_t *nspecs, const char **fmtchars);
 
 /*
- * Split STR at the first occurence of any byte in SEP, copy the substring
- * up to, but not including, that byte, to HEAD, terminate it with NUL, and
- * return a pointer to the substring that starts after that byte in TAIL.
+ * Split the given string at the first occurence of any of the given bytes,
+ * copy the substring up to, but not including, that byte to the memory area
+ * pointed to by the parameter "head" and return a pointer to the substring
+ * that starts after the separator in the memory area pointed to by the
+ * parameter "tail".
  *
- * The substring before the separator must be at most SIZE - 1 bytes long.
- * HEAD must be large enough to hold SIZE bytes, including the terminating NUL.
+ * The memory area pointed to by "head" must be of the given size;
+ * the substring before the separator must be shorter than that size.
  *
- * HEAD and TAIL are meaningless if an error occurs.
+ * Neither substring is meaningful if an error occurs.
  *
  * Return value:
  *      OK       Success.
- *      ERR_LEN  Head is too long.
+ *      ERR_LEN  The substring before the separator is too long.
  */
-__attribute__((nonnull(1, 2, 4, 5), warn_unused_result))
-Error splitstr(const char *str, const char *sep,
-               size_t size, char *head, const char **tail);
-
+_read_only(1) _read_only(2) _write_only(4, 3) _nonnull(1, 2, 4, 5) _nodiscard
+Error str_split(const char *str, const char *sep,
+                size_t size, char *head, const char **tail);
 
 #endif /* !defined(STR_H) */
