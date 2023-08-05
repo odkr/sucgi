@@ -1,4 +1,4 @@
-[![coverage]]
+[![coverage]](https://sonarcloud.io/component_measures?metric=Coverage&id=odkr_sucgi)
 [![sonar]]
 [![codacy]]
 
