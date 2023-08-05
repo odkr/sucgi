@@ -44,50 +44,61 @@ extern char **environ;
  */
 
 /*
- * Copy the value of the environment variable named NAME to VALUE,
- * which must be large enough to hold MAX_VAR_LEN bytes.
+ * Copy each byte of the given environment variable to the memory area the
+ * parameter "value" points to, but stop when a null byte is encountered or
+ * the the given maximum length has been reached, then terminate the copied
+ * value with a null byte and return the length of the value in the variable
+ * pointed to by "len".
+ *
+ * The given memory area must be large enough to hold the result; that is,
+ * it must be at least one byte larger than the given number of bytes.
  *
  * Return value:
  *     OK          Success.
- *     ERR_LEN     NAME is too long.
- *     ERR_SEARCH  NAME is not set.
+ *     ERR_LEN     The variable is longer than the given number of bytes.
+ *     ERR_SEARCH  There is no variable with the given name.
  *     ERR_SYS     getenv failed.
  */
-__attribute__((nonnull(1, 2), warn_unused_result))
-Error envcopyvar(const char *name, char value[MAX_VAR_LEN]);
+_read_only(1) _write_only(3) _write_only(4, 2) _nonnull(1, 3, 4) _nodiscard
+Error env_copy_var(const char *name, size_t maxlen, size_t *len, char *value);
+
+
+/* FIXME: unused, untested, undocumented. */
+_read_only(1) _nonnull(1) _nodiscard
+Error env_init(const char *vars);
 
 /*
- * Check whether STR is a valid environment variable name.
+ * Check whether the given string is ASCII-encoded, non-empty, starts with
+ * a non-numeric character, and comprises only alphanumeric characters and
+ * the underscore.
  */
-__attribute__((nonnull(1), warn_unused_result))
-bool envisname(const char *str);
+_read_only(1) _nonnull(1) _nodiscard
+bool env_is_name(const char *str);
 
 /*
- * Set every variable in VARS the name of which matches one of the regular
- * expressions in PREGS as environment variable. VARS is an array of strings,
- * must be NULL-terminated, and may contain at most MAX_NVARS elements,
- * including the terminating NULL; strings must be of the form <name>=<value>
- * and may be at most MAX_VAR_LEN bytes long, including the terminating NUL;
- * variable names must be ASCII-encoded, non-empty, start with a non-numeric
- * character, consist only of alphanumeric characters or the underscore, and
- * may be at most MAX_VARNAME_LEN - 1 bytes long. PREGS must contain at least
- * NPREGS expressions; supernumery expressions are ignored.
+ * Set each of the given environment variables that matches one of the given
+ * POSIX extended regular expressions. The array of variables must contain at
+ * most MAX_NVARS elements and must be terminated by a null pointer. Variables
+ * may at most be MAX_VAR_LEN bytes long, including the terminating null byte;
+ * variable names must pass env_is_name and be at most MAX_VAR_LEN bytes
+ * long, including the null terminator. At least "npregs" regular expressions
+ * must be given; supernumery expressions are ignored.
  *
  * Note, an attacker may populate the environment with variables that are
- * not NUL-terminated. If the memory area after such a variable contains
- * a NUL within MAX_VAR_LEN - 1 bytes, envrestore will overshoot and dump
- * the contents of that memory region into the environment.
+ * not null-terminated. If the memory area after such a variable contains
+ * a null byte within MAX_VAR_LEN - 1 bytes, env_restore will overshoot
+ * and dump the contents of that memory area into the environment.
  *
  * Return value:
  *     OK        Success.
- *     ERR_LEN   Too many environment variables.
+ *     ERR_LEN   There are more than MAX_NVARS variables.
  *     ERR_SYS   setenv failed.
  *
  * Side-effects:
  *     Logs which variables are kept and which are discarded.
  */
-__attribute__((nonnull(1, 3), warn_unused_result))
-Error envrestore(const char *const *vars, size_t npregs, const regex_t *pregs);
-
+_read_only(1) _read_only(3, 2) _nonnull(1, 3) _nodiscard
+Error env_restore(const char *const *vars,
+                  size_t npregs, const regex_t *pregs);
 
 #endif /* !defined(ENV_H) */
