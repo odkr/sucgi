@@ -18,11 +18,9 @@ variables and M4, or Make respectively.
 ```mermaid
 graph TD
 
-    configure(`./configure`) -- calls --> M4
+configure -- calls --> M4
 
-    M4 -- generates --> makefile(**makefile**)
-
-    M4 -- generates --> compat.h(**compat.h**)
+M4 -- generates --> makefile
 ```
 
 If you change the **makefile**'s defaults by defining Make macros on the
@@ -31,7 +29,7 @@ the same values when you call `make uninstall`!
 
 M4 macros are used by *configure*. They need, and can, only be defined
 if the **makefile** and **compat.h** are created without *configure*
-(see "Creating a configuration without *configure*" in <build.md>).
+(see "Creating a configuration without *configure*" in [build.md]).
 
 ### Directory prefix (path)
 
@@ -100,4 +98,6 @@ Defaults to "www-data".
 
 ### Build and run-time configuration
 
-See <build.md>.
+See [build.md].
+
+[build.md]: build.md
