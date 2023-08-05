@@ -30,18 +30,20 @@
 
 
 /*
- * Expand the user directory pattern STR for the given USER and return
- * the expanded user directory in DIR, which must be large enough to hold
- * hold MAX_FNAME_LEN bytes, including the terminating NUL.
+ * Expand the given user directory pattern for the given user and copy the
+ * expanded user directory to the memory area "dir" points to, which must
+ * be of the given size, and return the length of the expanded directory
+ * in the variable pointed to by by "dirlen".
  *
  * Return value:
  *     OK       Success.
- *     ERR_LEN  Resolved directory is too long.
+ *     ERR_LEN  The resolved directory is too long.
  *     ERR_SYS  snprintf failed.
  */
-__attribute__((nonnull(1, 2, 3), format(printf, 1, 0), warn_unused_result))
-Error userdirexp(const char *str, const struct passwd *user,
-                 char dir[MAX_FNAME_LEN]);
+_read_only(1) _read_only(2) _write_only(4) _write_only(5, 3)
+    _format(printf, 1, 0) _nonnull(1, 2, 5) _nodiscard
+Error userdir_exp(const char *str, const struct passwd *user,
+                  size_t size, size_t *dirlen, char *dir);
 
 
 #endif /* !defined(USERDIR_H) */

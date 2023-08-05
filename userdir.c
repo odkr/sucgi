@@ -28,7 +28,6 @@
 #include <assert.h>
 #include <errno.h>
 #include <pwd.h>
-/* cppcheck-suppress misra-c2012-21.6; needed for snprintf. */
 #include <stdio.h>
 #include <string.h>
 
@@ -48,50 +47,58 @@
 #endif
 
 Error
-userdirexp(const char *const str, const struct passwd *const user,
-           char dir[MAX_FNAME_LEN])
+userdir_exp(const char *const str, const struct passwd *const user,
+            const size_t size, size_t *const dirlen, char *const dir)
 {
     int nchars;
 
     assert(str != NULL);
     assert(*str != '\0');
     assert(strnlen(str, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
+    assert(size <= (size_t) MAX_FNAME_LEN);
     assert(user != NULL);
     assert(dir != NULL);
 
-    /* Some versions of snprintf fail to NUL-terminate strings. */
-    (void) memset(dir, '\0', MAX_FNAME_LEN);
+    /* Some versions of snprintf fail to null-terminate strings. */
+    (void) memset(dir, '\0', size);
 
     errno = 0;
     if (*str != '/') {
         /* RATS: ignore; format is short and a literal. */
-        nchars = snprintf(dir, MAX_FNAME_LEN, "%s/%s", user->pw_dir, str);
+        nchars = snprintf(dir, size, "%s/%s", user->pw_dir, str);
     } else {
         const char *spec;
         size_t nspecs;
 
-        if (getspecstrs(str, 1, &nspecs, &spec) != OK) {
+        if (str_fmtspecs(str, 1, &nspecs, &spec) != OK) {
             return ERR_BAD;
         }
 
         if (nspecs == 0U) {
             /* RATS: ignore; format is short and a literal. */
-            nchars = snprintf(dir, MAX_FNAME_LEN, "%s/%s", str, user->pw_name);
+            nchars = snprintf(dir, size, "%s/%s", str, user->pw_name);
         } else if (*spec == 's') {
             /* RATS: ignore; str is verified above. */
-            nchars = snprintf(dir, MAX_FNAME_LEN, str, user->pw_name);
+            nchars = snprintf(dir, size, str, user->pw_name);
         } else {
             return ERR_BAD;
         }
-
     }
 
     if (nchars < 0) {
-        /* Should only be reachable if str contains an invalid wchar. */
         return ERR_SYS;
     }
+
     if ((size_t) nchars >= (size_t) MAX_FNAME_LEN) {
         return ERR_LEN;
+    }
+
+    assert((size_t) nchars == strnlen(dir, MAX_FNAME_LEN));
+    assert(nchars > 0);
+    assert(*dir != '\0');
+
+    if (dirlen != NULL) {
+        *dirlen = (size_t) nchars;
     }
 
     return OK;
