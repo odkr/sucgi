@@ -17,6 +17,7 @@
 compat.h
 config.status
 cov
+cppcheck/build/*
 gcov
 local.env
 makefile
