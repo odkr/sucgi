@@ -188,7 +188,7 @@ case $(uname) in
 (*)      export LD_PRELOAD=tests/libmock.so ;;
 esac
 
-reguser="$(reguser "$MIN_UID" "$MAX_UID" "$MIN_GID" "$MAX_GID")" ||
+reguser="$(reguser "$START_UID" "$STOP_UID" "$START_GID" "$STOP_GID")" ||
 err 'no regular user found.'
 
 reggroup="$(id -gn "$reguser")" && [ "$reggroup" ] ||
