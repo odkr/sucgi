@@ -156,13 +156,13 @@ along with suCGI. If not, see <https://www.gnu.org/licenses/>.
 
 [coverage]: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=coverage
 
-[![coverage]]: https://sonarcloud.io/component_measures?metric=Coverage&id=odkr_sucgi
+[[coverage]]: https://sonarcloud.io/component_measures?metric=Coverage&id=odkr_sucgi
 
 [codacy]: https://app.codacy.com/project/badge/Grade/cb67a3bad615449589dfb242876600ac
 
-[![codacy]]:
+[[codacy]]:
 https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_content=odkr/sucgi
 
 [sonar]: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=alert_status
 
-[![sonar]]: https://sonarcloud.io/project/overview?id=odkr_sucgi
+[[sonar]]: https://sonarcloud.io/project/overview?id=odkr_sucgi
