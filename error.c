@@ -51,12 +51,13 @@ error(const char *const message, ...)
 
     assert(message != NULL);
     assert(*message != '\0');
-    assert(strnlen(message, MAX_ERRMSG_LEN) < MAX_STR_LEN);
+    assert(strnlen(message, MAX_ERRMSG_LEN) < MAX_ERRMSG_LEN);
 
     va_start(argp, message);
     vsyslog(LOG_ERR, message, argp);
     va_end(argp);
 
+    /* cppcheck-suppress misra-c2012-21.8; `error` must terminate. */
     exit(EXIT_FAILURE);
 }
 

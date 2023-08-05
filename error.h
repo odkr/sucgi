@@ -24,10 +24,8 @@
 
 #include "attr.h"
 
-
-/* Log MESSAGE as an error and exit with status EXIT_FAILURE. */
-__attribute__((nonnull(1), noreturn))
+/* Log the given message as an error and exit with status EXIT_FAILURE. */
+_read_only(1) _nonnull(1) _noreturn
 void error(const char *message, ...);
-
 
 #endif /* !defined(ERROR_H) */
