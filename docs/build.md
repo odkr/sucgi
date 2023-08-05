@@ -389,14 +389,16 @@ The error message should indicate which setting.
 
 For example, the error
 
-> In file included from main.c:53:
-> main.c: In function 'main':
-> macros.h:28:41: error: size of unnamed array is negative
->    28 | #define ASSERT(cond) ((void) sizeof(char[(cond) ? 1 : -1]))
->       |                                         ^
-> main.c:273:5: note: in expansion of macro 'ASSERT'
->   273 |     ASSERT(MAX_NGRPS_VAL >= INT_MAX);
->       |     ^~~~~~
+```
+In file included from main.c:53:
+main.c: In function 'main':
+macros.h:28:41: error: size of unnamed array is negative
+   28 | #define ASSERT(cond) ((void) sizeof(char[(cond) ? 1 : -1]))
+      |                                         ^
+main.c:273:5: note: in expansion of macro 'ASSERT'
+  273 |     ASSERT(MAX_NGRPS_VAL >= INT_MAX);
+      |     ^~~~~~
+```
 
 indicates that the value of MAX_NGRPS_VAL is required to be greater than
 or equal to the value of INT_MAX, but isn't.
