@@ -22,7 +22,6 @@
 #if !defined(TYPES_H)
 #define TYPES_H
 
-
 /* Return codes. */
 typedef enum {
     OK = 0,             /* Success. */
@@ -35,14 +34,10 @@ typedef enum {
     ERR_SUFFIX          /* Filename has no suffix. */
 } Error;
 
-
 /* Simple key-value store. */
 typedef struct {
-    /* cppcheck-suppress unusedStructMember; false positive. */
-    const char *const key;
-    /* cppcheck-suppress unusedStructMember; false positive. */
-    const char *const value;
+    const char *const key;      /* cppcheck-suppress unusedStructMember */
+    const char *const value;    /* cppcheck-suppress unusedStructMember */
 } Pair;
-
 
 #endif /* !defined(TYPES_H) */
