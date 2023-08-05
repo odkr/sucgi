@@ -38,71 +38,21 @@
 #include "str.h"
 #include "types.h"
 
-
 Error
-pathchkloc(const char *const basedir, const char *const fname)
+path_real(const size_t fnamelen, const char *const fname,
+          size_t *const reallen, char **const real)
 {
-    size_t basedir_len;
-    size_t fname_len;
+    size_t len;
 
-    assert(basedir);
-    assert(*basedir != '\0');
-    assert(fname);
-    assert(*fname != '\0');
-
-    if (strncmp(fname, "/", sizeof("/")) == 0) {
-        return ERR_BASEDIR;
-    }
-
-    if (strncmp(fname, ".", sizeof(".")) == 0) {
-        return ERR_BASEDIR;
-    }
-
-    if (*fname == '/') {
-        if (strncmp(basedir, "/", sizeof("/")) == 0) {
-            return OK;
-        }
-    } else {
-        if (strncmp(basedir, ".", sizeof(".")) == 0) {
-            return OK;
-        }
-    }
-
-    basedir_len = strnlen(basedir, MAX_FNAME_LEN);
-    if (basedir_len >= (size_t) MAX_FNAME_LEN) {
-        return ERR_LEN;
-    }
-
-    fname_len = strnlen(fname, MAX_FNAME_LEN);
-    if (fname_len >= (size_t) MAX_FNAME_LEN) {
-        return ERR_LEN;
-    }
-
-    if (fname_len <= basedir_len) {
-        return ERR_BASEDIR;
-    }
-
-    if (fname[basedir_len] != '/') {
-        return ERR_BASEDIR;
-    }
-
-    if (strncmp(basedir, fname, basedir_len) != 0) {
-        return ERR_BASEDIR;
-    }
-
-    return OK;
-}
-
-Error
-pathreal(const char *const fname, char **const real)
-{
     assert(fname != NULL);
     assert(*fname != '\0');
+    assert(strnlen(fname, MAX_FNAME_LEN) == fnamelen);
+    assert(PATH_MAX == -1 || MAX_FNAME_LEN <= PATH_MAX);
     assert(real != NULL);
 
     *real = NULL;
 
-    if (strnlen(fname, MAX_FNAME_LEN) >= (size_t) MAX_FNAME_LEN) {
+    if (fnamelen >= (size_t) MAX_FNAME_LEN) {
         return ERR_LEN;
     }
 
@@ -113,19 +63,24 @@ pathreal(const char *const fname, char **const real)
         return ERR_SYS;
     }
 
-    if (strnlen(*real, MAX_FNAME_LEN) >= (size_t) MAX_FNAME_LEN) {
-        /* Probably unreachable, depending on your system. */
+    len = strnlen(*real, MAX_FNAME_LEN);
+    if (reallen != NULL) {
+        *reallen = len;
+    }
+
+    if (len >= (size_t) MAX_FNAME_LEN) {
         return ERR_LEN;
     }
+
+    assert(len > 0U);
 
     return OK;
 }
 
 Error
-pathsuffix(const char *const fname, const char **const suffix)
+path_suffix(const char *const fname, const char **const suffix)
 {
-    const char *sepptr;
-    size_t postsepidx;
+    const char *pathsep = NULL;
 
     assert(fname != NULL);
     assert(*fname != '\0');
@@ -141,21 +96,67 @@ pathsuffix(const char *const fname, const char **const suffix)
         return ERR_SUFFIX;
     }
 
-    /* cppcheck-suppress misra-c2012-18.4;
-       the expression *suffix - 1 can only be reached if *suffix > fname. */
-    if (*(*suffix - 1) == '/') {
+    /* cppcheck-suppress misra-c2012-18.4; only reached if *suffix > fname. */
+    if (*(*suffix - 1U) == '/') {
         return ERR_SUFFIX;
     }
 
-    sepptr = strchr(*suffix, '/');
-    if (sepptr == NULL) {
+    pathsep = strchr(*suffix, '/');
+    if (pathsep == NULL) {
         return OK;
     }
 
-    postsepidx = strspn(sepptr, "/");
-    if (sepptr[postsepidx] == '\0') {
+    if (pathsep[strspn(pathsep, "/")] == '\0') {
         return OK;
     }
 
     return ERR_SUFFIX;
+}
+
+bool
+path_within(const size_t fnamelen, const char *const fname,
+            const size_t basedirlen, const char *const basedir)
+{
+    assert(basedir != NULL);
+    assert(*basedir != '\0');
+    assert(strnlen(basedir, MAX_FNAME_LEN) == basedirlen);
+    assert(basedirlen < (size_t) MAX_FNAME_LEN);
+    assert(fname != NULL);
+    assert(*fname != '\0');
+    assert(strnlen(fname, MAX_FNAME_LEN) == fnamelen);
+    assert(fnamelen < (size_t) MAX_FNAME_LEN);
+
+    if (strncmp(fname, "/", sizeof("/")) == 0) {
+        return false;
+    }
+
+    if (strncmp(fname, ".", sizeof(".")) == 0) {
+        return false;
+    }
+
+    if (*fname == '/') {
+        if (strncmp(basedir, "/", sizeof("/")) == 0) {
+            return true;
+        }
+    } else {
+        if (strncmp(basedir, ".", sizeof(".")) == 0) {
+            return true;
+        }
+    }
+
+    if (fnamelen <= basedirlen) {
+        return false;
+    }
+
+    if (fname[basedirlen] != '/') {
+        return false;
+    }
+
+    if (strncmp(basedir, fname, basedirlen) != 0) {
+        return false;
+    }
+
+    assert(strstr(fname, basedir) != NULL);
+
+    return true;
 }
