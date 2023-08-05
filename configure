@@ -128,14 +128,14 @@ addflags() {
 		esac
 
 		__addflags_ncomps=$((__addflags_ncomps + 1))
-		__addflags_comps="$__addflags_comps $1"
+		__addflags_comps="$__addflags_comps $__addflags_arg"
 	done
 
 	if [ "$__addflags_ncomps" -gt 0 ]
 	then
 		shift "$__addflags_ncomps"
 		for __addflags_comp in $__addflags_comps
-		do eval "cflags_${__addflags_comp}"="\"\${cflags_${__addflags_comp-}-} \$*\""
+		do eval "cflags_${__addflags_comp}=\"\${cflags_${__addflags_comp-}-} \$*\""
 		done
 	else
 		cflags="${cflags-} $*"
