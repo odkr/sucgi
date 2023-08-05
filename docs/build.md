@@ -86,21 +86,15 @@ safety checks. It is intended for testing only.
 environment variables and M4, Make, or C preprocessor macros respectively.
 
 ```mermaid
-graph TD
+graph TD;
 
-    Build configuration file --> *configure*
-
-    Environment --> *configure*
-
-    *configure* --> M4
-
-    M4 --> **makefile**
-
-    M4 --> **compat.h**
-
-    **makefile** --> C compiler
-
-    **compat.h** --> **config.h** --> C compiler
+    Build configuration file --> *configure*;
+    Environment --> *configure*;
+    *configure* --> M4;
+    M4 --> **makefile**;
+    M4 --> **compat.h**;
+    **makefile** --> C compiler;
+    **compat.h** --> **config.h** --> C compiler;
 ```
 
 Setting environment variables or changing configuration files changes
@@ -319,7 +313,7 @@ Any non-zero integer value means true.
 
 ### Installation variables
 
-See <install.md>.
+See [install.md].
 
 
 ### Run-time configuration
@@ -358,7 +352,7 @@ The **makefile** supports the following 'phony' targets:
 | Target    | Description                                           |
 | --------- | ----------------------------------------------------- |
 | all       | Alias for "sucgi" and the default target.             |
-| check     | Compile and run tests (see <testing.m>).              |
+| check     | Compile and run tests (see [testing.md]).              |
 | tidy      | Delete archives, backups, logs, temporary files, etc. |
 | clean     | Delete compiled binaries and `make tidy`.             |
 | mrproper  | Delete caches, coverage data, and `make clean`.       |
@@ -366,25 +360,19 @@ The **makefile** supports the following 'phony' targets:
 | distcheck | Run `make check` from a distribution tarball.         |
 | distclean | Delete the build configuration and `make mrproper`.   |
 | sigdist   | Make a signed distribution tarball.                   |
-| install   | Install suCGI (see <install.md>).                     |
-| uninstall | Uninstall suCGI (see <install.md>).                   |
+| install   | Install suCGI (see [install.md]).                     |
+| uninstall | Uninstall suCGI (see [install.md]).                   |
 
 
 ```mermaid
-graph TD
-    all <-- sucgi
-
-    distclean <-- mrproper <-- clean <-- tidy
-
-    dist <-- distclean
-
-    distcheck <-- distclean
-
-    distcheck <-- check
-
-    sigdist <-- dist
-
-    install <-- all
+graph TD;
+    all <-- sucgi;
+    distclean <-- mrproper <-- clean <-- tidy;
+    dist <-- distclean;
+    distcheck <-- distclean;
+    distcheck <-- check;
+    sigdist <-- dist;
+    install <-- all;
 ```
 
 
@@ -412,3 +400,7 @@ For example, the error
 
 indicates that the value of MAX_NGRPS_VAL is required to be greater than
 or equal to the value of INT_MAX, but isn't.
+
+
+[install.md]: install.md
+[testing.md]: testing.md
