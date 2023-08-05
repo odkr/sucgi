@@ -1,6 +1,6 @@
-[![coverage]](https://sonarcloud.io/component_measures?metric=Coverage&id=odkr_sucgi)
-[![sonar]](https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=alert_status)
-[![codacy]](https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_content=odkr/sucgi)
+[![https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=coverage]](https://sonarcloud.io/component_measures?metric=Coverage&id=odkr_sucgi)
+[![https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=alert_status]](https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=alert_status)
+[![https://app.codacy.com/project/badge/Grade/cb67a3bad615449589dfb242876600ac]](https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_content=odkr/sucgi)
 
 # suCGI
 
@@ -10,6 +10,7 @@ suCGI checks whether a CGI script is owned by a non-system user
 and installed under the document root of that user's personal website,
 sets the permissions of the process to match the user's, cleans up
 the environment, and then runs the script.
+
 
 ## System requirements
 
@@ -27,6 +28,22 @@ However, you have to compile suCGI yourself; and for that you need:
 * The header files of your system's standard library
 
 suCGI ships with a script that installs these for you (see below).
+
+[4.4BSD]: https://docs-legacy.freebsd.org/44doc/
+
+[bmake]: https://www.crufty.net/help/sjg/bmake.html
+
+[Clang]: https://clang.llvm.org/
+
+[GCC]: https://gcc.gnu.org/
+
+[GNU Binutils]: https://www.gnu.org/software/binutils/
+
+[GNU M4]: https://www.gnu.org/software/m4/
+
+[GNU Make]: https://www.gnu.org/software/make/
+
+[POSIX.1-2008]: https://pubs.opengroup.org/onlinepubs/9699919799.2008edition/
 
 
 ## Installation
@@ -63,6 +80,11 @@ Install suCGI by:
 
 See **[docs/install.md]** and **[docs/uninstall.md]** for details.
 
+[docs/build.md]: docs/build.md
+
+[docs/install.md]: docs/install.md
+
+[docs/uninstall.md]: docs/uninstall.md
 
 
 ## Setup
@@ -93,6 +115,14 @@ Restart Apache:
 
     apache2ctl -t && apache2ctl restart
 
+[Apache]: https://httpd.apache.org/
+
+[mod_action]: https://httpd.apache.org/docs/2.4/mod/mod_actions.html
+
+[mod_userdir]: https://httpd.apache.org/docs/2.4/mod/mod_userdir.html
+
+[PHP]: https://www.php.net/
+
 
 ## Documentation
 
@@ -110,52 +140,15 @@ You are welcome to write me if you do not have a GitHub account.
 
 Copyright 2022 and 2023 Odin Kroeger
 
-suCGI is free software: you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free
-Software Foundation, either version 3 of the License, or (at your option)
-any later version.
+suCGI is free software: you can redistribute it and/or modify it
+under the terms of the GNU Affero General Public License as published
+by the Free Software Foundation, either version 3 of the License,
+or (at your option) any later version.
 
-suCGI is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+suCGI is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
+Public License for more details.
 
-You should have received a copy of the GNU General Public License
-along with suCGI. If not, see <https://www.gnu.org/licenses/>.
-
-
-
-[docs/build.md]: docs/build.md
-
-[docs/install.md]: docs/install.md
-
-[docs/uninstall.md]: docs/uninstall.md
-
-[4.4BSD]: https://docs-legacy.freebsd.org/44doc/
-
-[Apache]: https://httpd.apache.org/
-
-[bmake]: https://www.crufty.net/help/sjg/bmake.html
-
-[Clang]: https://clang.llvm.org/
-
-[GCC]: https://gcc.gnu.org/
-
-[GNU Binutils]: https://www.gnu.org/software/binutils/
-
-[GNU M4]: https://www.gnu.org/software/m4/
-
-[GNU Make]: https://www.gnu.org/software/make/
-
-[mod_action]: https://httpd.apache.org/docs/2.4/mod/mod_actions.html
-
-[mod_userdir]: https://httpd.apache.org/docs/2.4/mod/mod_userdir.html
-
-[PHP]: https://www.php.net/
-
-[POSIX.1-2008]: https://pubs.opengroup.org/onlinepubs/9699919799.2008edition/
-
-[coverage]: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=coverage
-
-[codacy]: https://app.codacy.com/project/badge/Grade/cb67a3bad615449589dfb242876600ac
-
-[sonar]: https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=alert_status
+You should have received a copy of the GNU Affero General Public
+License along with suCGI. If not, see <https://www.gnu.org/licenses/>.
