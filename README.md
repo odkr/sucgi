@@ -1,6 +1,6 @@
-[![coverage]]
-[![sonar]]
-[![codacy]]
+![coverage]
+![sonar]
+![codacy]
 
 # suCGI
 
@@ -49,7 +49,7 @@ Generate the build configuration by:
 
     ./configure
 
-See <docs/build.md> for details and troubleshooting.
+See **[docs/build.md]** for details and troubleshooting.
 
 suCGI is configured at compile-time. Adapt **config.h** to your needs.
 
@@ -61,7 +61,7 @@ Install suCGI by:
 
     sudo make install
 
-See <docs/install.md> and <docs/uninstall.md> for details.
+See **[docs/install.md]** and **[docs/uninstall.md]** for details.
 
 
 
@@ -96,7 +96,7 @@ Restart Apache:
 
 ## Documentation
 
-See the <docs/> sub-directory and the source code.
+See the **docs** sub-directory and the source code.
 
 
 ## Contact
@@ -123,9 +123,12 @@ You should have received a copy of the GNU General Public License
 along with suCGI. If not, see <https://www.gnu.org/licenses/>.
 
 
-## Further Information
 
-GitHub: https://github.com/odkr/sucgi
+[docs/build.md]: docs/build.md
+
+[docs/install.md]: docs/install.md
+
+[docs/uninstall.md]: docs/uninstall.md
 
 [4.4BSD]: https://docs-legacy.freebsd.org/44doc/
 
