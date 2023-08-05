@@ -32,7 +32,7 @@ cflags=
 compilers='gcc clang tcc icx icc c99 cc'
 
 # Configuration file.
-conf=etc/prod.env
+conf=conf/prod.env
 
 # Files to generate. Space-separated list.
 files='compat.h makefile'
@@ -56,9 +56,6 @@ quiet=
 
 # Search static code analysers?
 statenable=
-
-# Directories to add to $PATH when searching analysers. Colon-separated list.
-statpath=
 
 # Conversion warning flags.
 wconvflags='-Wincompatible-pointer-types -Wconversion -Wsign-conversion'
@@ -84,23 +81,25 @@ tmpdir tmp .
 # Variables to set as M4 Macros.
 readonly macros='
 	CC CFLAGS AR ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
-	SUCGI_GRP_T SUCGI_NGRPS_T SUCGI_HAVE_SYS_PARAM_H SUCGI_HAVE_FEATURES_H
-	SUCGI_UNAME SUCGI_SHARED_LIBS SUCGI_CGI_DIR SUCGI_WWW_GRP
-	SUCGI_CLANG_TIDY SUCGI_CPPCHECK SUCGI_FLAWFINDER SUCGI_RATS
-	SUCGI_SHELLCHECK
+	SUCGI_GRP_T SUCGI_NGRPS_T SUCGI_MAX_UID_VAL SUCGI_MAX_GID_VAL
+	SUCGI_MAX_GRP_VAL SUCGI_MAX_NGRPS_VAL SUCGI_HAVE_SYS_PARAM_H
+	SUCGI_HAVE_FEATURES_H SUCGI_UNAME SUCGI_SHARED_LIBS SUCGI_CGI_DIR
+	SUCGI_WWW_GRP SUCGI_CLANG_TIDY SUCGI_CPPCHECK SUCGI_FLAWFINDER
+	SUCGI_RATS SUCGI_SHELLCHECK
 '
 
 # Where to save the configuration.
 readonly confsave=config.status
 
-# Integer types used for group IDs and sizes. Colon-separated list.
-inttypes=
+# Integer types that may be used for IDs and sizes. Colon-separated list.
+inttypes=''
 for base in 'int' 'long' 'long long'
 do
 	for prefix in '' 'unsigned '
 	do inttypes="$inttypes:$prefix$base"
 	done
 done
+inttypes="$inttypes:intmax_t:uintmax_t"
 unset base
 readonly inttypes
 
@@ -169,30 +168,30 @@ testflags() {
 #
 
 OPTIND=1 OPTARG='' opt=''
-while getopts Dc:dfhj:p:qs opt
+while getopts F:D:U:Xc:dfhj:p:qs opt
 do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF >&2
-$prog_name - generate a build configuration
+configure - generate a build configuration
 
-Usage:       $prog_name [-cFILE|-d] [-f] [-jN] [-pDIR] [-q] [-s]
-                        [MACRO ...] [FILE ...]
-             $prog_name -h
+Usage:    configure [-F FLAG] [-D|-U MACRO ...]
+                    [-cFILE|-d] [-f] [-jN] [-q] [FILE ...]
+          configure -h
 
 Operands:
-    MACRO    An M4 macro.
-    FILE     A file to generate (default: $files).
+    FILE  A file to generate (default: $files).
 
 Options:
-    -c FILE  Read build configuration from FILE (default: $conf).
-    -d       Short for -c etc/devel.env.
-    -f       Overwrite existing files.
-    -j N     Run N configuration tests in parallel (default: $maxnjobs).
-    -p DIR   Add DIR to the search path for static analysers.
-    -s       Search for static code analysers.
-    -q       Be quiet.
-    -h       Show this help screen.
+    -F FLAG   Add FLAG to \$CFLAGS if supported by the compiler.
+    -D MACRO  Short for "-F -DMACRO".
+    -U MACRO  Short for "-F -UMACRO".
+    -c FILE   Read build configuration from FILE (default: $conf).
+    -d        Short for "-c conf/devel.env".
+    -f        Overwrite existing files.
+    -j N      Run at most N tests in parallel (default: $maxnjobs).
+    -q        Be quiet.
+    -h        Show this help screen.
 
 See docs/build.rst for details.
 
@@ -200,15 +199,16 @@ Copyright 2022 and 2023 Odin Kroeger.
 Released under the GNU General Public License.
 This programme comes with ABSOLUTELY NO WARRANTY.
 EOF
-		;;
-	(D) set -x ;;
+	    ;;
+	(X) set -x ;;
+	(D) addflags "-D$OPTARG" ;;
+	(U) addflags "-U$OPTARG" ;;
+	(F) addflags "$OPTARG" ;;
 	(c) conf="$OPTARG" ;;
-	(d) conf=etc/devel.env ;;
-	(f) force=x ;;
+	(d) conf=conf/devel.env ;;
+	(f) force=y ;;
 	(j) maxnjobs="$OPTARG" ;;
-	(p) statpath="$statpath:$OPTARG" ;;
-	(q) quiet=x ;;
-	(s) statenable=x ;;
+	(q) quiet=y ;;
 	(*) exit 1
 	esac
 done
@@ -326,7 +326,8 @@ readonly compprefix
 testflags=
 if ! [ "${CFLAGS-}" ] || ! [ "${SUCGI_GRP_T-}" ] || ! [ "${SUCGI_NGRPS_T}" ]
 then
-	for flag in -Wextra -Wpedantic -pedantic -pipe
+	# FIXME: Use a variable.
+	for flag in -std=c99 -Wextra -Wpedantic -pedantic -pipe
 	do testflags $flag && testflags="$testflags $flag"
 	done
 	unset flag
@@ -347,7 +348,7 @@ if [ "${CFLAGS-x}" = x ] && ! [ "${CFLAGS-}" = x ]
 then
 	if [ "$compname" = c99 ]
 	then
-		CFLAGS="-O2 -s"
+		CFLAGS="-O1 -s"
 		printf ' %s\n' "$CFLAGS"
 	else
 		eval specflags="\${cflags_$compprefix-}"
@@ -704,6 +705,7 @@ then
 		#define _GNU_SOURCE
 
 		#include <grp.h>
+		#include <inttypes.h>
 		#include <unistd.h>
 
 		int
@@ -729,11 +731,26 @@ then
 		if testcomp $wconvflags -DGRP_T="$grouptype" "$src"
 		then
 			SUCGI_GRP_T="$grouptype"
+
 			break
 		fi
 	done
 	unset src grouptype
 fi
+
+case $SUCGI_GRP_T in
+("short")              SUCGI_MAX_GRP_VAL=SHRT_MAX ;;
+("unsigned short")     SUCGI_MAX_GRP_VAL=USHRT_MAX ;;
+("int")                SUCGI_MAX_GRP_VAL=INT_MAX ;;
+("unsigned int")       SUCGI_MAX_GRP_VAL=UINT_MAX ;;
+("long")               SUCGI_MAX_GRP_VAL=LONG_MAX ;;
+("unsigned long")      SUCGI_MAX_GRP_VAL=ULONG_MAX ;;
+("long long")          SUCGI_MAX_GRP_VAL=LLONG_MAX ;;
+("unsigned long long") SUCGI_MAX_GRP_VAL=ULLONG_MAX ;;
+("intmax_t")           SUCGI_MAX_GRP_VAL=INTMAX_MAX ;;
+("uintmax_t")          SUCGI_MAX_GRP_VAL=UINTMAX_MAX ;;
+("gid_t")              SUCGI_MAX_GRP=MAX_GID_VAL
+esac
 
 if [ "$SUCGI_GRP_T" ]
 then printf '%s\n' "$SUCGI_GRP_T"
@@ -790,10 +807,66 @@ then
 	unset src sizetype
 fi
 
+case $SUCGI_NGRPS_T in
+("short")              SUCGI_MAX_NGRPS_VAL=SHRT_MAX ;;
+("unsigned short")     SUCGI_MAX_NGRPS_VAL=USHRT_MAX ;;
+("int")                SUCGI_MAX_NGRPS_VAL=INT_MAX ;;
+("unsigned int")       SUCGI_MAX_NGRPS_VAL=UINT_MAX ;;
+("long")               SUCGI_MAX_NGRPS_VAL=LONG_MAX ;;
+("unsigned long")      SUCGI_MAX_NGRPS_VAL=ULONG_MAX ;;
+("long long")          SUCGI_MAX_NGRPS_VAL=LLONG_MAX ;;
+("unsigned long long") SUCGI_MAX_NGRPS_VAL=ULLONG_MAX ;;
+("intmax_t")           SUCGI_MAX_NGRPS_VAL=INTMAX_MAX ;;
+("uintmax_t")          SUCGI_MAX_NGRPS_VAL=UINTMAX_MAX ;;
+esac
+
 if [ "$SUCGI_NGRPS_T" ]
 then printf '%s\n' "$SUCGI_NGRPS_T"
 else printf 'guess at compile-time\n'
 fi
+
+
+#
+# Calculate the maximum values representable as uid_t and gid_t.
+#
+
+for type in uid_t gid_t
+do
+        printf '%s maximum: ' "$type"
+
+	src="$TMPDIR/max$type.c" bin="${src%.c}"
+	cat <<-'EOF' >"$src"
+		#include <sys/types.h>
+		#include <inttypes.h>
+		#include <stdio.h>
+
+		int
+		main(void)
+		{
+			for (uintmax_t i = 1;
+			     i > 0 && (T) (i - 1) == i - 1;
+			     i *= 2)
+			{
+				printf("%ju\n", i - 1);
+			}
+		}
+	EOF
+
+	"$CC" $testflags -D"T=$type" -o"$bin" "$src"
+
+	if maxval="$("$bin" | tail -n-1)" && [ "$maxval" ]
+	then
+	        case $type in
+	        (uid_t) SUCGI_MAX_UID_VAL="$maxval" ;;
+	        (gid_t) SUCGI_MAX_GID_VAL="$maxval" ;;
+	        (*)     err -s78 '%s: unknown type.' "$type"
+	        esac
+
+		printf '%s\n' "$maxval"
+	else
+	        printf 'guess at compile-time\n'
+	fi
+done
 
 
 #
@@ -805,21 +878,6 @@ then
 	printf 'Static analysers:'
 
 	nanalysers=0
-
-	# Extend $PATH for search analysers.
-	if [ "$statpath" ]
-	then
-		IFS=:
-		for dir in $statpath
-		do
-			unset IFS
-			case $PATH in
-			("$dir":|:"$dir"|:"$dir":) : ;;
-			(*) [ -e "$dir" ] && PATH="$dir:$PATH"
-			esac
-		done
-		export PATH
-	fi
 
 	# Clang-tidy
 	: "${SUCGI_CLANG_TIDY=$(command -v clang-tidy 2>/dev/null)}"
