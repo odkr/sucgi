@@ -1,6 +1,6 @@
-![coverage]
-![sonar]
-![codacy]
+[![coverage]]
+[![sonar]]
+[![codacy]]
 
 # suCGI
 
