@@ -20,7 +20,7 @@
 
 # shellcheck disable=2015,2031
 
-# Re-raise signal $1 if $catch is set.
+# If $catch is non-empty, call cleanup and re-raise signal $1.
 # Otherwise set $caught to $1.
 catch() {
 	: "${1:?}"
@@ -35,16 +35,17 @@ catch() {
 	kill -s "$1" "$$"
 }
 
-# Terminate all children, eval $cleanup and exit with status $?.
+# Disable signal handlers, terminate alls jobs and the process group,
+# run and reset $cleanup, and exit with status $?.
 cleanup() {
 	# shellcheck disable=2319
 	_cleanup_retval=$?
 	set +e
-	trap '' EXIT HUP INT TERM
+	trap '' EXIT ALRM HUP INT PIPE TERM USR1 USR2
 	# shellcheck disable=2046
 	kill -- $(jobs -p 2>/dev/null) -$$ >/dev/null 2>&1
 	wait
-	eval "${cleanup-}"
+	eval "${cleanup-:}"
 	cleanup=
 	return $_cleanup_retval
 }
@@ -57,25 +58,25 @@ clearln() (
 )
 
 # Print a message to STDERR and exit with a non-zero status.
-# Exit with status if -s STATUS is given.
+# Exit with STATUS if -s STATUS is given.
 err() {
-	_err_status=2
+	_err_status=69
 	OPTIND=1 OPTARG='' _err_opt=''
 	while getopts s: _err_opt
 	do
 		case $_err_opt in
-		(s) _err_status="$OPTARG" ;;
+		(s) _err_status="${OPTARG:?}" ;;
 		(*) exit 70
 		esac
 	done
 	shift $((OPTIND - 1))
 
-	warn "$@"
+	warn -- "$@"
 
 	exit "$_err_status"
 }
 
-# Enforce POSIX-compliance, register signals, and set global variables.
+# Enforce POSIX-compliance, register signal handlers, and set globals.
 init() {
 	# Root directory of the repository.
 	: "${src_dir:?}"
@@ -90,11 +91,13 @@ init() {
 	PATH="$src_dir/tests:$src_dir/utils:$PATH"
 	unset IFS
 
-	# Signal handling.
+	# Trap signals that would terminate the script.
 	catch=x caught=
-	trap 'catch HUP' HUP
-	trap 'catch INT' INT
-	trap 'catch TERM' TERM
+	for _init_sig in ALRM HUP INT PIPE TERM USR1 USR2
+	do
+		trap "catch $_init_sig" "$_init_sig"
+	done
+	unset _init_sig
 	trap cleanup EXIT
 	[ "$caught" ] && kill -s"$caught" "$$"
 
@@ -109,7 +112,7 @@ init() {
 	readonly prog_name
 }
 
-# Check if $needle matches any member of $@ using $op.
+# Check if $2 matches any member of $@ using operator $1.
 inlist() (
 	# shellcheck disable=2034
 	_inlist_op="${1:?}" _inlist_needle="${2?}"
@@ -118,19 +121,18 @@ inlist() (
 	# shellcheck disable=2034
 	for _inlist_straw
 	do
-		test "$_inlist_straw" "$_inlist_op" "$_inlist_needle" &&
-		return
+		test "$_inlist_straw" "$_inlist_op" "$_inlist_needle" && return
 	done
 
 	return 1
 )
 
 # Run $@ and redirect its output to a log file unless $verbose is set.
-# -d DIR     Store log file in DIR if command exit with a non-zero status.
-# -i STATUS  Do not store a log if the command exits with STATUS.
-# -l FNAME   Store the log in FNAME.
-# -u USER    Make USER the owner of FNAME.
-# -g GROUP   Make GROUP the group of FNAME.
+# -d DIR     Store log file in DIR (default: .).
+# -i STATUS  Do not store a log if $@ exits with STATUS (default: 0).
+# -l FNAME   Store the log in FNAME (default: basename of $1).
+# -u USER    Make USER the owner of FNAME (default: current user).
+# -g GROUP   Make GROUP the group of FNAME (default: current group).
 logged() (
 	_logged_dir=.
 	_logged_fname=''
@@ -193,8 +195,8 @@ owner() (
 	ls -ld "${1:?}" | awk '{print $3}'
 )
 
-# Find a user with an UID from $1 to $2 who
-# only belongs to groups with GIDs from $3 to $4.
+# Find a user with an UID in the range [$1 .. $2] who
+# only belongs to groups with GIDs in the range [$3 .. $4].
 reguser() (
 	: "${1:?}" "${2:?}" "${3:?}" "${4:?}"
 
@@ -242,7 +244,7 @@ tmpdir() {
 
 	catch=
 	mkdir -m 0755 "$_tmpdir_tmpdir" || exit
-	cleanup="rm -rf \"\$_tmpdir_tmpdir\"; ${cleanup-}"
+	cleanup="rm -rf \"\$_tmpdir_tmpdir\"; ${cleanup-:}"
 	catch=x
 	[ "${caught-}" ] && kill -s"$caught" "$$"
 
@@ -250,7 +252,7 @@ tmpdir() {
 	export TMPDIR="$_tmpdir_tmpdir"
 }
 
-# Print $* to stderr.
+# Print the format $1 to stderr, using the remaing operands as arguments.
 # -n  Suppress the terminating LF.
 # -q  Suppress output if $quiet is set.
 # -v  Suppress output unless $verbose is set.
