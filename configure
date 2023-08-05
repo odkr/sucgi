@@ -135,7 +135,9 @@ addflags() {
 	then
 		shift "$__addflags_ncomps"
 		for __addflags_comp in $__addflags_comps
-		do eval "cflags_${__addflags_comp}=\"\${cflags_${__addflags_comp-}-} \$*\""
+		do
+			__addflags_var="cflags_${__addflags_comp}"
+			eval "$__addflags_var=\"\${$__addflags_var-} \$*\""
 		done
 	else
 		cflags="${cflags-} $*"
