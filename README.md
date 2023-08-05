@@ -1,6 +1,6 @@
-[![https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=coverage]](https://sonarcloud.io/component_measures?metric=Coverage&id=odkr_sucgi)
-[![https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=alert_status]](https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=alert_status)
-[![https://app.codacy.com/project/badge/Grade/cb67a3bad615449589dfb242876600ac]](https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_content=odkr/sucgi)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=coverage)](https://sonarcloud.io/component_measures?metric=Coverage&id=odkr_sucgi)
+[![Sonar Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=alert_status)](https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=alert_status)
+[![Codacy Code Quality](https://app.codacy.com/project/badge/Grade/cb67a3bad615449589dfb242876600ac)](https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_content=odkr/sucgi)
 
 # suCGI
 
@@ -103,11 +103,9 @@ Enable [mod_action]:
 
 Add the following lines to your Apache configuration::
 
-```apache
-<Directory "/home">
-    Action application/x-httpd-php /cgi-bin/sucgi
-</Directory>
-```
+    <Directory "/home">
+        Action application/x-httpd-php /cgi-bin/sucgi
+    </Directory>
 
 The directory should correspond to USER_DIR in **config.h**.
 
