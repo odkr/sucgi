@@ -547,8 +547,8 @@ main(int argc, char **argv) {
     }
 
     /*
-     * GRP_T refers to the type that getgrouplist takes and returns GIDs as;
-     * namely, int (on older systems and macOS) or gid_t (modern systems).
+     * GRP_T names the data type that getgrouplist takes and returns GIDs as.
+     * On older systems and macOS this is int, on modern systems gid_t.
      *
      * Casting gid_t to GRP_T is guaranteed to be safe because:
      * (1) a compile-time error is raised if sizeof(GRP_T) != sizeof(gid_t)
@@ -617,8 +617,8 @@ main(int argc, char **argv) {
     }
 
     /*
-     * NGRPS_T refers to the type of setgroups third argument, the number of
-     * groups; that type may be size_t (glibc) or int (other systems).
+     * NGRPS_T names the data type of setgroups third argument, the number of
+     * groups given. On GNU-like systems this is size_t, on others int.
      *
      * Casting ngroups to NGRPS_T is guaranteed to be safe because:
      * (1) ngroups cannot be negative (so values cannot change sign);
