@@ -86,7 +86,7 @@ ifdef(`__SUCGI_HAVE_FEATURES_H', `dnl
 
 #endif /* BSD systems */
 
-/* GNU/Linux, GNU Hurd, and GNU/kFreeBSD */
+/* GNU and GNU-like systems. */
 #if defined(__GLIBC__)       || \
     defined(__GNU_LIBRARY__) || \
     defined(__UCLIBC__)
