@@ -71,7 +71,7 @@
  * Module variables
  */
 
-/* Regular expressions that control which environment variables are kept. */
+/* Regular expressions that define which environment variables are kept. */
 static const char *const safe_var_patterns[] = /* cppcheck-suppress misra-c2012-9.2 */
     SAFE_ENV_VARS;
 
@@ -521,7 +521,7 @@ main(int argc, char **argv) {
     assert(owner->pw_uid == scriptstatus.st_uid);
 
     if (owner->pw_uid < START_UID || owner->pw_uid > STOP_UID) {
-        error("script %s: owned by a privileged user.", scriptname);
+        error("script %s: owned by a non-system user.", scriptname);
     }
 
     logname = owner->pw_name;
@@ -594,13 +594,13 @@ main(int argc, char **argv) {
 
             grp = getgrgid(groups[i]);
             if (grp != NULL) {
-                error("user %s: member of group %s.",
+                error("user %s: member of system group %s.",
                       logname, grp->gr_name);
             } else if (ISSIGNED(gid_t)) {
-                error("user %s: member of group %lld.",
+                error("user %s: member of system group %lld.",
                       logname, (unsigned long long) groups[i]);
             } else {
-                error("user %s: member of group %llu.",
+                error("user %s: member of system group %llu.",
                       logname, (unsigned long long) groups[i]);
             }
         }
