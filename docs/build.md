@@ -400,7 +400,9 @@ main.c:273:5: note: in expansion of macro 'ASSERT'
 ```
 
 indicates that the value of MAX_NGRPS_VAL is required to be greater than
-or equal to the value of INT_MAX, but isn't.
+or equal to the value of INT_MAX, but isn't. MAX_NGRPS_VAL should be defined
+as the maximum value that can be represented by the data type named by
+NGRPS_T; it is defined by *configure* or guessed at compile-time.
 
 
 [install.md]: install.md
