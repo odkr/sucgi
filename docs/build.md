@@ -205,7 +205,7 @@ Use non-default flags when compiling:
 If the string is non-empty, it is assumed that the compiler supports
 creating dynamic libraries using the `--shared` flag.
 
-### *getgrouplist*() group ID type (C type)
+### *getgrouplist*() group ID type (C data type)
 
 | Tool        | Variable/macro name |
 | ----------- | ------------------- |
@@ -214,7 +214,10 @@ creating dynamic libraries using the `--shared` flag.
 | Make        | -                   |
 | C compiler  | GRP_T               |
 
-### *setgroups*() number type (C type)
+GRP_T names the data type that *getgrouplist*() takes and returns GIDs as.
+On older systems and macOS this is **int**, on modern systems **gid_t**.
+
+### *setgroups*() number type (C data type)
 
 | Tool        | Variable/macro name |
 | ----------- | ------------------- |
@@ -222,6 +225,9 @@ creating dynamic libraries using the `--shared` flag.
 | M4          | __SUCGI_NGRPS_T     |
 | Make        | -                   |
 | C compiler  | NGRPS_T             |
+
+NGRPS_T names the data type of *setgroups*() third argument, the number of
+groups given. On GNU-like systems this is **size_t**, on others **int**.
 
 ### **uid_t** maximum (integer)
 
@@ -303,7 +309,7 @@ Any non-zero integer value means true.
 
 Any non-zero integer value means true.
 
-### Build for testing (integer)
+### Build for testing? (integer)
 
 | Tool        | Variable/macro name     |
 | ----------- | ----------------------- |
