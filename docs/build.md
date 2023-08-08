@@ -88,18 +88,19 @@ environment variables and M4, Make, or C preprocessor macros respectively.
 ```mermaid
 graph TD
 
-Configuration -- controls --> configure
-Environment -- controls --> configure
+Environemnt --> |overrides| Configuration
+Configuration --> |controls| configure
 
-configure -- calls --> M4
+configure --> |calls| M4
 
-M4 -- generates --> makefile
-M4 -- generates --> compat.h
+M4 --> |generates| makefile
+M4 --> |generates| compat.h
 
-makefile -- calls --> Compiler
+makefile --> |controls| Make
+Make --> |calls| Compiler
 
-config.h -- overrides --> compat.h -- included by --> Compiler
-config.h -- overrides --> params.h -- included by --> Compiler
+config.h --> |overrides| compat.h
+config.h --> |overrides| params.h
 ```
 
 Setting environment variables or changing configuration files changes
