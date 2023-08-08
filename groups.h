@@ -31,17 +31,15 @@
  * Check whether only the given secondary groups are set.
  *
  * Side-effects:
- *      Logs groups that should not be set to the system log as error.
+ *      Logs groups that should not be set.
  *
  * FIXME: Not unit-tested.
  */
 _read_only(2, 1) _nonnull(2) _nodiscard _unused
-bool groups_eq(size_t ngroups, const gid_t *groups);
+bool groups_sub(size_t ngroups, const gid_t *groups);
 
 /*
  * Check whether two group IDs are the same.
- *
- * FIXME: Not unit-tested.
  */
 _read_only(1) _read_only(2) _nonnull(1, 2) _nodiscard _unused
 int groups_comp(const gid_t *gid1, const gid_t *gid2);

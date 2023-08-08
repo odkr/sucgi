@@ -41,7 +41,7 @@
 
 
 bool
-groups_eq(size_t ngroups, const gid_t *const groups)
+groups_sub(size_t ngroups, const gid_t *const groups)
 {
     gid_t pgroups[MAX_NGROUPS];
     int npgroups;
