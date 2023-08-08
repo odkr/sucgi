@@ -191,6 +191,8 @@ env_test_bins = tests/env_copy_var tests/env_is_name tests/env_restore
 
 handler_test_bins = tests/handler_find
 
+groups_test_bins = tests/groups_comp
+
 pair_test_bins = tests/pair_find
 
 path_test_bins = tests/path_real tests/path_suffix tests/path_within
@@ -204,8 +206,8 @@ userdir_test_bins = tests/userdir_exp
 unit_libs = libsucgi.a tests/libutil.a
 
 unit_bins = $(macro_test_bins) $(env_test_bins) $(handler_test_bins) \
-	$(pair_test_bins) $(path_test_bins) $(priv_test_bins) \
-	$(str_test_bins) $(userdir_test_bins)
+	$(groups_test_bins) $(pair_test_bins) $(path_test_bins) \
+	$(priv_test_bins) $(str_test_bins) $(userdir_test_bins)
 
 tests/ISSIGNED: tests/ISSIGNED.c
 
@@ -221,6 +223,8 @@ tests/env_restore: tests/env_restore.c \
 	tests/libutil.a(tests/util/array.o tests/util/str.o)
 
 tests/handler_find: tests/handler_find.c
+
+tests/groups_comp: tests/groups_comp.c
 
 tests/pair_find: tests/pair_find.c params.h
 
