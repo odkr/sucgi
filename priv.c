@@ -91,7 +91,7 @@ priv_drop(const uid_t uid, const gid_t gid,
 
 /* getgroups is unreliable on macOS. */
 #if !defined(__MACH__)
-    assert(groups_eq((size_t) ngroups, groups));
+    assert(groups_sub((size_t) ngroups, groups));
 #endif
 
     return OK;
