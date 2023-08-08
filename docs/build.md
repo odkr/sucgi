@@ -40,7 +40,7 @@ configuration detected by *configure* by running that script.
 * Environment variables (see "Variables and macros" below)
 * Command line arguments (see `./configure -h`)
 
-suCGI does *not* use [Autoconf]; *configure* and its configuration files
+SuCGI does *not* use [Autoconf]; *configure* and its configuration files
 are hand-written shell scripts. So you can debug them and the **makefile**
 if you need to. However, be careful to edit the **makefile**'s M4 template,
 **makefile.m4**, *not* the **makefile** itself; the **makefile** may get
@@ -54,7 +54,7 @@ by defining a macro of the same name in **[config.h]**.
 
 ## Configuration files
 
-suCGI ships with four build configurations;
+SuCGI ships with four build configurations;
 they can be found in the "conf" sub-directory.
 
 | Filename         | Purpose     |
@@ -330,7 +330,7 @@ See [install.md].
 
 ### Run-time configuration
 
-suCGI's run-time behaviour is configured at compile-time.
+SuCGI's run-time behaviour is configured at compile-time.
 See **[config.h]** for details. Defaults are set in **[params.h]**.
 
 You can override any macro in **[compat.h]** and **[params.h]** by
@@ -363,7 +363,7 @@ The **makefile** supports the following 'phony' targets:
 | Target    | Description                                           |
 | --------- | ----------------------------------------------------- |
 | all       | Alias for "sucgi" and the default target.             |
-| check     | Compile and run tests (see [testing.md]).              |
+| check     | Compile and run tests (see [testing.md]).             |
 | tidy      | Delete archives, backups, logs, temporary files, etc. |
 | clean     | Delete compiled binaries and `make tidy`.             |
 | mrproper  | Delete caches, coverage data, and `make clean`.       |
@@ -372,38 +372,38 @@ The **makefile** supports the following 'phony' targets:
 | distclean | Delete the build configuration and `make mrproper`.   |
 | sigdist   | Make a signed distribution tarball.                   |
 | install   | Install suCGI (see [install.md]).                     |
-| uninstall | Uninstall suCGI (see [install.md]).                   |
+| uninstall | Uninstall suCGI (see [uninstall.md]).                 |
 
 
 ## Troubleshooting
 
 ### "size of unnamed array is negative", "array size is negative", etc.
 
-suCGI's *ASSERT*() macro expands to an expression that tries to declare
-an array with a negative size when a condition that suCGI takes for granted
-turns out to be false at compile-time.
+When a condition that suCGI takes for granted turns out to be false
+at compile-time, suCGI's *ASSERT*() macro expands to an expression
+that declares an array with a negative size, triggering an error
+and aborting the compilation.
 
-Such an assertion failing indicates that the build configuration is wrong;
+This indicates that the build configuration is wrong;
 the error message should indicate which setting.
 
 For example, the error
 
 ```
-In file included from main.c:53:
 main.c: In function 'main':
 macros.h:28:41: error: size of unnamed array is negative
    28 | #define ASSERT(cond) ((void) sizeof(char[(cond) ? 1 : -1]))
       |                                         ^
-main.c:273:5: note: in expansion of macro 'ASSERT'
-  273 |     ASSERT(MAX_NGRPS_VAL >= INT_MAX);
+main.c:278:5: note: in expansion of macro 'ASSERT'
+  278 |     ASSERT(sizeof(USER_DIR) > 1U);
       |     ^~~~~~
 ```
 
-indicates that the value of MAX_NGRPS_VAL is required to be greater than
-or equal to the value of INT_MAX, but isn't. MAX_NGRPS_VAL should be defined
-as the maximum value that can be represented by the data type named by
-NGRPS_T; it is defined by *configure* or guessed at compile-time.
+indicates that the configuration macro USER_DIR expands to a string
+that is shorter than two bytes, that is, either not null-terminated
+or the empty string.
 
 
 [install.md]: install.md
 [testing.md]: testing.md
+[uninstall.md]: uninstall.md

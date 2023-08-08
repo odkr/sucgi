@@ -82,7 +82,7 @@ Defaults to the empty string.
 
 Defaults to **/usr/lib/cgi-bin**.
 
-### Group that the webserver runs as (group name)
+### Group the webserver runs as (group name)
 
 | Tool        | Variable/macro name |
 | ----------- | ------------------- |

@@ -46,7 +46,7 @@ Any other exit status indicates a bug in the test suite.
 
 ## Superuser privileges
 
-suCGI requires superuser privileges. Consequently, so do some tests.
+SuCGI requires superuser privileges. Consequently, so do some tests.
 Of those, some can use mock-up system calls and may therefore be run
 without superuser privileges. Others, however, have to be skipped.
 

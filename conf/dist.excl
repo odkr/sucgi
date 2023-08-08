@@ -3,6 +3,7 @@
 *.bak
 *.ctu-info
 *.dump
+*.expand
 *.gcda
 *.gcno
 *.gcov
@@ -20,8 +21,9 @@
 compat.h
 config.status
 cov
+conf/local.env
 cppcheck/build/*
-etc/local.env
+docs/*.pdf
 gcov
 makefile
 sucgi

@@ -2,11 +2,11 @@
 [![Sonar Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=alert_status)](https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=alert_status)
 [![Codacy Code Quality](https://app.codacy.com/project/badge/Grade/cb67a3bad615449589dfb242876600ac)](https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_content=odkr/sucgi)
 
-# suCGI
+# SuCGI
 
 Run CGI scripts with the permissions of their owner.
 
-suCGI checks whether a CGI script is owned by a non-system user
+SuCGI checks whether a CGI script is owned by a non-system user
 and installed under the document root of that user's personal website,
 sets the permissions of the process to match the user's, cleans up
 the environment, and then runs the script.
@@ -14,7 +14,7 @@ the environment, and then runs the script.
 
 ## System requirements
 
-suCGI should work on any Unix-like system released since 2010; more precisely,
+SuCGI should work on any Unix-like system released since 2010; more precisely,
 it should work on any system that is compatible with [4.4BSD] and compliant
 with [POSIX.1-2008], including the X/Open System Interface extension.
 
@@ -27,7 +27,7 @@ However, you have to compile suCGI yourself; and for that you need:
 * M4 (e.g., [GNU M4] or FreeBSD's M4)
 * The header files of your system's standard library
 
-suCGI ships with a script that installs these for you (see below).
+SuCGI ships with a script that installs these for you (see below).
 
 [4.4BSD]: https://docs-legacy.freebsd.org/44doc/
 
@@ -49,7 +49,7 @@ suCGI ships with a script that installs these for you (see below).
 ## Installation
 
 **Do NOT use suCGI!**
-suCGI is work in progress, does not yet validate users,
+SuCGI is work in progress, does not yet validate users,
 and has *not* been reviewed, let alone audited.
 
 Download the repository and unpack it.
@@ -68,7 +68,7 @@ Generate the build configuration by:
 
 See **[docs/build.md]** for details and troubleshooting.
 
-suCGI is configured at compile-time. Adapt **config.h** to your needs.
+SuCGI is configured at compile-time. Adapt **config.h** to your needs.
 
 Compile suCGI by:
 
@@ -131,22 +131,22 @@ See the **docs** sub-directory and the source code.
 
 If there's something wrong with suCGI, please
 [open an issue](https://github.com/odkr/sucgi/issues).
-You are welcome to write me if you do not have a GitHub account.
+You are welcome to write an email if you do not have a GitHub account.
 
 
 ## License
 
 Copyright 2022 and 2023 Odin Kroeger
 
-suCGI is free software: you can redistribute it and/or modify it
+SuCGI is free software: you can redistribute it and/or modify it
 under the terms of the GNU Affero General Public License as published
 by the Free Software Foundation, either version 3 of the License,
 or (at your option) any later version.
 
-suCGI is distributed in the hope that it will be useful, but WITHOUT
+SuCGI is distributed in the hope that it will be useful, but WITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
 Public License for more details.
 
 You should have received a copy of the GNU Affero General Public
-License along with suCGI. If not, see <https://www.gnu.org/licenses/>.
+License along with SuCGI. If not, see <https://www.gnu.org/licenses/>.
