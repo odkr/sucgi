@@ -47,7 +47,7 @@ SuCGI ships with a script that installs these for you (see below).
 
 ## Installation
 
-**Do NOT use SuCGI!**
+**Do NOT use suCGI!**
 SuCGI is work in progress, does not yet validate users,
 and has *not* been reviewed, let alone audited.
 
