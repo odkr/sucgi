@@ -24,6 +24,8 @@ all: sucgi
 
 .IGNORE: analysis shellcheck
 
+.SUFFIXES: .8 .gv .md .pdf .svg
+
 
 #
 # Flags
@@ -100,14 +102,6 @@ libsucgi.a($(objs)):
 
 sucgi:
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ main.c $(libs) $(LDLIBS)
-
-
-#
-# Manual
-#
-
-man/sucgi.8: docs/manual.md
-	pandoc -stman -o$@ $<
 
 
 #
@@ -345,6 +339,7 @@ tidy:
 	find . '(' \
 	-name '*.bak' -o \
 	-name '*.ctu-info' -o \
+	-name '*.expand' -o \
 	-name '*.dump' -o \
 	-name '*.log' \
 	')' -exec rm -f '{}' +
@@ -359,7 +354,7 @@ clean: tidy
 	')' -exec rm -f '{}' +
 
 mrproper: clean
-	rm -f cppcheck/build/*
+	rm -f cppcheck/build/* docs/callgraph.*
 	find . '(' \
 	-name '*.gcda' -o \
 	-name '*.gcno' -o \
@@ -367,6 +362,31 @@ mrproper: clean
 	-name '*.info' \
 	')' -exec rm -f '{}' +
 
+
+#
+# Documentation
+#
+
+.gv.svg:
+	dot -Tsvg -o$@ $<
+
+.gv.pdf:
+	dot -Tpdf -o$@ $<
+
+.md.8:
+	pandoc -Mdate="$$(date +"%B %d, %Y")" -stman -o$@ $(pandoc_flags) $<
+
+callgraph_cflags = -DNDEBUG -O0 -fno-inline-functions
+
+egypt_flags = -omit config,help,usage,version
+
+docs/callgraph.gv: main.c $(objs:.o=.c)
+	$(MAKE) CFLAGS="-fdump-rtl-expand $(callgraph_cflags)" clean all
+	egypt --callees main $(egypt_flags) *.expand >$@
+
+docs/callgraph.pdf: docs/callgraph.gv
+
+docs/callgraph.svg: docs/callgraph.gv
 
 #
 # Distribution
@@ -381,7 +401,7 @@ dist_files = *.c *.h *.m4 README.rst LICENSE.txt \
 
 distclean: mrproper
 
-$(dist_name): distclean man/sucgi.8
+$(dist_name): distclean man/sucgi.8 docs/callgraph.svg
 
 $(dist_ar): $(dist_name)
 
