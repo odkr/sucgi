@@ -6,10 +6,9 @@
 
 Run CGI scripts with the permissions of their owner.
 
-SuCGI checks whether a CGI script is owned by a non-system user
-and installed under the document root of that user's personal website,
-sets the permissions of the process to match the user's, cleans up
-the environment, and then runs the script.
+SuCGI checks whether a script is owned by a non-system user and installed
+under that user's user directory, cleans up the environment, and then runs
+the script with the permissions of that user.
 
 
 ## System requirements
@@ -21,7 +20,7 @@ with [POSIX.1-2008], including the X/Open System Interface extension.
 However, you have to compile suCGI yourself; and for that you need:
 
 * A C99 compiler (e.g., [GCC] and [Clang])
-* An assembler and a linker, typically packaged as "binary utilities"
+* An assembler and a linker
   (e.g., [GNU Binutils] or FreeBSD's binary utilities)
 * Make (e.g., [GNU Make], FreeBSD's Make, or [bmake])
 * M4 (e.g., [GNU M4] or FreeBSD's M4)
@@ -48,7 +47,7 @@ SuCGI ships with a script that installs these for you (see below).
 
 ## Installation
 
-**Do NOT use suCGI!**
+**Do NOT use SuCGI!**
 SuCGI is work in progress, does not yet validate users,
 and has *not* been reviewed, let alone audited.
 
