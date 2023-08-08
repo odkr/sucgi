@@ -28,6 +28,7 @@
 #include <sys/types.h>
 #include <assert.h>
 #include <errno.h>
+#include <grp.h>
 #include <search.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -45,18 +46,10 @@ groups_match(size_t ngroups, const gid_t *const groups)
     gid_t pgroups[MAX_NGROUPS];
     int npgroups;
 
-    assert(ngroups <= MAX_NGROUPS);
-
     npgroups = getgroups(MAX_NGROUPS, pgroups);
     if (npgroups < 0) {
         /* RATS: ignore; format string is short and a literal. */
         syslog(LOG_ERR, "number of process groups exceeds MAX_NGROUPS.");
-        return false;
-    }
-
-    if ((size_t) npgroups > ngroups) {
-        /* RATS: ignore; format string is short and a literal. */
-        syslog(LOG_ERR, "process groups not a subset of expected groups.");
         return false;
     }
 
@@ -65,8 +58,16 @@ groups_match(size_t ngroups, const gid_t *const groups)
 
         ptr = lfind(&pgroups[i], groups, &ngroups, sizeof(gid_t),
                     (int (*)(const void *, const void *)) groups_compare);
+
         if (ptr == NULL) {
-            if (ISSIGNED(gid_t)) {
+            const struct group *grp;
+
+            grp = getgrgid(pgroups[i]);
+            if (grp != NULL) {
+                /* RATS: ignore; format string is short and a literal. */
+                syslog(LOG_ERR, "process belongs to group %s.",
+                       grp->gr_name);
+            } else if (ISSIGNED(gid_t)) {
                 /* RATS: ignore; format string is short and a literal. */
                 syslog(LOG_ERR, "process belongs to group %lld.",
                        (long long) pgroups[i]);

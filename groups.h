@@ -19,9 +19,6 @@
  * License along with suCGI. If not, see <https://www.gnu.org/licenses/>.
  */
 
-
-/* FIXME: Docs and unit-testing. */
-
 #if !defined(GROUPS_H)
 #define GROUPS_H
 
@@ -42,7 +39,7 @@ _read_only(2, 1) _nonnull(2) _nodiscard _unused
 bool groups_match(size_t ngroups, const gid_t *groups);
 
 /*
- * Check whether two GIDs are the same.
+ * Check whether two group IDs are the same.
  *
  * FIXME: Not unit-tested.
  */
