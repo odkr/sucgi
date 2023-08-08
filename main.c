@@ -296,11 +296,11 @@ main(int argc, char **argv) {
 
     /* Make sure the start and stop UIDs and GIDs can be represented. */
     ASSERT((uid_t) START_UID == START_UID);
-    ASSERT((uid_t) STOP_UID == STOP_UID);
+    ASSERT((uid_t)  STOP_UID ==  STOP_UID);
     ASSERT((gid_t) START_GID == START_GID);
-    ASSERT((gid_t) STOP_GID == STOP_GID);
+    ASSERT((gid_t)  STOP_GID ==  STOP_GID);
     ASSERT((GRP_T) START_GID == START_GID);
-    ASSERT((GRP_T) STOP_GID == STOP_GID);
+    ASSERT((GRP_T)  STOP_GID ==  STOP_GID);
 
     /* Make sure the number of groups can be represented. */
     ASSERT((NGRPS_T) INT_MAX == INT_MAX);
@@ -389,26 +389,6 @@ main(int argc, char **argv) {
      * Restore environment.
      */
 
-/* FIXME: Make nicer. */
-#if defined(REQ_ENV_CS)
-    char *envbuf[MAX_STR_LEN];
-
-    if (confstr(REQ_ENV_CS, envbuf, sizeof(envbuf)) > sizeof(envbuf)) {
-        error("minimal conforming environment is too large");
-    }
-
-    ret = env_init(envbuf);
-    switch (ret) {
-    case OK:
-        break;
-    case ERR_SYS:
-        error("setenv: %m.");
-    default:
-        /* NOTREACHED */
-        BUG("env_init(%s) -> %d [!]", envbuf, ret);
-    }
-#endif
-
     regex_t safe_var_pregs[NELEMS(safe_var_patterns)];
 
     for (size_t i = 0; i < NELEMS(safe_var_patterns); ++i) {
@@ -420,13 +400,22 @@ main(int argc, char **argv) {
             /* RATS: ignore; regerror respects the size of errmsg. */
             char errmsg[MAX_ERRMSG_LEN];
 
-            /*
-             * TODO: Document that regular expression error
-             *       messages may get truncated.
-             */
             (void) regerror(err, &safe_var_pregs[i], errmsg, sizeof(errmsg));
             error("regcomp: %s", errmsg);
         }
+    }
+
+    ret = env_init();
+    switch (ret) {
+    case OK:
+        break;
+    case ERR_LEN:
+        error("minimal conforming environment is too large.");
+    case ERR_SYS:
+        error("setenv: %m.");
+    default:
+        /* NOTREACHED */
+        BUG("env_init() -> %d [!]", ret);
     }
 
     ret = env_restore((const char *const *) vars,

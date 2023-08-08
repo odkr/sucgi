@@ -62,10 +62,9 @@ extern char **environ;
 _read_only(1) _write_only(3) _write_only(4, 2) _nonnull(1, 3, 4) _nodiscard
 Error env_copy_var(const char *name, size_t maxlen, size_t *len, char *value);
 
-
-/* FIXME: unused, untested, undocumented. */
-_read_only(1) _nonnull(1) _nodiscard
-Error env_init(const char *vars);
+/* FIXME: Untested, undocumented. */
+_nodiscard
+Error env_init(void);
 
 /*
  * Check whether the given string is ASCII-encoded, non-empty, starts with
@@ -100,5 +99,9 @@ bool env_is_name(const char *str);
 _read_only(1) _read_only(3, 2) _nonnull(1, 3) _nodiscard
 Error env_restore(const char *const *vars,
                   size_t npregs, const regex_t *pregs);
+
+/* FIXME: untested, undocumented. */
+_read_only(1) _nonnull(1) _nodiscard
+Error env_set_vars(const char *vars);
 
 #endif /* !defined(ENV_H) */

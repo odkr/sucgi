@@ -83,40 +83,20 @@ env_copy_var(const char *const name, const size_t maxlen,
     return ret;
 }
 
-
-
-
-
-/* FIXME: better take a string as arg! makes it testable */
 Error
-env_init(const char *const vars)
+env_init(void)
 {
-    for (const char *ptr = vars; ptr != NULL; ) {
-        char var[MAX_VAR_LEN];
-        char name[MAX_VARNAME_LEN];
-        const char *value;
+#if defined(REQ_ENV_CS)
+    char *buf[MAX_STR_LEN];
 
-        if (str_split(ptr, " ", sizeof(var), var, &ptr) != OK) {
-            /* RATS: ignore; format is short and a literal. */
-            syslog(LOG_INFO, "discarding variable that is too long.");
-        } else if (str_split(var, "=", sizeof(name), name, &value) != OK) {
-            /* RATS: ignore; format is short and a literal. */
-            syslog(LOG_INFO, "discarding variable with too long a name.");
-        } else if (!env_is_name(name)) {
-            /* RATS: ignore; format is short and a literal. */
-            syslog(LOG_INFO, "$%s: bad name.", name);
-        } else if (value == NULL) {
-            /* RATS: ignore; format is short and a literal. */
-            syslog(LOG_INFO, "$%s: no value.", name);
-        } else {
-            errno = 0;
-            if (setenv(name, value, true) != 0) {
-                return ERR_SYS;
-            }
-        }
+    if (confstr(REQ_ENV_CS, buf, sizeof(buf)) > sizeof(buf)) {
+        return ERR_LEN;
     }
 
+    return env_set_vars(envbuf);
+#else
     return OK;
+#endif
 }
 
 bool
@@ -192,6 +172,40 @@ env_restore(const char *const *const vars, const size_t npregs,
 
     if (varidx >= (size_t) MAX_NVARS) {
         return ERR_LEN;
+    }
+
+    return OK;
+}
+
+Error
+env_set_vars(const char *const vars)
+{
+    assert(vars != NULL);
+    assert(strnlen(vars, MAX_STR_LEN) < MAX_STR_LEN);
+
+    for (const char *ptr = vars; ptr != NULL; /* see str_split below. */) {
+        char var[MAX_VAR_LEN];
+        char name[MAX_VARNAME_LEN];
+        const char *value;
+
+        if (str_split(ptr, " ", sizeof(var), var, &ptr) != OK) {
+            /* RATS: ignore; format is short and a literal. */
+            syslog(LOG_INFO, "discarding variable that is too long.");
+        } else if (str_split(var, "=", sizeof(name), name, &value) != OK) {
+            /* RATS: ignore; format is short and a literal. */
+            syslog(LOG_INFO, "discarding variable with too long a name.");
+        } else if (!env_is_name(name)) {
+            /* RATS: ignore; format is short and a literal. */
+            syslog(LOG_INFO, "$%s: bad name.", name);
+        } else if (value == NULL) {
+            /* RATS: ignore; format is short and a literal. */
+            syslog(LOG_INFO, "$%s: no value.", name);
+        } else {
+            errno = 0;
+            if (setenv(name, value, true) != 0) {
+                return ERR_SYS;
+            }
+        }
     }
 
     return OK;
