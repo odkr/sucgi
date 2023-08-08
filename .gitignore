@@ -5,6 +5,7 @@
 *.bak
 *.ctu-info
 *.dump
+*.expand
 *.gcda
 *.gcno
 *.gcov
@@ -12,6 +13,8 @@
 *.info
 *.o
 *.out
+*.pdf
+*.so
 *.swp
 *.tgz
 compat.h
