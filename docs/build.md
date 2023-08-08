@@ -343,9 +343,9 @@ name in **config.h**.
 
 ## Creating a configuration without *configure*
 
-If you are using a BSD-, illumos-, Linux-, or Minix-based system on
-a CPU architecture that does not pad integer types (e.g., ARM, ARM64,
-x86, AMD64), then you can probably generate a working, if suboptimal,
+If you are running a BSD-, illumos-, or Linux-based or a Minix system on
+an architecture that does not pad integer types (e.g., AMD64, x86, ARM64,
+or ARM), then you can probably generate a working, albeit suboptimal,
 build configuration without *configure* by:
 
     m4 makefile.m4 >makefile
