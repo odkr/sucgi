@@ -630,11 +630,11 @@
 #define LIBC "Apple"
 #endif
 
-/* Name of configuration variable for minimal conforming environment. */
+/* Name of configuration string for conforming environment. */
 #if defined(_CS_V7_ENV)
-#define REQ_ENV_CS _CS_V7_ENV
+#define ENV_CONFSTR _CS_V7_ENV
 #elif defined(_CS_V6_ENV)
-#define REQ_ENV_CS _CS_V6_ENV
+#define ENV_CONFSTR _CS_V6_ENV
 #endif
 
 

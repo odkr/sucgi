@@ -86,10 +86,10 @@ env_copy_var(const char *const name, const size_t maxlen,
 Error
 env_init(void)
 {
-#if defined(REQ_ENV_CS)
+#if defined(ENV_CONFSTR)
     char *buf[MAX_STR_LEN];
 
-    if (confstr(REQ_ENV_CS, buf, sizeof(buf)) > sizeof(buf)) {
+    if (confstr(ENV_CONFSTR, buf, sizeof(buf)) > sizeof(buf)) {
         return ERR_LEN;
     }
 
