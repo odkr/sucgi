@@ -86,7 +86,7 @@ readonly macros='
 	CC CFLAGS AR ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
 	SUCGI_GRP_T SUCGI_NGRPS_T SUCGI_MAX_UID_VAL SUCGI_MAX_GID_VAL
 	SUCGI_MAX_GRP_VAL SUCGI_MAX_NGRPS_VAL SUCGI_HAVE_SYS_PARAM_H
-	SUCGI_HAVE_FEATURES_H SUCGI_UNAME SUCGI_SHARED_LIBS SUCGI_CGI_DIR
+	SUCGI_HAVE_FEATURES_H SUCGI_UNAME SUCGI_SHARED SUCGI_CGI_DIR
 	SUCGI_WWW_GRP SUCGI_CLANG_TIDY SUCGI_CPPCHECK SUCGI_FLAWFINDER
 	SUCGI_RATS SUCGI_SHELLCHECK
 '
@@ -421,19 +421,24 @@ unset cflags
 # Check whether the compiler supports -shared.
 #
 
-printf 'Supports shared libraries: '
+printf 'Shared object flag: '
 
-if [ "${SUCGI_SHARED_LIBS-x}" = x ] && [ "${SUCGI_SHARED_LIBS-}" != x ]
+if [ "${SUCGI_SHARED-x}" = x ] && [ "${SUCGI_SHARED-}" != x ]
 then
-	if testflags -shared -fpic
-	then SUCGI_SHARED_LIBS=y
-	else SUCGI_SHARED_LIBS=
-	fi
+	SUCGI_SHARED=
+	for flag in -dynamiclib -shared
+	do
+		if testflags "$flag" -fpic
+		then
+			SUCGI_SHARED="$flag"
+			break
+		fi
+	done
 fi
 
-if [ "$SUCGI_SHARED_LIBS" ]
-then printf 'yes\n'
-else printf 'no\n'
+if [ "$SUCGI_SHARED" ]
+then printf '%s\n' "$SUCGI_SHARED"
+else printf '<unsupported>\n'
 fi
 
 
@@ -771,7 +776,7 @@ esac
 
 if [ "$SUCGI_GRP_T" ]
 then printf '%s\n' "$SUCGI_GRP_T"
-else printf 'guess at compile-time\n'
+else printf '<guess at compile-time>\n'
 fi
 
 
@@ -839,7 +844,7 @@ esac
 
 if [ "$SUCGI_NGRPS_T" ]
 then printf '%s\n' "$SUCGI_NGRPS_T"
-else printf 'guess at compile-time\n'
+else printf '<guess at compile-time>\n'
 fi
 
 
@@ -881,7 +886,7 @@ do
 
 		printf '%s\n' "$maxval"
 	else
-	        printf 'guess at compile-time\n'
+	        printf '<guess at compile-time>\n'
 	fi
 done
 

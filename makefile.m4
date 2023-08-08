@@ -168,19 +168,25 @@ tests/libutil.a($(util_objs)):
 	$(AR) $(ARFLAGS) tests/libutil.a $*.o
 	rm -f $*.o
 
+ifnempty(`__SUCGI_SHARED', `dnl
+ifelse(__SUCGI_SHARED, `-dynamiclib', `
+# tests/libmock.dylib
+mock_lib=tests/libmock.dylib
+', `-shared', `dnl
 # tests/libmock.so
+mock_lib=tests/libmock.so
+', `')
 mock_objs = tests/mock/mockstd.o
 
-ifnempty(`__SUCGI_SHARED_LIBS', `dnl
 tests/mock/mockstd.o: tests/mock/mockstd.c tests/mock/mockstd.h
 
-tests/libmock.so: $(mock_objs)
+$(mock_lib): $(mock_objs)
 
 $(mock_objs):
 	$(CC) $(LDFLAGS) -c -o $@ $(CFLAGS) -fpic $< $(LDLIBS)
 
-tests/libmock.so:
-	$(CC) $(LDFLAGS) -shared -o $@ -fpic $(mock_objs) $(LDLIBS)
+$(mock_lib):
+	$(CC) $(LDFLAGS) __SUCGI_SHARED -o $@ -fpic $(mock_objs) $(LDLIBS)
 
 ')dnl
 
@@ -316,17 +322,17 @@ runpara_flags = -ci75 -j8
 
 checks: $(checks)
 
-ifnempty(`__SUCGI_SHARED_LIBS', `dnl
-check: utils/runpara $(checks) tests/libmock.so
+ifnempty(`__SUCGI_SHARED', `dnl
+check: utils/runpara $(checks) $(mock_lib)
 ', `dnl
 check: utils/runpara $(checks)
 ')dnl
 
 check:
-ifnempty(`__SUCGI_SHARED_LIBS', `dnl
+ifnempty(`__SUCGI_SHARED', `dnl
 	[ "$$(id -u)" -eq 0 ] \
 && utils/runpara $(runpara_flags) $(checks) \
-|| utils/runpara $(runpara_flags) $(preloadvar)=tests/libmock.so $(checks)
+|| utils/runpara $(runpara_flags) $(preloadvar)=$(mock_lib) $(checks)
 ', `dnl
 	utils/runpara $(runpara_flags) $(checks)
 ')dnl

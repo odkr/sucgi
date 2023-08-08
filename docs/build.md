@@ -193,17 +193,16 @@ Use non-default flags when compiling:
 | Make        | LDLIBS              |
 | C compiler  | -                   |
 
-### Compiler support dynamic libraries? (string)
+### Compiler flag for compiling shared objects (string)
 
 | Tool        | Variable/macro name |
 | ----------- | ------------------- |
-| *configure* | SUCGI_SHARED_LIBS   |
-| M4          | __SUCGI_SHARED_LIBS |
+| *configure* | SUCGI_SHARED        |
+| M4          | __SUCGI_SHARED      |
 | Make        | -                   |
 | C compiler  | -                   |
 
-If the string is non-empty, it is assumed that the compiler supports
-creating dynamic libraries using the `--shared` flag.
+Set to the empty string if the compiler does not support shared objects.
 
 ### *getgrouplist*() group ID type (C data type)
 
