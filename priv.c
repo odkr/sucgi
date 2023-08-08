@@ -91,7 +91,7 @@ priv_drop(const uid_t uid, const gid_t gid,
 
 /* getgroups is unreliable on macOS. */
 #if !defined(__MACH__)
-    assert(groups_match((size_t) ngroups, groups));
+    assert(groups_eq((size_t) ngroups, groups));
 #endif
 
     return OK;
@@ -139,7 +139,7 @@ priv_suspend(void)
 
 /* getgroups is unreliable on macOS. */
 #if !defined(__MACH__)
-    assert(groups_match(NELEMS(gids), (gids)));
+    assert(groups_eq(NELEMS(gids), (gids)));
 #endif /* !defined(__MACH__) */
 
     return OK;

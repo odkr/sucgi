@@ -41,7 +41,7 @@
 
 
 bool
-groups_match(size_t ngroups, const gid_t *const groups)
+groups_eq(size_t ngroups, const gid_t *const groups)
 {
     gid_t pgroups[MAX_NGROUPS];
     int npgroups;
@@ -57,7 +57,7 @@ groups_match(size_t ngroups, const gid_t *const groups)
         void *ptr;
 
         ptr = lfind(&pgroups[i], groups, &ngroups, sizeof(gid_t),
-                    (int (*)(const void *, const void *)) groups_compare);
+                    (int (*)(const void *, const void *)) groups_comp);
 
         if (ptr == NULL) {
             const struct group *grp;
@@ -85,7 +85,7 @@ groups_match(size_t ngroups, const gid_t *const groups)
 }
 
 int
-groups_compare(const gid_t *const gid1, const gid_t *const gid2)
+groups_comp(const gid_t *const gid1, const gid_t *const gid2)
 {
     assert(gid1 != NULL);
     assert(gid2 != NULL);

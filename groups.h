@@ -36,7 +36,7 @@
  * FIXME: Not unit-tested.
  */
 _read_only(2, 1) _nonnull(2) _nodiscard _unused
-bool groups_match(size_t ngroups, const gid_t *groups);
+bool groups_eq(size_t ngroups, const gid_t *groups);
 
 /*
  * Check whether two group IDs are the same.
@@ -44,6 +44,6 @@ bool groups_match(size_t ngroups, const gid_t *groups);
  * FIXME: Not unit-tested.
  */
 _read_only(1) _read_only(2) _nonnull(1, 2) _nodiscard _unused
-int groups_compare(const gid_t *gid1, const gid_t *gid2);
+int groups_comp(const gid_t *gid1, const gid_t *gid2);
 
 #endif /* !defined(GROUPS_H) */

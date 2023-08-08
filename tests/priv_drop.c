@@ -297,7 +297,7 @@ main(void)
                     !array_eq(
                         gids, (size_t) ngids, sizeof(*gids),
                         targetgids, (size_t) ntargetgids, sizeof(*targetgids),
-                        (CompFn) groups_compare
+                        (CompFn) groups_comp
                     )
                 ) {
                     errx(FAIL, "%s ─→ supplementary GID is missing [!]",
@@ -308,7 +308,7 @@ main(void)
                     !array_is_sub(
                         gids, (size_t) ngids, sizeof(*gids),
                         targetgids, (size_t) ntargetgids, sizeof(*targetgids),
-                        (CompFn) groups_compare
+                        (CompFn) groups_comp
                     )
                 ) {
                     errx(FAIL, "%s ─→ supplementary GID is wrong [!]",
