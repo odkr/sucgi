@@ -17,14 +17,14 @@
 # License along with suCGI. If not, see <https://www.gnu.org/licenses/>.
 #
 
-# shellcheck disable=1091,2015
+# shellcheck disable=1091,2015,2086
 
 
 #
 # Initialisation
 #
 
-set -Ceu
+set -eu
 src_dir="$(dirname "$0")" || exit
 readonly src_dir
 cd "$src_dir" || exit
@@ -52,27 +52,38 @@ hasany() (
 
 
 #
+# Constants
+#
+
+# File to log installed packages to.
+logfile="$prog_name.log"
+
+
+
+#
 # Options
 #
 
-quiet=
+mode=install quiet=
 OPTIND=1 OPTARG='' opt=''
-while getopts hq opt; do
+while getopts hqr opt; do
 	case $opt in
 	(h) exec cat <<EOF ;;
-$prog_name - install a C build toolchain.
+$prog_name - install the missing components of the C build toolchain
 
-Usage:       $prog_name
-             $prog_name -h
+Usage:  $prog_name [-q] [-r]
+        $prog_name -h
 
 Options:
-    -q       Be quiet.
-    -h       Show this help screen.
+    -r  Remove previously installed packages.
+    -q  Be quiet.
+    -h  Show this help screen.
 
 Copyright 2023 Odin Kroeger.
-Released under the GNU General Public License.
+Released under the GNU Affero General Public License.
 This programme comes with ABSOLUTELY NO WARRANTY.
 EOF
+	(r) mode=remove ;;
 	(q) quiet=y ;;
 	(*) exit 1
 	esac
@@ -82,8 +93,8 @@ unset opt
 
 if [ $# -gt 0 ]
 then
-	printf 'usage: %s\n' "$prog_name" >&2
-	exit 2
+	printf 'usage: %s [-q] [-r]\n' "$prog_name" >&2
+	exit 64
 fi
 
 
@@ -91,79 +102,135 @@ fi
 # Main
 #
 
-hascomp='' hashdrs=''
-for cc in c99 gcc clang tcc cc
-do
-	if command -v "$cc" >/dev/null
-	then
-		hascomp=y
-
-		# shellcheck disable=2038
-		sed -n '/^[ \t]*#[ \t]*include[ \t]*</p' *.c *.h	|
-		grep -Fve'<features.h>' -e'<sys/params.h>'		|
-		sort -u							|
-		"$cc" -E - >/dev/null 2>&1 && hashdrs=y
-
-		break
-	fi
-done
-
-missing=
-[ "$hascomp" ]			|| missing="$missing gcc"
-hasall ar as ld			|| missing="$missing binutils"
-hasany make gmake pmake	bsdmake	|| missing="$missing make"
-hasany m4			|| missing="$missing m4"
-
-if ! [ "$missing" ] && [ "$hashdrs" ]
-then
-	if ! [ "$quiet" ]
-	then warn 'complete C build toolchain available; nothing to do.'
-	fi
-	exit 0
-fi
-
 os="$(uname)"
 
-case $os in
-(Darwin)
-	exec xcode-select --install
-	;;
-(Linux)
-	if	[ -e /etc/alpine-release ]
+case $mode in
+(install)
+	hascomp='' hashdrs=''
+	for cc in c99 gcc clang tcc cc
+	do
+		if command -v "$cc" >/dev/null
+		then
+			hascomp=y
+
+			# shellcheck disable=2038
+			sed -n '/^[ \t]*#[ \t]*include[ \t]*</p' *.c *.h |
+			grep -Fve'<features.h>' -e'<sys/params.h>'       |
+			sort -u                                          |
+			"$cc" -E - >/dev/null 2>&1 && hashdrs=y
+
+			break
+		fi
+	done
+
+	missing=
+	[ "$hascomp" ]			|| missing="$missing gcc"
+	hasall ar as ld			|| missing="$missing binutils"
+	hasany make gmake pmake	bsdmake	|| missing="$missing make"
+	hasany m4			|| missing="$missing m4"
+
+	if ! [ "$missing" ] && [ "$hashdrs" ]
 	then
-		[ "$hashdrs" ] || missing="$missing libc-dev fortify-headers"
-		# shellcheck disable=2086
-		exec apk add --interactive $missing
-	elif	[ -e /etc/arch-release ]
-	then
-		# shellcheck disable=2086
-		exec pacman -S --needed $missing
-	elif	[ -e /etc/debian_version ] || [ -e /etc/devuan_version ]
-	then
-		[ "$hashdrs" ] || missing="$missing libc-dev"
-		# shellcheck disable=2086
-		exec apt-get install $missing
-	elif	[ -e /etc/fedora-release ]
-	then
-		[ "$hashdrs" ] || missing="$missing glibc-devel"
-		# shellcheck disable=2086
-		exec dnf install $missing
+		[ "$quiet" ] ||
+		warn 'complete C build toolchain available; nothing to do.'
+
+		exit 0
 	fi
+
+	case $os in
+	(Darwin)
+		exec xcode-select --install
+		;;
+
+	(Linux)
+		if	[ -e /etc/alpine-release ]
+		then
+			[ "$hashdrs" ] ||
+			missing="$missing libc-dev fortify-headers"
+
+			printf '%s\n' $missing >"$logfile"
+			exec apk add $missing
+
+		elif	[ -e /etc/arch-release ]
+		then
+			exec pacman -S $missing
+
+		elif	[ -e /etc/debian_version ] ||
+			[ -e /etc/devuan_version ]
+		then
+			[ "$hashdrs" ] ||
+			missing="$missing libc-dev"
+
+			printf '%s\n' $missing >"$logfile"
+			exec apt-get install $missing
+
+		elif	[ -e /etc/fedora-release ]
+		then
+			[ "$hashdrs" ] ||
+			missing="$missing glibc-devel"
+
+			printf '%s\n' $missing >"$logfile"
+			exec dnf install $missing
+		fi
+		;;
+	esac
+
+	warn 'package installation is not supported on this system.'
+	warn 'suCGI should compile nonetheless, but you need to install:'
+
+	inlist '=' gcc      $missing &&
+	warn '* A C compiler (e.g., gcc or clang)'
+
+	inlist '=' binutils $missing &&
+	warn '* Binutils (i.e., ar, as, and ld)'
+
+	inlist '=' make     $missing &&
+	warn '* Make'
+
+	inlist '=' m4       $missing &&
+	warn '* M4'
+
+	[ "$hashdrs" ] ||
+	warn "* The header files of your system's standard library"
 	;;
+
+(remove)
+	[ -e "$logfile" ] ||
+	err '%s: no such file.' "$logfile"
+
+	$packages="$(cat "$logfile")" ||
+	err '%s: read error.' "$logfile"
+
+	[ "$packages" ] ||
+	err 'no packages installed.'
+
+	case $os in
+	(Linux)
+		if	[ -e /etc/alpine-release ]
+		then
+			apk del $packages
+		elif	[ -e /etc/arch-release ]
+		then
+			pacman -Rs $packages
+		elif	[ -e /etc/debian_version ] ||
+			[ -e /etc/devuan_version ]
+		then
+			apt-get remove --auto-remove --purge $packages
+		elif	[ -e /etc/fedora-release ]
+		then
+			dnf remove $packages
+		fi
+		;;
+	esac
+
+	warn 'package removal is not supported on this system.'
+	warn 'you may want to remove: %s' "$packages"
+
+	;;
+
+(*)
+	# NOTREACHED
+	err -s 70 "unknown mode."
 esac
-
-warn '%s is unsupported by %s.' "$os" "$prog_name"
-warn 'suCGI should compile nonetheless, but you need to install:'
-
-# shellcheck disable=2086
-inlist '=' gcc      $missing && warn '* A C compiler (e.g., gcc or clang)'
-# shellcheck disable=2086
-inlist '=' binutils $missing && warn '* The binary utilits (i.e., as and ld)'
-# shellcheck disable=2086
-inlist '=' make     $missing && warn '* Make'
-# shellcheck disable=2086
-inlist '=' m4       $missing && warn '* M4'
-
-[ "$hashdrs" ] || warn "* The header files of your system's standard library"
 
 exit 69
