@@ -13,20 +13,20 @@ the script with the permissions of that user.
 
 ## System requirements
 
-SuCGI should work on any Unix-like system released since 2010; more precisely,
-it should work on any system that is compatible with [4.4BSD] and compliant
-with [POSIX.1-2008], including the X/Open System Interface extension.
+SuCGI should work on any Unix-like system released since 2010.
+More precisely, it should work on any system compatible with [4.4BSD] and
+compliant with [POSIX.1-2008] and its X/Open System Interface extension.
 
-However, you have to compile suCGI yourself; and for that you need:
+Compiling suCGI requires:
 
 * A C99 compiler (e.g., [GCC] and [Clang])
-* An assembler and a linker
-  (e.g., [GNU Binutils] or FreeBSD's binary utilities)
+* An archiver, an, assembler and a linker (e.g., [GNU Binutils] or FreeBSD's)
 * Make (e.g., [GNU Make], FreeBSD's Make, or [bmake])
 * M4 (e.g., [GNU M4] or FreeBSD's M4)
 * The header files of your system's standard library
 
-SuCGI ships with a script that installs these for you (see below).
+SuCGI comes with a script that installs versions of these applications
+that are appropriate for your system if needed (see below).
 
 [4.4BSD]: https://docs-legacy.freebsd.org/44doc/
 
@@ -48,6 +48,7 @@ SuCGI ships with a script that installs these for you (see below).
 ## Installation
 
 **Do NOT use suCGI!**
+
 SuCGI is work in progress, does not yet validate users,
 and has *not* been reviewed, let alone audited.
 
@@ -55,11 +56,12 @@ Download the repository and unpack it.
 
 Please take the time to read and evaluate the source code.
 
-Install the tools needed to compile suCGI by:
+Install the missing components of the C build toolchain:
 
     sudo ./prepare
 
 *prepare* uses the package manager of your operating system, if possible.
+The installed packages can be removed with `prepare -r`.
 
 Generate the build configuration by:
 
@@ -130,6 +132,7 @@ See the **docs** sub-directory and the source code.
 
 If there's something wrong with suCGI, please
 [open an issue](https://github.com/odkr/sucgi/issues).
+
 You are welcome to write an email if you do not have a GitHub account.
 
 
