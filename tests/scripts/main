@@ -253,10 +253,6 @@ Usage:  main [-X]
 Options:
     -X  Enable debugging.
     -h  Show this help screen.
-
-Copyright 2022 and 2023 Odin Kroeger.
-Released under the GNU General Public License.
-This programme comes with ABSOLUTELY NO WARRANTY.
 EOF
             ;;
 	(X) set -x ;;
