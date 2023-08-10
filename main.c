@@ -400,6 +400,7 @@ main(int argc, char **argv) {
             /* RATS: ignore; regerror respects the size of errmsg. */
             char errmsg[MAX_ERRMSG_LEN];
 
+            /* Error messages may be truncated. But it's highly unlikely. */
             (void) regerror(err, &safe_var_pregs[i], errmsg, sizeof(errmsg));
             error("regcomp: %s", errmsg);
         }
@@ -571,7 +572,7 @@ main(int argc, char **argv) {
         assert((uintmax_t) maxngroups <= (uintmax_t) INT_MAX);
 
         /* RATS: ignore; message is short and a literal. */
-        syslog(LOG_NOTICE, "user %s: joining %ld out of %d groups only.",
+        syslog(LOG_WARNING, "user %s: can only set %ld out of %d groups.",
                logname, maxngroups, ngroups);
 
         ngroups = (int) maxngroups;
