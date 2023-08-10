@@ -467,11 +467,8 @@ srcs = *.h *.c \
 
 scripts = configure prepare scripts/*
 
-ifnempty(`__SUCGI_CLANG_TIDY', `dnl
 clang_tidy_flags = --quiet
 
-')dnl
-ifnempty(`__SUCGI_CPPCHECK', `dnl
 cppcheck_flags = --quiet --force --language=c --std=c99 \
 	--project=cppcheck/sucgi.cppcheck --library=posix \
 	--library=cppcheck/c99.cfg --library=cppcheck/gnuc.cfg \
@@ -480,37 +477,20 @@ cppcheck_flags = --quiet --force --language=c --std=c99 \
 	--suppress-xml=cppcheck/suppress.xml --inline-suppr \
 	--enable=all --addon=cppcheck/cert.py --addon=misra.py
 
-')dnl
-ifnempty(`__SUCGI_FLAWFINDER', `dnl
 flawfinder_flags = --falsepositive --dataonly --quiet
 
-')dnl
-ifnempty(`__SUCGI_RATS', `dnl
 rats_flags = --resultsonly --quiet --warning 3
 
-')dnl
-ifnempty(`__SUCGI_SHELLCHECK', `dnl
 shellcheck_flags = -x
 
-')dnl
 analysis:
 	! grep -i FIXME $(srcs)
-ifnempty(`__SUCGI_CLANG_TIDY', `dnl
-	__SUCGI_CLANG_TIDY $(clang_tidy_flags) $(srcs) -- -std=c99
-')dnl
-ifnempty(`__SUCGI_CPPCHECK', `dnl
-	__SUCGI_CPPCHECK $(cppcheck_flags) $(srcs)
-')dnl
-ifnempty(`__SUCGI_FLAWFINDER', `dnl
-	__SUCGI_FLAWFINDER $(flawfinder_flags) $(srcs)
-')dnl
-ifnempty(`__SUCGI_RATS', `dnl
-	__SUCGI_RATS $(rats_flags) $(srcs)
-')dnl
+	clang-tidy $(clang_tidy_flags) $(srcs) -- -std=c99
+	cppcheck $(cppcheck_flags) $(srcs)
+	flawfinder $(flawfinder_flags) $(srcs)
+	rats $(rats_flags) $(srcs)
 
 shellcheck:
 	! grep -i FIXME $(scripts)
-ifnempty(`__SUCGI_SHELLCHECK', `dnl
-	__SUCGI_SHELLCHECK $(shellcheck_flags) $(scripts) $(check_scripts)
-')dnl
+	shellcheck $(shellcheck_flags) $(scripts) $(check_scripts)
 

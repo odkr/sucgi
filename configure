@@ -87,8 +87,7 @@ readonly macros='
 	SUCGI_GRP_T SUCGI_NGRPS_T SUCGI_MAX_UID_VAL SUCGI_MAX_GID_VAL
 	SUCGI_MAX_GRP_VAL SUCGI_MAX_NGRPS_VAL SUCGI_HAVE_SYS_PARAM_H
 	SUCGI_HAVE_FEATURES_H SUCGI_UNAME SUCGI_SHARED SUCGI_CGI_DIR
-	SUCGI_WWW_GRP SUCGI_CLANG_TIDY SUCGI_CPPCHECK SUCGI_FLAWFINDER
-	SUCGI_RATS SUCGI_SHELLCHECK
+	SUCGI_WWW_GRP
 '
 
 # Where to save the configuration.
@@ -889,61 +888,6 @@ do
 	        printf '<guess at compile-time>\n'
 	fi
 done
-
-
-#
-# Static Code Analysers
-#
-
-if [ "$statenable" ]
-then
-	printf 'Static analysers:'
-
-	nanalysers=0
-
-	# Clang-tidy
-	: "${SUCGI_CLANG_TIDY=$(command -v clang-tidy 2>/dev/null)}"
-	if [ "$SUCGI_CLANG_TIDY" ]
-	then
-		nanalysers=$((nanalysers + 1))
-		printf ' clang-tidy'
-	fi
-
-	# Cppcheck
-	: "${SUCGI_CPPCHECK=$(command -v cppcheck 2>/dev/null)}"
-	if [ "$SUCGI_CPPCHECK" ]
-	then
-		nanalysers=$((nanalysers + 1))
-		printf ' cppcheck'
-	fi
-
-	# Flawfinder
-	: "${SUCGI_FLAWFINDER=$(command -v flawfinder 2>/dev/null)}"
-	if [ "$SUCGI_FLAWFINDER" ]
-	then
-		nanalysers=$((nanalysers + 1))
-		printf ' flawfinder'
-	fi
-
-	# RATS
-	: "${SUCGI_RATS=$(command -v rats 2>/dev/null)}"
-	if [ "$SUCGI_RATS" ]
-	then
-		nanalysers=$((nanalysers + 1))
-		printf ' rats'
-	fi
-
-	# ShellCheck
-	: "${SUCGI_SHELLCHECK=$(command -v shellcheck 2>/dev/null)}"
-	if [ "$SUCGI_SHELLCHECK" ]
-	then
-		printf ' shellcheck'
-		nanalysers=$((nanalysers + 1))
-	fi
-
-	[ "$nanalysers" -eq 0 ] && printf ' none found'
-	echo
-fi
 
 
 #
