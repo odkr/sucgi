@@ -213,7 +213,7 @@ Options:
 See docs/build.rst for details.
 
 Copyright 2022 and 2023 Odin Kroeger.
-Released under the GNU General Public License.
+Released under the GNU Affero General Public License.
 This programme comes with ABSOLUTELY NO WARRANTY.
 EOF
 	    ;;
@@ -266,7 +266,7 @@ readonly conf force quiet maxnjobs nfiles
 
 
 #
-# Library pre-load variable
+# System.
 #
 
 printf 'System: '
