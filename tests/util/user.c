@@ -79,7 +79,7 @@ uid_to_str(id_t id, const size_t size, char *const str)
 }
 
 int
-user_get_gid(const uid_t uid, gid_t *gid, const ErrorFn errh)
+user_get_gid(const uid_t uid, gid_t *const gid, const ErrorFn errh)
 {
     struct passwd *pwd;
 
