@@ -23,16 +23,12 @@
 #if !defined(CONFIG_H)
 #define CONFIG_H
 
-#include <sys/stat.h>
-#include <limits.h>
-#include <syslog.h>
-
 
 /*
  * Just in case your C is rusty:
  *
  *  - #define statements are terminated with a linefeed, not a semicolon.
- *  - If a #define statement should span multiple lines,
+ *  - For a #define to span multiple lines,
  *    the linefeed must be escaped with a backslash.
  *  - Strings are given in double quotes ("..."), not single quotes ('...').
  */
@@ -40,18 +36,18 @@
 
 /*
  * The document root of user websites. Filename pattern.
- * CGI scripts are only run if they reside within their owner's document root.
+ * CGI scripts are only run if they reside under their owner's document root.
  *
  * This constant mirrors Apache's UserDir directive, save for that a "%s"
  * printf conversion specifier is used instead of an "*". That is:
  *
  * (1) If USER_DIR is an absolute filename and contains a single "%s",
- *     that "%s" is replaced with the user's login name.
+ *     "%s" is replaced with the user's login name.
  *     For example: "/srv/web/%s/html" -> "/srv/web/jdoe/html".
  *     There must be at most one format specifier, and it must be "%s".
  *     printf's escaping rules apply.
  *
- * (2) If USER_DIR is an absolute filename but does *not* contain a "%s",
+ * (2) If USER_DIR is an absolute filename but does not contain a "%s",
  *     a "/" and the user's login name are appended to the filename.
  *     For example: "/srv/web" -> "/srv/web/jdoe".
  *     printf's escaping rules do not apply.
@@ -59,18 +55,17 @@
  * (3) If USER_DIR is a relative filename,
  *     the filename is prefixed with the user's home directory and a "/".
  *     For example: "public_html" -> "/home/jdoe/public_html.
- *     Format specifiers carry no special meaning and are used as they are.
+ *     Format specifiers carry no special meaning and are used as is.
  *     printf's escaping rules do not apply.
  */
 /* #define USER_DIR "public_html" */
 
 
 /*
- * Range of user IDs that may be assigned to non-system users. Integers.
+ * Range of user IDs reserverd for non-system users. Integers.
  *
- * Most systems reserve a range of user IDs for non-system users, usually
- * that range starts at 100, 500, or 1,000 and ends at 30,000 or 60,000.
- * You MUST set [START_UID .. STOP_UID] to a subset of that range.
+ * Usually starts at 100, 500, or 1,000 and ends at 30,000 or 60,000.
+ * You MUST set [START_UID, STOP_UID] to a subset of that range.
  *
  * Only CGI scripts owned by non-system users can be executed with suCGI.
  */
@@ -79,17 +74,16 @@
 
 
 /*
- * Range of group IDs that may be assigned to non-system groups. Integers.
+ * Range of group IDs reserved for non-system groups. Integers.
  *
- * Many systems reserve a range of group IDs for non-system groups, usually
- * that range starts at 100, 500, or 1,000 and ends at 30,000 or 60,000.
+ * Usually starts at 100, 500, or 1,000 and ends at 30,000 or 60,000.
  * You MUST set [START_GID .. STOP_GID] to a subset of that range.
  *
- * On systems that do NOT reserve a range of group IDs for non-systems groups,
+ * On systems that make no such reservation,
  * exclude as many system groups as feasible.
  *
- * Only CGI scripts owned by users who are NOT a member of
- * any system group can be executed with suCGI.
+ * Only CGI scripts owned by users who are only members of
+ * non-system groups can be executed with suCGI.
  */
 /* #define START_GID 1000 */
 /* #define STOP_GID 30000 */
@@ -112,7 +106,7 @@
  *     - the Apache v2.4 mod_ssl documentation
  *       <https://httpd.apache.org/docs/2.4/mod/mod_ssl.html>
  *
- * The array MUST contain a regular expression that matches "PATH_TRANSLATED".
+ * MUST contain a regular expression that matches "PATH_TRANSLATED".
  *
  * Some variables are set by suCGI:
  *     - DOCUMENT_ROOT
@@ -273,18 +267,13 @@
 
 /*
  * Secure file permission mask. Unsigned integer.
+ *
+ * Permission masks are often given as octal numbers (e.g., 022 for go-w).
+ * For a number to be interpreted as octal by the C compiler, it must be
+ * prefixed with a zero (i.e., match the regular expression ^0[0-9|+).
  */
 /*
 #define UMASK (S_ISUID | S_ISGID | S_ISVTX | S_IRWXG | S_IRWXO)
- */
-
-
-/*
- * Facility to log to. Syslog constant.
- * See syslog(3) for details.
- */
-/*
-#define SYSLOG_FACILITY LOG_AUTH
  */
 
 
@@ -294,15 +283,6 @@
  */
 /*
 #define SYSLOG_MASK LOG_UPTO(LOG_ERR)
- */
-
-
-/*
- * Syslog options. Syslog constant.
- * See syslog(3) for details.
- */
-/*
-#define SYSLOG_OPTS (LOG_CONS | LOG_PERROR)
  */
 
 
