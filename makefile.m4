@@ -96,12 +96,12 @@ libsucgi.a: libsucgi.a($(objs))
 sucgi: main.c $(hdrs) $(libs)
 
 libsucgi.a($(objs)):
-	$(CC) $(LDFLAGS) -c -o $*.o $(CFLAGS) $*.c $(LDLIBS)
+	$(CC) $(LDFLAGS) -c -o$*.o $(CFLAGS) $*.c $(LDLIBS)
 	$(AR) $(ARFLAGS) libsucgi.a $*.o
 	rm -f $*.o
 
 sucgi:
-	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ main.c $(libs) $(LDLIBS)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o$@ main.c $(libs) $(LDLIBS)
 
 
 #
@@ -164,18 +164,19 @@ $(util_objs): tests/util/types.h
 tests/libutil.a: tests/libutil.a($(util_objs))
 
 tests/libutil.a($(util_objs)):
-	$(CC) $(LDFLAGS) -c -o $*.o $(CFLAGS) $*.c $(LDLIBS)
+	$(CC) $(LDFLAGS) -c -o$*.o $(CFLAGS) $*.c $(LDLIBS)
 	$(AR) $(ARFLAGS) tests/libutil.a $*.o
 	rm -f $*.o
 
 ifnempty(`__SUCGI_SHARED', `dnl
-ifelse(__SUCGI_SHARED, `-dynamiclib', `
+ifelse(__SUCGI_SHARED, `-dynamiclib', `dnl
 # tests/libmock.dylib
 mock_lib=tests/libmock.dylib
-', `-shared', `dnl
+', __SUCGI_SHARED, `-shared', `dnl
 # tests/libmock.so
 mock_lib=tests/libmock.so
-', `')
+')dnl
+
 mock_objs = tests/mock/mockstd.o
 
 tests/mock/mockstd.o: tests/mock/mockstd.c tests/mock/mockstd.h
@@ -183,12 +184,16 @@ tests/mock/mockstd.o: tests/mock/mockstd.c tests/mock/mockstd.h
 $(mock_lib): $(mock_objs)
 
 $(mock_objs):
-	$(CC) $(LDFLAGS) -c -o $@ $(CFLAGS) -fpic $< $(LDLIBS)
+ifelse(`index(__CFLAGS, `-fsanitize')', `-1', `dnl
+	$(CC) $(LDFLAGS) -c -o$@ $(CFLAGS) -fpic $< $(LDLIBS)
+', `dnl
+	$(CC) $(LDFLAGS) -c -o$@ $(CFLAGS) -fpic -fno-sanitize=all $< $(LDLIBS)
+')dnl
 
 $(mock_lib):
 	$(CC) $(LDFLAGS) __SUCGI_SHARED -o $@ -fpic $(mock_objs) $(LDLIBS)
 
-')dnl
+')dnl ifnempty __SUCGI_SHARED
 
 # Unit tests
 macro_test_bins = tests/ISSIGNED tests/NELEMS tests/MAXSVAL
@@ -312,11 +317,15 @@ check_bins = $(unit_bins) $(script_bins)
 
 checks = $(check_scripts) $(unit_bins)
 
-preloadvar = ifdef(`__SUCGI_UNAME',
-	`ifelse(__SUCGI_UNAME, `Darwin',
-		`DYLD_INSERT_LIBRARIES',
-		`LD_PRELOAD')',
-	`LD_PRELOAD')
+ifelse(__SUCGI_UNAME, `Darwin', `dnl
+preload = DYLD_INSERT_LIBRARIES
+
+environ = MallocNanoZone=0
+', `dnl
+preload = LD_PRELOAD
+
+environ =
+')dnl
 
 runpara_flags = -ci75 -j8
 
@@ -331,10 +340,10 @@ check: utils/runpara $(checks)
 check:
 ifnempty(`__SUCGI_SHARED', `dnl
 	[ "$$(id -u)" -eq 0 ] \
-&& utils/runpara $(runpara_flags) $(checks) \
-|| utils/runpara $(runpara_flags) $(preloadvar)=$(mock_lib) $(checks)
+&& $(environ) utils/runpara $(runpara_flags) $(checks) \
+|| $(environ) utils/runpara $(runpara_flags) $(preload)=$(mock_lib) $(checks)
 ', `dnl
-	utils/runpara $(runpara_flags) $(checks)
+	$(environ) utils/runpara $(runpara_flags) $(checks)
 ')dnl
 
 
