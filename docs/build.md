@@ -404,6 +404,14 @@ that is shorter than two bytes, that is, either not null-terminated
 or the empty string.
 
 
+### Object files/archives are recompiled even though the source did not change
+
+Try using another archiver. On most systems, *ar* is good enough:
+
+    AR=ar ./configure
+
+
+
 [install.md]: install.md
 [testing.md]: testing.md
 [uninstall.md]: uninstall.md
