@@ -433,12 +433,8 @@
 
 /* Syslog options. */
 #if !defined(SYSLOG_OPTS)
-#if defined(LOG_PERROR)
-#define SYSLOG_OPTS (LOG_CONS | LOG_PERROR)
-#else
 #define SYSLOG_OPTS LOG_CONS
 #endif
-#endif /* !defined(SYSLOG_OPTS) */
 
 
 /*
@@ -448,6 +444,8 @@
 /*
  * An invalid GID to initialise memory with.
  */
+
+/*FIXME: maybe just set NOGROUP, its non-standard anyway. */
 #if defined(NOGROUP)
 #define INVALID_GID NOGROUP
 #else
@@ -477,7 +475,11 @@
  * including the null terminator. Unsigned integer.
  */
 #if !defined(MAX_ERRMSG_LEN)
-#define MAX_ERRMSG_LEN 256U
+#define MAX_ERRMSG_LEN 512U
+#endif
+
+#if MAX_ERRMSG_LEN < 256
+#error MAX_ERRMSG_LEN is too short.
 #endif
 
 #if MAX_ERRMSG_LEN > MAX_STR_LEN
@@ -497,13 +499,27 @@
 #if defined(PATH_MAX) && PATH_MAX > -1
 #if PATH_MAX < MAX_STR_LEN
 #define MAX_FNAME_LEN PATH_MAX
-#else /* PATH_MAX >= MAX_STR_LEN */
+#else
 #define MAX_FNAME_LEN MAX_STR_LEN
-#endif /* PATH_MAX < MAX_STR_LEN */
-#else /* defined(PATH_MAX) && PATH_MAX > -1 */
-#define MAX_FNAME_LEN 1024
-#endif /* defined() &&  > -1 */
-#endif /* !defined(MAX_FNAME_LEN) */
+#endif
+#elif defined(MAXPATHLEN)
+#if MAXPATHLEN < MAX_STR_LEN
+#define MAX_FNAME_LEN MAXPATHLEN
+#else
+#define MAX_FNAME_LEN MAX_STR_LEN
+#endif
+#else
+#define MAX_FNAME_LEN 4096
+#endif
+#endif
+
+#if MAX_FNAME_LEN < 255
+#error MAX_FNAME_LEN is smaller than 255.
+#endif
+
+#if MAX_FNAME_LEN < _POSIX_PATH_MAX
+#error MAX_FNAME_LEN is smaller than _POSIX_PATH_MAX.
+#endif
 
 #if defined(MAXPATHLEN) && MAX_FNAME_LEN > MAXPATHLEN
 #error MAX_FNAME_LEN is greater than MAXPATHLEN.
@@ -523,7 +539,11 @@
  * Unsigned integer. Filenames with longer suffices are rejected.
  */
 #if !defined(MAX_SUFFIX_LEN)
-#define MAX_SUFFIX_LEN 8U
+#define MAX_SUFFIX_LEN 16U
+#endif
+
+#if MAX_SUFFIX_LEN < 8
+#error MAX_SUFFIX_LEN is smaller than 8.
 #endif
 
 #if MAX_SUFFIX_LEN > MAX_STR_LEN
@@ -543,8 +563,8 @@
 #define MAX_VAR_LEN MAX_FNAME_LEN
 #endif
 
-#if MAX_VAR_LEN > MAX_FNAME_LEN
-#error MAX_VAR_LEN is greater than MAX_FNAME_LEN.
+#if MAX_VAR_LEN < MAX_FNAME_LEN
+#error MAX_VAR_LEN is smaller than MAX_FNAME_LEN.
 #endif
 
 #if MAX_VAR_LEN > MAX_STR_LEN
@@ -564,12 +584,12 @@
 #define MAX_VARNAME_LEN 32U
 #endif
 
-#if MAX_VARNAME_LEN > MAX_STR_LEN
-#error MAX_VARNAME_LEN is greater than MAX_STR_LEN.
+#if MAX_VARNAME_LEN < 32
+#error MAX_VARNAME_LEN is smaller than 32.
 #endif
 
-#if MAX_VARNAME_LEN < 1
-#error MAX_VARNAME_LEN is non-positive.
+#if MAX_VARNAME_LEN > MAX_STR_LEN
+#error MAX_VARNAME_LEN is greater than MAX_STR_LEN.
 #endif
 
 
@@ -578,15 +598,15 @@
  * Users who are members of more groups are rejected.
  */
 #if !defined(MAX_NGROUPS)
-#define MAX_NGROUPS 128U
-#endif
-
-#if MAX_NGROUPS > INT_MAX
-#error MAX_NGROUPS is greater than INT_MAX.
+#define MAX_NGROUPS 256U
 #endif
 
 #if MAX_NGROUPS < 1
 #error MAX_NGROUPS is non-positive.
+#endif
+
+#if MAX_NGROUPS > INT_MAX
+#error MAX_NGROUPS is greater than INT_MAX.
 #endif
 
 
@@ -598,12 +618,12 @@
 #define MAX_NVARS 512U
 #endif
 
-#if MAX_NVARS > SHRT_MAX
-#error MAX_NVARS is greater than SHRT_MAX.
-#endif
-
 #if MAX_NVARS < 1
 #error MAX_NVARS is non-positive.
+#endif
+
+#if MAX_NVARS > SHRT_MAX
+#error MAX_NVARS is greater than SHRT_MAX.
 #endif
 
 
@@ -630,7 +650,7 @@
 #define LIBC "Apple"
 #endif
 
-/* Name of configuration string for conforming environment. */
+/* Name of configuration string for a conforming environment. */
 #if defined(_CS_V7_ENV)
 #define ENV_CONFSTR _CS_V7_ENV
 #elif defined(_CS_V6_ENV)
