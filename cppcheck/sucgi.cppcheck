@@ -9,6 +9,7 @@
     </paths>
     <defines>
         <define name='PATH="/bin:/usr/bin"'/>
+        <define name="LIBC=glibc"/>
         <define name="MAX_ERRMSG_LEN=256U"/>
         <define name="MAX_FNAME_LEN=1024"/>
         <define name="MAX_SUFFIX_LEN=8U"/>
