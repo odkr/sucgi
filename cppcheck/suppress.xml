@@ -20,12 +20,6 @@
         <id>missingIncludeSystem</id>
     </suppress>
 
-
-    <!-- suCGI need not be async-safe. -->
-    <suppress><id>getgrgidCalled</id></suppress>
-    <suppress><id>getpwentCalled</id></suppress>
-    <suppress><id>getpwuidCalled</id></suppress>
-
     <!--
         Cppcheck wrongly assumes that enums always resolve
         to signed integers. And suCGI is compiled with

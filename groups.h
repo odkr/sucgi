@@ -33,6 +33,9 @@
  * Side-effects:
  *      Logs groups that should not be set.
  *
+ * Caveats:
+ *      Calls getgrgid.
+ *
  * FIXME: Not unit-tested.
  */
 _read_only(2, 1) _nonnull(2) _nodiscard _unused

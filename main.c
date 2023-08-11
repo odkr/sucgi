@@ -498,6 +498,7 @@ main(int argc, char **argv) {
     gid_t gid;
 
     errno = 0;
+    /* cppcheck-suppress getpwuidCalled; used safely. */
     owner = getpwuid(scriptstatus.st_uid);
     if (owner == NULL) {
         /* cppcheck-suppress misra-c2012-22.10; getpwuid sets errno. */
@@ -582,6 +583,7 @@ main(int argc, char **argv) {
         if (groups[i] < START_GID || groups[i] > STOP_GID) {
             const struct group *grp;
 
+            /* cppcheck-suppress getgrgidCalled; used safely. */
             grp = getgrgid(groups[i]);
             if (grp != NULL) {
                 error("user %s: member of system group %s.",

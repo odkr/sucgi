@@ -148,6 +148,7 @@ user_get_regular(struct passwd *const pwd, const ErrorFn errh)
         return -1;
     }
 
+    /* cppcheck-suppress getpwentCalled; getpwent_r is not portable. */
     while ((errno = 0, ptr = getpwent()) != NULL) {
         if (ptr->pw_uid > 0) {
             /* RATS: ignore; can neither over- nor underflow. */

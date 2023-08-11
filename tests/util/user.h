@@ -52,8 +52,8 @@
  * found, the error handler will not be called for that error.
  *
  * Return value:
- *     Zero      Success.
- *     Non-zero  Something went wrong; errno may be set.
+ *      Zero      Success.
+ *      Non-zero  Something went wrong; errno may be set.
  */
 _write_only(2) _nonnull(2)
 int user_get_gid(uid_t uid, gid_t *gid, ErrorFn errh);
@@ -66,12 +66,15 @@ int user_get_gid(uid_t uid, gid_t *gid, ErrorFn errh);
  * count as an error.
  *
  * Return value:
- *     Negative  Something went wrong; errno should be set.
- *     Zero      A non-superuser was found.
- *     Positive  No non-superuser.
+ *      Negative  Something went wrong; errno should be set.
+ *      Zero      A non-superuser was found.
+ *      Positive  No non-superuser.
  *
  * Errors:
- *     See setpwent, getpwent, and endpwent.
+ *      See setpwent, getpwent, and endpwent.
+ *
+ * Caveats:
+ *      Calls setpwent, getpwent, and endpwent.
  */
 _write_only(1) _nonnull(1)
 int user_get_regular(struct passwd *pwd, ErrorFn errh);
@@ -88,8 +91,8 @@ int user_get_regular(struct passwd *pwd, ErrorFn errh);
  * for composing error messages.
  *
  * Return value:
- *     NULL      Conversion failed; errno should be set.
- *     Non-NULL  Pointer to the converted ID.
+ *      NULL      Conversion failed; errno should be set.
+ *      Non-NULL  Pointer to the converted ID.
  */
 _returns_nonnull _nodiscard
 char *user_id_to_str(id_t id, ErrorFn errh);

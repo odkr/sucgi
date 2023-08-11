@@ -35,11 +35,14 @@
  * supplementary groups must be given; supernumery groups are ignored.
  *
  * Return value:
- *     OK         Success.
- *     ERR_SYS    setuid/setgid/setgroups failed.
- *     ERR_PRIV*  Superuser privileges could be resumed.
+ *      OK         Success.
+ *      ERR_SYS    setuid/setgid/setgroups failed.
+ *      ERR_PRIV*  Superuser privileges could be resumed.
  *
- *     * This error should be unreachable.
+ *      * This error should be unreachable.
+ *
+ * Caveats:
+ *      Calls getgrgid unless NDEBUG is true.
  */
 _read_only(4, 3) _nonnull(4) _nodiscard
 /* cppcheck-suppress misra-c2012-8.4; this *is* the declaration. */
@@ -50,11 +53,14 @@ Error priv_drop(uid_t uid, gid_t gid, NGRPS_T ngroups, const gid_t *groups);
  * to the real user and group respectively.
  *
  * Return value:
- *     OK         Success.
- *     ERR_SYS*   seteuid/setegid/setgroups failed.
- *     ERR_PRIV*  The effective user/group ID was not changed.
+ *      OK         Success.
+ *      ERR_SYS*   seteuid/setegid/setgroups failed.
+ *      ERR_PRIV*  The effective user/group ID was not changed.
  *
- *     * These errors should be unreachable.
+ *      * These errors should be unreachable.
+ *
+ * Caveats:
+ *      Calls getgrgid unless NDEBUG is true.
  */
 _nodiscard
 Error priv_suspend(void);

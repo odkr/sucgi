@@ -62,6 +62,7 @@ groups_sub(size_t ngroups, const gid_t *const groups)
         if (ptr == NULL) {
             const struct group *grp;
 
+            /* cppcheck-suppress getgrgidCalled; least bad option. */
             grp = getgrgid(pgroups[i]);
             if (grp != NULL) {
                 /* RATS: ignore; format string is short and a literal. */

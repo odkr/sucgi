@@ -188,6 +188,7 @@ main(void)
         pid_t pid;
 
         errno = 0;
+        /* cppcheck-suppress getpwuidCalled; used safely. */
         targetuser = getpwuid(args.targetuid);
         if (targetuser == NULL) {
             /* cppcheck-suppress misra-c2012-22.10; getpwuid sets errno. */
