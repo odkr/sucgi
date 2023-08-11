@@ -382,6 +382,8 @@ main(int argc, char **argv) {
         }
 
         usage();
+
+        /* NOTREACHED */
     }
 
 
