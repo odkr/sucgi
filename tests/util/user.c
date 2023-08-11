@@ -57,7 +57,6 @@
 _write_only(3, 2) _nodiscard
 static int uid_to_str(id_t id, size_t size, char *str);
 
-
 /*
  * Functions
  */
@@ -81,12 +80,37 @@ uid_to_str(id_t id, const size_t size, char *const str)
 int
 user_get_gid(const uid_t uid, gid_t *const gid, const ErrorFn errh)
 {
-    struct passwd *pwd;
+    struct passwd pwd, *result;
+    long bufsize;
+    char *buf;
 
     errno = 0;
-    pwd = getpwuid(uid);
-    if (pwd == NULL) {
-        /* cppcheck-suppress misra-c2012-22.10; getpwuid sets errno. */
+    bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
+    if (bufsize < 0) {
+        if (errh != NULL) {
+            errh(EXIT_FAILURE, "sysconf");
+        }
+
+        return -1;
+    }
+
+    assert((uintmax_t) bufsize <= (uintmax_t) SIZE_MAX);
+
+    errno = 0;
+    buf = malloc((size_t) bufsize);
+    if (buf == NULL) {
+        if (errh != NULL) {
+            errh(EXIT_FAILURE, "malloc");
+        }
+
+        return -1;
+    }
+
+    errno = getpwuid_r(uid, &pwd, buf, (size_t) bufsize, &result);
+    free(buf);
+
+    if (result == NULL) {
+        /* cppcheck-suppress misra-c2012-22.10; errno was just set. */
         if (errno != 0) {
             if (errh != NULL) {
                 errh(EXIT_FAILURE, "getpwuid");
@@ -98,7 +122,7 @@ user_get_gid(const uid_t uid, gid_t *const gid, const ErrorFn errh)
         return -1;
     }
 
-    *gid = pwd->pw_gid;
+    *gid = pwd.pw_gid;
 
     return 0;
 }

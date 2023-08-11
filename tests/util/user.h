@@ -47,9 +47,9 @@
  *
  * user_get_gid also takes a pointer to an error handling function. If an
  * error occurs, this function is called after clean-up; if that pointer
- * is NULL, error handling is left to the caller. However, although it does
- * count an error if the given user cannot be found, and a non-zero value
- * will ber returned, the error handler will *not* be called for that error.
+ * is NULL, error handling is left to the caller. However, although a
+ * non-zero value will be returned it if the given user cannot be
+ * found, the error handler will not be called for that error.
  *
  * Return value:
  *     Zero      Success.
@@ -62,9 +62,8 @@ int user_get_gid(uid_t uid, gid_t *gid, ErrorFn errh);
  * Search for a non-superuser and return it in "pwd".
  *
  * user_get_regular also takes a pointer to an error handling function.
- * See user_get_gid for details. However, although it is weird if no
- * non-superuser can be found, this does *not* count as an error, and
- * the error handler will *not* be called for that condition.
+ * See user_get_gid for details. No non-superuser being found does not
+ * count as an error.
  *
  * Return value:
  *     Negative  Something went wrong; errno should be set.
