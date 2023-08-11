@@ -588,7 +588,7 @@ main(int argc, char **argv) {
                       logname, grp->gr_name);
             } else if (ISSIGNED(gid_t)) {
                 error("user %s: member of system group %lld.",
-                      logname, (unsigned long long) groups[i]);
+                      logname, (long long) groups[i]);
             } else {
                 error("user %s: member of system group %llu.",
                       logname, (unsigned long long) groups[i]);
