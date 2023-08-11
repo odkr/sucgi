@@ -187,12 +187,43 @@
  * Defaults
  */
 
-/* User directory. String. */
+/*
+ * The document root of user websites. Filename pattern.
+ * CGI scripts are only run if they reside under their owner's document root.
+ *
+ * This constant mirrors Apache's UserDir directive, save for that a "%s"
+ * printf conversion specifier is used instead of an "*". That is:
+ *
+ * (1) If USER_DIR is an absolute filename and contains a single "%s",
+ *     "%s" is replaced with the user's login name.
+ *     For example: "/srv/web/%s/html" -> "/srv/web/jdoe/html".
+ *     There must be at most one format specifier, and it must be "%s".
+ *     printf's escaping rules apply.
+ *
+ * (2) If USER_DIR is an absolute filename but does not contain a "%s",
+ *     a "/" and the user's login name are appended to the filename.
+ *     For example: "/srv/web" -> "/srv/web/jdoe".
+ *     printf's escaping rules do not apply.
+ *
+ * (3) If USER_DIR is a relative filename,
+ *     the filename is prefixed with the user's home directory and a "/".
+ *     For example: "public_html" -> "/home/jdoe/public_html.
+ *     Format specifiers carry no special meaning and are used as is.
+ *     printf's escaping rules do not apply.
+ */
 #if !defined(USER_DIR)
 #define USER_DIR "public_html"
 #endif
 
-/* Lowest user ID that may be assigned to a regular user. */
+
+/*
+ * Range of user IDs reserverd for non-system users. Integers.
+ *
+ * Usually starts at 100, 500, or 1,000 and ends at 30,000 or 60,000.
+ * You MUST set [START_UID, STOP_UID] to a subset of that range.
+ *
+ * Only CGI scripts owned by non-system users can be executed with suCGI.
+ */
 #if !defined(START_UID)
 #if defined(__illumos__) || defined(__sun)
 #define START_UID 100
@@ -211,8 +242,6 @@
 #error START_UID must be greater than MINUID.
 #endif
 
-
-/* Highest user ID that may be assigned to a regular user. */
 #if !defined(STOP_UID)
 #if defined(__OpenBSD__)
 #define STOP_UID 30000
@@ -234,7 +263,18 @@
 #endif
 
 
-/* Lowest group ID that may be assigned to a regular group. */
+/*
+ * Range of group IDs reserved for non-system groups. Integers.
+ *
+ * Usually starts at 100, 500, or 1,000 and ends at 30,000 or 60,000.
+ * You MUST set [START_GID .. STOP_GID] to a subset of that range.
+ *
+ * On systems that make no such reservation,
+ * exclude as many system groups as feasible.
+ *
+ * Only CGI scripts owned by users who are only members of
+ * non-system groups can be executed with suCGI.
+ */
 #if !defined(START_GID)
 #if defined(__MACH__) || defined(__illumos__) || defined(__sun)
 #define START_GID 1
@@ -253,8 +293,6 @@
 #error START_GID must be greater than MINGID.
 #endif
 
-
-/* Highest group ID that may be assigned to a regular group. */
 #if !defined(STOP_GID)
 #define STOP_GID STOP_UID
 #endif
@@ -276,7 +314,73 @@
 #endif
 
 
-/* Environment variables to keep. */
+/*
+ * Handlers to run CGI scripts with.
+ * Array of filename suffix-handler pairs.
+ *
+ * The filename suffix must include the leading dot (e.g., ".php").
+ * The handler is looked up in $PATH if its name is relative (e.g., "php").
+ * Keep in mind that $PATH is set to PATH (see below).
+ *
+ * If no handler can be found, suCGI will execute the CGI script itself.
+ */
+#if !defined(HANDLERS)
+#define HANDLERS { \
+    {".php", "php"}, \
+}
+#endif
+
+
+/*
+ * Secure $PATH. String literal. Colon-separated list of directories.
+ */
+#if !defined(PATH)
+#define PATH "/usr/bin:/bin"
+#endif
+
+
+/*
+ * Secure file permission mask. Unsigned integer.
+ *
+ * Permission masks are often given as octal numbers (e.g., 022 for go-w).
+ * For a number to be interpreted as octal by the C compiler, it must be
+ * prefixed with a zero (i.e., match the regular expression /^0[0-9]+/).
+ */
+#if !defined(UMASK)
+#define UMASK (S_ISUID | S_ISGID | S_ISVTX | S_IRWXG | S_IRWXO)
+#endif
+
+
+/*
+ * Environment variables to keep. Array of POSIX extended regular expressions.
+ * Only variables the names of which match at least one expression are kept.
+ *
+ * The default list of permitted variables has been adopted from:
+ *
+ *     - RFC 3876 "The Common Gateway Interface (CGI) Version 1.1"
+ *       <https://datatracker.ietf.org/doc/html/rfc3875>
+ *     - Kira Matrejek, CGI Programming 101, chap. 3
+ *       <http://www.cgi101.com/book/ch3/text.html>
+ *     - Apache's suEXEC
+ *       <https://github.com/apache/httpd/blob/trunk/support/suexec.c>
+ *     - the Apache v2.4 variable documentation
+ *       <https://httpd.apache.org/docs/2.4/expr.html#vars>
+ *     - the Apache v2.4 mod_ssl documentation
+ *       <https://httpd.apache.org/docs/2.4/mod/mod_ssl.html>
+ *
+ * MUST contain a regular expression that matches "PATH_TRANSLATED".
+ *
+ * Some variables are set by suCGI:
+ *     - DOCUMENT_ROOT
+ *     - HOME
+ *     - PATH
+ *     - SCRIPT_FILENAME
+ *     - USER_NAME
+ *
+ * These variables will be set regardless of whether they match a pattern.
+ *
+ * There should be no need to adapt this list.
+ */
 #if !defined(SAFE_ENV_VARS)
 #define SAFE_ENV_VARS { \
     "^AUTH_TYPE$", \
@@ -399,39 +503,28 @@
 #endif
 
 
-/* Handlers to run CGI scripts with. */
-#if !defined(HANDLERS)
-#define HANDLERS { \
-    {".php", "php"}, \
-}
-#endif
-
-
-/* Secure $PATH. */
-#if !defined(PATH)
-#define PATH "/usr/bin:/bin"
-#endif
-
-
-/* Secure file permission mask. */
-#if !defined(UMASK)
-#define UMASK (S_ISUID | S_ISGID | S_ISVTX | S_IRWXG | S_IRWXO)
-#endif
-
-
-/* Facility to log to. */
-#if !defined(SYSLOG_FACILITY)
-#define SYSLOG_FACILITY LOG_AUTH
-#endif
-
-
-/* Priorities to log. */
+/*
+ * Priorities to log. Syslog constant.
+ * See syslog(3) for details.
+ */
 #if !defined(SYSLOG_MASK)
 #define SYSLOG_MASK LOG_UPTO(LOG_ERR)
 #endif
 
 
-/* Syslog options. */
+/*
+ * Facility to log to.
+ * See syslog(3) for details.
+ */
+#if !defined(SYSLOG_FACILITY)
+#define SYSLOG_FACILITY LOG_AUTH
+#endif
+
+
+/*
+ * Syslog options.
+ * See syslog(3) for details.
+ */
 #if !defined(SYSLOG_OPTS)
 #define SYSLOG_OPTS LOG_CONS
 #endif
