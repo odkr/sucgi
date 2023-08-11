@@ -13,8 +13,9 @@ See below for details.
 
 The test suite is less portable that suCGI itself.
 
-It requires a system that supports the "Spawn" POSIX.1-2008 extension and
-the **<err.h>** header file, which some systems do not provide.
+It requires a system that supports the "Spawn" and the "Thread-Safe
+Functions" POSIX.1-2008 extension as well as the **<err.h>** header
+file, which some systems do not provide.
 
 
 ## Security
