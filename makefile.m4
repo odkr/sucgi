@@ -415,12 +415,12 @@ package = sucgi
 version = 0
 dist_name = $(package)-$(version)
 dist_ar = $(dist_name).tgz
-dist_files = *.c *.h *.m4 README.rst LICENSE.txt \
+dist_files = *.c *.h *.m4 README.md LICENSE.txt \
 	configure prepare conf cppcheck docs man tests utils scripts
 
 distclean: mrproper
 
-$(dist_name): distclean man/sucgi.8 docs/callgraph.svg
+$(dist_name): distclean man/sucgi.8
 
 $(dist_ar): $(dist_name)
 
