@@ -183,11 +183,13 @@ env_set_vars(const char *const vars)
     assert(vars != NULL);
     assert(strnlen(vars, MAX_STR_LEN) < MAX_STR_LEN);
 
+    /* cppcheck-suppress misra-c2012-14.2; least bad solution. */
     for (const char *ptr = vars; ptr != NULL; /* see str_split below. */) {
         char var[MAX_VAR_LEN];
         char name[MAX_VARNAME_LEN];
         const char *value;
 
+        /* cppcheck-suppress nullPointerRedundantCheck; loop condition. */
         if (str_split(ptr, " ", sizeof(var), var, &ptr) != OK) {
             /* RATS: ignore; format is short and a literal. */
             syslog(LOG_INFO, "discarding variable that is too long.");
