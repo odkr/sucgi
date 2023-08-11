@@ -181,11 +181,36 @@ main(void)
     };
 
     int result = PASS;
+    long targetlognamemax;
+    char *targetlogname;
+
+    errno = 0;
+    targetlognamemax = sysconf(_SC_LOGIN_NAME_MAX);
+    if (targetlognamemax < 0) {
+        if (errno != 0) {
+            err(ERROR, "sysconf");
+        }
+
+#if defined(LOGIN_NAME_MAX) && LOGIN_NAME_MAX > -1
+        targetlognamemax = LOGIN_NAME_MAX;
+#else
+        targetlognamemax = MAX_STR_LEN;
+#endif
+
+/*FIXME: check targetlognamemax for SIZE_T */
+    }
+
+    targetlogname = malloc((size_t) targetlognamemax);
+    if (targetlogname == NULL) {
+        err(ERROR, "malloc");
+    }
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const PrivDropArgs args = cases[i];
         struct passwd *targetuser;
         pid_t pid;
+
+        (void) memset(targetlogname, '\0', (size_t) targetlognamemax);
 
         errno = 0;
         targetuser = getpwuid(args.targetuid);
@@ -197,6 +222,11 @@ main(void)
             } else {
                 err(ERROR, "getpwuid");
             }
+        }
+
+        if (*stpncpy(targetlogname, targetuser->pw_name, (size_t) targetlognamemax) != '\0') {
+            errx(ERROR, "user %s: login name too long",
+                 targetuser->pw_name);
         }
 
         /* RATS: ignore; fork is used safely. */
@@ -241,11 +271,11 @@ main(void)
                 }
             }
 
-            if (getgrouplist(targetuser->pw_name, (GRP_T) args.targetgid,
+            if (getgrouplist(targetlogname, (GRP_T) args.targetgid,
                              (GRP_T *) targetgids, &ntargetgids) < 0)
             {
                 errx(SKIP, "user %s: belongs to too many groups.",
-                     targetuser->pw_name);
+                     targetlogname);
             }
 
             if (args.signal != 0) {
