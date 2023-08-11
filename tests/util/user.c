@@ -80,7 +80,8 @@ uid_to_str(id_t id, const size_t size, char *const str)
 int
 user_get_gid(const uid_t uid, gid_t *const gid, const ErrorFn errh)
 {
-    struct passwd pwd, *result;
+    struct passwd pwd;
+    struct passwd *result;
     long bufsize;
     char *buf;
 
