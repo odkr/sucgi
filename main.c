@@ -272,7 +272,7 @@ main(int argc, char **argv) {
     ASSERT(sizeof(GRP_T) == sizeof(gid_t));
     ASSERT(MAX_NGRPS_VAL >= INT_MAX);
 
-    /* NOLINTBEGIN(bugprone-sizeof-expression); yes, I am that paranoid. */
+    /* NOLINTBEGIN(bugprone-sizeof-expression); nothing bug-prone about it. */
 
     /* Are configuration values are within bounds? */
     ASSERT(sizeof(USER_DIR) > 1U);
@@ -287,7 +287,7 @@ main(int argc, char **argv) {
      * However, POSIX.1-2008 allows for uid_t, gid_t, and id_t to be defined
      * as unsigned integers. Moreover, this is how they are defined on most
      * systems; on such systems, -1 just wraps around to the maximum value
-     * that ID types can represent. So that value is *not* a valid ID.
+     * that ID types can represent. So that value is not a valid ID.
      */
 
     ASSERT((uintmax_t) STOP_UID <= ((uintmax_t) MAX_UID_VAL - (uintmax_t) 1));
@@ -302,7 +302,7 @@ main(int argc, char **argv) {
     ASSERT((GRP_T) START_GID == START_GID);
     ASSERT((GRP_T)  STOP_GID ==  STOP_GID);
 
-    /* Make sure the number of groups can be represented. */
+    /* Make sure the NGRPS_T can represent every positive integer. */
     ASSERT((NGRPS_T) INT_MAX == INT_MAX);
 
 
@@ -545,7 +545,7 @@ main(int argc, char **argv) {
      * (1) a compile-time error is raised if sizeof(GRP_T) != sizeof(gid_t)
      *     (so GRP_T[i] and gid_t[i] cannot refer to different addresses).
      * (2) gid_t and GRP_T use the same integer representation for any value
-     *     in [START_GID .. STOP_GID] (so type-casting cannot change values).
+     *     in [START_GID, STOP_GID] (so type-casting cannot change values).
      * (3) a run-time error is raised if a GID falls outside that range.
      *
      * gid_t and GRP_T are guaranteed to use the same integer representation
