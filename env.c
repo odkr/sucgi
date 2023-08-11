@@ -87,6 +87,8 @@ Error
 env_init(void)
 {
 #if defined(ENV_CONFSTR)
+
+    /* RATS: ignore; confstr should respect the size of the buffer. */
     char *buf[MAX_STR_LEN];
 
     if (confstr(ENV_CONFSTR, buf, sizeof(buf)) > sizeof(buf)) {
@@ -185,8 +187,8 @@ env_set_vars(const char *const vars)
 
     /* cppcheck-suppress misra-c2012-14.2; least bad solution. */
     for (const char *ptr = vars; ptr != NULL; /* see str_split below. */) {
-        char var[MAX_VAR_LEN];
-        char name[MAX_VARNAME_LEN];
+        char var[MAX_VAR_LEN];          /* RATS: ignore; str_split is safe. */
+        char name[MAX_VARNAME_LEN];     /* RATS: ignore; str_split is safe. */
         const char *value;
 
         /* cppcheck-suppress nullPointerRedundantCheck; loop condition. */
