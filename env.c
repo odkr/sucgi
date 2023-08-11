@@ -83,11 +83,15 @@ env_copy_var(const char *const name, const size_t maxlen,
     return ret;
 }
 
+/*
+ * ENV_CONFSTR is an alias for _CS_V[67]_ENV.
+ * It is only defined if _CS_V6_ENV or  _CS_V7_ENV is.
+ */
+#if defined(ENV_CONFSTR)
+
 Error
 env_init(void)
 {
-#if defined(ENV_CONFSTR)
-
     /* RATS: ignore; confstr should respect the size of the buffer. */
     char *buf[MAX_STR_LEN];
 
@@ -96,10 +100,19 @@ env_init(void)
     }
 
     return env_set_vars(envbuf);
-#else
-    return OK;
-#endif
 }
+
+#else /* !defined(ENV_CONFSTR) */
+
+Error
+env_init(void)
+{
+    return OK;
+}
+
+#endif /* defined(ENV_CONFSTR) */
+
+
 
 bool
 env_is_name(const char *const str)
