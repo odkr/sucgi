@@ -377,6 +377,13 @@ The **makefile** supports the following 'phony' targets:
 
 ## Troubleshooting
 
+### Object files/archives are recompiled even if the source did not change
+
+Try using another archiver. *ar* is good enough on most systems:
+
+    AR=ar ./configure
+
+
 ### "size of unnamed array is negative", "array size is negative", etc.
 
 When a condition that suCGI takes for granted turns out to be false
@@ -400,16 +407,25 @@ main.c:278:5: note: in expansion of macro 'ASSERT'
 ```
 
 indicates that the configuration macro USER_DIR expands to a string
-that is shorter than two bytes, that is, either not null-terminated
-or the empty string.
+that is shorter than two bytes, that is, is either not terminated at
+all or the empty string.
 
 
-### Object files/archives are recompiled even though the source did not change
+### Raising the number of groups suCGI can handle
 
-Try using another archiver. On most systems, *ar* is good enough:
+If the number of groups that a user is a member of exceeds the suCGI limit
+MAX_NGROUPS (see above), then CGI scripts of that user will only be run
+with the permissions of an arbitrary subset of those groups.
 
-    AR=ar ./configure
+The default limit can be overriden by either setting a higher limit
+in **config.h** or by using *configure*'s **-D** flag:
 
+    $ ./configure -DMAX_NGROUPS=65536
+    [...]
+    $ make
+    [...]
+    $ ./sucgi -C | grep -E ^MAX_NGROUPS=
+    65536
 
 
 [install.md]: install.md
