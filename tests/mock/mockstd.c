@@ -263,6 +263,7 @@ str_to_num(const char *const str)
 
     errno = 0;
     num = strtoll(str, NULL, BASE_10);
+    /* cppcheck-suppress misra-c2012-22.10; strtoll may sets errno. */
     if (num == (long long) 0 && errno != 0) {
         err(EXIT_FAILURE, "%s:%d: strtoll", __FILE__, __LINE__);
     }
@@ -427,6 +428,7 @@ get_errno(const char *const name)
     errno = 0;
     num = strtoll(value, NULL, BASE_10);
 
+    /* cppcheck-suppress misra-c2012-22.10; strtoll may sets errno. */
     if (num == (long long) 0 && errno != 0) {
         err(EXIT_FAILURE, "%s:%d: strtoll %s", __FILE__, __LINE__, value);
     }

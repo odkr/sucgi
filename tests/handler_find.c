@@ -140,8 +140,8 @@ main(void)
             size_t scriptlen;
             Error retval;
 
-            scriptlen = strnlen(args.script, MAX_FNAME_LEN + 1U);
-            assert(scriptlen <= MAX_FNAME_LEN);
+            scriptlen = strnlen(args.script, (size_t) MAX_FNAME_LEN + 1U);
+            assert(scriptlen <= (size_t) MAX_FNAME_LEN);
 
             if (args.signal != 0) {
                 warnx("the next test should fail an assertion.");
