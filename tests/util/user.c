@@ -98,6 +98,7 @@ user_get_gid(const uid_t uid, gid_t *const gid, const ErrorFn errh)
     assert((uintmax_t) bufsize <= (uintmax_t) SIZE_MAX);
 
     errno = 0;
+    /* cppcheck-suppress misra-c2012-11.5; bad advice for malloc. */
     buf = malloc((size_t) bufsize);
     if (buf == NULL) {
         if (errh != NULL) {
