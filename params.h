@@ -674,7 +674,7 @@
  * terminator. Unsigned integer. Variables with longer names are ignored.
  */
 #if !defined(MAX_VARNAME_LEN)
-#define MAX_VARNAME_LEN 32U
+#define MAX_VARNAME_LEN 64U
 #endif
 
 #if MAX_VARNAME_LEN < 32
@@ -711,8 +711,8 @@
 #define MAX_NVARS 512U
 #endif
 
-#if MAX_NVARS < 1
-#error MAX_NVARS is non-positive.
+#if MAX_NVARS < 32
+#error MAX_NVARS is smaller than 32.
 #endif
 
 #if MAX_NVARS > SHRT_MAX
