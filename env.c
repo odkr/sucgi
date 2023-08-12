@@ -84,8 +84,8 @@ env_copy_var(const char *const name, const size_t maxlen,
 }
 
 /*
- * ENV_CONFSTR is an alias for _CS_V[67]_ENV.
- * It is only defined if _CS_V6_ENV or  _CS_V7_ENV is.
+ * ENV_CONFSTR is an alias for _CS_V7_ENV or _CS_V6_ENV.
+ * It is only defined if _CS_V7_ENV or _CS_V6_ENV is.
  */
 #if defined(ENV_CONFSTR)
 
