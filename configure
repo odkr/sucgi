@@ -363,7 +363,7 @@ done
 unset flag
 readonly testcc_cc testcc_cflags
 
-# Check if the compilers detects conversions that alter values.
+# Check if the compiler detects conversions that may alter values.
 if testflags $wconvflags
 then ccwconv=y
 else ccwconv=
