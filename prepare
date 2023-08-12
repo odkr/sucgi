@@ -131,9 +131,7 @@ case $mode in
 
 	if ! [ "$missing" ] && [ "$hashdrs" ]
 	then
-		[ "$quiet" ] ||
-		warn 'complete C build toolchain available; nothing to do.'
-
+		warn -q 'complete C build toolchain available; nothing to do.'
 		exit 0
 	fi
 
