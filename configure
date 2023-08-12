@@ -50,21 +50,25 @@ headers='sys/param.h features.h security/pam_appl.h shadow.h'
 libs=pam
 
 # Maximum number of child processes to spawn.
-maxnjobs=4
 # The Busybox Almquist shell tends to crash when running jobs in parallel.
-[ "$(basename "${SHELL-}")" = ash ] && maxnjobs=1
+case $(basename "${SHELL-}") in
+(ash) maxnjobs=1 ;;
+(*)   maxnjobs=4 ;;
+esac
 
 # Be quiet?
 quiet=
 
-# Search static code analysers?
-statenable=
 
-# Flags needed for testing compiler features.
-testflags='-std=c99 -Wextra -Wpedantic -pedantic -pipe'
+#
+# Constants
+#
 
-# Conversion warning flags.
-wconvflags='-Wincompatible-pointer-types -Wconversion -Wsign-conversion'
+# Flags for testing compiler features. Space-separated list of flags.
+readonly testflags='-std=c99 -pipe'
+
+# Flags for testing conversions. Space-separated list of flags.
+readonly wconvflags='-Wconversion'
 
 
 #
@@ -149,33 +153,34 @@ addflags() {
 }
 
 # Test compilation.
-testcc() (
+testcc() {
 	: "${testcc_cc:?}" "${testcc_cflags?}"
-
-	exec >/dev/null 2>&1
 
 	case $testcc_cc in
 	(clang|gcc)
 		# shellcheck disable=2086
-		"$CC" -xc -Wall -Werror $testcc_cflags -o/dev/null "$@"
+		"$CC" -xc -Werror $testcc_cflags -o/dev/null "$@" \
+		>/dev/null 2>&1
 		;;
 	(tcc)
 		# TinyCC unlinks /dev/null when given -o/dev/null.
 		# https://savannah.nongnu.org/bugs/index.php?64476
 		# shellcheck disable=2086
 		"$CC" -Wunsupported \
-		      -xc -Wall -Werror $testcc_cflags -o"$TMPDIR/a.out" "$@"
+		      -xc -Werror $testcc_cflags -o"$TMPDIR/a.out" "$@" \
+		>/dev/null 2>&1
 		;;
 	(icc)
 		# shellcheck disable=2086
 		"$CC" -diag-enable=10006,10148 -diag-error=10006,10148 \
-		      -xc -Wall -Werror $testcc_cflags -o/dev/null "$@"
+		      -xc -Werror $testcc_cflags -o/dev/null "$@" \
+		>/dev/null 2>&1
 		;;
 	(*)
 		return 1
 		;;
 	esac
-)
+}
 
 # Test compiler flags.
 testflags() {
@@ -358,6 +363,12 @@ done
 unset flag
 readonly testcc_cc testcc_cflags
 
+# Check if the compilers detects conversions that alter values.
+if testflags $wconvflags
+then ccwconv=y
+else ccwconv=
+fi
+
 # Output.
 printf '%s\n' "$CC"
 
@@ -406,6 +417,7 @@ then
 			then
 				eval flag="\"\${flag_$job-}\""
 				unset "flag_$job"
+
 				CFLAGS="${CFLAGS-} $flag"
 				printf -- ' %s' "$flag"
 			fi
@@ -712,7 +724,9 @@ printf 'getgrouplist GID type: '
 
 : "${SUCGI_GRP_T=}"
 # shellcheck disable=2086
-if ! [ "$SUCGI_GRP_T" ] && testflags $wconvflags
+if	! [ "$SUCGI_GRP_T" ] &&
+	[ "$ccwconv" ]       &&
+	testflags -Wincompatible-pointer-types
 then
 	IFS=:
 	for grouptype in $grouptypes
@@ -721,7 +735,8 @@ then
 		[ "$grouptype" ] || continue
 
 		# shellcheck disable=2086
-		if	testcc $wconvflags -DGRP_T="$grouptype" - <<-'EOF'
+		if	testcc $wconvflags -Wincompatible-pointer-types \
+			       -DGRP_T="$grouptype" - <<-'EOF'
 			#define _BSD_SOURCE
 			#define _DARWIN_C_SOURCE
 			#define _DEFAULT_SOURCE
@@ -780,7 +795,7 @@ printf 'setgroups count type: '
 
 : "${SUCGI_NGRPS_T=}"
 # shellcheck disable=2086
-if ! [ "$SUCGI_NGRPS_T" ] && testflags $wconvflags
+if ! [ "$SUCGI_NGRPS_T" ] && [ "$ccwconv" ]
 then
 	IFS=:
 	for sizetype in $sizetypes
@@ -845,56 +860,41 @@ for idtype in uid_t gid_t
 do
 	printf '%s maximum: ' "$idtype"
 
-	if testflags $wconvflags
+	case $idtype in
+	(uid_t) idvar=SUCGI_MAX_UID_VAL ;;
+	(gid_t) idvar=SUCGI_MAX_GID_VAL ;;
+	(*)     err -s70 'line %d: %s: unknown type.' ${LINENO-?} "$idtype"
+	esac
+
+	if [ "$ccwconv" ] && eval "[ -z \"\${$idvar-}\" ]"
 	then
-		idmax=
-		for maxval in                  \
-			UINTMAX_MAX INTMAX_MAX \
-			ULLONG_MAX  LLONG_MAX  \
-			ULONG_MAX   LONG_MAX   \
-			UINT_MAX    INT_MAX    \
-			USHRT_MAX   SHRT_MAX
+		for idmax in                                         \
+			SHRT_MAX  USHRT_MAX  INT_MAX    UINT_MAX     \
+			LONG_MAX  ULONG_MAX  LLONG_MAX  ULLONG_MAX
 		do
 			# shellcheck disable=2086
-			if	testcc $wconvflags \
-				       -D"T=$idtype" -D"V=$maxval" - <<-'EOF'
-				#include <sys/types.h>
-				#include <inttypes.h>
-				#include <limits.h>
-				#include <stdio.h>
+			testcc $wconvflags \
+			       -D"T=$idtype" -D"V=$idmax" - <<-'EOF' || break
+			#include <sys/types.h>
+			#include <inttypes.h>
+			#include <limits.h>
 
-				int
-				main(void)
-				{
-					T var = V;
+			int
+			main(void)
+			{
+				T var = V;
+				return 0;
+			}
+			EOF
 
-					/* Variable must be used. */
-					printf("%ju\n", (uintmax_t) var);
-
-					return 0;
-				}
-				EOF
-			then
-				idmax="$maxval"
-				break
-			fi
+			eval "$idvar=\"\$idmax\""
 		done
+		unset idmax
 	fi
 
-	if [ "${idmax-}" ]
-	then
-		case $idtype in
-		(uid_t) SUCGI_MAX_UID_VAL="$maxval" ;;
-		(gid_t) SUCGI_MAX_GID_VAL="$maxval" ;;
-		(*)     err -s78 '%s: unknown type.' "$idtype"
-		esac
+	eval "printf '%s\n' \"\${$idvar-\"guess at compile-time\"}\""
 
-		printf '%s\n' "$maxval"
-	else
-		printf 'guess at compile-time\n'
-	fi
-
-	unset idmax maxval
+	unset idvar
 done
 unset idtype
 
