@@ -152,44 +152,60 @@ addflags() {
 	      __addflags_comp __addflags_var
 }
 
+# Get a function prototype.
+getprototype() {
+	c99 -E -DH="<$1>" detect/hdr.h |
+	awk -vRS=';' -vfn="${2:?}" '
+		$0 !~ /^ *#/       &&
+		$1 ~ /^[a-z \n]+/  &&
+		match($2, "^ *" fn " *[\\($]")
+	'
+}
+
+# Get the type of a function parameter.
+getparamtype() {
+	getprototype "${1:?}" "${2:?}" |
+	awk -vn="${3:?}" '
+		match($0, "\\([^)]*") {
+			paramstr = substr($0, RSTART + 1, RLENGTH - 1);
+			split(paramstr, params, " *, *");
+			print(params[n]);
+		}
+	'
+}
+
 # Test compilation.
-testcc() {
+testcc() (
 	: "${testcc_cc:?}" "${testcc_cflags?}"
+
+	exec >/dev/null 2>&1
 
 	case $testcc_cc in
 	(clang|gcc)
 		# shellcheck disable=2086
-		"$CC" -xc -Werror $testcc_cflags -o/dev/null "$@" \
-		>/dev/null 2>&1
+		"$CC" -xc -Werror $testcc_cflags -o/dev/null "$@"
 		;;
 	(tcc)
 		# TinyCC unlinks /dev/null when given -o/dev/null.
 		# https://savannah.nongnu.org/bugs/index.php?64476
 		# shellcheck disable=2086
 		"$CC" -Wunsupported \
-		      -xc -Werror $testcc_cflags -o"$TMPDIR/a.out" "$@" \
-		>/dev/null 2>&1
+		      -xc -Werror $testcc_cflags -o"$TMPDIR/a.out" "$@"
 		;;
 	(icc)
 		# shellcheck disable=2086
 		"$CC" -diag-enable=10006,10148 -diag-error=10006,10148 \
-		      -xc -Werror $testcc_cflags -o/dev/null "$@" \
-		>/dev/null 2>&1
+		      -xc -Werror $testcc_cflags -o/dev/null "$@"
 		;;
 	(*)
 		return 1
 		;;
 	esac
-}
+)
 
 # Test compiler flags.
 testflags() {
-	testcc "$@" - <<-'EOF'
-	int
-	main(void) {
-		return 0;
-	}
-	EOF
+	testcc "$@" detect/noop.c
 }
 
 
@@ -552,9 +568,7 @@ do
 			printf ' %s' "$header"
 			;;
 		(*)
-			"$CC" -xc -E - <<-EOF >/dev/null 2>&1 &
-			#include <$header>
-			EOF
+			"$CC" -D"H=<$header>" -E detect/hdr.h >/dev/null 2>&1 &
 
 			njobs=$((njobs + 1)) jobs="$jobs$! "
 			eval "header_$!"='$header'
@@ -729,43 +743,29 @@ if	! [ "$SUCGI_GRP_T" ] &&
 	testflags -Wincompatible-pointer-types
 then
 	IFS=:
-	for grouptype in $grouptypes
+	for grptype in $grouptypes
 	do
 		unset IFS || :
-		[ "$grouptype" ] || continue
+		[ "$grptype" ] || continue
 
 		# shellcheck disable=2086
 		if	testcc $wconvflags -Wincompatible-pointer-types \
-			       -DGRP_T="$grouptype" - <<-'EOF'
-			#define _BSD_SOURCE
-			#define _DARWIN_C_SOURCE
-			#define _DEFAULT_SOURCE
-			#define _GNU_SOURCE
-
-			#include <grp.h>
-			#include <inttypes.h>
-			#include <unistd.h>
-
-			int
-			main(void)
-			{
-				GRP_T basegid = 0;
-				GRP_T groups[1] = {0};
-				int n = 1;
-
-				getgrouplist("dummy", basegid, groups, &n);
-
-				return 0;
-			}
-			EOF
+			       -DGRP_T="$grptype" detect/grp_t.c
 		then
-			SUCGI_GRP_T="$grouptype"
+			SUCGI_GRP_T="$grptype"
 
 			break
 		fi
 	done
-	unset grouptype
 fi
+
+if	! [ "$SUCGI_GRP_T" ]                                               &&
+	grptype="$(getparamtype unistd.h getgrouplist 3 | sed 's/ *\*//')" &&
+	[ "$grptype" ]
+then	SUCGI_GRP_T="$grptype"
+fi
+
+unset grptype
 
 case $SUCGI_GRP_T in
 ("short")              SUCGI_MAX_GRP_VAL=SHRT_MAX ;;
@@ -798,40 +798,28 @@ printf 'setgroups count type: '
 if ! [ "$SUCGI_NGRPS_T" ] && [ "$ccwconv" ]
 then
 	IFS=:
-	for sizetype in $sizetypes
+	for sztype in $sizetypes
 	do
 		unset IFS || :
-		[ "$sizetype" ] || continue
+		[ "$sztype" ] || continue
 
 		# shellcheck disable=2086
-		if	testcc $wconvflags -DNGRPS_T="$sizetype" - <<-'EOF'
-			#define _BSD_SOURCE
-			#define _DARWIN_C_SOURCE
-			#define _DEFAULT_SOURCE
-			#define _GNU_SOURCE
-
-			#include <sys/types.h>
-			#include <grp.h>
-			#include <unistd.h>
-
-			int
-			main(void)
-			{
-				NGRPS_T ngroups = 0;
-				gid_t gidset[1] = {0};
-
-				(void) setgroups(ngroups, gidset);
-
-				return 0;
-			}
-			EOF
+		if testcc $wconvflags -DNGRPS_T="$sztype" detect/ngrps_t.c
 		then
-			SUCGI_NGRPS_T="$sizetype"
+			SUCGI_NGRPS_T="$sztype"
 			break
 		fi
 	done
-	unset sizetype
 fi
+
+if	! [ "$SUCGI_NGRPS_T" ]                                               &&
+	sztype="$(getparamtype unistd.h setgroups 1 | sed 's/ *\*//')" &&
+	[ "$sztype" ]
+then	SUCGI_NGRPS_T="$sztype"
+fi
+
+unset sztype
+
 
 case $SUCGI_NGRPS_T in
 ("short")              SUCGI_MAX_NGRPS_VAL=SHRT_MAX ;;
@@ -866,27 +854,25 @@ do
 	(*)     err -s70 'line %d: %s: unknown type.' ${LINENO-?} "$idtype"
 	esac
 
-	if [ "$ccwconv" ] && eval "[ -z \"\${$idvar-}\" ]"
+	if eval "! [ \"\${$idvar-}\" ]"
+	then
+		"$CC" -o"$TMPDIR/${idtype}_max" -D"T=$idtype"  \
+		      detect/t_max_rtime.c >/dev/null 2>&1     &&
+		idmax="$("$TMPDIR/${idtype}_max" | tail -n1)"  &&
+		eval "$idvar=\"\$idmax\""
+
+		unset idmax
+	fi
+
+	if eval "! [ \"\${$idvar-}\" ]" && [ "$ccwconv" ]
 	then
 		for idmax in                                         \
 			SHRT_MAX  USHRT_MAX  INT_MAX    UINT_MAX     \
 			LONG_MAX  ULONG_MAX  LLONG_MAX  ULLONG_MAX
 		do
 			# shellcheck disable=2086
-			testcc $wconvflags \
-			       -D"T=$idtype" -D"V=$idmax" - <<-'EOF' || break
-			#include <sys/types.h>
-			#include <inttypes.h>
-			#include <limits.h>
-
-			int
-			main(void)
-			{
-				T var = V;
-				return 0;
-			}
-			EOF
-
+			testcc $wconvflags -D"T=$idtype" -D"V=$idmax" \
+			       detect/t_max_ctime.c || break
 			eval "$idvar=\"\$idmax\""
 		done
 		unset idmax
