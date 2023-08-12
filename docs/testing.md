@@ -14,7 +14,7 @@ See below for details.
 The test suite is less portable that suCGI itself.
 
 It requires a system that supports the "Spawn" and the "Thread-Safe
-Functions" POSIX.1-2008 extension as well as the **<err.h>** header
+Functions" POSIX.1-2008 extensions as well as the **<err.h>** header
 file, which some systems do not provide.
 
 
@@ -25,12 +25,12 @@ tests. Among these utilities are *badenv* and *badexec*. *badenv* enables
 users to call applications with maliciously crafted environment variables.
 *badexec* allows user to call applications with an arbitrary *argv[0]*.
 
-If your system is set up so that non-system users can run applications
-that they compiled themselves, then compiling *badenv* and *badexec* makes
-no difference. But if you set up your system so that users cannot compile
-their own applications or at least cannot run the applications that they
-compiled, then compiling *badenv* and *badexec* may open up an attack
-vector that had previously been foreclosed.
+If the system is set up so that non-system users can run applications that
+they compiled themselves, then having *badenv* and *badexec* around makes
+no difference. But the system is set up so that users *cannot* compile their
+own applications or at least cannot run applications they compiled, then
+having *badenv* and *badexec* around may open up attacks vectors that
+had previously been foreclosed.
 
 
 ## Exit statuses

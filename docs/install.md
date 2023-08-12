@@ -4,16 +4,16 @@
 
 Once you have [compiled](building.md) suCGI, install it with
 
-    make install
+    sudo make install
 
-`make install` will only copy suCGI if the compiled binary
-is more recent than the installation target.
+Note, `make install` will only install files that are newer
+than their destination.
 
 
 ## Configuration variables
 
 *configure*, M4, and the **makefile** are configured using environment
-variables and M4, or Make respectively.
+variables and M4 or Make macros respectively.
 
 ```mermaid
 graph TD
@@ -23,13 +23,15 @@ configure -- calls --> M4
 M4 -- generates --> makefile
 ```
 
-If you change the **makefile**'s defaults by defining Make macros on the
-command line when you install suCGI, you *must* define the same macros with
-the same values when you call `make uninstall`!
+If you override the **makefile**'s defaults by defining Make macros on the
+command line when you install suCGI, then you *must* define the same macros
+with the same values when you call `make uninstall`!
 
-M4 macros are used by *configure*. They need, and can, only be defined
-if the **makefile** and **compat.h** are created without *configure*
+M4 macros are used by *configure*. They only need to, and only can,
+be given on the command line if the **makefile** and **compat.h** are
+created by calling M4 directly, rather than via  *configure*
 (see "Creating a configuration without *configure*" in [build.md]).
+
 
 ### Directory prefix (path)
 
@@ -37,8 +39,7 @@ if the **makefile** and **compat.h** are created without *configure*
 | ----------- | ------------------- |
 | *configure* | PREFIX              |
 | M4          | __PREFIX            |
-| Make        | -                   |
-| C compiler  | -                   |
+| Make        | PREFIX              |
 
 Defaults to **/usr/local**.
 
@@ -62,8 +63,7 @@ Use a non-default prefix when installing:
 | ----------- | ------------------- |
 | *configure* | DESTDIR             |
 | M4          | __DESTDIR           |
-| Make        | -                   |
-| C compiler  | -                   |
+| Make        | DESTDIR             |
 
 Defaults to the empty string.
 
@@ -76,7 +76,6 @@ Defaults to the empty string.
 | *configure* | SUCGI_CGI_DIR       |
 | M4          | __SUCGI_CGI_DIR     |
 | Make        | cgi_dir             |
-| C compiler  | -                   |
 
 `make install` links the suCGI binary into this directory.
 
@@ -89,7 +88,6 @@ Defaults to **/usr/lib/cgi-bin**.
 | *configure* | SUCGI_WWW_GRP       |
 | M4          | __SUCGI_WWW_GRP     |
 | Make        | www_grp             |
-| C compiler  | -                   |
 
 `make install` changes the group of the suCGI binary to this group.
 

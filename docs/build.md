@@ -18,8 +18,8 @@ See below for details.
 The build configuration consists of two files: the **makefile**
 and **compat.h**, which contains system-specific constants.
 
-Both of these files are generated from M4 templates by `./configure`
-(see "Creating a configuration without *configure*" below for an alternative).
+Both files are generated from M4 templates by `./configure`
+(see also "Creating a configuration without *configure*").
 
 *configure* gathers information about your system:
 
@@ -36,7 +36,7 @@ configuration detected by *configure* by running that script.
 
 *configure* is controlled by:
 
-* A configuration file (see the "Configuration files" below")
+* A configuration file (see "Configuration files" below)
 * Environment variables (see "Variables and macros" below)
 * Command line arguments (see `./configure -h`)
 
@@ -105,10 +105,12 @@ config.h --> |overrides| params.h
 
 Setting environment variables or changing configuration files changes
 the values used to generate the **makefile** and **compat.h**. Defining
-Make or C preprocessor macros will override the values in those files.
+Make or C preprocessor macros on the command line will override the
+values in those files.
 
-M4 macros are used by *configure*. They need, and can, only be defined
-if the **makefile** and **compat.h** are created without *configure*
+M4 macros are used by *configure*. They only need to, and only can,
+be given on the command line if the **makefile** and **compat.h** are
+created by calling M4 directly, rather than via  *configure*
 (see "Creating a configuration without *configure*" below).
 
 ### C compiler (path)
@@ -333,7 +335,7 @@ See [install.md].
 SuCGI's run-time behaviour is configured at compile-time.
 See **[config.h]** for details. Defaults are set in **[params.h]**.
 
-You can override any macro in **[compat.h]** and **[params.h]** by
+Any macro in **[compat.h]** and **[params.h]** can be overridden by
 using *configure*'s **-D** option or by defining a macro of the same
 name in **config.h**.
 
@@ -377,40 +379,6 @@ The **makefile** supports the following 'phony' targets:
 
 ## Troubleshooting
 
-### Object files/archives are recompiled even if the source did not change
-
-Try using another archiver. *ar* is good enough on most systems:
-
-    AR=ar ./configure
-
-
-### "size of unnamed array is negative", "array size is negative", etc.
-
-When a condition that suCGI takes for granted turns out to be false
-at compile-time, suCGI's *ASSERT*() macro expands to an expression
-that declares an array with a negative size, triggering an error
-and aborting the compilation.
-
-This indicates that the build configuration is wrong;
-the error message should indicate which setting.
-
-For example, the error
-
-```
-main.c: In function 'main':
-macros.h:28:41: error: size of unnamed array is negative
-   28 | #define ASSERT(cond) ((void) sizeof(char[(cond) ? 1 : -1]))
-      |                                         ^
-main.c:278:5: note: in expansion of macro 'ASSERT'
-  278 |     ASSERT(sizeof(USER_DIR) > 1U);
-      |     ^~~~~~
-```
-
-indicates that the configuration macro USER_DIR expands to a string
-that is shorter than two bytes, that is, is either not terminated at
-all or the empty string.
-
-
 ### Raising the number of groups suCGI can handle
 
 If the number of groups that a user is a member of exceeds the suCGI limit
@@ -426,6 +394,37 @@ in **config.h** or by using *configure*'s **-D** flag:
     [...]
     $ ./sucgi -C | grep -E ^MAX_NGROUPS=
     65536
+
+### "size of unnamed array is negative", "array size is negative", etc.
+
+When a condition that suCGI takes for granted turns out to be false
+at compile-time, suCGI's *ASSERT*() macro expands to an expression
+that declares an array with a negative size, triggering an error
+and aborting the compilation.
+
+This indicates that the build configuration is wrong;
+the error message should indicate which setting.
+
+For example, the error
+
+    main.c: In function 'main':
+    macros.h:28:41: error: size of unnamed array is negative
+       28 | #define ASSERT(cond) ((void) sizeof(char[(cond) ? 1 : -1]))
+          |                                         ^
+    main.c:278:5: note: in expansion of macro 'ASSERT'
+      278 |     ASSERT(sizeof(USER_DIR) > 1U);
+          |     ^~~~~~
+
+indicates that the configuration macro USER_DIR expands to a string
+that is too short.
+
+### Object files/archives are recompiled even if the source did not change
+
+Try using another archiver. *ar* is good enough on most systems:
+
+    AR=ar ./configure
+
+
 
 
 [install.md]: install.md
