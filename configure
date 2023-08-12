@@ -437,7 +437,7 @@ fi
 
 if [ "$SUCGI_SHARED" ]
 then printf '%s\n' "$SUCGI_SHARED"
-else printf '<unsupported>\n'
+else printf 'unsupported\n'
 fi
 
 
@@ -775,7 +775,7 @@ esac
 
 if [ "$SUCGI_GRP_T" ]
 then printf '%s\n' "$SUCGI_GRP_T"
-else printf '<guess at compile-time>\n'
+else printf 'guess at compile-time\n'
 fi
 
 
@@ -843,7 +843,7 @@ esac
 
 if [ "$SUCGI_NGRPS_T" ]
 then printf '%s\n' "$SUCGI_NGRPS_T"
-else printf '<guess at compile-time>\n'
+else printf 'guess at compile-time\n'
 fi
 
 
@@ -851,42 +851,59 @@ fi
 # Calculate the maximum values representable as uid_t and gid_t.
 #
 
-for type in uid_t gid_t
+src="$TMPDIR/maxval.c"
+cat <<'EOF' >"$src"
+#include <sys/types.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <stdio.h>
+
+int
+main(void)
+{
+	T var = V;
+
+	/* Variable must be used. */
+	printf("%ju\n", (uintmax_t) var);
+
+	return 0;
+}
+EOF
+
+for idtype in uid_t gid_t
 do
-        printf '%s maximum: ' "$type"
+	printf '%s maximum: ' "$idtype"
 
-	src="$TMPDIR/max$type.c" bin="${src%.c}"
-	cat <<-'EOF' >"$src"
-		#include <sys/types.h>
-		#include <inttypes.h>
-		#include <stdio.h>
+	idmax=
+	for maxval in                  \
+		UINTMAX_MAX INTMAX_MAX \
+		ULLONG_MAX  LLONG_MAX  \
+		ULONG_MAX   LONG_MAX   \
+		UINT_MAX    INT_MAX    \
+		USHRT_MAX   SHRT_MAX
+	do
+		# shellcheck disable=2086
+		if testcomp $wconvflags -D"T=$idtype" -D"V=$maxval" "$src"
+		then
+			idmax="$maxval"
+			break
+		fi
+	done
 
-		int
-		main(void)
-		{
-			for (uintmax_t i = 1;
-			     i > 0 && (T) (i - 1) == i - 1;
-			     i *= 2)
-			{
-				printf("%ju\n", i - 1);
-			}
-		}
-	EOF
-
-	"$CC" $testflags -D"T=$type" -o"$bin" "$src"
-
-	if maxval="$("$bin" | tail -n-1)" && [ "$maxval" ]
+	if [ "$idmax" ]
 	then
-	        case $type in
-	        (uid_t) SUCGI_MAX_UID_VAL="$maxval" ;;
-	        (gid_t) SUCGI_MAX_GID_VAL="$maxval" ;;
-	        (*)     err -s78 '%s: unknown type.' "$type"
-	        esac
+		case $idtype in
+		(uid_t) SUCGI_MAX_UID_VAL="$maxval" ;;
+		(gid_t) SUCGI_MAX_GID_VAL="$maxval" ;;
+		(*)     err -s78 '%s: unknown type.' "$idtype"
+		esac
 
 		printf '%s\n' "$maxval"
 	else
-	        printf '<guess at compile-time>\n'
+		printf 'guess at compile-time\n'
 	fi
+
+	unset idmax idtype maxccal
 done
 
 
