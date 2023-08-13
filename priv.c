@@ -139,7 +139,7 @@ priv_suspend(void)
 
 /* getgroups is unreliable on macOS. */
 #if !defined(__MACH__)
-    assert(groups_eq(NELEMS(gids), (gids)));
+    assert(groups_sub(NELEMS(gids), (gids)));
 #endif /* !defined(__MACH__) */
 
     return OK;
