@@ -154,7 +154,7 @@ addflags() {
 
 # Get a function prototype.
 getprototype() {
-	c99 -E -DH="<$1>" detect/hdr.h |
+	c99 -E -DHDR="<$1>" detect/hdr.h |
 	awk -vRS=';' -vfn="${2:?}" '
 		$0 !~ /^ *#/ && $0 ~  "[^ ] *" fn " *[\\($]" {
 			gsub("[\n\r\t\v ]+", " ");
@@ -569,7 +569,8 @@ do
 			printf ' %s' "$header"
 			;;
 		(*)
-			"$CC" -D"H=<$header>" -E detect/hdr.h >/dev/null 2>&1 &
+			"$CC" -D"HDR=<$header>" -E detect/hdr.h \
+			>/dev/null 2>&1 &
 
 			njobs=$((njobs + 1)) jobs="$jobs$! "
 			eval "header_$!"='$header'
@@ -751,7 +752,7 @@ then
 
 		# shellcheck disable=2086
 		if	testcc $wconvflags -Wincompatible-pointer-types \
-			       -DGRP_T="$grptype" detect/grp_t.c
+			       -DGRP_T="$grptype" detect/grpt.c
 		then
 			SUCGI_GRP_T="$grptype"
 
@@ -805,7 +806,7 @@ then
 		[ "$sztype" ] || continue
 
 		# shellcheck disable=2086
-		if testcc $wconvflags -DNGRPS_T="$sztype" detect/ngrps_t.c
+		if testcc $wconvflags -DNGRPS_T="$sztype" detect/ngrpst.c
 		then
 			SUCGI_NGRPS_T="$sztype"
 			break
@@ -858,7 +859,7 @@ do
 	if eval "! [ \"\${$idvar-}\" ]"
 	then
 		"$CC" -o"$TMPDIR/${idtype}_max" -D"T=$idtype"  \
-		      detect/t_max_rtime.c >/dev/null 2>&1     &&
+		      detect/tmaxrt.c >/dev/null 2>&1     &&
 		idmax="$("$TMPDIR/${idtype}_max" | tail -n1)"  &&
 		eval "$idvar=\"\$idmax\""
 
@@ -873,7 +874,7 @@ do
 		do
 			# shellcheck disable=2086
 			testcc $wconvflags -D"T=$idtype" -D"V=$idmax" \
-			       detect/t_max_ctime.c || break
+			       detect/tmaxct.c || break
 			eval "$idvar=\"\$idmax\""
 		done
 		unset idmax

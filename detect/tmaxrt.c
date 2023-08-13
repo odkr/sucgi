@@ -1,5 +1,5 @@
 /*
- * Do nothing.
+ * Detect the maximum value a type can represent at run-time.
  *
  * Copyright 2023 Odin Kroeger
  *
@@ -19,8 +19,25 @@
  * License along with suCGI. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <sys/types.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <stdio.h>
+
+#define START (CHAR_MAX + 1)
+
 int
 main(void)
 {
+    uintmax_t i;
+
+    for (i = START; i > 0 && (T) (i - 1) == (i - 1); i *= 2) {
+        if ((T) -1 < (T) 0) {
+            printf("%lld\n", (long long) i - 1);
+        } else {
+            printf("%llu\n", (unsigned long long) i - 1);
+        }
+    }
+
     return 0;
 }

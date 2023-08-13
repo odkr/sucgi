@@ -1,5 +1,5 @@
 /*
- * Do nothing.
+ * Check whether a type can represent a value at compile-time.
  *
  * Copyright 2023 Odin Kroeger
  *
@@ -19,8 +19,14 @@
  * License along with suCGI. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <sys/types.h>
+#include <inttypes.h>
+#include <limits.h>
+
 int
 main(void)
 {
+    T var = V;
+
     return 0;
 }
