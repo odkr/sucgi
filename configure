@@ -156,9 +156,10 @@ addflags() {
 getprototype() {
 	c99 -E -DH="<$1>" detect/hdr.h |
 	awk -vRS=';' -vfn="${2:?}" '
-		$0 !~ /^ *#/       &&
-		$1 ~ /^[a-z \n]+/  &&
-		match($2, "^ *" fn " *[\\($]")
+		$0 !~ /^ *#/ && $0 ~  "[^ ] *" fn " *[\\($]" {
+			gsub("[\n\r\t\v ]+", " ");
+			print;
+		}
 	'
 }
 
