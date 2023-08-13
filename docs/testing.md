@@ -27,9 +27,9 @@ users to call applications with maliciously crafted environment variables.
 
 If the system is set up so that non-system users can run applications that
 they compiled themselves, then having *badenv* and *badexec* around makes
-no difference. But the system is set up so that users *cannot* compile their
-own applications or at least cannot run applications they compiled, then
-having *badenv* and *badexec* around may open up attacks vectors that
+no difference. But if the system is set up so that users *cannot* compile
+their own applications or at least cannot run applications they compiled,
+then having *badenv* and *badexec* around may open up attacks vectors that
 had previously been foreclosed.
 
 
