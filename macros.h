@@ -27,7 +27,6 @@
 /* Trigger a compile-time error if the given condition is false. */
 #define ASSERT(cond) ((void) sizeof(char[(cond) ? 1 : -1]))
 
-/* FIXME: Untested. */
 /* Log the given message as an error and exit with status EXIT_FAILURE. */
 #define BUG(msg, ...) error("%s:%d: " msg, __FILE__, __LINE__, __VA_ARGS__);
 

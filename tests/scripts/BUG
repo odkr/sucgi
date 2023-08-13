@@ -1,0 +1,95 @@
+#!/bin/sh
+
+#
+# Test BUG.
+#
+# Copyright 2022 Odin Kroeger.
+#
+# This file is part of suCGI.
+#
+# SuCGI is free software: you can redistribute it and/or modify it
+# under the terms of the GNU Affero General Public License as published
+# by the Free Software Foundation, either version 3 of the License,
+# or (at your option) any later version.
+#
+# SuCGI is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
+# Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public
+# License along with suCGI. If not, see <https://www.gnu.org/licenses/>.
+#
+
+# shellcheck disable=1091
+
+#
+# Initialisation
+#
+
+set -Cefu
+script_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+src_dir="$(cd -P "$script_dir/../.." && pwd)"
+# shellcheck disable=2034
+readonly script_dir src_dir
+# shellcheck disable=1091
+. "$script_dir/funcs.sh" || exit
+init || exit
+tmpdir
+
+# Always exit with a status indicating failure unless $fin is set.
+cleanup="${cleanup-:}; [ \"\${fin-}\" ] || exit 69"
+
+
+#
+# Globals
+#
+
+# Test result
+result=0
+
+
+#
+# Options
+#
+
+OPTIND=1 OPTARG='' opt=''
+while getopts Xh opt
+do
+	# shellcheck disable=2154
+	case $opt in
+	(h) exec cat <<EOF >&2
+error - test error
+
+Usage:  error [-X]
+        error -h
+
+Options:
+    -X  Enable debugging.
+    -h  Show this help screen.
+EOF
+            ;;
+	(X) set -x ;;
+	(*) exit 1
+	esac
+done
+shift $((OPTIND - 1))
+unset opt
+
+
+#
+# Messages
+#
+
+for arg in - foo bar baz
+do
+	check -s1 -e"$arg" BUG "$arg" || result=70
+done
+
+
+#
+# Result
+#
+
+fin=y
+exit "$result"

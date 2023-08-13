@@ -285,9 +285,9 @@ utils: $(util_bins)
 
 
 # Scripted tests
-check_scripts = tests/scripts/main tests/scripts/error
+check_scripts = tests/scripts/BUG tests/scripts/error tests/scripts/main
 
-script_bins = tests/main tests/error
+script_bins = tests/BUG tests/error tests/main
 
 tests/error: tests/error.c libsucgi.a(error.o)
 
