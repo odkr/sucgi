@@ -33,7 +33,7 @@
  */
 
 /*
- * NATTR must not excise __attribute__, because they are required to
+ * NATTR must not excise __attribute__, because attributes are required to
  * compile against some standard libraries, e.g., that of macOS.
  */
 #if !defined(NATTR) || !NATTR
