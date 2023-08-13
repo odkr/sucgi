@@ -34,7 +34,7 @@
  *      Logs groups that should not be set.
  *
  * Caveats:
- *      Calls getgrgid.
+ *      Calls getgrgid if a group is set that should not be set.
  *
  * FIXME: Not unit-tested.
  */
