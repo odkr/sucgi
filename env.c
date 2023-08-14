@@ -93,7 +93,7 @@ Error
 env_init(void)
 {
     /* RATS: ignore; confstr should respect the size of the buffer. */
-    char *buf[MAX_STR_LEN];
+    char buf[MAX_STR_LEN];
 
     if (confstr(ENV_CONFSTR, buf, sizeof(buf)) > sizeof(buf)) {
         return ERR_LEN;
