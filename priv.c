@@ -103,8 +103,9 @@ priv_suspend(void)
     const uid_t uid = getuid();
     const gid_t gid = getgid();
     const gid_t gids[] = {gid};
+    const bool super = getuid() == 0;
 
-    if (geteuid() == 0) {
+    if (super) {
         errno = 0;
         if (setgroups(NELEMS(gids), gids) != 0) {
             /* NOTREACHED */
@@ -139,7 +140,7 @@ priv_suspend(void)
 
 /* getgroups is unreliable on macOS. */
 #if !defined(__MACH__)
-    assert(groups_sub(NELEMS(gids), (gids)));
+    assert(!super || groups_sub(NELEMS(gids), (gids)));
 #endif /* !defined(__MACH__) */
 
     return OK;
