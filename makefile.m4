@@ -71,34 +71,32 @@ objs = env.o error.o groups.o handler.o pair.o path.o priv.o str.o userdir.o
 
 libs = libsucgi.a
 
-libsucgi.a(env.o): env.c env.h libsucgi.a(str.o)
+env.o: env.c env.h
 
-libsucgi.a(error.o): error.c error.h
+error.o: error.c error.h
 
-libsucgi.a(groups.o): groups.c groups.h
+groups.o: groups.c groups.h
 
-libsucgi.a(pair.o): pair.c pair.h
+pair.o: pair.c pair.h
 
-libsucgi.a(path.o): path.c path.h libsucgi.a(str.o)
+path.o: path.c path.h
 
-libsucgi.a(priv.o): priv.c priv.h libsucgi.a(groups.o)
+priv.o: priv.c priv.h
 
-libsucgi.a(handler.o): handler.c handler.h libsucgi.a(pair.o path.o)
+handler.o: handler.c handler.h
 
-libsucgi.a(str.o): str.c str.h
+str.o: str.c str.h
 
-libsucgi.a(userdir.o): userdir.c userdir.h libsucgi.a(str.o)
+userdir.o: userdir.c userdir.h
 
-libsucgi.a($(objs)): $(hdrs)
+$(objs): $(hdrs)
 
-libsucgi.a: libsucgi.a($(objs))
+libsucgi.a: $(objs)
 
-sucgi: main.c $(hdrs) $(libs)
+sucgi: main.c $(hdrs) libsucgi.a
 
-libsucgi.a($(objs)):
-	$(CC) $(LDFLAGS) -c -o$*.o $(CFLAGS) $*.c $(LDLIBS)
-	$(AR) $(ARFLAGS) libsucgi.a $*.o
-	rm -f $*.o
+libsucgi.a: $(objs)
+	$(AR) $(ARFLAGS) libsucgi.a $?
 
 sucgi:
 	$(CC) $(LDFLAGS) $(CFLAGS) -o$@ main.c $(libs) $(LDLIBS)
@@ -139,34 +137,31 @@ util_objs = tests/util/abort.o tests/util/array.o tests/util/dir.o \
 	tests/util/path.o tests/util/sigs.o tests/util/str.o \
 	tests/util/tmpdir.o tests/util/user.o
 
-tests/libutil.a(tests/util/abort.o): tests/util/abort.c tests/util/abort.h \
-	tests/libutil.a(tests/util/sigs.o)
+tests/util/abort.o: tests/util/abort.c tests/util/abort.h
 
-tests/libutil.a(tests/util/array.o): tests/util/array.c tests/util/array.h
+tests/util/array.o: tests/util/array.c tests/util/array.h
 
-tests/libutil.a(tests/util/dir.o): tests/util/dir.c tests/util/dir.h \
-	tests/libutil.a(tests/util/sigs.o)
+tests/util/dir.o: tests/util/dir.c tests/util/dir.h
 
-tests/libutil.a(tests/util/path.o): tests/util/path.c tests/util/path.h \
-	tests/libutil.a(tests/util/sigs.o)
+tests/util/path.o: tests/util/path.c tests/util/path.h
 
-tests/libutil.a(tests/util/sigs.o): tests/util/sigs.c tests/util/sigs.h
+tests/util/sigs.o: tests/util/sigs.c tests/util/sigs.h
 
-tests/libutil.a(tests/util/str.o): tests/util/str.c tests/util/str.h
+tests/util/str.o: tests/util/str.c tests/util/str.h
 
-tests/libutil.a(tests/util/tmpdir.o): tests/util/tmpdir.c tests/util/tmpdir.h \
-	tests/libutil.a(tests/util/path.o)
+tests/util/tmpdir.o: tests/util/tmpdir.c tests/util/tmpdir.h
 
-tests/libutil.a(tests/util/user.o): tests/util/user.c tests/util/user.h
+tests/util/user.o: tests/util/user.c tests/util/user.h
 
 $(util_objs): tests/util/types.h
 
-tests/libutil.a: tests/libutil.a($(util_objs))
+tests/libutil.a: $(util_objs)
 
-tests/libutil.a($(util_objs)):
-	$(CC) $(LDFLAGS) -c -o$*.o $(CFLAGS) $*.c $(LDLIBS)
-	$(AR) $(ARFLAGS) tests/libutil.a $*.o
-	rm -f $*.o
+$(util_objs):
+	$(CC) $(LDFLAGS) -c -o$@ $< $(CFLAGS) $(LDLIBS)
+
+tests/libutil.a:
+	$(AR) $(ARFLAGS) tests/libutil.a $?
 
 ifnempty(`__SUCGI_SHARED', `dnl
 ifelse(__SUCGI_SHARED, `-dynamiclib', `dnl
@@ -230,8 +225,7 @@ tests/env_copy_var: tests/env_copy_var.c
 
 tests/env_is_name: tests/env_is_name.c
 
-tests/env_restore: tests/env_restore.c \
-	tests/libutil.a(tests/util/array.o tests/util/str.o)
+tests/env_restore: tests/env_restore.c
 
 tests/handler_find: tests/handler_find.c
 
@@ -239,40 +233,25 @@ tests/groups_comp: tests/groups_comp.c
 
 tests/pair_find: tests/pair_find.c params.h
 
-tests/path_real: tests/path_real.c libsucgi.a(str.o) tests/libutil.a
+tests/path_real: tests/path_real.c
 
 tests/path_suffix: tests/path_suffix.c
 
 tests/path_within: tests/path_within.c
 
-tests/priv_drop: tests/priv_drop.c tests/libutil.a(tests/util/array.o)
+tests/priv_drop: tests/priv_drop.c
 
 tests/priv_suspend: tests/priv_suspend.c
 
 tests/str_copy: tests/str_copy.c
 
-tests/str_fmtspecs: tests/str_fmtspecs.c \
-	tests/libutil.a(tests/util/array.o tests/util/str.o)
+tests/str_fmtspecs: tests/str_fmtspecs.c
 
 tests/str_split: tests/str_split.c
 
 tests/userdir_exp: tests/userdir_exp.c
 
-$(env_test_bins): libsucgi.a(env.o)
-
-$(handler_test_bins): libsucgi.a(handler.o)
-
-$(pair_test_bins): libsucgi.a(pair.o)
-
-$(path_test_bins): libsucgi.a(path.o)
-
-$(priv_test_bins): libsucgi.a(priv.o) tests/libutil.a(tests/util/user.o)
-
-$(str_test_bins): libsucgi.a(str.o)
-
-$(userdir_test_bins): $(hdrs) libsucgi.a(userdir.o)
-
-$(unit_bins): tests/libutil.a(tests/util/abort.o)
+$(unit_bins): $(unit_libs)
 
 $(unit_bins):
 	$(CC) $(LDFLAGS) -DTESTING $(CFLAGS) -o $@ $@.c $(unit_libs) $(LDLIBS)
@@ -289,23 +268,27 @@ check_scripts = tests/scripts/BUG tests/scripts/error tests/scripts/main
 
 script_bins = tests/BUG tests/error tests/main
 
-tests/error: tests/error.c libsucgi.a(error.o)
-
-tests/main: main.c $(hdrs) $(libs)
-
-scripts/funcs.sh: utils/uids
-
-tests/scripts/funcs.sh: scripts/funcs.sh
+tests/scripts/BUG: tests/BUG
 
 tests/scripts/error: tests/error
 
 tests/scripts/main: utils/badenv utils/badexec utils/uids utils/runas
 
+tests/scripts/funcs.sh: scripts/funcs.sh
+
+scripts/funcs.sh: utils/uids
+
+tests/BUG: tests/BUG.c
+
+tests/error: tests/error.c
+
+tests/main: main.c
+
 $(check_scripts): tests/main tests/scripts/funcs.sh
 
-$(script_bins): $(hdrs) tests/util/types.h
+$(script_bins): libsucgi.a $(hdrs) tests/util/types.h
 
-tests/error:
+tests/BUG tests/error:
 	$(CC) $(LDFLAGS) -DTESTING $(CFLAGS) -o $@ $@.c $(libs) $(LDLIBS)
 
 tests/main:
