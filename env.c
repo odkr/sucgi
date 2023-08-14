@@ -99,7 +99,7 @@ env_init(void)
         return ERR_LEN;
     }
 
-    return env_set_vars(envbuf);
+    return env_set_vars(buf);
 }
 
 #else /* !defined(ENV_CONFSTR) */
