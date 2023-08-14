@@ -57,17 +57,22 @@ typedef struct {
 int
 main(void)
 {
+
     /* RATS: ignore; used safely. */
     char hugefname[MAX_FNAME_LEN + 1] = {0};
 
     /* RATS: ignore; used safely. */
     char longfname[MAX_FNAME_LEN] = {0};
 
-/*
- * FIXME: Add assertions.
- */
-
     const PathWithinArgs cases[] = {
+#if !defined(NDEBUG)
+        {"", "foo", false, SIGABRT},
+        {hugefname, "foo", false, SIGABRT},
+        {"foo", "", false, SIGABRT},
+        {"foo", hugefname, false, SIGABRT},
+
+#endif
+
         /* Long filenames. */
         {"foo", longfname, false, 0},
         {longfname, "foo", false, 0},
