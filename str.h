@@ -29,11 +29,11 @@
 
 
 /*
- * Copy each byte of the given string to the memory area the parameter "dest"
- * points to, but stop when a null byte is encountered or the given number of
- * bytes has been copied, then terminate the copied value with a null byte
- * and return the length of the destination in the variable pointed to by
- * "destlen".
+ * Copy each byte of the given string to the memory area pointed to by the
+ * parameter "dest", but stop when a null byte is encountered or the given
+ * number of bytes has been copied, then terminate the copied value with a
+ * null byte and return the length of the destination in the variable
+ * pointed to by "destlen".
  *
  * The given memory area must be large enough to hold the result; that is,
  * it must be at least one byte larger than the given number of bytes.
@@ -53,7 +53,7 @@ Error str_copy(size_t nbytes, const char *src, size_t *destlen, char *dest);
  * given maximum number of format specifiers.
  *
  * Caveats:
- *      Does not support format modifiers.
+ *      Does not support $n% format modifiers.
  *
  * Return value:
  *      OK       Success.
@@ -61,7 +61,7 @@ Error str_copy(size_t nbytes, const char *src, size_t *destlen, char *dest);
  */
 _read_only(1) _write_only(3) _write_only(4, 2) _nonnull(1, 3, 4) _nodiscard
 Error str_fmtspecs(const char *str, size_t maxnspecs,
-                  size_t *nspecs, const char **fmtchars);
+                   size_t *nspecs, const char **fmtchars);
 
 /*
  * Split the given string at the first occurence of any of the given bytes,
