@@ -7,12 +7,12 @@
 #
 # This file is part of suCGI.
 #
-# SuCGI is free software: you can redistribute it and/or modify it
+# suCGI is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License,
 # or (at your option) any later version.
 #
-# SuCGI is distributed in the hope that it will be useful, but WITHOUT
+# suCGI is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
 # Public License for more details.
@@ -25,8 +25,7 @@
 # Initialisation
 #
 
-: "${src_dir:?}"
-. "$src_dir/scripts/funcs.sh"
+. "${src_dir:?}/scripts/libutil.sh"
 
 
 #
@@ -60,65 +59,23 @@ check() (
 	_check_err=0 _check_retval=0
 
 	case $_check_stream in
-	(out) _check_output="$(env "$@" 2>/dev/null)" || _check_err=$? ;;
+	(out) _check_output="$(env "$@" 2>/dev/null)"     || _check_err=$? ;;
 	(err) _check_output="$(env "$@" 2>&1 >/dev/null)" || _check_err=$? ;;
 	esac
 
-	if ! inlist -eq "$_check_err" "$_check_status" 141
+	if	! inlist -eq "$_check_err" "$_check_status" 141
 	then
-		lock "$TMPDIR/stderr.lock"
 		warn '%s: exited with status %d.' "$*" "$_check_err"
-		unlock "$TMPDIR/stderr.lock"
 		_check_retval=70
 	fi
 
 	if	[ "$_check_stream" ] &&
 		! printf '%s\n' "$_check_output" | grep -Fq "$_check_pattern"
 	then
-		lock "$TMPDIR/stderr.lock"
 		_check_retval=70
 		warn '%s printed to std%s:' "$*" "$_check_stream"
-		printf '%s\n' "$_check_output" | sed 's/^/> /' >&2
-		unlock "$TMPDIR/stderr.lock"
+		printf '%s\n' "$_check_output" >&2
 	fi
 
 	return "$_check_retval"
-)
-
-# Try to create lockfile $1. Wait at most $2 seconds to acquire the lock.
-lock() {
-	_lock_file="${1:?}" _lock_timeout="${2:-10}"
-
-	set -C
-
-	while [ "$_lock_timeout" -ge 0 ]
-	do
-		( printf '%s\n' "$$" >"$_lock_file"; ) 2>/dev/null && return
-
-		read -r _lock_pid <"$_lock_file"
-		if ! kill -0 "$_lock_pid"
-		then
-			rm -f "$1"
-			continue
-		fi
-
-		_lock_timeout=$((_lock_timeout - 1))
-		sleep 1 & wait $!
-	done
-
-	err 'could not acquire %s within %d seconds.' \
-	    "$_lock_file" "$_lock_timeout"
-}
-
-# Delete lockfile $1, but only if it was created by this process.
-unlock() (
-	: "${1:?}"
-
-	if [ -e "$1" ]
-	then
-		read -r _unlock_pid <"$1"
-		if [ "$_unlock_pid" = "$$" ]
-		then rm -f "$1"
-		fi
-	fi
 )

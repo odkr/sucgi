@@ -7,12 +7,12 @@
 #
 # This file is part of suCGI.
 #
-# SuCGI is free software: you can redistribute it and/or modify it
+# suCGI is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License,
 # or (at your option) any later version.
 #
-# SuCGI is distributed in the hope that it will be useful, but WITHOUT
+# suCGI is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
 # Public License for more details.
@@ -29,7 +29,7 @@
 #
 
 # Shells to test.
-makes='bmake bsdmake gmake'
+makes='make bmake bsdmake gmake smake'
 
 # Be quiet?
 quiet=
@@ -44,13 +44,20 @@ verbose=
 
 set -Cefu
 scripts_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+: "${scripts_dir:?}"
+readonly scripts_dir
+
 src_dir="$(dirname -- "$scripts_dir")"
-# shellcheck disable=2034
-readonly scripts_dir src_dir
+: "${src_dir:?}"
+readonly src_dir
+
+# shellcheck disable=2154
+export PATH="$src_dir/tests:$src_dir/utils:$PATH"
+
 # shellcheck disable=1091
-. "$scripts_dir/funcs.sh" || exit
-init || exit
-tmpdir tmp "$src_dir"
+. "$scripts_dir/libutil.sh"	|| exit
+init				|| exit
+tmpdir chk "$src_dir"		|| exit
 
 
 #
@@ -59,17 +66,20 @@ tmpdir tmp "$src_dir"
 
 # Current working directory
 cwd="$(pwd)" || exit
+: "${cwd:?}"
 readonly cwd
 
-# The user who should own logs.
+# User who should own the logs.
 if [ "$(id -u)" -eq 0 ]
 then user="$(owner "$src_dir")"
 else user="$(id -un)"
 fi
+: "${user:?}"
 readonly user
 
 # The primary group of that user.
 group="$(id -gn "$user")"
+: "${group:?}"
 readonly group
 
 
@@ -78,9 +88,6 @@ readonly group
 #
 
 mylogged() {
-	: "${cwd:?}"
-	: "${user:?}"
-	: "${group:?}"
 	: "${1:?}"
 
 	case $1 in
@@ -101,13 +108,13 @@ while getopts Dc:hqv opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF
-$prog_name - run scripts with different shells
+$progname - test different makes
 
-Usage:     $prog_name [SH ...]
-           $prog_name -h
+Usage:     $progname [MAKE ...]
+           $progname -h
 
 Operands:
-    SH     A shell.
+    MAKE   A make.
 
 Options:
     -c CC  Use CC as C compiler.
@@ -132,7 +139,7 @@ unset opt
 # Use a fast compiler, if one is available.
 if ! [ "${CC-}" ]
 then
-	for cc in tcc clang
+	for cc in c99 cc tcc clang
 	do
 		if command -v "$cc" >/dev/null
 		then
@@ -159,13 +166,10 @@ failures=
 for make
 do
 	command -v "$make" >/dev/null 2>&1 || continue
-
 	warn 'checking %s ... ' "$make"
-
 	m4 makefile.m4 >makefile
-
-	mylogged "$make" distcheck ||
-	failures="$failures$make, "
+	mylogged "$make" distcheck || failures="$failures$make, "
+	rm -f makefile >/dev/null 2>&1 || :
 done
 
 if [ "$failures" ]

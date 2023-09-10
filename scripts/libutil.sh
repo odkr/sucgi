@@ -7,12 +7,12 @@
 #
 # This file is part of suCGI.
 #
-# SuCGI is free software: you can redistribute it and/or modify it
+# suCGI is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License,
 # or (at your option) any later version.
 #
-# SuCGI is distributed in the hope that it will be useful, but WITHOUT
+# suCGI is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
 # Public License for more details.
@@ -44,7 +44,7 @@ cleanup() {
 	# shellcheck disable=2319
 	_cleanup_retval=$?
 	set +e
-	trap '' EXIT ALRM HUP INT PIPE TERM USR1 USR2
+	trap '' EXIT ALRM HUP INT PIPE TERM
 	# shellcheck disable=2046
 	kill -- $(jobs -p 2>/dev/null) -$$ >/dev/null 2>&1
 	wait
@@ -89,30 +89,31 @@ init() {
 	[ "${ZSH_VERSION-}" ] && emulate sh 2>/dev/null
 	export BIN_SH=xpg4 NULLCMD=: POSIXLY_CORRECT=x CLICOLOR_FORCE=
 
-	# Environment variables.
-	# shellcheck disable=2154
-	PATH="$src_dir/tests:$src_dir/utils:$PATH"
+	# Make sure IFS is safe.
 	unset IFS
 
 	# Trap signals that would terminate the script.
-	catch=x caught=
-	for _init_sig in ALRM HUP INT PIPE TERM USR1 USR2
+	catch='' caught=
+	for _init_sig in ALRM HUP INT PIPE TERM
 	do
+		# shellcheck disable=2064
 		trap "catch $_init_sig" "$_init_sig"
 	done
 	unset _init_sig
+
 	trap cleanup EXIT
+	catch=y
 	[ "$caught" ] && kill -s"$caught" "$$"
 
-	# Permission mask.
+	# Safe permission mask.
 	umask 022
 
 	# Output control.
 	quiet='' verbose=''
 
 	# Programme name.
-	prog_name="$(basename -- "$0")" || prog_name="$0"
-	readonly prog_name
+	progname="$(basename -- "$0")" || progname="$0"
+	readonly progname
 }
 
 # Check if $2 matches any member of $@ using operator $1.
@@ -167,8 +168,9 @@ logged() (
 	: "${TMPDIR:-/tmp}"
 	: "${1:?}"
 	: "${_logged_fname:="$(basename "$1").log"}"
+	_logged_log="$TMPDIR/$_logged_fname"
 
-	"$@" >>"$TMPDIR/$_logged_fname" 2>&1 || _logged_status=$?
+	"$@" >>"$_logged_log" 2>&1 || _logged_status=$?
 
 	# shellcheck disable=2086
 	if inlist -eq "$_logged_status" $_logged_mask
@@ -178,15 +180,12 @@ logged() (
 		if [ "$_logged_user" ]
 		then
 			: "${_logged_group:=$(id -gn "$_logged_user")}"
-			chown "$_logged_user:$_logged_group" \
-			      "$TMPDIR/$_logged_fname"
+			chown "$_logged_user:$_logged_group" "$_logged_log"
 		fi
 
-		mv "$TMPDIR/$_logged_fname" "$_logged_dir"
-		warn '%s: exited with status %d.' \
-		     "$*" "$_logged_status"
-		warn 'see %s for details.' \
-		     "$_logged_fname"
+		mv "$_logged_log" "$_logged_dir"
+		warn '%s: exited with status %d.' "$*" "$_logged_status"
+		warn 'see %s for details.' "$_logged_fname"
 	fi
 
 	return $_logged_status
@@ -236,7 +235,6 @@ rewindln() (
 # Create a directory with the filename $1-$$ in $dir,
 # register it for deletion via $cleanup, and set it as $TMPDIR.
 tmpdir() {
-	# shellcheck disable=2031
 	_tmpdir_prefix="${1:-tmp}" _tmpdir_dir="${2:-"${TMPDIR:-/tmp}"}"
 	[ "${_tmpdir_tmpdir-}" ] && return
 
@@ -251,7 +249,6 @@ tmpdir() {
 	catch=x
 	[ "${caught-}" ] && kill -s"$caught" "$$"
 
-	# shellcheck disable=2031
 	export TMPDIR="$_tmpdir_tmpdir"
 }
 
@@ -274,7 +271,7 @@ warn() (
 	shift $((OPTIND - 1))
 
 	exec >&2
-	printf '%s: ' "${prog_name:-$0}"
+	printf '%s: ' "${progname:-$0}"
 	# shellcheck disable=SC2059
 	printf -- "$@"
 	if [ "$_warn_lf" ]

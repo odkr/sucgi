@@ -7,12 +7,12 @@
 #
 # This file is part of suCGI.
 #
-# SuCGI is free software: you can redistribute it and/or modify it
+# suCGI is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License,
 # or (at your option) any later version.
 #
-# SuCGI is distributed in the hope that it will be useful, but WITHOUT
+# suCGI is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
 # Public License for more details.
@@ -26,9 +26,6 @@
 #
 # Defaults
 #
-
-# Shells to test.
-readonly shells='sh bash dash ksh mksh oksh posh sash yash zsh'
 
 # Arguments for check*.
 args=
@@ -46,13 +43,20 @@ verbose=
 
 set -Cefu
 scripts_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+: "${scripts_dir:?}"
+readonly scripts_dir
+
 src_dir="$(dirname -- "$scripts_dir")"
-# shellcheck disable=2034
-readonly scripts_dir src_dir
+: "${src_dir:?}"
+readonly src_dir
+
+# shellcheck disable=2154
+export PATH="$src_dir/scripts:$PATH"
+
 # shellcheck disable=1091
-. "$scripts_dir/funcs.sh" || exit
-init || exit
-tmpdir tmp "$src_dir"
+. "$scripts_dir/libutil.sh"	|| exit
+init				|| exit
+tmpdir chk "$src_dir"		|| exit
 
 
 #
@@ -65,10 +69,10 @@ while getopts Dhqv opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF
-$prog_name - run shell and compiler checks
+$progname - run shell and compiler checks
 
-Usage:  $prog_name [-D] [-v]
-        $prog_name -h
+Usage:  $progname [-D] [-v]
+        $progname -h
 
 Options:
     -D  Show debugging information.
@@ -86,8 +90,9 @@ done
 shift $((OPTIND - 1))
 unset opt
 
-# shellcheck disable=2086
-[ $# -eq 0 ] && set -- $shells
+case $args in (*-D*)
+	set -x
+esac
 
 
 #

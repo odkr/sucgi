@@ -7,12 +7,12 @@
 #
 # This file is part of suCGI.
 #
-# SuCGI is free software: you can redistribute it and/or modify it
+# suCGI is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License,
 # or (at your option) any later version.
 #
-# SuCGI is distributed in the hope that it will be useful, but WITHOUT
+# suCGI is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
 # Public License for more details.
@@ -21,21 +21,27 @@
 # License along with suCGI. If not, see <https://www.gnu.org/licenses/>.
 #
 
-# shellcheck disable=1091
 
 #
-# Initialisation
+# Initialiation
 #
 
 set -Cefu
-script_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
-src_dir="$(cd -P "$script_dir/../.." && pwd)"
-# shellcheck disable=2034
-readonly script_dir src_dir
+scripts_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+: "${scripts_dir:?}"
+readonly scripts_dir
+
+src_dir="$(cd -P "$scripts_dir/../.." && pwd)"
+: "${src_dir:?}"
+readonly src_dir
+
+# shellcheck disable=2154
+export PATH="$src_dir/tests:$PATH"
+
 # shellcheck disable=1091
-. "$script_dir/funcs.sh" || exit
-init || exit
-tmpdir
+. "$scripts_dir/libutil.sh"	|| exit
+init				|| exit
+tmpdir				|| exit
 
 # Always exit with a status indicating failure unless $fin is set.
 cleanup="${cleanup-:}; [ \"\${fin-}\" ] || exit 69"
@@ -59,10 +65,10 @@ do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF >&2
-error - test error
+$progname - test error
 
-Usage:  error [-X]
-        error -h
+Usage:  $progname [-X]
+        $progname -h
 
 Options:
     -X  Enable debugging.
@@ -91,5 +97,6 @@ done
 # Result
 #
 
+# shellcheck disable=2034
 fin=y
 exit "$result"

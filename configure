@@ -7,12 +7,12 @@
 #
 # This file is part of suCGI.
 #
-# SuCGI is free software: you can redistribute it and/or modify it
+# suCGI is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License,
 # or (at your option) any later version.
 #
-# SuCGI is distributed in the hope that it will be useful, but WITHOUT
+# suCGI is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
 # Public License for more details.
@@ -21,7 +21,7 @@
 # License along with suCGI. If not, see <https://www.gnu.org/licenses/>.
 #
 
-# shellcheck disable=1091,2015
+# shellcheck disable=2015
 
 
 #
@@ -44,17 +44,10 @@ files='compat.h makefile'
 force=
 
 # Headers to look for. Space-separated list of filenames.
-headers='sys/param.h features.h security/pam_appl.h shadow.h'
+headers='sys/param.h features.h' #security/pam_appl.h shadow.h'
 
 # Libraries to look for. Space-separated list of library names.
-libs=pam
-
-# Maximum number of child processes to spawn.
-# The Busybox Almquist shell tends to crash when running jobs in parallel.
-case $(basename "${SHELL-}") in
-(ash) maxnjobs=1 ;;
-(*)   maxnjobs=4 ;;
-esac
+#libs=pam
 
 # Be quiet?
 quiet=
@@ -65,23 +58,26 @@ quiet=
 #
 
 # Flags for testing compiler features. Space-separated list of flags.
-readonly testflags='-std=c99 -pipe'
+readonly feattestflags='-std=c99 -pipe'
 
 # Flags for testing conversions. Space-separated list of flags.
 readonly wconvflags='-Wconversion'
 
 
 #
-# Initialisation
+# Initialiation
 #
 
-set -Ceu
-src_dir="$(dirname "$0")" || exit
+set -Cefu
+src_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+: "${src_dir:?}"
 readonly src_dir
-cd "$src_dir" || exit
-. ./scripts/funcs.sh || exit
-init
-tmpdir tmp .
+readonly scripts_dir="$src_dir/scripts"
+cd -P "$src_dir"		|| exit
+# shellcheck disable=1091
+. "$scripts_dir/libutil.sh"	|| exit
+init				|| exit
+tmpdir tmp .			|| exit
 
 
 #
@@ -93,7 +89,8 @@ readonly macros='
 	CC CFLAGS AR ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
 	SUCGI_GRP_T SUCGI_NGRPS_T SUCGI_MAX_UID_VAL SUCGI_MAX_GID_VAL
 	SUCGI_MAX_GRP_VAL SUCGI_MAX_NGRPS_VAL SUCGI_HAVE_SYS_PARAM_H
-	SUCGI_HAVE_FEATURES_H SUCGI_UNAME SUCGI_SHARED SUCGI_CGI_DIR
+	SUCGI_HAVE_FEATURES_H SUCGI_UNAME SUCGI_STATIC SUCGI_PIC SUCGI_PIE
+	SUCGI_SHARED SUCGI_CGI_DIR
 	SUCGI_WWW_GRP
 '
 
@@ -154,7 +151,7 @@ addflags() {
 
 # Get a function prototype.
 getprototype() {
-	c99 -E -DHDR="<$1>" detect/hdr.h |
+	"$CC" -E -DHDR="<$1>" probe/header.h 2>/dev/null |
 	awk -vRS=';' -vfn="${2:?}" '
 		$0 !~ /^ *#/ && $0 ~  "[^ ] *" fn " *[\\($]" {
 			gsub("[\n\r\t\v ]+", " ");
@@ -206,7 +203,7 @@ testcc() (
 
 # Test compiler flags.
 testflags() {
-	testcc "$@" detect/noop.c
+	testcc "$@" probe/noop.c
 }
 
 
@@ -236,7 +233,6 @@ Options:
     -c FILE   Read build configuration from FILE (default: $conf).
     -d        Short for "-c conf/devel.env".
     -f        Overwrite existing files.
-    -j N      Run at most N tests in parallel (default: $maxnjobs).
     -q        Be quiet.
     -h        Show this help screen.
 
@@ -254,7 +250,6 @@ EOF
 	(c) conf="$OPTARG" ;;
 	(d) conf=conf/devel.env ;;
 	(f) force=y ;;
-	(j) maxnjobs="$OPTARG" ;;
 	(q) quiet=y ;;
 	(*) exit 1
 	esac
@@ -270,11 +265,12 @@ case $conf in ([!/.]*)
 	conf="./$conf"
 esac
 
-# shellcheck source=devel.conf
+# shellcheck source=conf/devel.env
 . "$conf" || exit
 unset conf
 
-if [ "$prog_name" = "$confsave" ]
+# shellcheck disable=2154
+if [ "$progname" = "$confsave" ]
 then
 	exec >/dev/null
 	force=y
@@ -293,11 +289,11 @@ done
 shift $#
 
 # shellcheck disable=2034
-readonly force quiet maxnjobs nfiles
+readonly force quiet nfiles
 
 
 #
-# System.
+# System
 #
 
 printf 'System: '
@@ -308,7 +304,7 @@ printf '%s\n' "$SUCGI_UNAME"
 
 
 #
-# Check which compiler is available.
+# Compiler
 #
 
 printf 'C compiler: '
@@ -348,8 +344,7 @@ then
 fi
 
 # Compiler path.
-set -- "$CC"
-ccpath="${1:?}"
+ccpath="${CC:?}"
 readonly ccpath
 
 # Compiler executable.
@@ -374,7 +369,7 @@ readonly ccpre
 testcc_cc="$ccname"
 testcc_cflags=
 # shellcheck disable=2086
-for flag in $testflags
+for flag in $feattestflags
 do testflags $flag && testcc_cflags="$testcc_cflags $flag"
 done
 unset flag
@@ -391,7 +386,7 @@ printf '%s\n' "$CC"
 
 
 #
-# Check which flags the C compiler supports.
+# Common compiler flags
 #
 
 printf 'Compiler flags:'
@@ -405,47 +400,27 @@ then
 	else
 		eval specflags="\${cflags_$ccname-}"
 
-		# shellcheck disable=2086,SC2154
-		set -- $cflags $specflags
-		njobs=0 jobs=''
-		while [ "$njobs" -gt 0 ] || [ $# -gt 0 ]
+		CFLAGS=
+		# shellcheck disable=2086,2154
+		for flag in $cflags $specflags
 		do
-			# Start jobs.
-			while [ "$njobs" -lt "$maxnjobs" ] && [ $# -gt 0 ]
-			do
-				flag="$1"
-				shift
+			case $flag in (-D*|-U*)
+				CFLAGS="$CFLAGS $flag"
+				continue
+			esac
 
-				case $flag in (-D*)
-					CFLAGS="${CFLAGS-} $flag"
-					continue
-				esac
-
-				testflags "$flag" &
-
-				njobs=$((njobs + 1)) jobs="$jobs$! "
-				eval "flag_$!"='$flag'
-				unset flag
-			done
-
-			# Collect the job on top of the pile.
-			job="${jobs%% *}"
-			if wait "$job"
+			# shellcheck disable=2086
+			if testflags $CFLAGS "$flag"
 			then
-				eval flag="\"\${flag_$job-}\""
-				unset "flag_$job"
-
-				CFLAGS="${CFLAGS-} $flag"
+				CFLAGS="$CFLAGS $flag"
 				printf -- ' %s' "$flag"
 			fi
-			njobs=$((njobs - 1)) jobs="${jobs#* }"
-			unset job
 		done
 
 		[ "${CFLAGS-}" ] || printf ' none detected'
 
 		echo
-		unset jobs specflags
+		unset specflags
 	fi
 else
 	printf -- ' %s\a\n' "${CFLAGS:-none given}"
@@ -454,32 +429,126 @@ unset cflags
 
 
 #
-# Check whether the compiler supports -shared.
+# Static linking
 #
 
-printf 'Shared object flag: '
+printf 'Static linking: '
 
-if [ "${SUCGI_SHARED-x}" = x ] && [ "${SUCGI_SHARED-}" != x ]
+if ! [ "${SUCGI_STATIC-}" ]
 then
-	SUCGI_SHARED=
-	for flag in -dynamiclib -shared
+	SUCGI_STATIC=
+	for flag in -static -Wl,-no-dynamic-linker
 	do
-		if testflags "$flag" -fpic
+		# shellcheck disable=2086
+		if testflags $CFLAGS $flag
 		then
-			SUCGI_SHARED="$flag"
-			break
+			SUCGI_STATIC="$SUCGI_STATIC $flag"
+			break 2
 		fi
 	done
 fi
 
-if [ "$SUCGI_SHARED" ]
-then printf '%s\n' "$SUCGI_SHARED"
+if [ "$SUCGI_STATIC" ]
+then printf '%s\n' "$SUCGI_STATIC"
 else printf 'unsupported\n'
 fi
 
 
 #
-# Check which archiver to use.
+# Position-independent code
+#
+
+printf 'Position-independent code: '
+
+if [ "${SUCGI_PIC-x}" = x ] && [ "${SUCGI_PIC-}" != x ]
+then
+	for flag in -fPIC -fpic
+	do
+		# shellcheck disable=2086
+		if testflags $CFLAGS $flag
+		then
+			SUCGI_PIC="$flag"
+			break 2
+		fi
+	done
+fi
+: "${SUCGI_PIC:=}"
+
+if [ "$SUCGI_PIC" ]
+then printf '%s\n' "$SUCGI_PIC"
+else printf 'unsupported\n'
+fi
+
+
+#
+# Position-independent executables
+#
+
+if [ "$SUCGI_PIC" ]
+then
+	printf 'Position-independent executables: '
+
+	if [ "${SUCGI_PIE-x}" = x ] && [ "${SUCGI_PIE-}" != x ]
+	then
+		for cflag in -static-pie -pie
+		do
+			for ldflag in -fPIE -fpie
+			do
+				# shellcheck disable=2086
+				if testflags $CFLAGS $cflag $ldflag
+				then
+					SUCGI_PIE="$cflag $ldflag"
+					break 2
+				fi
+			done
+		done
+	fi
+
+	if [ "${SUCGI_PIE-}" ]
+	then printf '%s\n' "$SUCGI_PIE"
+	else printf 'unsupported\n'
+	fi
+fi
+: "${SUCGI_PIE-=}"
+
+
+#
+# Shared objects
+#
+
+if [ "$SUCGI_PIC" ]
+then
+	printf 'Shared objects: '
+
+	if [ "${SUCGI_SHARED-x}" = x ] && [ "${SUCGI_SHARED-}" != x ]
+	then
+		SUCGI_SHARED=
+		case $SUCGI_UNAME in
+		(Darwin) shared_flags='-dynamiclib -shared' ;;
+		(*)      shared_flags=-shared ;;
+		esac
+
+		# shellcheck disable=2086
+		for flag in $shared_flags
+		do
+			if testflags "$SUCGI_PIC" "$flag"
+			then
+				SUCGI_SHARED="$flag"
+				break
+			fi
+		done
+	fi
+
+	if [ "$SUCGI_SHARED" ]
+	then printf '%s\n' "$SUCGI_SHARED"
+	else printf 'unsupported\n'
+	fi
+fi
+: "${SUCGI_SHARED-=}"
+
+
+#
+# Archiver
 #
 
 printf 'Archiver: '
@@ -490,7 +559,7 @@ then
 		"$CC" -v 2>&1 |
 		awk '{
 			for (i = 1; i <= NF; i++) {
-				if ($i ~ /^v?[0-9]+\.[0-9]+\./) {
+				if ($i ~ /^v?[0-9]+\.[0-9.]+$/) {
 					gsub("[^0-9\.]", "", $i);
 					print $i;
 					exit;
@@ -504,7 +573,7 @@ then
 		ccmajor="${ccvers%%.*}"
 	else
 		case $ccexec in
-		(*[0-9]*) ccmajor="${ccexec#${ccexec%%[0-9]*}}" ;;
+		(*[0-9]*) ccmajor="${ccexec#"${ccexec%%[0-9]*}"}" ;;
 		(*)       ccmajor= ;;
 		esac
 	fi
@@ -517,6 +586,7 @@ then
 
 	for archiver in $archivers
 	do
+		unset IFS
 		if command -v "$archiver" >/dev/null 2>&1
 		then
 			AR="$archiver"
@@ -529,83 +599,53 @@ printf '%s\n' "${AR-default}"
 
 
 #
-# Check which headers are available.
+# Headers
 #
 
 printf 'Headers:'
 
-# shellcheck disable=2086,SC2154
-set -- $headers
-nheaders=0 njobs=0 jobs=''
-while [ "$njobs" -gt 0 ] || [ $# -gt 0 ]
+nheaders=0
+for header in $headers
 do
-	# Start jobs.
-	while [ "$njobs" -lt "$maxnjobs" ] && [ $# -gt 0 ]
-	do
-		header="$1"
-		shift
+	headervar="SUCGI_HAVE_$(
+		printf '%s\n' "$header"	|
+		sed 's/[^a-z]/_/g'	|
+		tr '[:lower:]' '[:upper:]'
+	)"
 
-		headervar="SUCGI_HAVE_$(
-			printf '%s\n' "$header"	|
-			sed 's/[^a-z]/_/g'	|
-			tr '[:lower:]' '[:upper:]'
-		)"
+	case $headervar in (SUCGI_HAVE_|*[!A-Z0-9_]*)
+		warn '%s: could not derive header name.' "$header"
+		continue
+	esac
 
-		case $headervar in (SUCGI_HAVE_|*[!A-Z0-9_]*)
-			warn '%s: could not derive macro name.'
-			continue
-		esac
+	eval headeravail="\${$headervar-}"
 
-		eval headeravail="\${$headervar-}"
-
-		# shellcheck disable=2154
-		case $headeravail in
-		(0)
-			eval "$headervar=0"
-			;;
-		(1)
-			eval "$headervar=1"
-			nheaders=$((nheaders + 1))
-			printf ' %s' "$header"
-			;;
-		(*)
-			"$CC" -D"HDR=<$header>" -E detect/hdr.h \
-			>/dev/null 2>&1 &
-
-			njobs=$((njobs + 1)) jobs="$jobs$! "
-			eval "header_$!"='$header'
-			eval "headervar_$!"='$headervar'
-		esac
-
-		unset header headervar headeravail
-	done
-
-	# Collect the job on top of the pile.
-	if [ "$njobs" -gt 0 ]
-	then
-		job="${jobs%% *}"
-		eval header="\"\${header_$job-}\""
-		eval headervar="\"\${headervar_$job-}\""
-		unset "header_$job" "headervar_$job"
-
-		if wait "$job"
+	# shellcheck disable=2154
+	case $headeravail in
+	(0)
+		eval "$headervar=0"
+		;;
+	(1)
+		eval "$headervar=1"
+		nheaders=$((nheaders + 1))
+		printf ' %s' "$header"
+		;;
+	(*)
+		if "$CC" -D"HDR=<$header>" -E probe/header.h >/dev/null 2>&1
 		then
-			eval "$headervar=1"
 			nheaders=$((nheaders + 1))
 			printf -- ' %s' "$header"
-		else
-			eval "$headervar=0"
 		fi
+	esac
 
-		njobs=$((njobs - 1)) jobs="${jobs#* }"
-		unset header headervar job
-	fi
+	unset headeravail headervar
 done
 
 case $nheaders in
 (0) printf ' none found\n' ;;
 (*) printf '\n' ;;
 esac
+unset nheaders
 
 
 # #
@@ -615,7 +655,7 @@ esac
 # printf 'Libraries:'
 #
 #
-# # shellcheck disable=2086,SC2154
+# # shellcheck disable=2086,2154
 # set -- $libs
 # nlibs=0 njobs=0 jobs=''
 # while [ "$njobs" -gt 0 ] || [ $# -gt 0 ]
@@ -733,7 +773,7 @@ esac
 
 
 #
-# Check what data type getgrouplist returns GIDs as.
+# getgrouplist GID data type.
 #
 
 printf 'getgrouplist GID type: '
@@ -752,10 +792,9 @@ then
 
 		# shellcheck disable=2086
 		if	testcc $wconvflags -Wincompatible-pointer-types \
-			       -DGRP_T="$grptype" detect/grpt.c
+			       -DGRP_T="$grptype" probe/grp_t.c
 		then
 			SUCGI_GRP_T="$grptype"
-
 			break
 		fi
 	done
@@ -769,6 +808,7 @@ fi
 
 unset grptype
 
+# shellcheck disable=2034
 case $SUCGI_GRP_T in
 ("short")              SUCGI_MAX_GRP_VAL=SHRT_MAX ;;
 ("unsigned short")     SUCGI_MAX_GRP_VAL=USHRT_MAX ;;
@@ -790,7 +830,7 @@ fi
 
 
 #
-# Check what data type setgroups takes the group size as.
+# setgroups number of groups data type
 #
 
 printf 'setgroups count type: '
@@ -806,7 +846,7 @@ then
 		[ "$sztype" ] || continue
 
 		# shellcheck disable=2086
-		if testcc $wconvflags -DNGRPS_T="$sztype" detect/ngrpst.c
+		if testcc $wconvflags -DNGRPS_T="$sztype" probe/ngrps_t.c
 		then
 			SUCGI_NGRPS_T="$sztype"
 			break
@@ -814,7 +854,7 @@ then
 	done
 fi
 
-if	! [ "$SUCGI_NGRPS_T" ]                                               &&
+if	! [ "$SUCGI_NGRPS_T" ]                                         &&
 	sztype="$(getparamtype unistd.h setgroups 1 | sed 's/ *\*//')" &&
 	[ "$sztype" ]
 then	SUCGI_NGRPS_T="$sztype"
@@ -822,7 +862,7 @@ fi
 
 unset sztype
 
-
+# shellcheck disable=2034
 case $SUCGI_NGRPS_T in
 ("short")              SUCGI_MAX_NGRPS_VAL=SHRT_MAX ;;
 ("unsigned short")     SUCGI_MAX_NGRPS_VAL=USHRT_MAX ;;
@@ -843,7 +883,7 @@ fi
 
 
 #
-# Calculate the maximum values representable as uid_t and gid_t.
+# Maximum values representable as uid_t and gid_t.
 #
 
 for idtype in uid_t gid_t
@@ -858,14 +898,15 @@ do
 
 	if eval "! [ \"\${$idvar-}\" ]"
 	then
-		"$CC" -o"$TMPDIR/${idtype}_max" -D"T=$idtype"  \
-		      detect/tmaxrt.c >/dev/null 2>&1     &&
+		"$CC" -o"$TMPDIR/${idtype}_max" -D"T=$idtype" \
+		      probe/typemax_rt.c >/dev/null 2>&1     &&
 		idmax="$("$TMPDIR/${idtype}_max" | tail -n1)"  &&
 		eval "$idvar=\"\$idmax\""
 
 		unset idmax
 	fi
 
+	# The working directory may be mounted noexec.
 	if eval "! [ \"\${$idvar-}\" ]" && [ "$ccwconv" ]
 	then
 		for idmax in                                         \
@@ -874,7 +915,7 @@ do
 		do
 			# shellcheck disable=2086
 			testcc $wconvflags -D"T=$idtype" -D"V=$idmax" \
-			       detect/tmaxct.c || break
+			       probe/typemax_ct.c || break
 			eval "$idvar=\"\$idmax\""
 		done
 		unset idmax
@@ -888,18 +929,18 @@ unset idtype
 
 
 #
-# Generate M4 command line.
+# M4 command line
 #
 
-shift $#
+shift "$#"
 for key in $macros
 do
 	eval "value=\"\${$key-}\""
 	if [ "$value" ]
 	then
 		case $# in
-		(0) set -- "-D__${key}=\`${value# }'" ;;
-		(*) set -- "$@" "-D__${key}=\`${value# }'" ;;
+		(0) set -- "-D__${key#SUCGI_}=\`${value# }'" ;;
+		(*) set -- "$@" "-D__${key#SUCGI_}=\`${value# }'" ;;
 		esac
 	fi
 done
@@ -907,7 +948,7 @@ unset key value
 
 
 #
-# Save configuration.
+# Save configuration
 #
 
 if [ -e "$confsave" ]
@@ -915,7 +956,7 @@ if [ -e "$confsave" ]
 	else exists=
 fi
 
-if [ "$prog_name" != "$confsave" ]
+if [ "$progname" != "$confsave" ]
 then
 	if [ "$exists" ] && ! [ "$force" ]
 	then
@@ -963,7 +1004,7 @@ fi
 
 
 #
-# Create files.
+# Create files
 #
 
 i=0

@@ -1,18 +1,18 @@
 #!/bin/sh
 
 #
-# Run checks using different virtual machines.
+# Run checks using different systems.
 #
 # Copyright 2023 Odin Kroeger.
 #
 # This file is part of suCGI.
 #
-# SuCGI is free software: you can redistribute it and/or modify it
+# suCGI is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License,
 # or (at your option) any later version.
 #
-# SuCGI is distributed in the hope that it will be useful, but WITHOUT
+# suCGI is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
 # Public License for more details.
@@ -28,8 +28,8 @@
 # Defaults
 #
 
-# Virtual machines to test.
-readonly vms='aristides aristotle diotima phaedo phaedrus'
+# Hosts to test on.
+readonly systems='aristides aristotle diotima phaedo phaedrus'
 
 # Branch to run tests on.
 branch=devel
@@ -62,14 +62,21 @@ timeout=120
 #
 
 set -Cefu
-tools_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
-src_dir="$(dirname -- "$tools_dir")"
-# shellcheck disable=2034
-readonly tools_dir src_dir
+scripts_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+: "${scripts_dir:?}"
+readonly scripts_dir
+
+src_dir="$(dirname -- "$scripts_dir")"
+: "${src_dir:?}"
+readonly src_dir
+
+# shellcheck disable=2154
+export PATH="$src_dir/tests:$src_dir/utils:$PATH"
+
 # shellcheck disable=1091
-. "$tools_dir/funcs.sh" || exit
-init || exit
-tmpdir
+. "$scripts_dir/libutil.sh"	|| exit
+init				|| exit
+tmpdir chk "$src_dir"		|| exit
 
 
 #
@@ -85,15 +92,24 @@ readonly cwd
 # Functions
 #
 
-utmquit() {
-	utmstoplastvm
+utm_get_ip() {
+	utmctl ip-address "${1:?}" 2>/dev/null | grep -Ev ^fe80: | head -n1
+}
+
+utm_is_vm() {
+	# shellcheck disable=2046
+	inlist '=' "${1:?}" $(utmctl list | awk 'NR > 1 {print $3}')
+}
+
+utm_quit() {
+	utm_stop_last_vm
 	if command -v osascript >/dev/null 2>&1
 	then osascript -e 'tell application "UTM" to quit'
 	else killall UTM
 	fi
 }
 
-utmquitatexit() {
+utm_quit_at_exit() {
 	if [ "${utmpid-x}" = x ] && [ "${utmpid-}" != x ]
 	then
 		utmpid="$(
@@ -106,21 +122,21 @@ utmquitatexit() {
 	if ! [ "$utmpid" ]
 	then
 		case $cleanup in
-		(*utmquit*) : ;;
-		(*) cleanup="utmquit; ${cleanup-}"
+		(*utm_quit*) : ;;
+		(*) cleanup="utm_quit; ${cleanup-}"
 		esac
 	fi
 }
 
-utmstatus() {
-	utmquitatexit
+utm_status() {
+	utm_quit_at_exit
 	utmctl status "${1:?}" 2>/dev/null
 }
 
 
-utmstoplastvm() {
+utm_stop_last_vm() {
 	if	[ "${lastvm-}" ]			&&
-		[ "$(utmstatus "$lastvm")" = started ]	>/dev/null 2>&1
+		[ "$(utm_status "$lastvm")" = started ]	>/dev/null 2>&1
 	then
 		catch=
 		utmctl stop "$lastvm"
@@ -133,9 +149,9 @@ utmstoplastvm() {
 	fi
 }
 
-utmstartvm() {
-	utmquitatexit
-	if	status="$(utmstatus "${1:?}")" &&
+utm_start_vm() {
+	utm_quit_at_exit
+	if	status="$(utm_status "${1:?}")" &&
 		[ "$status" = stopped ]
 	then
 		lastvm="$1"
@@ -155,13 +171,13 @@ while getopts Db:c:d:hqt:v opt; do
 	# shellcheck disable=2154
 	case $opt in
 	(h) exec cat <<EOF
-$prog_name - run tests with different virtual machines
+$progname - run tests with different virtual machines
 
-Usage:         $prog_name [VM ...]
-               $prog_name -h
+Usage:         $progname [HOST ...]
+               $progname -h
 
 Operands:
-    VM         A virtual machine name.
+    HOST       A host/UTM virtual machine name.
 
 Options:
     -b BRANCH  Branch to checkout (default: $branch).
@@ -187,15 +203,17 @@ shift $((OPTIND - 1))
 unset opt
 
 # shellcheck disable=2086
-[ $# -eq 0 ] && set -- $vms
+[ $# -eq 0 ] && set -- $systems
 
 readonly comm="
 	set -ex
 	cd \"$dir\"
 	git stash
-	git pull
+	oldbranch=\"\$(git branch)\"
 	git checkout \"$branch\"
-	$check
+	$check || retval=$?
+	git checkout \"\$oldbranch\"
+	exit \"\$retval\"
 "
 
 
@@ -204,43 +222,57 @@ readonly comm="
 #
 
 failures=
-for vm
+for sys
 do
-	warn 'checking with %s ... ' "$vm"
+	warn 'checking with %s ... ' "$sys"
 
-	[ "$verbose" ] && warn -q 'waiting for %s to reply ...' "$vm"
+	[ "$verbose" ] && warn -q 'waiting for %s to respond ...' "$sys"
 
-	utmstartvm "$vm"
+	if utm_is_vm "$sys"
+	then vm="$sys"
+	else vm=
+	fi
+
+	[ "$vm" ] && utm_start_vm "$vm"
 
 	trap 'catch ALRM' ALRM
 	pid="$$"
 	( sleep "$timeout" & wait $! && kill -s ALRM "$pid"; ) & alarm=$!
 
 	while ! [ "$caught" ]
-	do ssh "$vm" true >/dev/null 2>&1 && break
+	do
+		if [ "$vm" ] && ip="$(utm_get_ip "$vm")"
+		then host="${ip:="$vm"}"
+		else host="$sys"
+		fi
+
+		ssh "$host" -oConnectTimeout=1 true >/dev/null 2>&1 && break
 	done
 
 	[ "$caught" = ALRM ] && err 'connection failure.'
 	kill "$alarm"
 
-	logfile="$TMPDIR/check$vm.log"
+	[ "$verbose" ] && warn -q 'updating remote repository ...'
+	logged git push --all --prune "ssh://$host/~/$dir"
+
+	logfile="$TMPDIR/$sys.log"
 	if ! (
 		[ "$verbose" ] || exec >"$logfile" 2>&1
 
 		# shellcheck disable=2029
-		ssh "$vm" "$comm"
+		ssh "$host" "$comm"
 	)
 	then
 		if ! [ "$verbose" ]
 		then
-			warn 'testing with %s failed.' "$vm"
+			warn 'testing with %s failed.' "$sys"
 			warn 'see %s for details.' "$(basename "$logfile")"
 			[ -e "$logfile" ] && mv -f "$logfile" "$cwd"
 		fi
-		failures="$failures $vm"
+		failures="$failures $sys"
 	fi
 
-	utmstoplastvm
+	[ "$vm" ] && utm_stop_last_vm
 done
 
 if [ "$failures" ]
