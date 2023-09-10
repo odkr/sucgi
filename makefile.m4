@@ -433,7 +433,7 @@ dist_files = *.c *.h *.m4 README.md LICENSE.txt \
 
 distclean: mrproper
 
-$(dist_name): distclean man/sucgi.8
+$(dist_name): distclean #man/sucgi.8
 
 $(dist_ar): $(dist_name)
 
