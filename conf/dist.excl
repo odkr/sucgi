@@ -3,6 +3,7 @@
 *.bak
 *.ctu-info
 *.dump
+*.dylib
 *.expand
 *.gcda
 *.gcno
@@ -14,10 +15,8 @@
 *.so
 *.swp
 *.tgz
-*.asc
 .DS_Store
 .git
-.vscode
 chk-*
 compat.h
 config.status
