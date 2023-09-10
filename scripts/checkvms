@@ -89,76 +89,127 @@ readonly cwd
 
 
 #
+# Globals
+#
+
+# Checked out branch on the remote system.
+oldbranch=
+
+# The most recently start VM, if any.
+started_vm=
+
+# Whether UTM has been started by this script.
+utm_started=
+
+
+#
 # Functions
 #
 
+utm_is_running() {
+	ps -A -ocomm= | xargs basename | grep -q UTM
+}
+
 utm_get_ip() {
+	utm_is_running || utm_started=y
 	utmctl ip-address "${1:?}" 2>/dev/null | grep -Ev ^fe80: | head -n1
 }
 
 utm_is_vm() {
+	utm_is_running || utm_started=y
 	# shellcheck disable=2046
 	inlist '=' "${1:?}" $(utmctl list | awk 'NR > 1 {print $3}')
 }
 
-utm_quit() {
-	utm_stop_last_vm
+utm_vm_started() {
+	utm_is_running || utm_started=y
+	[ "$(utm_status "$1")" = started ] >/dev/null 2>&1
+}
+
+utm_quit() (
+	warn -qv 'waiting for virtual machines to shut down ...'
+
+	i=0
+	while [ "$i" -lt "$timeout" ]
+	do
+		i=$((i + 1))
+
+		utmctl list 					|
+		awk 'NR > 1 && $2 != "stopped" {exit 1}'	&&
+		break
+
+		sleep 1
+	done
+
+	# Give the VM time to shut down.
+	while [ "$i" -lt "$timeout" ]
+	do
+		i=$((i + 1))
+
+		ps -A -ocomm= 		|
+		xargs basename 		|
+		grep -iqE ^qemulauncher ||
+		break
+
+		sleep 1
+	done
+
+	warn -qv 'telling UTM to quit ...'
 	if command -v osascript >/dev/null 2>&1
 	then osascript -e 'tell application "UTM" to quit'
 	else killall UTM
 	fi
-}
-
-utm_quit_at_exit() {
-	if [ "${utmpid-x}" = x ] && [ "${utmpid-}" != x ]
-	then
-		utmpid="$(
-			ps -xo pid=,comm= |
-			awk '$2 ~ /\/UTM$/ {print $1; exit}'
-		)"
-		readonly utmpid
-	fi
-
-	if ! [ "$utmpid" ]
-	then
-		case $cleanup in
-		(*utm_quit*) : ;;
-		(*) cleanup="utm_quit; ${cleanup-}"
-		esac
-	fi
-}
+)
 
 utm_status() {
-	utm_quit_at_exit
+	utm_is_running || utm_started=y
 	utmctl status "${1:?}" 2>/dev/null
 }
 
-
-utm_stop_last_vm() {
-	if	[ "${lastvm-}" ]			&&
-		[ "$(utm_status "$lastvm")" = started ]	>/dev/null 2>&1
-	then
-		catch=
-		utmctl stop "$lastvm"
-		lastvm=
-		# shellcheck disable=2034
-		catch=x
-		if [ "$caught" ]
-		then kill -s "$caught" "$$"
-		fi
-	fi
-}
-
 utm_start_vm() {
-	utm_quit_at_exit
-	if	status="$(utm_status "${1:?}")" &&
-		[ "$status" = stopped ]
+	: "${1:?}"
+
+	utm_is_running || utm_started=y
+	if ! utm_vm_started "$1"
 	then
-		lastvm="$1"
+		warn -qv 'starting %s ...' "$1"
 		utmctl start "$1"
 	fi
 }
 
+utm_stop_vm() {
+	: "${1:?}"
+
+	utm_is_running || utm_started=y
+	if utm_vm_started "$1"
+	then
+		warn -qv 'stopping %s ...' "$1"
+		utmctl stop "$1" || :
+	fi
+}
+
+remote_branch_stash() {
+	: "${1:?}" "${2:?}" "${3:?}"
+
+	ssh -q "$1" "
+		cd '$2' 	&&
+		git branch -q --show-current" &&
+	ssh -q "$1" "
+		cd '$2' 	&&
+		git stash -q	&&
+		git checkout -q '$3'
+	"
+}
+
+remote_branch_restore() {
+	: "${1:?}" "${2:?}" "${3:?}"
+
+	ssh -q "$1" "
+		cd '$2'			&&
+		git checkout -q '$3'	&&
+		git stash apply -q
+	"
+}
 
 
 #
@@ -202,18 +253,20 @@ done
 shift $((OPTIND - 1))
 unset opt
 
+readonly branch check dir timeout quiet verbose
+
+case $timeout in (*[!0-9]*)
+	err -- '-t: %s: not a number.' "$timeout"
+esac
+
 # shellcheck disable=2086
 [ $# -eq 0 ] && set -- $systems
 
 readonly comm="
 	set -ex
 	cd \"$dir\"
-	git stash
-	oldbranch=\"\$(git branch)\"
 	git checkout \"$branch\"
-	$check || retval=$?
-	git checkout \"\$oldbranch\"
-	exit \"\$retval\"
+	$check
 "
 
 
@@ -221,23 +274,39 @@ readonly comm="
 # Main
 #
 
+cleanup="
+	[ \"\$oldbranch\" ] && [ \"${host-}\" ] &&
+	remote_branch_restore \"\$host\" \"\$dir\" \"\$oldbranch\"
+
+	[ \"\$started_vm\" ] && utm_stop_vm \"\$started_vm\"
+
+	[ \"\$utm_started\" ] && utm_quit
+	${cleanup-}
+"
 failures=
 for sys
 do
 	warn 'checking with %s ... ' "$sys"
-
-	[ "$verbose" ] && warn -q 'waiting for %s to respond ...' "$sys"
 
 	if utm_is_vm "$sys"
 	then vm="$sys"
 	else vm=
 	fi
 
-	[ "$vm" ] && utm_start_vm "$vm"
+	if [ "$vm" ] && ! utm_vm_started "$vm"
+	then
+		catch='' caught=''
+		utm_start_vm "$vm"
+		started_vm="$vm"
+		catch=y
+		[ "$caught" ] && kill -s "$caught" "$$"
+	fi
 
-	trap 'catch ALRM' ALRM
-	pid="$$"
-	( sleep "$timeout" & wait $! && kill -s ALRM "$pid"; ) & alarm=$!
+	warn -qv 'waiting for %s to respond ...' "$sys"
+
+	set +e
+	catch='' caught='' pid="$$"
+	( sleep "$timeout" & wait $! && kill -s ALRM -- "-$pid"; ) & alarm=$!
 
 	while ! [ "$caught" ]
 	do
@@ -246,14 +315,24 @@ do
 		else host="$sys"
 		fi
 
-		ssh "$host" -oConnectTimeout=1 true >/dev/null 2>&1 && break
-	done
+		ssh "$host" -oConnectTimeout=1 true && break
+	done >/dev/null 2>&1
 
-	[ "$caught" = ALRM ] && err 'connection failure.'
-	kill "$alarm"
+	kill "$alarm" >/dev/null 2>&1
+	set -e
 
-	[ "$verbose" ] && warn -q 'updating remote repository ...'
-	logged git push --all --prune "ssh://$host/~/$dir"
+	catch=y
+	case "$caught" in
+	(ALRM) err 'connection failure.' ;;
+	('')   : ;;
+	(*)    kill -s "$caught" "$$"
+	esac
+
+	warn -qv 'updating remote repository ...'
+
+	oldbranch="$(remote_branch_stash "$host" "$dir" main)" ||
+	err 'failed to stash current branch.'
+	logged git push --all --prune --quiet "ssh://$host/~/$dir"
 
 	logfile="$TMPDIR/$sys.log"
 	if ! (
@@ -272,7 +351,19 @@ do
 		failures="$failures $sys"
 	fi
 
-	[ "$vm" ] && utm_stop_last_vm
+	warn -qv 'restoring stashed changes ...'
+
+	catch='' caught=''
+	remote_branch_restore "$host" "$dir" "$oldbranch"
+	oldbranch=
+	catch=y
+	[ "$catch" ] && kill -s "$caught" "$pid"
+
+	catch='' caught=''
+	[ "$started_vm" ] && utm_stop_vm "$started_vm"
+	started_vm=
+	catch=y
+	[ "$catch" ] && kill -s "$caught" "$pid"
 done
 
 if [ "$failures" ]
