@@ -4,12 +4,12 @@ dnl Copyright 2023 Odin Kroeger
 dnl
 dnl This file is part of suCGI.
 dnl
-dnl SuCGI is free software: you can redistribute it and/or modify it
+dnl suCGI is free software: you can redistribute it and/or modify it
 dnl under the terms of the GNU Affero General Public License as published
 dnl by the Free Software Foundation, either version 3 of the License,
 dnl or (at your option) any later version.
 dnl
-dnl SuCGI is distributed in the hope that it will be useful, but WITHOUT
+dnl suCGI is distributed in the hope that it will be useful, but WITHOUT
 dnl ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 dnl or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
 dnl Public License for more details.
@@ -27,12 +27,12 @@ include(`macros.m4')dnl
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -52,29 +52,29 @@ include(`macros.m4')dnl
 /*
  * System defaults
  */
-dnl FIXME: Add Illumos.
 
-ifdef(`__SUCGI_HAVE_SYS_PARAM_H', `dnl
+ifdef(`__HAVE_SYS_PARAM_H', `dnl
 /* Whether sys/param.h is available. */
-#if !defined(HAVE_SYS_PARAM)
-#define HAVE_SYS_PARAM __SUCGI_HAVE_SYS_PARAM_H
+#if !defined(HAVE_SYS_PARAM_H)
+#define HAVE_SYS_PARAM __HAVE_SYS_PARAM_H
 #endif
 
 ')dnl
-ifdef(`__SUCGI_HAVE_FEATURES_H', `dnl
+ifdef(`__HAVE_FEATURES_H', `dnl
 /* Whether features.h is available. */
 #if !defined(HAVE_FEATURES_H)
-#define HAVE_FEATURES_H __SUCGI_HAVE_FEATURES_H
+#define HAVE_FEATURES_H __HAVE_FEATURES_H
 #endif
 
 ')dnl
-/* BSDs and Minix. */
+/* BSDs, Minix, and Illumos. */
 #if defined(__DragonFly__)  || \
     defined(__FreeBSD__)    || \
     defined(__NetBSD__)     || \
     defined(__OpenBSD__)    || \
     defined(__MACH__)       || \
-    defined(__minix)
+    defined(__minix)        || \
+    defined(__illumos__)
 
 #if !defined(HAVE_SYS_PARAM_H)
 #define HAVE_SYS_PARAM_H 1
@@ -135,8 +135,8 @@ ifdef(`__SUCGI_HAVE_FEATURES_H', `dnl
 
 /* Type that getgrouplist takes and returns group IDs as. */
 #if !defined(GRP_T)
-ifnempty(`__SUCGI_GRP_T', `dnl
-#define GRP_T __SUCGI_GRP_T
+ifnempty(`__GRP_T', `dnl
+#define GRP_T __GRP_T
 ', `dnl
 #if defined(__MACH__) && __MACH__
 #define GRP_T int
@@ -149,8 +149,8 @@ ifnempty(`__SUCGI_GRP_T', `dnl
 
 /* Type that setgroups takes the number of groups as. */
 #if !defined(NGRPS_T)
-ifnempty(`__SUCGI_NGRPS_T', `dnl
-#define NGRPS_T __SUCGI_NGRPS_T
+ifnempty(`__NGRPS_T', `dnl
+#define NGRPS_T __NGRPS_T
 ', `dnl
 #if defined(__linux__) && __linux__
 #define NGRPS_T size_t
@@ -175,22 +175,22 @@ ifnempty(`__SUCGI_NGRPS_T', `dnl
 
 /* Maximum value of uid_t. */
 #if !defined(MAX_UID_VAL)
-#define MAX_UID_VAL default(`__SUCGI_MAX_UID_VAL', `MAXSVAL(uid_t)')
+#define MAX_UID_VAL default(`__MAX_UID_VAL', `MAXSVAL(uid_t)')
 #endif
 
 /* Maximum value of gid_t. */
 #if !defined(MAX_GID_VAL)
-#define MAX_GID_VAL default(`__SUCGI_MAX_GID_VAL', `MAXSVAL(gid_t)')
+#define MAX_GID_VAL default(`__MAX_GID_VAL', `MAXSVAL(gid_t)')
 #endif
 
 /* Maximum value of GRP_T. */
 #if !defined(MAX_GRP_VAL)
-#define MAX_GRP_VAL default(`__SUCGI_MAX_GRP_VAL', `MAXSVAL(GRP_T)')
+#define MAX_GRP_VAL default(`__MAX_GRP_VAL', `MAXSVAL(GRP_T)')
 #endif
 
 /* Maximum value of NGRPS_T. */
 #if !defined(MAX_NGRPS_VAL)
-#define MAX_NGRPS_VAL default(`__SUCGI_MAX_NGRPS_VAL', `MAXSVAL(NGRPS_T)')
+#define MAX_NGRPS_VAL default(`__MAX_NGRPS_VAL', `MAXSVAL(NGRPS_T)')
 #endif
 
 #endif /* !defined(COMPAT_H) */
