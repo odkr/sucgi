@@ -6,16 +6,17 @@ Run the test suite by:
 
     make check
 
+It must be permitted to execute files in the repository
+(i.e., it must not reside on a filesystem that is mounted noexec).
+
 See below for details.
 
 
-## System requirements
+## Requirements
 
-The test suite is less portable that suCGI itself.
-
-It requires a system that supports the "Spawn" and the "Thread-Safe
-Functions" POSIX.1-2008 extensions as well as the **<err.h>** header
-file, which some systems do not provide.
+The test suite is less portable that suCGI itself; it requires a system that
+supports the POSIX.1-2008 extensions "Spawn" and "Thread-Safe Functions" as
+well as the **<err.h>** header file, which some systems do not provide.
 
 
 ## Security
@@ -24,13 +25,9 @@ file, which some systems do not provide.
 tests. Among these utilities are *badenv* and *badexec*. *badenv* enables
 users to call applications with maliciously crafted environment variables.
 *badexec* allows user to call applications with an arbitrary *argv[0]*.
-
-If the system is set up so that non-system users can run applications that
-they compiled themselves, then having *badenv* and *badexec* around makes
-no difference. But if the system is set up so that users *cannot* compile
-their own applications or at least cannot run applications they compiled,
-then having *badenv* and *badexec* around may open up attacks vectors that
-had previously been foreclosed.
+If the system is set up so that users either cannot compile applications or
+cannot run applications they compiled, then compiling *badenv* or *badexec*
+may open up attacks vectors that had previously been foreclosed.
 
 
 ## Exit statuses
@@ -47,11 +44,28 @@ Any other exit status indicates a bug in the test suite.
 
 ## Superuser privileges
 
-SuCGI requires superuser privileges. Consequently, so do some tests.
-Of those, some can use mock-up system calls and may therefore be run
-without superuser privileges. Others, however, have to be skipped.
+suCGI requires superuser privileges. Consequently, so do some tests.
+These will be skipped if the test suite is run without superuser privileges.
 
-Conversely, some tests can only be run as a non-system user. If you
-run the test suite with superuser privileges, those tests are run as
-an *arbitrary* non-system user; and that user can interfere with
-testing. If no such user is found, those tests are skipped.
+Conversely, some tests can only be run as a non-system user. Those will
+be run as *arbitrary* non-system user if the test suite is run with superuser
+privileges; note that the user with the permissions of which those tests are
+run can interfere with testing.
+
+
+## Running individual tests
+
+Use
+
+    make check checks="$tests"
+
+to compile and run individual tests only, where `$tests` is
+a whitespace-separated lists of filenames.
+
+
+## Testing different compilers, makes, and shells
+
+* **scripts/checkcomps** tests different compilers.
+* **scripts/checkmakes** tests different makes.
+* **scripts/checkshells** tests different shells.
+* **scripts/checkall** does all of the above.

@@ -6,8 +6,7 @@ Once you have [compiled](building.md) suCGI, install it with
 
     sudo make install
 
-Note, `make install` will only install files that are newer
-than their destination.
+Note, `make install` will only copy files that are newer than their target.
 
 
 ## Configuration variables
@@ -23,9 +22,10 @@ configure -- calls --> M4
 M4 -- generates --> makefile
 ```
 
-If you override the **makefile**'s defaults by defining Make macros on the
-command line when you install suCGI, then you *must* define the same macros
-with the same values when you call `make uninstall`!
+> **Critical**
+> If you changed the **makefile**'s defaults by defining Make macros on the
+> command line when you installed suCGI, you *must* define the same macros
+> with the same values when you call `make uninstall`!
 
 M4 macros are used by *configure*. They only need to, and only can,
 be given on the command line if the **makefile** and **compat.h** are
@@ -41,9 +41,12 @@ created by calling M4 directly, rather than via  *configure*
 | M4          | __PREFIX            |
 | Make        | PREFIX              |
 
+> **Critical**
+> Must *not* contain whitespace or shell meta characters.
+
 Defaults to **/usr/local**.
 
-`make install` copies the suCGI binary to `$DESTDIR$PREFIX/libexec/sucgi`.
+`make install` copies the suCGI binary to **$DESTDIR$PREFIX/libexec/sucgi**.
 
 Set the default prefix in the **makefile** using *configure*:
 
@@ -65,9 +68,12 @@ Use a non-default prefix when installing:
 | M4          | __DESTDIR           |
 | Make        | DESTDIR             |
 
+> **Critical**
+> Must *not* contain whitespace or shell meta characters.
+
 Defaults to the empty string.
 
-`make install` copies the suCGI binary to `$DESTDIR$PREFIX/libexec/sucgi`.
+`make install` copies the suCGI binary to **$DESTDIR$PREFIX/libexec/sucgi**.
 
 ### **/cgi-bin** directory (path)
 
@@ -79,7 +85,7 @@ Defaults to the empty string.
 
 `make install` links the suCGI binary into this directory.
 
-Defaults to **/usr/lib/cgi-bin**.
+Defaults to **$DESTDIR$PREFIX/lib/cgi-bin**.
 
 ### Group the webserver runs as (group name)
 

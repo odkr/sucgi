@@ -2,6 +2,10 @@
 
 ## Overview
 
+If you need to, install a C build toolchain by:
+
+    sudo ./installc
+
 Configure the build by:
 
     ./configure
@@ -21,18 +25,9 @@ and **compat.h**, which contains system-specific constants.
 Both files are generated from M4 templates by `./configure`
 (see also "Creating a configuration without *configure*").
 
-*configure* gathers information about your system:
-
-* Which compiler is available?
-* Which features does it support?
-* Which archiver is available?
-* Which are the parameter types of *getgrouplist*() and *setgroups*()?
-* Which are the maximum values for user and group ID data types?
-* Are **<sys/params.h>** and **<features.h>** available?
-
-It stores that information in a shell script named **config.status**.
-You can re-create the **makefile** and **compat.h** using the last
-configuration detected by *configure* by running that script.
+*configure* gathers information about your system and stores that information
+in a shell script named **config.status**; running that script re-creates the
+**makefile** and **compat.h** using the last configuration detected.
 
 *configure* is controlled by:
 
@@ -40,13 +35,14 @@ configuration detected by *configure* by running that script.
 * Environment variables (see "Variables and macros" below)
 * Command line arguments (see `./configure -h`)
 
-SuCGI does *not* use [Autoconf]; *configure* and its configuration files
-are hand-written shell scripts. So you can debug them and the **makefile**
-if you need to. However, be careful to edit the **makefile**'s M4 template,
-**makefile.m4**, *not* the **makefile** itself; the **makefile** may get
-overwritten when you call *make*.
+suCGI does *not* use [Autoconf]; *configure* and its configuration files
+are hand-written shell scripts; so you can debug them if you need to.
 
-You can also override any setting in **[compat.h]** or **[params.h]**
+The same goes for the **makefile**. However, be careful to edit the
+**makefile**'s M4 template, **makefile.m4**, *not* the **makefile** itself;
+the **makefile** may get overwritten when you call *make*.
+
+You can override any macro in **[compat.h]** or **[params.h]**
 by defining a macro of the same name in **[config.h]**.
 
 [Autoconf]: https://www.gnu.org/software/autoconf
@@ -54,7 +50,7 @@ by defining a macro of the same name in **[config.h]**.
 
 ## Configuration files
 
-SuCGI ships with four build configurations;
+suCGI ships with four build configurations;
 they can be found in the "conf" sub-directory.
 
 | Filename         | Purpose     |
@@ -64,15 +60,14 @@ they can be found in the "conf" sub-directory.
 | **[posix.env]**  | Fallback    |
 | **[unsafe.env]** | Testing     |
 
-You should use **[prod.env]** for production and **[devel.env]**
-for development.
+Use **[prod.env]** for production and **[devel.env]** for development.
 
 **[posix.env]** disables GNU extensions to C99 and only uses compiler
-features that are required by POSIX.1-2008. It can be used as a fallback
-if other configurations do not work.
+features that are required by POSIX.1-2008. It is intended as a fallback
+if **[prod.env]** or **[devel.env]** do not work.
 
 **[unsafe.env]** requests possibly unsafe optimisations and disables
-safety checks. It is intended for testing only.
+all safety checks. It is intended for testing only.
 
 [prod.env]: ../conf/prod.env
 [devel.env]: ../conf/devel.env
@@ -88,7 +83,7 @@ environment variables and M4, Make, or C preprocessor macros respectively.
 ```mermaid
 graph TD
 
-Environemnt --> |overrides| Configuration
+Environment --> |overrides| Configuration
 Configuration --> |controls| configure
 
 configure --> |calls| M4
@@ -96,31 +91,30 @@ configure --> |calls| M4
 M4 --> |generates| makefile
 M4 --> |generates| compat.h
 
-makefile --> |controls| Make
-Make --> |calls| Compiler
+makefile -->
 
 config.h --> |overrides| compat.h
 config.h --> |overrides| params.h
 ```
 
 Setting environment variables or changing configuration files changes
-the values used to generate the **makefile** and **compat.h**. Defining
-Make or C preprocessor macros on the command line will override the
-values in those files.
+the values that are used to generate the **makefile** and **compat.h**.
+Defining Make or Preprocessor macros on the command line will override
+the values in those files.
 
 M4 macros are used by *configure*. They only need to, and only can,
 be given on the command line if the **makefile** and **compat.h** are
 created by calling M4 directly, rather than via  *configure*
 (see "Creating a configuration without *configure*" below).
 
-### C compiler (path)
+### Compiler (path)
 
-| Tool        | Variable/macro name |
-| ----------- | ------------------- |
-| *configure* | CC                  |
-| M4          | __CC                |
-| Make        | CC                  |
-| C compiler  | -                   |
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | CC                       |
+| M4           | __CC                     |
+| Make         | CC                       |
+| Preprocessor | -                        |
 
 Set the default compiler when generating the **makefile** with *configure*:
 
@@ -134,14 +128,14 @@ Use a non-default compiler when compiling:
 
     make CC=/usr/local/bin/obscurecc
 
-### Compiler flags (space-separated list of options)
+### Compiler flags (space-separated list of flags)
 
-| Tool        | Variable/macro name |
-| ----------- | ------------------- |
-| *configure* | CFLAGS              |
-| M4          | __CFLAGS            |
-| Make        | CFLAGS              |
-| C compiler  | -                   |
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | CFLAGS                   |
+| M4           | __CFLAGS                 |
+| Make         | CFLAGS                   |
+| Preprocessor | -                        |
 
 
 Add flags to test for or macros with *configure*:
@@ -162,168 +156,194 @@ Use non-default flags when compiling:
 
 ### Archiver (path)
 
-| Tool        | Variable/macro name |
-| ----------- | ------------------- |
-| *configure* | AR                  |
-| M4          | __AR                |
-| Make        | AR                  |
-| C compiler  | -                   |
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | AR                       |
+| M4           | __AR                     |
+| Make         | AR                       |
+| Preprocessor | -                        |
 
-### Archiver flags (space-separated list of options)
+### Archiver flags (space-separated list of flags)
 
-| Tool        | Variable/macro name |
-| ----------- | ------------------- |
-| *configure* | ARFLAGS             |
-| M4          | __ARFLAGS           |
-| Make        | ARFLAGS             |
-| C compiler  | -                   |
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | ARFLAGS                  |
+| M4           | __ARFLAGS                |
+| Make         | ARFLAGS                  |
+| Preprocessor | -                        |
 
-### Linker flags (space-separated list of options)
+### Linker flags (space-separated list of flags)
 
-| Tool        | Variable/macro name |
-| ----------- | ------------------- |
-| *configure* | LDFLAGS             |
-| M4          | __LDFLAGS           |
-| Make        | LDFLAGS             |
-| C compiler  | -                   |
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | LDFLAGS                  |
+| M4           | __LDFLAGS                |
+| Make         | LDFLAGS                  |
+| Preprocessor | -                        |
 
-### Libraries (space-separated list of options)
+### Libraries (space-separated list of flags)
 
-| Tool        | Variable/macro name |
-| ----------- | ------------------- |
-| *configure* | LDLIBS              |
-| M4          | __LDLIBS            |
-| Make        | LDLIBS              |
-| C compiler  | -                   |
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | LDLIBS                   |
+| M4           | __LDLIBS                 |
+| Make         | LDLIBS                   |
+| Preprocessor | -                        |
 
-### Compiler flag for compiling shared objects (string)
+### Compiler flags for position-independent code (space-separated list of flags)
 
-| Tool        | Variable/macro name |
-| ----------- | ------------------- |
-| *configure* | SUCGI_SHARED        |
-| M4          | __SUCGI_SHARED      |
-| Make        | -                   |
-| C compiler  | -                   |
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | SUCGI_PIC                |
+| M4           | __PIC                    |
+| Make         | pic                      |
+| Preprocessor | -                        |
+
+Set to the empty string if the compiler does not support
+position-independent code.
+
+### Compiler flags for position-independent executables (space-separated list of flags)
+
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | SUCGI_PIE                |
+| M4           | __PIE                    |
+| Make         | pie                      |
+| Preprocessor | -                        |
+
+Set to the empty string if the compiler does not support
+position-independent executables.
+
+### Compiler flags for compiling shared objects (string)
+
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | SUCGI_SHARED             |
+| M4           | __SHARED                 |
+| Make         | -                        |
+| Preprocessor | -                        |
 
 Set to the empty string if the compiler does not support shared objects.
+Should only be set if __PIC is set, too.
 
 ### *getgrouplist*() group ID type (C data type)
 
-| Tool        | Variable/macro name |
-| ----------- | ------------------- |
-| *configure* | SUCGI_GRP_T         |
-| M4          | __SUCGI_GRP_T       |
-| Make        | -                   |
-| C compiler  | GRP_T               |
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | SUCGI_GRP_T              |
+| M4           | __GRP_T                  |
+| Make         | -                        |
+| Preprocessor | GRP_T                    |
 
 GRP_T names the data type that *getgrouplist*() takes and returns GIDs as.
 On older systems and macOS this is **int**, on modern systems **gid_t**.
 
 ### *setgroups*() number type (C data type)
 
-| Tool        | Variable/macro name |
-| ----------- | ------------------- |
-| *configure* | SUCGI_NGRPS_T       |
-| M4          | __SUCGI_NGRPS_T     |
-| Make        | -                   |
-| C compiler  | NGRPS_T             |
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | SUCGI_NGRPS_T            |
+| M4           | __NGRPS_T                |
+| Make         | -                        |
+| Preprocessor | NGRPS_T                  |
 
-NGRPS_T names the data type of *setgroups*() third argument, the number of
-groups given. On GNU-like systems this is **size_t**, on others **int**.
+NGRPS_T names the data type of *setgroups*() third argument, the number
+of groups given. On GNU and GNU-like systems this is **size_t**, on other
+systems **int**.
 
 ### **uid_t** maximum (integer)
 
-| Tool        | Variable/macro name |
-| ----------- | ------------------- |
-| *configure* | SUCGI_MAX_UID_VAL   |
-| M4          | __SUCGI_MAX_UID_VAL |
-| Make        | -                   |
-| C compiler  | MAX_UID_VAL         |
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | SUCGI_MAX_UID_VAL        |
+| M4           | __MAX_UID_VAL            |
+| Make         | -                        |
+| Preprocessor | MAX_UID_VAL              |
 
 ### **gid_t** maximum (integer)
 
-| Tool        | Variable/macro name |
-| ----------- | ------------------- |
-| *configure* | SUCGI_MAX_GID_VAL   |
-| M4          | __SUCGI_MAX_GID_VAL |
-| Make        | -                   |
-| C compiler  | MAX_GID_VAL         |
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | SUCGI_MAX_GID_VAL        |
+| M4           | __MAX_GID_VAL            |
+| Make         | -                        |
+| Preprocessor | MAX_GID_VAL              |
 
 ### GRP_T maximum (integer)
 
-| Tool        | Variable/macro name |
-| ----------- | ------------------- |
-| *configure* | SUCGI_MAX_GRP_VAL   |
-| M4          | __SUCGI_MAX_GRP_VAL |
-| Make        | -                   |
-| C compiler  | MAX_GRP_VAL         |
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | SUCGI_MAX_GRP_VAL        |
+| M4           | __MAX_GRP_VAL            |
+| Make         | -                        |
+| Preprocessor | MAX_GRP_VAL              |
 
 ### NGRPS_T maximum (integer)
 
-| Tool        | Variable/macro name   |
-| ----------- | --------------------- |
-| *configure* | SUCGI_MAX_NGRPS_VAL   |
-| M4          | __SUCGI_MAX_NGRPS_VAL |
-| Make        | -                     |
-| C compiler  | MAX_NGRPS_VAL         |
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | SUCGI_MAX_NGRPS_VAL      |
+| M4           | __MAX_NGRPS_VAL          |
+| Make         | -                        |
+| Preprocessor | MAX_NGRPS_VAL            |
 
 ### **<sys/params.h>** available? (integer)
 
-| Tool        | Variable/macro name       |
-| ----------- | ------------------------- |
-| *configure* | SUCGI_HAVE_SYS_PARAMS_H   |
-| M4          | __SUCGI_HAVE_SYS_PARAMS_H |
-| Make        | -                         |
-| C compiler  | HAVE_SYS_PARAMS_H         |
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | SUCGI_HAVE_SYS_PARAMS_H  |
+| M4           | __HAVE_SYS_PARAMS_H      |
+| Make         | -                        |
+| Preprocessor | HAVE_SYS_PARAMS_H        |
 
 Any non-zero integer value means true.
 
 ### **<features.h>** available? (integer)
 
-| Tool        | Variable/macro name     |
-| ----------- | ----------------------- |
-| *configure* | SUCGI_HAVE_FEATURES_H   |
-| M4          | __SUCGI_HAVE_FEATURES_H |
-| Make        | -                       |
-| C compiler  | HAVE_FEATURES_H         |
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | SUCGI_HAVE_FEATURES_H    |
+| M4           | __HAVE_FEATURES_H        |
+| Make         | -                        |
+| Preprocessor | HAVE_FEATURES_H          |
 
 Any non-zero integer value means true.
 
 ### Disable assertions? (integer)
 
-| Tool        | Variable/macro name     |
-| ----------- | ----------------------- |
-| *configure* | -                       |
-| M4          | -                       |
-| Make        | -                       |
-| C compiler  | NDEBUG                  |
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | -                        |
+| M4           | -                        |
+| Make         | -                        |
+| Preprocessor | NDEBUG                   |
 
 Any non-zero integer value means true.
 
 ### Disable attributes? (integer)
 
-| Tool        | Variable/macro name     |
-| ----------- | ----------------------- |
-| *configure* | -                       |
-| M4          | -                       |
-| Make        | -                       |
-| C compiler  | NATTR                   |
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | -                        |
+| M4           | -                        |
+| Make         | -                        |
+| Preprocessor | NATTR                    |
 
 Any non-zero integer value means true.
 
 ### Build for testing? (integer)
 
-| Tool        | Variable/macro name     |
-| ----------- | ----------------------- |
-| *configure* | -                       |
-| M4          | -                       |
-| Make        | -                       |
-| C compiler  | TESTING                 |
+> **Warning**
+> Test builds are insecure!**
+
+| Tool         | Variable/macro name      |
+| ------------ | ------------------------ |
+| *configure*  | -                        |
+| M4           | -                        |
+| Make         | -                        |
+| Preprocessor | TESTING                  |
 
 Any non-zero integer value means true.
-
-**Test builds are insecure!**
-
 
 ### Installation variables
 
@@ -332,7 +352,7 @@ See [install.md].
 
 ### Run-time configuration
 
-SuCGI's run-time behaviour is configured at compile-time.
+suCGI's run-time behaviour is configured at compile-time.
 See **[config.h]** for details. Defaults are set in **[params.h]**.
 
 Any macro in **[compat.h]** and **[params.h]** can be overridden by
@@ -346,16 +366,18 @@ name in **config.h**.
 
 ## Creating a configuration without *configure*
 
-If you are running a BSD-, illumos-, or Linux-based or a Minix system on
-an architecture that does not pad integer types (e.g., AMD64, x86, ARM64,
-or ARM), then you can probably generate a working, albeit suboptimal,
-build configuration without *configure* by:
+If *configure* fails, a fallback build configuration can be created by:
 
     m4 makefile.m4 >makefile
-    m4 compat.h.m4 >compat.h
 
-The resulting build configuration is equivalent to the configuration
-defined in **[posix.env]** (see "Default build configurations" above).
+The resulting build configuration is roughly equivalent to **[posix.env]**
+(see "Default build configurations" above).
+
+> *Warning*
+> This build configuration is only known to be safe on architectures with
+> unpadded integer types (e.g., x86, x86-64, ARM, ARM64) and when running
+> either DragonflyBSD, FreeBSD, GNU/Linux, GNU Hurd, Minix, musl/Linux,
+> uClibc/Linux, NetBSD, or OpenBSD.
 
 
 ## Makefile targets
@@ -381,11 +403,11 @@ The **makefile** supports the following 'phony' targets:
 
 ### Raising the number of groups suCGI can handle
 
-If the number of groups that a user is a member of exceeds the suCGI limit
-MAX_NGROUPS (see above), then CGI scripts of that user will only be run
-with the permissions of an arbitrary subset of those groups.
+If the number of groups that a user is a member of exceeds the value of
+the macro MAX_NGROUPS (see above), then CGI scripts of that user will only
+be run with the permissions of an arbitrary subset of those groups.
 
-The default limit can be overriden by either setting a higher limit
+The default limit can be changed by either setting a higher limit
 in **config.h** or by using *configure*'s **-D** flag:
 
     $ ./configure -DMAX_NGROUPS=65536
@@ -397,15 +419,10 @@ in **config.h** or by using *configure*'s **-D** flag:
 
 ### "size of unnamed array is negative", "array size is negative", etc.
 
-When a condition that suCGI takes for granted turns out to be false
-at compile-time, suCGI's *ASSERT*() macro expands to an expression
-that declares an array with a negative size, triggering an error
-and aborting the compilation.
+There is an error in the build configuration.
 
-This indicates that the build configuration is wrong;
-the error message should indicate which setting.
-
-For example, the error
+The message should indicate which setting is wrong.
+For example,
 
     main.c: In function 'main':
     macros.h:28:41: error: size of unnamed array is negative
@@ -415,16 +432,13 @@ For example, the error
       278 |     ASSERT(sizeof(USER_DIR) > 1U);
           |     ^~~~~~
 
-indicates that the configuration macro USER_DIR expands to a string
-that is too short.
+indicates that the macro USER_DIR expands to a string that is too short.
 
-### Object files/archives are recompiled even if the source did not change
+### Object files are recompiled even if the source did not change
 
 Try using another archiver. *ar* is good enough on most systems:
 
     AR=ar ./configure
-
-
 
 
 [install.md]: install.md
