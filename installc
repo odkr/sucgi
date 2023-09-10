@@ -3,12 +3,12 @@
 #
 # Install a C build toolchain.
 #
-# SuCGI is free software: you can redistribute it and/or modify it
+# suCGI is free software: you can redistribute it and/or modify it
 # under the terms of the GNU Affero General Public License as published
 # by the Free Software Foundation, either version 3 of the License,
 # or (at your option) any later version.
 #
-# SuCGI is distributed in the hope that it will be useful, but WITHOUT
+# suCGI is distributed in the hope that it will be useful, but WITHOUT
 # ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 # or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
 # Public License for more details.
@@ -17,19 +17,22 @@
 # License along with suCGI. If not, see <https://www.gnu.org/licenses/>.
 #
 
-# shellcheck disable=1091,2015,2086
+# shellcheck disable=2015,2086
 
 
 #
-# Initialisation
+# Initialiation
 #
 
-set -eu
-src_dir="$(dirname "$0")" || exit
+set -Ceu
+src_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
+: "${src_dir:?}"
 readonly src_dir
-cd "$src_dir" || exit
-. ./scripts/funcs.sh || exit
-init
+readonly scripts_dir="$src_dir/scripts"
+cd -P "$src_dir"		|| exit
+# shellcheck disable=1091
+. "$scripts_dir/libutil.sh"	|| exit
+init				|| exit
 
 
 #
@@ -56,8 +59,8 @@ hasany() (
 #
 
 # File to log installed packages to.
-logfile="$prog_name.log"
-
+# shellcheck disable=2154
+logfile="$progname.log"
 
 
 #
@@ -67,12 +70,13 @@ logfile="$prog_name.log"
 mode=install quiet=
 OPTIND=1 OPTARG='' opt=''
 while getopts hqr opt; do
+	# shellcheck disable=2034
 	case $opt in
 	(h) exec cat <<EOF ;;
-$prog_name - install the missing components of the C build toolchain
+$progname - install a C build toolchain
 
-Usage:  $prog_name [-q] [-r]
-        $prog_name -h
+Usage:  $progname [-q] [-r]
+        $progname -h
 
 Options:
     -r  Remove previously installed packages.
@@ -93,7 +97,7 @@ unset opt
 
 if [ $# -gt 0 ]
 then
-	printf 'usage: %s [-q] [-r]\n' "$prog_name" >&2
+	printf 'usage: %s [-q] [-r]\n' "$progname" >&2
 	exit 64
 fi
 
@@ -114,9 +118,9 @@ case $mode in
 			hascomp=y
 
 			# shellcheck disable=2038
-			sed -n '/^[ \t]*#[ \t]*include[ \t]*</p' *.c *.h |
-			grep -Fve'<features.h>' -e'<sys/params.h>'       |
-			sort -u                                          |
+			sed -n '/^[ \t]*#[ \t]*include[ \t]*</p' -- *.c *.h |
+			grep -Fve'<features.h>' -e'<sys/params.h>'          |
+			sort -u                                             |
 			"$cc" -E - >/dev/null 2>&1 && hashdrs=y
 
 			break
@@ -131,7 +135,7 @@ case $mode in
 
 	if ! [ "$missing" ] && [ "$hashdrs" ]
 	then
-		warn -q 'complete C build toolchain available; nothing to do.'
+		warn -q 'complete build toolchain available; nothing to do.'
 		exit 0
 	fi
 
@@ -177,7 +181,7 @@ case $mode in
 	warn 'suCGI should compile nonetheless, but you need to install:'
 
 	inlist '=' gcc      $missing &&
-	warn '* A C compiler (e.g., gcc or clang)'
+	warn '* A C compiler (e.g., gcc, clang, or tcc)'
 
 	inlist '=' binutils $missing &&
 	warn '* Binutils (i.e., ar, as, and ld)'
@@ -196,7 +200,7 @@ case $mode in
 	[ -e "$logfile" ] ||
 	err '%s: no such file.' "$logfile"
 
-	$packages="$(cat "$logfile")" ||
+	packages="$(cat "$logfile")" ||
 	err '%s: read error.' "$logfile"
 
 	[ "$packages" ] ||
