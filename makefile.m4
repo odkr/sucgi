@@ -74,6 +74,8 @@ hdrs = attr.h compat.h config.h macros.h params.h types.h
 
 objs = env.o error.o groups.o handler.o pair.o path.o priv.o str.o userdir.o
 
+flags = $(CFLAGS) default(`__STATIC') $(pie)
+
 sucgi: main.c $(hdrs) $(libs)
 
 libsucgi.a: $(objs)
@@ -99,7 +101,7 @@ userdir.o: userdir.c userdir.h
 $(objs): $(hdrs)
 
 sucgi:
-	$(CC) $(LDFLAGS) $(CFLAGS) $(pie) -o$@ main.c $(libs) $(LDLIBS)
+	$(CC) $(LDFLAGS) $(flags) -o$@ main.c $(libs) $(LDLIBS)
 
 libsucgi.a: $(objs)
 	$(AR) $(ARFLAGS) $@ $?
@@ -283,7 +285,7 @@ check_utils_bin = $(check_utils_dir)/badenv $(check_utils_dir)/badexec \
 	$(check_utils_dir)/runas
 
 # Scripted tests
-check_script_flags = $(CFLAGS) $(pie) -DTESTING
+check_script_flags = $(CFLAGS) -DTESTING
 
 check_script_dir = $(check_dir)/scripts
 
