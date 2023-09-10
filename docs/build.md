@@ -386,19 +386,20 @@ The resulting build configuration is roughly equivalent to **[posix.env]**
 
 The **makefile** supports the following 'phony' targets:
 
-| Target    | Description                                           |
-| --------- | ----------------------------------------------------- |
-| all       | Alias for "sucgi" and the default target.             |
-| check     | Compile and run tests (see [testing.md]).             |
-| tidy      | Delete archives, backups, logs, temporary files, etc. |
-| clean     | Delete compiled binaries and `make tidy`.             |
-| mrproper  | Delete caches, coverage data, and `make clean`.       |
-| dist      | Make a distribution tarball.                          |
-| distcheck | Run `make check` from a distribution tarball.         |
-| distclean | Delete the build configuration and `make mrproper`.   |
-| sigdist   | Make a signed distribution tarball.                   |
-| install   | Install suCGI (see [install.md]).                     |
-| uninstall | Uninstall suCGI (see [uninstall.md]).                 |
+| Target       | Description                                           |
+| ------------ | ----------------------------------------------------- |
+| all          | Alias for "sucgi" and the default target.             |
+| check        | Compile and run tests (see [testing.md]).             |
+| tidy         | Delete archives, backups, logs, temporary files, etc. |
+| clean        | Delete compiled binaries and `make tidy`.             |
+| mrproper     | Delete caches, coverage data, and `make clean`.       |
+| dist         | Make a distribution tarball.                          |
+| distcheck    | Run `make check` from a distribution tarball.         |
+| distclean    | Delete the build configuration and `make mrproper`.   |
+| sigdist      | Make a signed distribution tarball.                   |
+| sigdistcheck | `make sigdist` and `make distcheck`                   |
+| install      | Install suCGI (see [install.md]).                     |
+| uninstall    | Uninstall suCGI (see [uninstall.md]).                 |
 
 
 ## Troubleshooting
