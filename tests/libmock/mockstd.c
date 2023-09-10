@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -194,8 +194,6 @@ id_is_valid(const id_t id) {
 static void
 num_to_str(const long long num, const size_t size, char *const str)
 {
-    int len;
-
     assert(size > 0U);
     assert(str != NULL);
 
@@ -203,7 +201,7 @@ num_to_str(const long long num, const size_t size, char *const str)
 
     errno = 0;
     /* RATS: ignore; size is correctly given by all callees. */
-    len = snprintf(str, size, "%lld", num);
+    int len = snprintf(str, size, "%lld", num);
 
     if (len < 0) {
         err(EXIT_FAILURE, "%s:%d: snprintf", __FILE__, __LINE__);
@@ -220,8 +218,6 @@ num_to_str(const long long num, const size_t size, char *const str)
 static void
 unum_to_str(const unsigned long long num, const size_t size, char *const str)
 {
-    int len;
-
     assert(size > 0U);
     assert(str != NULL);
 
@@ -229,7 +225,7 @@ unum_to_str(const unsigned long long num, const size_t size, char *const str)
 
     errno = 0;
     /* RATS: ignore; size is correctly given by all callers. */
-    len = snprintf(str, size, "%llu", num);
+    int len = snprintf(str, size, "%llu", num);
 
     if (len < 0) {
         err(EXIT_FAILURE, "%s:%d: snprintf", __FILE__, __LINE__);
@@ -256,13 +252,11 @@ id_to_str(const id_t id, const size_t size, char *const str)
 static long long
 str_to_num(const char *const str)
 {
-    long long num;
-
     assert(str != NULL);
     assert(*str != '\0');
 
     errno = 0;
-    num = strtoll(str, NULL, BASE_10);
+    long long num = strtoll(str, NULL, BASE_10);
     /* cppcheck-suppress misra-c2012-22.10; strtoll may sets errno. */
     if (num == (long long) 0 && errno != 0) {
         err(EXIT_FAILURE, "%s:%d: strtoll", __FILE__, __LINE__);
@@ -279,13 +273,11 @@ str_to_num(const char *const str)
 static unsigned long long
 str_to_unum(const char *const str)
 {
-    unsigned long long num;
-
     assert(str != NULL);
     assert(*str != '\0');
 
     errno = 0;
-    num = strtoull(str, NULL, BASE_10);
+    unsigned long long num = strtoull(str, NULL, BASE_10);
     if (num == 0U && errno != 0) {
         err(EXIT_FAILURE, "%s:%d: strtoull", __FILE__, __LINE__);
     }
@@ -301,7 +293,7 @@ str_to_unum(const char *const str)
 static id_t
 str_to_id(const char *const str)
 {
-    return ISSIGNED(id_t) ?
+    return  ISSIGNED(id_t) ?
         (id_t) str_to_num(str) :
         (id_t) str_to_unum(str);
 }
@@ -340,13 +332,13 @@ get_id_env(const char *const name)
 static void
 set_num_env(const char *const name, const long long num)
 {
-    /* RATS: ignore; num_to_str is bounded by sizeof(value). */
-    char value[MAX_STR_LEN];
-
     assert(name != NULL);
     assert(*name != '\0');
     assert(strchr(name, '=') == NULL);
 
+
+    /* RATS: ignore; num_to_str is bounded by sizeof(value). */
+    char value[MAX_STR_LEN];
     num_to_str(num, sizeof(value), value);
 
     errno = 0;
@@ -359,13 +351,12 @@ set_num_env(const char *const name, const long long num)
 static void
 set_unum_env(const char *const name, const unsigned long long num)
 {
-    /* RATS: ignore; unum_to_str is bounded by sizeof(value). */
-    char value[MAX_STR_LEN];
-
     assert(name != NULL);
     assert(*name != '\0');
     assert(strchr(name, '=') == NULL);
 
+    /* RATS: ignore; unum_to_str is bounded by sizeof(value). */
+    char value[MAX_STR_LEN];
     unum_to_str(num, sizeof(value), value);
 
     errno = 0;
@@ -408,8 +399,6 @@ get_sgid(void)
 static int
 get_errno(const char *const name)
 {
-    long long num = 0;
-
     assert(name != NULL);
     assert(*name != '\0');
 
@@ -426,7 +415,7 @@ get_errno(const char *const name)
     }
 
     errno = 0;
-    num = strtoll(value, NULL, BASE_10);
+    long long num = strtoll(value, NULL, BASE_10);
 
     /* cppcheck-suppress misra-c2012-22.10; strtoll may sets errno. */
     if (num == (long long) 0 && errno != 0) {
@@ -467,10 +456,7 @@ DYLD_INTERPOSE(mock_geteuid, geteuid)
 int
 mock_setuid(const uid_t uid)
 {
-    uid_t euid;
-    int mockerr;
-
-    mockerr = get_errno("MOCK_SETUID_ERRNO");
+    int mockerr = get_errno("MOCK_SETUID_ERRNO");
     if (mockerr != 0) {
         errno = mockerr;
         return -1;
@@ -481,7 +467,7 @@ mock_setuid(const uid_t uid)
         return -1;
     }
 
-    euid = mock_geteuid();
+    uid_t euid = mock_geteuid();
     if (euid != 0 && get_suid() != 0 && uid != euid && uid != mock_getuid()) {
         errno = EPERM;
         return -1;
@@ -498,9 +484,7 @@ DYLD_INTERPOSE(mock_setuid, setuid)
 int
 mock_seteuid(const uid_t euid)
 {
-    int mockerr;
-
-    mockerr = get_errno("MOCK_SETEUID_ERRNO");
+    int mockerr = get_errno("MOCK_SETEUID_ERRNO");
     if (mockerr != 0) {
         errno = mockerr;
         return -1;
@@ -538,14 +522,10 @@ DYLD_INTERPOSE(mock_seteuid, seteuid)
 int
 mock_setreuid(const uid_t uid, const uid_t euid)
 {
-    uid_t cur_uid;
-    uid_t cur_euid;
-    int mockerr;
+    uid_t cur_uid = mock_getuid();
+    uid_t cur_euid = mock_geteuid();
 
-    cur_uid = mock_getuid();
-    cur_euid = mock_geteuid();
-
-    mockerr = get_errno("MOCK_SETREUID_ERRNO");
+    int mockerr = get_errno("MOCK_SETREUID_ERRNO");
     if (mockerr != 0) {
         errno = mockerr;
         return -1;
@@ -605,9 +585,7 @@ DYLD_INTERPOSE(mock_getegid, getegid)
 int
 mock_setgid(const gid_t gid)
 {
-    int mockerr;
-
-    mockerr = get_errno("MOCK_SETGID_ERRNO");
+    int mockerr = get_errno("MOCK_SETGID_ERRNO");
     if (mockerr != 0) {
         errno = mockerr;
         return -1;
@@ -636,9 +614,7 @@ DYLD_INTERPOSE(mock_setgid, setgid)
 int
 mock_setegid(const gid_t egid)
 {
-    int mockerr;
-
-    mockerr = get_errno("MOCK_SETEGID_ERRNO");
+    int mockerr = get_errno("MOCK_SETEGID_ERRNO");
     if (mockerr != 0) {
         errno = mockerr;
         return -1;
@@ -670,16 +646,11 @@ DYLD_INTERPOSE(mock_setegid, setegid)
 int
 mock_setregid(const gid_t gid, const gid_t egid)
 {
-    uid_t cur_euid;
-    gid_t cur_gid;
-    gid_t cur_egid;
-    int mockerr;
+    uid_t cur_euid = mock_geteuid();
+    gid_t cur_gid = mock_getgid();
+    gid_t cur_egid = mock_getegid();
 
-    cur_euid = mock_geteuid();
-    cur_gid = mock_getgid();
-    cur_egid = mock_getegid();
-
-    mockerr = get_errno("MOCK_SETREGID_ERRNO");
+    int mockerr = get_errno("MOCK_SETREGID_ERRNO");
     if (mockerr != 0) {
         errno = mockerr;
         return -1;
@@ -724,20 +695,9 @@ DYLD_INTERPOSE(mock_setregid, setregid)
 
 int
 mock_getgroups(int gidsetlen, gid_t *gidset) {
-    /* RATS: ignore; stpncpy is bounded by sizeof(groups) - 1U. */
-    char groups[MAX_STR_LEN] = {0};
-    const char *envgroups;
-    char *end;
-    char *sep;
-    char *group;
-    size_t nbytes;
-    int ngroups;
-
-    ngroups = 0;
-
     errno = 0;
     /* RATS: ignore; used for debugging. */
-    envgroups = getenv("MOCK_GROUPS");
+    const char *envgroups = getenv("MOCK_GROUPS");
     if (envgroups == NULL) {
         /* cppcheck-suppress misra-c2012-22.10; getenv sets errno. */
         if (errno == 0) {
@@ -753,7 +713,9 @@ mock_getgroups(int gidsetlen, gid_t *gidset) {
         warnx("get MOCK_GROUPS=%s", envgroups);
     }
 
-    end = stpncpy(groups, envgroups, sizeof(groups) - 1U);
+    /* RATS: ignore; stpncpy is bounded by sizeof(groups) - 1U. */
+    char groups[MAX_STR_LEN];
+    const char *end = stpncpy(groups, envgroups, sizeof(groups) - 1U);
 
     assert(end != NULL);
     assert(end >= groups);
@@ -763,21 +725,22 @@ mock_getgroups(int gidsetlen, gid_t *gidset) {
      * The cast is safe and portable.
      * And MISRA C permits pointer subtraction.
      */
-    nbytes = (size_t) /* cppcheck-suppress misra-c2012-10.8 */
-             (end - groups); /* cppcheck-suppress misra-c2012-18.4 */
+    size_t nbytes = (size_t) /* cppcheck-suppress misra-c2012-10.8 */
+                    (end - groups); /* cppcheck-suppress misra-c2012-18.4 */
 
     if (envgroups[nbytes] != '\0') {
         err(EXIT_FAILURE, "%s:%d: MOCK_GROUPS is too long",
             __FILE__, __LINE__);
     }
 
-    group = groups;
+    int ngroups = 0;
+    char *group = groups;
     do {
         if (ngroups >= gidsetlen) {
             return -1;
         }
 
-        sep = strchr(groups, ',');
+        char *sep = strchr(groups, ',');
         if (sep != NULL) {
             *sep = '\0';
         }
@@ -799,17 +762,13 @@ DYLD_INTERPOSE(mock_getgroups, getgroups)
 int
 mock_setgroups(const NGRPS_T ngroups, const gid_t *const gidset)
 {
-    /* RATS: ignore; stpncpy is bounded by lim. */
-    char groupsstr[MAX_STR_LEN];
-    char *ptr;
-    char *lim;
-    int mockerr;
-
     assert(gidset != NULL);
 
-    (void) memset(groupsstr, '\0', sizeof(groupsstr));
+    /* RATS: ignore; stpncpy is bounded by lim. */
+    char str[MAX_STR_LEN];
+    (void) memset(str, '\0', sizeof(str));
 
-    mockerr = get_errno("MOCK_SETGROUPS_ERRNO");
+    int mockerr = get_errno("MOCK_SETGROUPS_ERRNO");
     if (mockerr != 0) {
         errno = mockerr;
         return -1;
@@ -825,48 +784,45 @@ mock_setgroups(const NGRPS_T ngroups, const gid_t *const gidset)
         return -1;
     }
 
-    ptr = groupsstr;
-    lim = &groupsstr[sizeof(groupsstr) - 1U];
+    const char *lim = &str[sizeof(str) - 1U];
+    char *ptr = str;
     /* cppcheck-suppress misra-c2012-14.2; for-loop is well-formed. */
     for (NGRPS_T i = 0; i < ngroups; ++i) {
-        /* RATS: ignore; id_to_str is bounded by sizeof(group). */
-        char group[MAX_STR_LEN];
-        size_t nbytes;
-        size_t len;
-
-        if (ptr > groupsstr) {
+        if (ptr > str) {
             *ptr = ',';
             ++ptr;
         }
 
-        id_to_str(gidset[i], sizeof(group), group);
-
         assert(lim >= ptr);
+
+        /* RATS: ignore; id_to_str is bounded by sizeof(group). */
+        char group[MAX_STR_LEN];
+        id_to_str(gidset[i], sizeof(group), group);
 
         /*
          * These casts are safe and portable.
          * And MISRA C permits pointer subtraction.
          */
-        len = (size_t)          /* cppcheck-suppress misra-c2012-10.8 */
-              (lim - ptr);      /* cppcheck-suppress misra-c2012-18.4 */
+        size_t len = (size_t)       /* cppcheck-suppress misra-c2012-10.8 */
+                     (lim - ptr);   /* cppcheck-suppress misra-c2012-18.4 */
 
         ptr = stpncpy(ptr, group, len);
 
-        nbytes = (size_t)           /* cppcheck-suppress misra-c2012-10.8 */
-                 (ptr - groupsstr); /* cppcheck-suppress misra-c2012-18.4 */
+        size_t end = (size_t)       /* cppcheck-suppress misra-c2012-10.8 */
+                     (ptr - str);   /* cppcheck-suppress misra-c2012-18.4 */
 
-        if (group[nbytes] != '\0') {
+        if (group[end] != '\0') {
             err(EXIT_FAILURE, "%s:%d: too many GIDs", __FILE__, __LINE__);
         }
     }
 
-    if (setenv("MOCK_GROUPS", groupsstr, true) != 0) {
+    if (setenv("MOCK_GROUPS", str, true) != 0) {
         err(EXIT_FAILURE, "%s:%d: setenv MOCK_GROUPS=%s",
-            __FILE__, __LINE__, groupsstr);
+            __FILE__, __LINE__, str);
     }
 
     if (debug()) {
-        warnx("set MOCK_GROUPS=%s", groupsstr);
+        warnx("set MOCK_GROUPS=%s", str);
     }
 
     return 0;
