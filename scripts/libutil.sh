@@ -145,12 +145,6 @@ logged() (
 	_logged_mask=0
 	_logged_status=0
 
-	if [ "$verbose" ]
-	then
-		"$@" || _logged_status=$?
-		return $_logged_status
-	fi
-
 	OPTIND=1 OPTARG='' _logged_opt=''
 	while getopts 'd:g:i:l:u:' _logged_opt
 	do
@@ -165,9 +159,14 @@ logged() (
 	done
 	shift $((OPTIND - 1))
 
+	if [ "$verbose" ]
+	then
+		"$@" || _logged_status=$?
+		return $_logged_status
+	fi
+
 	: "${TMPDIR:-/tmp}"
-	: "${1:?}"
-	: "${_logged_fname:="$(basename "$1").log"}"
+	: "${_logged_fname:="$(basename "${1:?}").log"}"
 	_logged_log="$TMPDIR/$_logged_fname"
 
 	"$@" >>"$_logged_log" 2>&1 || _logged_status=$?
@@ -175,17 +174,22 @@ logged() (
 	# shellcheck disable=2086
 	if inlist -eq "$_logged_status" $_logged_mask
 	then
-		rm -f "$TMPDIR/$_logged_fname"
+		rm -f "$TMPDIR/$_logged_fname" >/dev/null 2>&1
 	else
-		if [ "$_logged_user" ]
-		then
-			: "${_logged_group:=$(id -gn "$_logged_user")}"
-			chown "$_logged_user:$_logged_group" "$_logged_log"
-		fi
-
-		mv "$_logged_log" "$_logged_dir"
 		warn '%s: exited with status %d.' "$*" "$_logged_status"
-		warn 'see %s for details.' "$_logged_fname"
+
+		if [ -e "$_logged_log" ]
+		then
+			if [ "$_logged_user" ]
+			then
+				: "${_logged_group:=$(id -gn "$_logged_user")}"
+				chown "$_logged_user:$_logged_group" \
+				      "$_logged_log"
+			fi
+
+			mv "$_logged_log" "$_logged_dir"
+			warn 'see %s for details.' "$_logged_fname"
+		fi
 	fi
 
 	return $_logged_status
