@@ -29,7 +29,7 @@
 #
 
 # Hosts to test on.
-readonly systems='aristides aristotle diotima phaedo phaedrus'
+readonly systems='aristides diotima phaedo phaedrus'
 
 # Branch to run tests on.
 branch=devel
