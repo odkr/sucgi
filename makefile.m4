@@ -355,7 +355,7 @@ ifnempty(`__SHARED', `dnl
 # Cleanup
 #
 
-bins = sucgi $(check_bins) $(libutil_bins)
+bins = sucgi $(utils) $(check_utils_bin) $(check_bins) $(check_utils)
 
 tidy:
 	rm -f $(dist_name).tgz
