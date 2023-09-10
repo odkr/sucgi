@@ -417,7 +417,15 @@ docs/callgraph.svg: docs/callgraph.gv
 #
 
 package = sucgi
-version = 0
+version = syscmd(`
+	awk "
+		\$1 == \"#define\" && \$2 == \"VERSION\" {
+			gsub(/[^0-9.]/, \"\", \$3);
+			print \$3;
+			exit;
+		}
+	" main.c
+')
 dist_name = $(package)-$(version)
 dist_ar = $(dist_name).tgz
 dist_files = *.c *.h *.m4 README.md LICENSE.txt \
@@ -431,11 +439,13 @@ $(dist_ar): $(dist_name)
 
 $(dist_ar).asc: $(dist_ar)
 
-dist: $(dist_ar)
+dist: distclean $(dist_ar)
 
 sigdist: dist $(dist_ar).asc
 
 distcheck: dist
+
+sigdistcheck: sigdist distcheck
 
 distclean:
 	rm -f compat.h config.status makefile $(dist_ar)
@@ -444,7 +454,7 @@ distclean:
 $(dist_name):
 	mkdir $(dist_name)
 	find $(dist_files) -exec pathchk -Pp '{}' +
-	cp -p $(dist_files) $(dist_name)
+	cp -Rp $(dist_files) $(dist_name)
 
 $(dist_ar):
 	tar -X conf/dist.excl -czf $(dist_ar) $(dist_name)
