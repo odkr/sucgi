@@ -70,7 +70,7 @@ userdir_expand(const char *const str, const struct passwd *const user,
         const char *spec = NULL;
         size_t nspecs = 0U;
 
-        if (str_fmtspecs(str, 1, &nspecs, &spec) != OK) {
+        if (str_get_fmts(str, 1, &nspecs, &spec) != OK) {
             return ERR_BAD;
         }
 

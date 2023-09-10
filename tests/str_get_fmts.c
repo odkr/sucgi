@@ -1,5 +1,5 @@
 /*
- * Test str_fmtspecs.
+ * Test str_get_fmts.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -192,7 +192,7 @@ main(void)
             size_t nspecs = 0;
 
             (void) abort_catch(err);
-            const Error retval = str_fmtspecs(args.str, args.maxnspecs,
+            const Error retval = str_get_fmts(args.str, args.maxnspecs,
                                               &nspecs, specs);
             (void) abort_reset(err);
 

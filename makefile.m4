@@ -230,7 +230,7 @@ unit_bins = $(check_dir)/ISSIGNED $(check_dir)/NELEMS $(check_dir)/MAXSVAL \
 	$(check_dir)/pair_find $(check_dir)/path_real \
 	$(check_dir)/path_suffix $(check_dir)/path_is_sub \
 	$(check_dir)/priv_drop $(check_dir)/priv_suspend \
-	$(check_dir)/str_copy $(check_dir)/str_fmtspecs \
+	$(check_dir)/str_copy $(check_dir)/str_get_fmts \
 	$(check_dir)/str_split $(check_dir)/userdir_exp
 
 unit_libs = $(libs) $(libutil)
@@ -267,7 +267,7 @@ $(check_dir)/priv_suspend: $(check_dir)/priv_suspend.c
 
 $(check_dir)/str_copy: $(check_dir)/str_copy.c
 
-$(check_dir)/str_fmtspecs: $(check_dir)/str_fmtspecs.c
+$(check_dir)/str_get_fmts: $(check_dir)/str_get_fmts.c
 
 $(check_dir)/str_split: $(check_dir)/str_split.c
 

@@ -74,7 +74,7 @@ str_copy(const size_t nbytes, const char *const src,
 }
 
 Error
-str_fmtspecs(const char *const str, const size_t maxnspecs,
+str_get_fmts(const char *const str, const size_t maxnspecs,
             size_t *const nspecs, const char **const fmtchars)
 {
     assert(str != NULL);

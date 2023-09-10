@@ -60,7 +60,7 @@ Error str_copy(size_t nbytes, const char *src, size_t *destlen, char *dest);
  *      ERR_LEN  Too many format specifiers.
  */
 _read_only(1) _write_only(3) _write_only(4, 2) _nonnull(1, 3, 4) _nodiscard
-Error str_fmtspecs(const char *str, size_t maxnspecs,
+Error str_get_fmts(const char *str, size_t maxnspecs,
                    size_t *nspecs, const char **fmtchars);
 
 /*
