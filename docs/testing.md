@@ -21,13 +21,21 @@ The test suite is less portable that suCGI itself; it requires
 * the **<err.h>** header file, and
 * a GNU- or BSD-like *getpwent_r*() function.
 
+In addition, `make distcheck` requires:
+
+* [pandoc](https://pandoc.org/)
+* tar
+
 
 ## Security
 
-`make check` will compile the test suite and the utilities used by scripted
-tests. Among these utilities are *badenv* and *badexec*. *badenv* enables
-users to call applications with maliciously crafted environment variables.
-*badexec* allows user to call applications with an arbitrary *argv[0]*.
+`make check` will compile the test suite and the utilities used by tests.
+Two of these utilities, *badenv* and *badexec*, may have security implications.
+
+*badenv* calls applications with maliciously crafted environment variables.
+
+*badexec* calls applications with an arbitrary *argv[0]*.
+
 If the system is set up so that users either cannot compile applications or
 cannot run applications they compiled, then compiling *badenv* or *badexec*
 may open up attacks vectors that had previously been foreclosed.
