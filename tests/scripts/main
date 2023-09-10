@@ -381,7 +381,7 @@ check -o'suCGI v' main -V || result=70
 	sort -u |
 	while read -r opthdl_var
 	do
-		inlist '=' "$opthdl_var" PARAMS_H NOGROUP && continue
+		inlist '=' "$opthdl_var" LIBC PARAMS_H NOGROUP && continue
 		eval val="\${$opthdl_var-}"
 		if ! [ "${val-}" ]
 		then err -s70 'main -C: %s: undefined.' "$opthdl_var"
