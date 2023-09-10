@@ -48,7 +48,7 @@ cleanup() {
 	# shellcheck disable=2046
 	kill -- $(jobs -p 2>/dev/null) -$$ >/dev/null 2>&1
 	wait
-	eval "${cleanup-:}"
+	eval "${cleanup-}"
 	cleanup=
 	return $_cleanup_retval
 }
@@ -103,7 +103,7 @@ init() {
 
 	trap cleanup EXIT
 	catch=y
-	[ "$caught" ] && kill -s"$caught" "$$"
+	[ "$caught" ] && kill -s "$caught" "$$"
 
 	# Safe permission mask.
 	umask 022
@@ -251,7 +251,7 @@ tmpdir() {
 	mkdir -m 0755 "$_tmpdir_tmpdir" || exit
 	cleanup="rm -rf \"\$_tmpdir_tmpdir\"; ${cleanup-:}"
 	catch=x
-	[ "${caught-}" ] && kill -s"$caught" "$$"
+	[ "${caught-}" ] && kill -s "$caught" "$$"
 
 	export TMPDIR="$_tmpdir_tmpdir"
 }
