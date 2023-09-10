@@ -29,7 +29,7 @@
 #
 
 # Shells to test.
-makes='make bmake bsdmake gmake smake'
+makes='make bmake bsdmake gmake remake smake'
 
 # Be quiet?
 quiet=
