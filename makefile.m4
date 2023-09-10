@@ -429,7 +429,7 @@ version = syscmd(`
 dist_name = $(package)-$(version)
 dist_ar = $(dist_name).tgz
 dist_files = *.c *.h *.m4 README.md LICENSE.txt \
-	configure conf cppcheck docs installc man probe tests utils scripts
+	configure conf cppcheck docs installc probe tests utils scripts #man
 
 distclean: mrproper
 
