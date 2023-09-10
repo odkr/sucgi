@@ -45,14 +45,6 @@
 
 
 /*
- * Data types
- */
-
-/* lfind comparison function. */
-typedef int (*Compar)(const void *, const void *);
-
-
-/*
  * Prototypes
  */
 
@@ -89,15 +81,7 @@ cmpuids(const uid_t *const uid1, const uid_t *const uid2)
 int
 main(int argc, char **argv)
 {
-    struct passwd *pwd;
-    uid_t *seen;
-    size_t nseen;
-    size_t maxnseen;
     int opt;
-
-    nseen = 0;
-    maxnseen = NIDS;
-
     while ((opt = getopt(argc, argv, "gh")) != -1) {
         switch (opt) {
         case 'h':
@@ -130,7 +114,8 @@ main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    seen = malloc(maxnseen * sizeof(*seen));
+    size_t maxnseen = NIDS;
+    uid_t *seen = calloc(maxnseen, sizeof(*seen));
     if (seen == NULL) {
         err(EXIT_FAILURE, "malloc");
     }
@@ -141,11 +126,13 @@ main(int argc, char **argv)
         err(EXIT_FAILURE, "setpwsent");
     }
 
+    size_t nseen = 0;
+    struct passwd *pwd;
     while ((errno = 0, pwd = getpwent()) != NULL) {
         uid_t uid = pwd->pw_uid;
-        uid_t *hit;
+        uid_t *hit = lfind(&uid, seen, &nseen, sizeof(*seen),
+                           (int (*)(const void *, const void *)) cmpuids);
 
-        hit = lfind(&uid, seen, &nseen, sizeof(*seen), (Compar) cmpuids);
         if (hit == NULL) {
             char *name = pwd->pw_name;
 

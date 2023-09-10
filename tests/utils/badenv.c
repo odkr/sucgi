@@ -50,17 +50,11 @@ extern char **environ;
 int
 main (int argc, char **argv)
 {
-    char **cmd;
-    char **vars;
-    long nenv;
-    long nvars;
-    bool inherit;
+    long nenv = 0;
+    long nvars = 0;
+    bool inherit = true;
+
     int opt;
-
-    nenv = 0;
-    nvars = 0;
-    inherit = true;
-
     while ((opt = getopt(argc, argv, "in:h")) != -1) {
         switch (opt) {
         case 'h':
@@ -129,7 +123,7 @@ main (int argc, char **argv)
     }
 
     errno = 0;
-    vars = calloc((size_t) (nenv + nvars + 1), sizeof(*vars));
+    char **vars = calloc((size_t) (nenv + nvars + 1), sizeof(*vars));
     if (vars == NULL) {
         err(EXIT_FAILURE, "calloc");
     }
@@ -157,7 +151,7 @@ main (int argc, char **argv)
         (void) memcpy(&vars[nvars], environ, (size_t) nenv * sizeof(*environ));
     }
 
-    cmd = &argv[nvars];
+    char **cmd = &argv[nvars];
     if (*cmd != NULL) {
         errno = 0;
         (void) execve(*cmd, cmd, vars);
