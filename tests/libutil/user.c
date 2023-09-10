@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -80,13 +80,8 @@ uid_to_str(id_t id, const size_t size, char *const str)
 int
 user_get_gid(const uid_t uid, gid_t *const gid, const ErrorFn errh)
 {
-    struct passwd pwd;
-    struct passwd *result;
-    long bufsize;
-    char *buf;
-
     errno = 0;
-    bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
+    long bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
     if (bufsize < 0) {
         if (errh != NULL) {
             errh(EXIT_FAILURE, "sysconf");
@@ -99,7 +94,7 @@ user_get_gid(const uid_t uid, gid_t *const gid, const ErrorFn errh)
 
     errno = 0;
     /* cppcheck-suppress misra-c2012-11.5; bad advice for malloc. */
-    buf = malloc((size_t) bufsize);
+    char *buf = malloc((size_t) bufsize);
     if (buf == NULL) {
         if (errh != NULL) {
             errh(EXIT_FAILURE, "malloc");
@@ -108,6 +103,8 @@ user_get_gid(const uid_t uid, gid_t *const gid, const ErrorFn errh)
         return -1;
     }
 
+    struct passwd pwd;
+    struct passwd *result = NULL;
     errno = getpwuid_r(uid, &pwd, buf, (size_t) bufsize, &result);
     free(buf);
 
@@ -133,11 +130,10 @@ user_get_gid(const uid_t uid, gid_t *const gid, const ErrorFn errh)
 int
 user_get_regular(struct passwd *const pwd, const ErrorFn errh)
 {
-    struct passwd *ptr;
+    assert(pwd != NULL);
+
     int fatalerr = 0;
     int retval = 1;
-
-    assert(pwd != NULL);
 
     errno = 0;
     setpwent();
@@ -149,6 +145,7 @@ user_get_regular(struct passwd *const pwd, const ErrorFn errh)
         return -1;
     }
 
+    struct passwd *ptr;
     /* cppcheck-suppress getpwentCalled; getpwent_r is not portable. */
     while ((errno = 0, ptr = getpwent()) != NULL) {
         if (ptr->pw_uid > 0) {
@@ -169,7 +166,6 @@ user_get_regular(struct passwd *const pwd, const ErrorFn errh)
     endpwent();
     /* cppcheck-suppress misra-c2012-22.10; endpwent sets errno. */
     if (errno != 0) {
-        /* Only reached if an I/O error prevented closing the database. */
         if (retval != -1) {
             if (errh != NULL) {
                 errh(EXIT_FAILURE, "endpwent");
@@ -192,12 +188,9 @@ user_get_regular(struct passwd *const pwd, const ErrorFn errh)
 char *
 user_id_to_str(const id_t id, const ErrorFn errh)
 {
-    char *str = NULL;
-    size_t size = 0;
     int olderr = errno;
-    int len = -1;
 
-    len = uid_to_str(id, 0, NULL);
+    int len = uid_to_str(id, 0, NULL);
     if (len < 0) {
         /* NOTREACHED */
         if (errh != NULL) {
@@ -206,11 +199,11 @@ user_id_to_str(const id_t id, const ErrorFn errh)
         return NULL;
     }
 
-    size = (size_t) len + 1U;
+    size_t size = (size_t) len + 1U;
 
     errno = 0;
     /* cppcheck-suppress misra-c2012-11.5; bad advice for malloc. */
-    str = malloc(size);
+    char *str = malloc(size);
     if (str == NULL) {
         if (errh != NULL) {
             errh(EXIT_FAILURE, "malloc");

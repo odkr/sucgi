@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -30,10 +30,10 @@
 /*
  * Create a temporary directory in ${TMPDIR:-/tmp} using the given
  * filename template, replacing every 'X' with a random character,
- * and return the filename of that directory in "dir".
+ * and return the canonical filename of that directory in "dir".
  *
- * The memory for the filename is allocated automatically and should
- * be freed by the caller.
+ * The memory for the filename is allocated automatically and
+ * should be freed by the caller.
  *
  * tmpdir_make takes a pointer to an error handling function. If an error
  * occurs, this function is called after clean-up; if that pointer is NULL,

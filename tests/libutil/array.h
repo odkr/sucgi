@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -53,18 +53,18 @@ const void *array_find(const void *needle, const void *haystack,
  * Elements are compared by calling the given comparison function.
  */
 _read_only(1, 2) _read_only(4, 5) _nonnull(1, 4, 7) _nodiscard
-bool array_is_sub(const void *sub, size_t sublen, size_t subwd,
-                  const void *super, size_t superlen, size_t superwd,
-                  CompFn cmp);
+bool array_is_subset(const void *sub, size_t sublen, size_t subwd,
+                     const void *super, size_t superlen, size_t superwd,
+                     CompFn cmp);
 
 /*
  * Check whether two arrays are non-strict subsets of each other.
  *
- * Otherwise the same as array_is_one.
+ * Otherwise the same as array_is_subset.
  */
 _read_only(1, 2) _read_only(4, 5) _nonnull(1, 4, 7) _nodiscard
-bool array_eq(const void *one, size_t onelen, size_t onewd,
-              const void *two, size_t twolen, size_t twowd,
-              CompFn cmp);
+bool array_equals(const void *one, size_t onelen, size_t onewd,
+                  const void *two, size_t twolen, size_t twowd,
+                  CompFn cmp);
 
 #endif /* !defined(TESTS_UTIL_ARRAY_H) */

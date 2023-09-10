@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -55,13 +55,12 @@ int
 sigs_trap(const size_t ntraps, const Trap *const traps, Trap *const old,
           const ErrorFn errh)
 {
-    sigset_t allsigs;
-    sigset_t oldmask;
+    assert(traps != NULL);
+
     int retval = 0;
     int fatalerr = 0;
 
-    assert(traps != NULL);
-
+    sigset_t allsigs;
     errno = 0;
     retval = sigfillset(&allsigs);
     if (retval != 0) {
@@ -72,6 +71,7 @@ sigs_trap(const size_t ntraps, const Trap *const traps, Trap *const old,
         return retval;
     }
 
+    sigset_t oldmask;
     errno = 0;
     retval = sigprocmask(SIG_SETMASK, &allsigs, &oldmask);
     if (retval != 0) {
@@ -126,9 +126,9 @@ sigs_action(const struct sigaction action,
             const size_t nsignals, const int *const signals,
             Trap *const old, const ErrorFn errh)
 {
-    Trap *traps;
-    int retval;
+    int retval = -1;
 
+    Trap *traps;
     errno = 0;
     /* cppcheck-suppress misra-c2012-11.5; bad advice for malloc. */
     traps = calloc(nsignals, sizeof(*traps));
@@ -136,7 +136,7 @@ sigs_action(const struct sigaction action,
         if (errh != NULL) {
             errh(EXIT_FAILURE, "calloc");
         }
-        return -1;
+        return retval;
     }
 
     for (size_t i = 0; i < nsignals; ++i) {
@@ -155,10 +155,8 @@ sigs_handle(void (*handler)(int),
             const size_t nsignals, const int *const signals,
             Trap *const old, const ErrorFn errh)
 {
-    const struct sigaction action = {.sa_handler = handler};
-
     assert(handler != NULL);
-
+    const struct sigaction action = {.sa_handler = handler};
     return sigs_action(action, nsignals, signals, old, errh);
 }
 
@@ -166,7 +164,6 @@ int
 sigs_raise_default(const int signal, const ErrorFn errh)
 {
     static const struct sigaction dflaction = {.sa_handler = SIG_DFL};
-
     errno = 0;
     if (sigaction(signal, &dflaction, NULL) != 0) {
         if (errh != NULL) {

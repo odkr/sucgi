@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -31,6 +31,7 @@
 #include <fcntl.h>
 #include <assert.h>
 #include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -79,7 +80,7 @@ typedef struct {
  * The function is called for symlinks, but symlinks are not followed.
  * Filesystems boundaries are not crossed.
  *
- * walk_dir_contents requires information about the parent directory; if the
+ * walk_dir_con requires information about the parent directory; if the
  * given directory is the root of the tree, "parent" must be set to NULL.
  *
  * If the original working directory cannot be restored, the calling
@@ -90,16 +91,16 @@ typedef struct {
  *     Non-zero  Something went wrong; errno should be set.
  */
 _read_only(1) _read_only(4) _nonnull(1, 2) _nodiscard
-static int walk_dir_contents(const char *dirname, FileFn func,
-                             Order order, const FileInfo *parent);
+static int walk_dir_con(const char *dirname, FileFn func,
+                        Order order, const FileInfo *parent);
 
 /*
- * The same as walk_dir_contents, but also applies the
+ * The same as walk_dir_con, but also applies the
  * given function to the directory tree itself.
  */
 _read_only(1) _read_only(4) _nonnull(1, 2) _nodiscard
-static int walk_dir_entry(const char *fname, FileFn func,
-                          Order order, const FileInfo *parent);
+static int walk_dir_ent(const char *fname, FileFn func,
+                        Order order, const FileInfo *parent);
 
 
 /*
@@ -111,24 +112,22 @@ static int walk_dir_entry(const char *fname, FileFn func,
  */
 
 static int
-walk_dir_contents(const char *const dirname, const FileFn func,
-                  const Order order, const FileInfo *const parent)
+walk_dir_con(const char *const dirname, const FileFn func,
+             const Order order, const FileInfo *const parent)
 {
-    DIR *dirp;
-    struct stat fstatus;
-    struct dirent *dirent;
-    int fildes = -1;
-    int oldwd = -1;
-    int retval = 0;
-    int fatalerr = 0;
-
     assert(dirname != NULL);
     assert(*dirname != '\0');
     assert(func != NULL);
     assert(order == ORDER_PRE || ORDER_POST);
 
+    int retval = 0;
+    int fatalerr = 0;
+    int fildes = -1;
+    int oldwd = -1;
+    DIR *dirp = NULL;
+
     errno = 0;
-    /* RATS: ignore; verifying dirname is the application's job. */
+    /* RATS: ignore; verifying the file name is the application's job. */
     fildes = open(dirname, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
     if (fildes < 0) {
         return fildes;
@@ -140,15 +139,16 @@ walk_dir_contents(const char *const dirname, const FileFn func,
         fatalerr = errno;
         retval = -1;
         /* cppcheck-suppress misra-c2012-15.2; false positive. */
-        goto cleanup;
+        goto closecur;
     }
 
     errno = 0;
+    struct stat fstatus;
     retval = fstat(fildes, &fstatus);
     if (retval != 0) {
         fatalerr = errno;
         /* cppcheck-suppress misra-c2012-15.2; false positive. */
-        goto cleanup;
+        goto closecur;
     }
 
     const FileInfo curdir = {
@@ -157,10 +157,9 @@ walk_dir_contents(const char *const dirname, const FileFn func,
     };
 
     if (parent == NULL) {
-
         /*
          * NOLINTBEGIN(misc-redundant-expression);
-         * "O_SEARCH | O_DIRECTORY" is *not* redundant, POSIX.1-2008 leaves
+         * `O_SEARCH | O_DIRECTORY` is NOT redundant, POSIX.1-2008 leaves
          * the result of `open(<non-directory>, O_SEARCH)` unspecified.
          */
 
@@ -173,7 +172,7 @@ walk_dir_contents(const char *const dirname, const FileFn func,
         if (oldwd < 0) {
             fatalerr = errno;
             retval = oldwd;
-            goto cleanup;
+            goto closecur;
         }
     } else {
         oldwd = parent->fildes;
@@ -181,7 +180,7 @@ walk_dir_contents(const char *const dirname, const FileFn func,
         if (fstatus.st_dev != parent->fstatus->st_dev) {
             fatalerr = EXDEV;
             retval = -1;
-            goto cleanup;
+            goto closecur;
         }
     }
 
@@ -189,10 +188,11 @@ walk_dir_contents(const char *const dirname, const FileFn func,
     retval = fchdir(fildes);
     if (retval != 0) {
         fatalerr = errno;
-        goto cleanup;
+        goto closeroot;
     }
 
-    /* cppcheck-suppress readdirCalled; function need not be async-safe. */
+    struct dirent *dirent;
+    /* cppcheck-suppress readdirCalled; walk_dir_con need not be async-safe. */
     while ((errno = 0, dirent = readdir(dirp)) != NULL) {
         if (*dirent->d_name == '\0') {
             /* NOTREACHED */
@@ -208,7 +208,7 @@ walk_dir_contents(const char *const dirname, const FileFn func,
         }
 
         errno = 0;
-        retval = walk_dir_entry(dirent->d_name, func, order, &curdir);
+        retval = walk_dir_ent(dirent->d_name, func, order, &curdir);
         if (retval != 0) {
             fatalerr = errno;
             break;
@@ -222,18 +222,13 @@ walk_dir_contents(const char *const dirname, const FileFn func,
     }
 
     if (sigs_retry_int(fchdir, oldwd) != 0) {
-        /*
-         * Being in another directory than you think is BAD. However,
-         * this point is only reached if (a) the permissions of oldwd
-         * were changed after walk_dir_contents left it or (b) I/O
-         * errors prevented reading oldwd.
-         */
+        /* Being in another directory than you think is BAD. */
         warn("%s:%d: chdir %d", __FILE__, __LINE__, oldwd);
         _exit(EXIT_FAILURE);
     }
 
-    cleanup:
-        if (parent == NULL && oldwd > -1) {
+    closeroot:
+        if (parent == NULL) {
             errno = 0;
             if (sigs_retry_int(close, oldwd) != 0) {
                 /* NOTREACHED */
@@ -244,6 +239,7 @@ walk_dir_contents(const char *const dirname, const FileFn func,
             }
         }
 
+    closecur:
         if (dirp == NULL) {
             errno = 0;
             if (sigs_retry_int(close, fildes) != 0) {
@@ -269,15 +265,15 @@ walk_dir_contents(const char *const dirname, const FileFn func,
 }
 
 static int
-walk_dir_entry(const char *const fname, int (*const func)(const char *),
+walk_dir_ent(const char *const fname, int (*const func)(const char *),
                const Order order, const FileInfo *const parent)
 {
-    int retval = 0;
-
     assert(fname != NULL);
     assert(*fname != '\0');
     assert(func != NULL);
     assert(order == ORDER_PRE || order == ORDER_POST);
+
+    int retval = 0;
 
     if (order == ORDER_PRE) {
         errno = 0;
@@ -288,8 +284,8 @@ walk_dir_entry(const char *const fname, int (*const func)(const char *),
     }
 
     errno = 0;
-    retval = walk_dir_contents(fname, func, order, parent);
-    /* cppcheck-suppress misra-c2012-22.10; walk_dir_contents sets errno. */
+    retval = walk_dir_con(fname, func, order, parent);
+    /* cppcheck-suppress misra-c2012-22.10; walk_dir_con sets errno. */
     if (retval != 0 && errno != ENOTDIR && errno != ELOOP) {
         return retval;
     }
@@ -314,15 +310,15 @@ int
 dir_walk(const char *const fname, const FileFn func,
          const Order order, const ErrorFn errh)
 {
-    int retval = 0;
-
     assert(fname != NULL);
     assert(*fname != '\0');
     assert(func != NULL);
     assert(order == ORDER_PRE || order == ORDER_POST);
 
+    int retval = 0;
+
     errno = 0;
-    retval = walk_dir_entry(fname, func, order, NULL);
+    retval = walk_dir_ent(fname, func, order, NULL);
     if (retval != 0) {
         if (errh != NULL) {
             errh(EXIT_FAILURE, "dir_walk %s", fname);
@@ -335,10 +331,10 @@ dir_walk(const char *const fname, const FileFn func,
 int
 dir_tree_rm(const char *const fname, const ErrorFn errh)
 {
-    int retval = 0;
-
     assert(fname != NULL);
     assert(*fname != '\0');
+
+    int retval = 0;
 
     errno = 0;
     retval = dir_walk(fname, remove, ORDER_POST, NULL);

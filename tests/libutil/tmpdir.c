@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -40,15 +40,12 @@
 int
 tmpdir_make(const char *const fname, char **const dir, ErrorFn errh)
 {
-    const char *tmpdir = NULL;
-    char *template = NULL;
-    int len = -1;
-    int fatalerr;
-    long size;
+    /* cppcheck-suppress unreadVariable; RAII. */
+    int fatalerr = 0;
 
     errno = 0;
     /* RATS: ignore; length of TMPDIR is checked below. */
-    tmpdir = getenv("TMPDIR");
+    const char *tmpdir = getenv("TMPDIR");
     if (tmpdir == NULL || *tmpdir == '\0') {
         /* cppcheck-suppress misra-c2012-22.10; getenv sets errno. */
         if (errno == 0) {
@@ -59,49 +56,43 @@ tmpdir_make(const char *const fname, char **const dir, ErrorFn errh)
         }
     }
 
-    if (strnlen(tmpdir, MAX_FNAME_LEN) >= (size_t) MAX_FNAME_LEN) {
-        fatalerr = ENAMETOOLONG;
+    /* RATS: ignore; path_join is bounded by the size of the template. */
+    char template[MAX_FNAME_LEN];
+    errno = 0;
+    const int len = path_join(sizeof(template), template, tmpdir, fname, NULL);
+    if (len < 0) {
+        fatalerr = errno;
         goto error;
     }
 
     errno = 0;
     /* RATS: ignore; no race condition. */
-    size = pathconf(tmpdir, _PC_PATH_MAX);
+    const long size = pathconf(tmpdir, _PC_PATH_MAX);
     if (size < 0) {
         fatalerr = errno;
         goto error;
     }
-    if ((uintmax_t) size > (uintmax_t) SIZE_MAX) {
+
+    if (len > size) {
         fatalerr = ENAMETOOLONG;
         goto error;
     }
 
     errno = 0;
-    /* cppcheck-suppress misra-c2012-11.5; bad advice for malloc. */
-    template = malloc((size_t) size);
-    if (template == NULL) {
+    char *const symdir = mkdtemp(template);
+    if (symdir == NULL) {
         fatalerr = errno;
         goto error;
     }
 
-    errno = 0;
-    len = path_join((size_t) size, template, tmpdir, fname, NULL);
-    if (len < 0) {
-        fatalerr = errno;
-        goto cleanup;
-    }
-
-    errno = 0;
-    *dir = mkdtemp(template);
+    /* RATS: ignore; symdir cannot be longer than MAX_FNAME_LEN. */
+    *dir = realpath(symdir, NULL);
     if (*dir == NULL) {
         fatalerr = errno;
-        goto cleanup;
+        goto error;
     }
 
     return 0;
-
-    cleanup:
-        free(template);
 
     error:
         errno = fatalerr;
