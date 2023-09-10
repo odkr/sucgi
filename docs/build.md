@@ -334,7 +334,7 @@ Any non-zero integer value means true.
 ### Build for testing? (integer)
 
 > [!WARNING]
-> Test builds are insecure!**
+> Test builds are insecure!
 
 | Tool         | Variable/macro name      |
 | ------------ | ------------------------ |
