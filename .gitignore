@@ -30,12 +30,16 @@ sucgi-*
 tests/*
 !tests/*.c
 !tests/*.h
+!tests/libmock
 tests/libmock/*
 !tests/libmock/*.c
 !tests/libmock/*.h
+!tests/libutil
 tests/libutil/*
 !tests/libutil/*.c
 !tests/libutil/*.h
+!tests/scripts
+!tests/utils
 tests/utils/*
 !tests/utils/*.c
 !tests/utils/*.h

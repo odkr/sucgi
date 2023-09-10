@@ -37,7 +37,6 @@
 # -o STR      Check for STR on stdout.
 # -e STR      Check for STR on stderr.
 # -o and -e are mutually exclusive.
-# FIXME: Doesn't work with posh.
 check() (
 	_check_status=0 _check_stream=out
 	OPTIND=1 OPTARG='' _check_opt=''
