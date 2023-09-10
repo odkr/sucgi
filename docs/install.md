@@ -22,7 +22,7 @@ configure -- calls --> M4
 M4 -- generates --> makefile
 ```
 
-> **Critical**
+> [!WARNING]
 > If you changed the **makefile**'s defaults by defining Make macros on the
 > command line when you installed suCGI, you *must* define the same macros
 > with the same values when you call `make uninstall`!
@@ -41,7 +41,7 @@ created by calling M4 directly, rather than via  *configure*
 | M4          | __PREFIX            |
 | Make        | PREFIX              |
 
-> **Critical**
+> [!WARNING]
 > Must *not* contain whitespace or shell meta characters.
 
 Defaults to **/usr/local**.
@@ -68,7 +68,7 @@ Use a non-default prefix when installing:
 | M4          | __DESTDIR           |
 | Make        | DESTDIR             |
 
-> **Critical**
+> **[!WARNING]**
 > Must *not* contain whitespace or shell meta characters.
 
 Defaults to the empty string.

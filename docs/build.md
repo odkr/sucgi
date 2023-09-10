@@ -333,7 +333,7 @@ Any non-zero integer value means true.
 
 ### Build for testing? (integer)
 
-> **Warning**
+> [!WARNING]
 > Test builds are insecure!**
 
 | Tool         | Variable/macro name      |
@@ -373,7 +373,7 @@ If *configure* fails, a fallback build configuration can be created by:
 The resulting build configuration is roughly equivalent to **[posix.env]**
 (see "Default build configurations" above).
 
-> *Warning*
+> [!WARNING]
 > This build configuration is only known to be safe on architectures with
 > unpadded integer types (e.g., x86, x86-64, ARM, ARM64) and when running
 > either DragonflyBSD, FreeBSD, GNU/Linux, GNU Hurd, Minix, musl/Linux,
