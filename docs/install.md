@@ -23,8 +23,8 @@ M4 -- generates --> makefile
 ```
 
 > [!WARNING]
-> If you changed the **makefile**'s defaults by defining Make macros on the
-> command line when you installed suCGI, you *must* define the same macros
+> If you change the **makefile**'s defaults by defining Make macros on the
+> command line when you install suCGI, you *must* define the same macros
 > with the same values when you call `make uninstall`!
 
 M4 macros are used by *configure*. They only need to, and only can,
