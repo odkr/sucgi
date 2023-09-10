@@ -76,7 +76,7 @@ path_real(const size_t fnamelen, const char *const fname,
 }
 
 Error
-path_suffix(const char *const fname, const char **const suffix)
+path_get_suffix(const char *const fname, const char **const suffix)
 {
     assert(fname != NULL);
     assert(*fname != '\0');

@@ -58,7 +58,7 @@ Error path_real(size_t fnamelen, const char *fname,
  *     ERR_SUFFIX  The filename has no suffix.
  */
 _read_only(1) _write_only(2) _nonnull(1, 2) _nodiscard
-Error path_suffix(const char *fname, const char **suffix);
+Error path_get_suffix(const char *fname, const char **suffix);
 
 /*
  * Check if the given file is within the given base directory.

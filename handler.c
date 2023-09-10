@@ -50,7 +50,7 @@ handler_find(const size_t nhandlers, const Pair *const handlerdb,
     *handler = NULL;
 
     const char *suffix = NULL;
-    Error ret = path_suffix(fname, &suffix);
+    Error ret = path_get_suffix(fname, &suffix);
     if (ret != OK) {
         return ret;
     }

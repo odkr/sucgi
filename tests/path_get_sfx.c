@@ -1,5 +1,5 @@
 /*
- * Test path_suffix.
+ * Test path_get_suffix.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -753,7 +753,7 @@ main (void)
             const char *suffix = NULL;
 
             (void) abort_catch(err);
-            const Error retval = path_suffix(args.fname, &suffix);
+            const Error retval = path_get_suffix(args.fname, &suffix);
             (void) abort_reset(err);
 
             if (retval != args.retval) {
