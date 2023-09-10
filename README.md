@@ -2,30 +2,31 @@
 [![Sonar Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=alert_status)](https://sonarcloud.io/api/project_badges/measure?project=odkr_sucgi&metric=alert_status)
 [![Codacy Code Quality](https://app.codacy.com/project/badge/Grade/cb67a3bad615449589dfb242876600ac)](https://www.codacy.com/gh/odkr/sucgi/dashboard?utm_content=odkr/sucgi)
 
-# SuCGI
+# suCGI
 
 Run CGI scripts with the permissions of their owner.
 
-SuCGI checks whether a script is owned by a non-system user and installed
-under that user's user directory, cleans up the environment, and then runs
-the script with the permissions of that user.
+suCGI checks whether a script is owned by a non-system user and within
+the root directory of that user's homepage, cleans up the environment,
+and then runs the script with the permissions of that user.
 
 
 ## System requirements
 
-SuCGI should work on any Unix-like system released since 2010.
-More precisely, it should work on any system compatible with [4.4BSD] and
-compliant with [POSIX.1-2008] and its X/Open System Interface extension.
+suCGI should work on any recent-ish Unix-like system. More precisely,
+it should work on any system that is compatible with [4.4BSD], that is,
+implements *getgrouplist*(), *setgroups*(), and *vsyslog*, and compliant
+with [POSIX.1-2008], including its X/Open System Interface extension.
 
 Compiling suCGI requires:
 
-* A C99 compiler (e.g., [GCC] and [Clang])
-* An archiver, an, assembler and a linker (e.g., [GNU Binutils] or FreeBSD's)
-* Make (e.g., [GNU Make], FreeBSD's Make, or [bmake])
-* M4 (e.g., [GNU M4] or FreeBSD's M4)
+* A C99 compiler (e.g., [GCC], [Clang], or [TinyCC])
+* An archiver, an assembler, and a linker (e.g., from [GNU Binutils] or a BSD)
+* Make (e.g., [GNU Make], a BSD Make, [bmake], or [smake])
+* M4 (e.g., [GNU M4] or a BSD M4)
 * The header files of your system's standard library
 
-SuCGI comes with a script that installs versions of these applications
+suCGI comes with a script that installs versions of these applications
 that are appropriate for your system if needed (see below).
 
 [4.4BSD]: https://docs-legacy.freebsd.org/44doc/
@@ -44,12 +45,16 @@ that are appropriate for your system if needed (see below).
 
 [POSIX.1-2008]: https://pubs.opengroup.org/onlinepubs/9699919799.2008edition/
 
+[smake]: https://sourceforge.net/projects/s-make/
+
+[TinyCC]: https://bellard.org/tcc/
+
 
 ## Installation
 
 **Do NOT use suCGI!**
 
-SuCGI is work in progress, does not yet validate users,
+suCGI is work in progress, does not yet validate users,
 and has *not* been reviewed, let alone audited.
 
 Download the repository and unpack it.
@@ -58,10 +63,10 @@ Please take the time to read and evaluate the source code.
 
 Install the missing components of the C build toolchain:
 
-    sudo ./prepare
+    sudo ./installc
 
-*prepare* uses the package manager of your operating system, if possible.
-The installed packages can be removed with `prepare -r`.
+*intallc* uses the package manager of your operating system, if possible.
+The installed packages can be removed with `installc -r`.
 
 Generate the build configuration by:
 
@@ -69,7 +74,7 @@ Generate the build configuration by:
 
 See **[docs/build.md]** for details and troubleshooting.
 
-SuCGI is configured at compile-time. Adapt **config.h** to your needs.
+suCGI is configured at compile-time. Adapt **config.h** to your needs.
 
 Compile suCGI by:
 
@@ -140,15 +145,15 @@ You are welcome to write an email if you do not have a GitHub account.
 
 Copyright 2022 and 2023 Odin Kroeger
 
-SuCGI is free software: you can redistribute it and/or modify it
+suCGI is free software: you can redistribute it and/or modify it
 under the terms of the GNU Affero General Public License as published
 by the Free Software Foundation, either version 3 of the License,
 or (at your option) any later version.
 
-SuCGI is distributed in the hope that it will be useful, but WITHOUT
+suCGI is distributed in the hope that it will be useful, but WITHOUT
 ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
 Public License for more details.
 
 You should have received a copy of the GNU Affero General Public
-License along with SuCGI. If not, see <https://www.gnu.org/licenses/>.
+License along with suCGI. If not, see <https://www.gnu.org/licenses/>.
