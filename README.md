@@ -14,14 +14,15 @@ and then runs the script with the permissions of that user.
 ## System requirements
 
 suCGI should work on any recent-ish Unix-like system. More precisely,
-it should work on any system that is compatible with [4.4BSD], that is,
-implements *getgrouplist*(), *setgroups*(), and *vsyslog*, and compliant
-with [POSIX.1-2008], including its X/Open System Interface extension.
+it should work on any system that complies with [POSIX.1-2008], including
+its X/Open System Interface extension, and is compatible with [4.4BSD],
+that is, supports *getgrouplist*(), *setgroups*(), and *vsyslog*().
 
 Compiling suCGI requires:
 
 * A C99 compiler (e.g., [GCC], [Clang], or [TinyCC])
-* An archiver, an assembler, and a linker (e.g., from [GNU Binutils] or a BSD)
+* An archiver, an assembler, and a linker
+  (e.g., from [GNU Binutils] or a BSD distribution)
 * Make (e.g., [GNU Make], a BSD Make, [bmake], or [smake])
 * M4 (e.g., [GNU M4] or a BSD M4)
 * The header files of your system's standard library
