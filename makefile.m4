@@ -47,6 +47,9 @@ LDFLAGS = __LDFLAGS
 ifnempty(`__LDLIBS', `dnl
 LDLIBS = __LDLIBS
 ')dnl
+ifnempty(`__PIE', `dnl
+pie = __PIE
+')dnl
 
 
 #
@@ -65,11 +68,15 @@ makefile compat.h:
 # Build
 #
 
+libs = libsucgi.a
+
 hdrs = attr.h compat.h config.h macros.h params.h types.h
 
 objs = env.o error.o groups.o handler.o pair.o path.o priv.o str.o userdir.o
 
-libs = libsucgi.a
+sucgi: main.c $(hdrs) $(libs)
+
+libsucgi.a: $(objs)
 
 env.o: env.c env.h
 
@@ -91,15 +98,11 @@ userdir.o: userdir.c userdir.h
 
 $(objs): $(hdrs)
 
-libsucgi.a: $(objs)
-
-sucgi: main.c $(hdrs) libsucgi.a
-
-libsucgi.a: $(objs)
-	$(AR) $(ARFLAGS) libsucgi.a $?
-
 sucgi:
-	$(CC) $(LDFLAGS) $(CFLAGS) -o$@ main.c $(libs) $(LDLIBS)
+	$(CC) $(LDFLAGS) $(CFLAGS) $(pie) -o$@ main.c $(libs) $(LDLIBS)
+
+libsucgi.a: $(objs)
+	$(AR) $(ARFLAGS) $@ $?
 
 
 #
@@ -109,198 +112,216 @@ sucgi:
 ifnempty(`__DESTDIR', `DESTDIR = __DESTDIR
 ')dnl
 PREFIX = default(`__PREFIX', `/usr/local')
-www_grp = default(`__SUCGI_WWW_GRP', `www-data')
-cgi_dir = default(`__SUCGI_CGI_DIR', `/usr/lib/cgi-bin')
+www_grp = default(`__WWW_GRP', `www-data')
+cgi_dir = default(`__CGI_DIR', `$(DESTDIR)$(PREFIX)/lib/cgi-bin')
 libexec = $(DESTDIR)$(PREFIX)/libexec
 
 $(libexec)/sucgi: sucgi
-	mkdir -p $(libexec)
-	cp sucgi $(libexec)
+	mkdir -pm0755 $(libexec)
+	chmod u=rwx,go= sucgi
+	cp -p sucgi $(libexec)
 	chown 0:$(www_grp) $(libexec)/sucgi
 	chmod u=rws,g=x,o= $(libexec)/sucgi
 
-$(cgi_dir)/sucgi: $(libexec)/sucgi
+$(cgi_dir)/sucgi:
 	ln -s $(libexec)/sucgi $(cgi_dir)/sucgi
 
 install: $(libexec)/sucgi $(cgi_dir)/sucgi
 
 uninstall:
-	rm -f $(cgi_dir)/sucgi $(libexec)/sucgi
+	rm -f $(libexec)/sucgi $(cgi_dir)/sucgi
+
+
+#
+# Utilities
+#
+
+utils_dir = utils
+
+runpara = $(utils_dir)/runpara
+
+uids = $(utils_dir)/uids
+
+utils = $(runpara) $(uids)
+
+
+#
+# Scripts
+#
+
+scripts_dir = scripts
+
+$(scripts_dir)/libutil.sh: $(uids)
 
 
 #
 # Tests
 #
 
+check_dir = tests
+
 # tests/libutil.a
-util_objs = tests/util/abort.o tests/util/array.o tests/util/dir.o \
-	tests/util/path.o tests/util/sigs.o tests/util/str.o \
-	tests/util/tmpdir.o tests/util/user.o
+libutil = $(check_dir)/libutil.a
 
-tests/util/abort.o: tests/util/abort.c tests/util/abort.h
+libutil_dir = $(libutil:.a=)
 
-tests/util/array.o: tests/util/array.c tests/util/array.h
+libutil_objs = $(libutil_dir)/abort.o $(libutil_dir)/array.o \
+	$(libutil_dir)/dir.o $(libutil_dir)/path.o $(libutil_dir)/sigs.o \
+	$(libutil_dir)/str.o $(libutil_dir)/tmpdir.o $(libutil_dir)/user.o
 
-tests/util/dir.o: tests/util/dir.c tests/util/dir.h
+$(libutil): $(libutil_objs)
 
-tests/util/path.o: tests/util/path.c tests/util/path.h
+$(libutil_dir)/abort.o: $(libutil_dir)/abort.c $(libutil_dir)/abort.h
 
-tests/util/sigs.o: tests/util/sigs.c tests/util/sigs.h
+$(libutil_dir)/array.o: $(libutil_dir)/array.c $(libutil_dir)/array.h
 
-tests/util/str.o: tests/util/str.c tests/util/str.h
+$(libutil_dir)/dir.o: $(libutil_dir)/dir.c $(libutil_dir)/dir.h
 
-tests/util/tmpdir.o: tests/util/tmpdir.c tests/util/tmpdir.h
+$(libutil_dir)/path.o: $(libutil_dir)/path.c $(libutil_dir)/path.h
 
-tests/util/user.o: tests/util/user.c tests/util/user.h
+$(libutil_dir)/sigs.o: $(libutil_dir)/sigs.c $(libutil_dir)/sigs.h
 
-$(util_objs): tests/util/types.h
+$(libutil_dir)/str.o: $(libutil_dir)/str.c $(libutil_dir)/str.h
 
-tests/libutil.a: $(util_objs)
+$(libutil_dir)/tmpdir.o: $(libutil_dir)/tmpdir.c $(libutil_dir)/tmpdir.h
 
-$(util_objs):
-	$(CC) $(LDFLAGS) -c -o$@ $< $(CFLAGS) $(LDLIBS)
+$(libutil_dir)/user.o: $(libutil_dir)/user.c $(libutil_dir)/user.h
 
-tests/libutil.a:
-	$(AR) $(ARFLAGS) tests/libutil.a $?
+$(libutil_objs): $(libutil_dir)/types.h
 
-ifnempty(`__SUCGI_SHARED', `dnl
-ifelse(__SUCGI_SHARED, `-dynamiclib', `dnl
+$(libutil):
+	$(AR) $(ARFLAGS) $@ $?
+
+$(libutil_objs):
+	$(CC) $(LDFLAGS) $(CFLAGS) -c -o$@ $*.c $(LDLIBS)
+
+ifnempty(`__SHARED', `dnl
+ifelse(__SHARED, `-dynamiclib', `dnl
 # tests/libmock.dylib
-mock_lib=tests/libmock.dylib
-', __SUCGI_SHARED, `-shared', `dnl
+libmock=$(check_dir)/libmock.dylib
+', __SHARED, `-shared', `dnl
 # tests/libmock.so
-mock_lib=tests/libmock.so
+libmock=$(check_dir)/libmock.so
 ')dnl
 
-mock_objs = tests/mock/mockstd.o
+libmock_dir = $(check_dir)/libmock
 
-tests/mock/mockstd.o: tests/mock/mockstd.c tests/mock/mockstd.h
+libmock_objs = $(libmock_dir)/mockstd.o
 
-$(mock_lib): $(mock_objs)
+libmock_flags = $(CFLAGS) __PIC
 
-$(mock_objs):
-ifelse(`index(__CFLAGS, `-fsanitize')', `-1', `dnl
-	$(CC) $(LDFLAGS) -c -o$@ $(CFLAGS) -fpic $< $(LDLIBS)
-', `dnl
-	$(CC) $(LDFLAGS) -c -o$@ $(CFLAGS) -fpic -fno-sanitize=all $< $(LDLIBS)
+$(libmock): $(libmock_objs)
+
+$(libmock_dir)/mockstd.o: $(libmock_dir)/mockstd.c $(libmock_dir)/mockstd.h
+
+$(libmock):
+	$(CC) $(LDFLAGS) $(libmock_flags) __SHARED -o$@ $(libmock_objs) $(LDLIBS)
+
+$(libmock_objs):
+	$(CC) $(LDFLAGS) $(libmock_flags) -c -o$@ $*.c $(LDLIBS)
+
 ')dnl
-
-$(mock_lib):
-	$(CC) $(LDFLAGS) __SUCGI_SHARED -o $@ -fpic $(mock_objs) $(LDLIBS)
-
-')dnl ifnempty __SUCGI_SHARED
 
 # Unit tests
-macro_test_bins = tests/ISSIGNED tests/NELEMS tests/MAXSVAL
+unit_bins = $(check_dir)/ISSIGNED $(check_dir)/NELEMS $(check_dir)/MAXSVAL \
+	$(check_dir)/handler_find $(check_dir)/groups_comp \
+	$(check_dir)/pair_find $(check_dir)/path_real \
+	$(check_dir)/path_suffix $(check_dir)/path_is_sub \
+	$(check_dir)/priv_drop $(check_dir)/priv_suspend \
+	$(check_dir)/str_copy $(check_dir)/str_fmtspecs \
+	$(check_dir)/str_split $(check_dir)/userdir_exp
 
-env_test_bins = tests/env_copy_var tests/env_is_name tests/env_restore
+unit_libs = $(libs) $(libutil)
 
-handler_test_bins = tests/handler_find
+$(check_dir)/ISSIGNED: $(check_dir)/ISSIGNED.c
 
-groups_test_bins = tests/groups_comp
+$(check_dir)/NELEMS: $(check_dir)/NELEMS.c
 
-pair_test_bins = tests/pair_find
+$(check_dir)/MAXSVAL: $(check_dir)/MAXSVAL.c
 
-path_test_bins = tests/path_real tests/path_suffix tests/path_within
+$(check_dir)/env_get: $(check_dir)/env_get.c
 
-priv_test_bins = tests/priv_drop tests/priv_suspend
+$(check_dir)/env_is_name: $(check_dir)/env_is_name.c
 
-str_test_bins = tests/str_copy tests/str_fmtspecs tests/str_split
+$(check_dir)/env_restore: $(check_dir)/env_restore.c
 
-userdir_test_bins = tests/userdir_exp
+$(check_dir)/env_setn: $(check_dir)/env_setn.c
 
-unit_libs = libsucgi.a tests/libutil.a
+$(check_dir)/handler_find: $(check_dir)/handler_find.c
 
-unit_bins = $(macro_test_bins) $(env_test_bins) $(handler_test_bins) \
-	$(groups_test_bins) $(pair_test_bins) $(path_test_bins) \
-	$(priv_test_bins) $(str_test_bins) $(userdir_test_bins)
+$(check_dir)/groups_comp: $(check_dir)/groups_comp.c
 
-tests/ISSIGNED: tests/ISSIGNED.c
+$(check_dir)/pair_find: $(check_dir)/pair_find.c
 
-tests/NELEMS: tests/NELEMS.c
+$(check_dir)/path_real: $(check_dir)/path_real.c
 
-tests/MAXSVAL: tests/MAXSVAL.c
+$(check_dir)/path_suffix: $(check_dir)/path_suffix.c
 
-tests/env_copy_var: tests/env_copy_var.c
+$(check_dir)/path_is_sub: $(check_dir)/path_is_sub.c
 
-tests/env_is_name: tests/env_is_name.c
+$(check_dir)/priv_drop: $(check_dir)/priv_drop.c
 
-tests/env_restore: tests/env_restore.c
+$(check_dir)/priv_suspend: $(check_dir)/priv_suspend.c
 
-tests/handler_find: tests/handler_find.c
+$(check_dir)/str_copy: $(check_dir)/str_copy.c
 
-tests/groups_comp: tests/groups_comp.c
+$(check_dir)/str_fmtspecs: $(check_dir)/str_fmtspecs.c
 
-tests/pair_find: tests/pair_find.c params.h
+$(check_dir)/str_split: $(check_dir)/str_split.c
 
-tests/path_real: tests/path_real.c
-
-tests/path_suffix: tests/path_suffix.c
-
-tests/path_within: tests/path_within.c
-
-tests/priv_drop: tests/priv_drop.c
-
-tests/priv_suspend: tests/priv_suspend.c
-
-tests/str_copy: tests/str_copy.c
-
-tests/str_fmtspecs: tests/str_fmtspecs.c
-
-tests/str_split: tests/str_split.c
-
-tests/userdir_exp: tests/userdir_exp.c
+$(check_dir)/userdir_exp: $(check_dir)/userdir_exp.c
 
 $(unit_bins): $(unit_libs)
 
 $(unit_bins):
-	$(CC) $(LDFLAGS) -DTESTING $(CFLAGS) -o $@ $@.c $(unit_libs) $(LDLIBS)
+	$(CC) $(LDFLAGS) $(CFLAGS) -o$@ $@.c $(unit_libs) $(LDLIBS)
 
+# Utilities for scripted tests
+check_utils_dir = $(check_dir)/utils
 
-# Utilities
-util_bins = utils/badenv utils/badexec utils/uids utils/runpara utils/runas
-
-utils: $(util_bins)
-
+check_utils_bin = $(check_utils_dir)/badenv $(check_utils_dir)/badexec \
+	$(check_utils_dir)/runas
 
 # Scripted tests
-check_scripts = tests/scripts/BUG tests/scripts/error tests/scripts/main
+check_script_flags = $(CFLAGS) $(pie) -DTESTING
 
-script_bins = tests/BUG tests/error tests/main
+check_script_dir = $(check_dir)/scripts
 
-tests/scripts/BUG: tests/BUG
+check_scripts = $(check_script_dir)/BUG $(check_script_dir)/error \
+	$(check_script_dir)/main
 
-tests/scripts/error: tests/error
+check_script_bins = $(check_dir)/BUG $(check_dir)/error $(check_dir)/main
 
-tests/scripts/main: utils/badenv utils/badexec utils/uids utils/runas
+$(check_scripts): $(check_dir)/main $(check_script_dir)/libutil.sh
 
-tests/scripts/funcs.sh: scripts/funcs.sh
+$(check_script_dir)/BUG: $(check_dir)/BUG
 
-scripts/funcs.sh: utils/uids
+$(check_script_dir)/error: $(check_dir)/error
 
-tests/BUG: tests/BUG.c
+$(check_script_dir)/main: $(uids) $(check_utils_bin)
 
-tests/error: tests/error.c
+$(check_script_dir)/libutil.sh: $(scripts_dir)/libutil.sh
 
-tests/main: main.c
+$(check_dir)/BUG: $(check_dir)/BUG.c
 
-$(check_scripts): tests/main tests/scripts/funcs.sh
+$(check_dir)/error: $(check_dir)/error.c
 
-$(script_bins): libsucgi.a $(hdrs) tests/util/types.h
+$(check_dir)/main: main.c
 
-tests/BUG tests/error:
-	$(CC) $(LDFLAGS) -DTESTING $(CFLAGS) -o $@ $@.c $(libs) $(LDLIBS)
+$(check_script_bins): $(libs) $(hdrs) $(libutil_dir)/types.h
 
-tests/main:
-	$(CC) $(LDFLAGS) -DTESTING $(CFLAGS) -o $@ main.c $(libs) $(LDLIBS)
+$(check_dir)/main:
+	$(CC) $(LDFLAGS) $(check_script_flags) -o$@ main.c $(libs) $(LDLIBS)
 
+$(check_dir)/BUG $(check_dir)/error:
+	$(CC) $(LDFLAGS) $(check_script_flags) -o$@ $@.c $(libs) $(LDLIBS)
 
 # Execution
-check_bins = $(unit_bins) $(script_bins)
+check_bins = $(unit_bins) $(check_script_bins)
 
 checks = $(check_scripts) $(unit_bins)
 
-ifelse(__SUCGI_UNAME, `Darwin', `dnl
+ifelse(__UNAME, `Darwin', `dnl
 preload = DYLD_INSERT_LIBRARIES
 
 environ = MallocNanoZone=0
@@ -314,19 +335,19 @@ runpara_flags = -ci75 -j8
 
 checks: $(checks)
 
-ifnempty(`__SUCGI_SHARED', `dnl
-check: utils/runpara $(checks) $(mock_lib)
+ifnempty(`__SHARED', `dnl
+check: $(runpara) $(checks) $(libmock)
 ', `dnl
-check: utils/runpara $(checks)
+check: $(runpara) $(checks)
 ')dnl
 
 check:
-ifnempty(`__SUCGI_SHARED', `dnl
+ifnempty(`__SHARED', `dnl
 	[ "$$(id -u)" -eq 0 ] \
-&& $(environ) utils/runpara $(runpara_flags) $(checks) \
-|| $(environ) utils/runpara $(runpara_flags) $(preload)=$(mock_lib) $(checks)
+&& $(environ) $(runpara) $(runpara_flags) $(checks) \
+|| $(environ) $(runpara) $(runpara_flags) $(preload)=$(libmock) $(checks)
 ', `dnl
-	$(environ) utils/runpara $(runpara_flags) $(checks)
+	$(environ) $(runpara) $(runpara_flags) $(checks)
 ')dnl
 
 
@@ -334,7 +355,7 @@ ifnempty(`__SUCGI_SHARED', `dnl
 # Cleanup
 #
 
-bins = sucgi $(check_bins) $(util_bins)
+bins = sucgi $(check_bins) $(libutil_bins)
 
 tidy:
 	rm -f $(dist_name).tgz
@@ -352,7 +373,9 @@ clean: tidy
 	find . '(' \
 	-name '*.a' -o \
 	-name '*.o' -o \
-	-name '*.so' \
+	-name '*.so' -o \
+	-name '*.dylib' -o \
+	-name '*.[0-9]' \
 	')' -exec rm -f '{}' +
 
 mrproper: clean
@@ -380,8 +403,6 @@ mrproper: clean
 
 callgraph_cflags = -DNDEBUG -O0 -fno-inline-functions
 
-egypt_flags = -omit config,help,usage,version
-
 docs/callgraph.gv: main.c $(objs:.o=.c)
 	$(MAKE) CFLAGS="-fdump-rtl-expand $(callgraph_cflags)" clean all
 	egypt --callees main $(egypt_flags) *.expand >$@
@@ -400,7 +421,7 @@ version = 0
 dist_name = $(package)-$(version)
 dist_ar = $(dist_name).tgz
 dist_files = *.c *.h *.m4 README.md LICENSE.txt \
-	configure prepare conf cppcheck docs man tests utils scripts
+	configure conf cppcheck docs installc man probe tests utils scripts
 
 distclean: mrproper
 
@@ -422,7 +443,8 @@ distclean:
 
 $(dist_name):
 	mkdir $(dist_name)
-	cp -a $(dist_files) $(dist_name)
+	find $(dist_files) -exec pathchk -Pp '{}' +
+	cp -p $(dist_files) $(dist_name)
 
 $(dist_ar):
 	tar -X conf/dist.excl -czf $(dist_ar) $(dist_name)
@@ -444,12 +466,11 @@ distcheck:
 # Static code analysis
 #
 
-srcs = *.h *.c \
-	tests/*.c \
-	tests/util/*.h tests/util/*.c \
-	tests/mock/*.h tests/mock/*.c
+srcs = *.h *.c tests/*.c \
+	$(libutil_dir)/*.h $(libutil_dir)/*.c \
+	tests/libmock/*.h tests/libmock/*.c
 
-scripts = configure prepare scripts/*
+scripts = configure installc $(scripts_dir)/* $(check_script_dir)/*
 
 clang_tidy_flags = --quiet
 
@@ -467,14 +488,12 @@ rats_flags = --resultsonly --quiet --warning 3
 
 shellcheck_flags = -x
 
-analysis:
-	! grep -i FIXME $(srcs)
+analysis: compat.h
 	clang-tidy $(clang_tidy_flags) $(srcs) -- -std=c99
 	cppcheck $(cppcheck_flags) $(srcs)
 	flawfinder $(flawfinder_flags) $(srcs)
 	rats $(rats_flags) $(srcs)
 
 shellcheck:
-	! grep -i FIXME $(scripts)
-	shellcheck $(shellcheck_flags) $(scripts) $(check_scripts)
+	shellcheck $(shellcheck_flags) $(scripts)
 

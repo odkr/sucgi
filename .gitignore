@@ -17,6 +17,7 @@
 *.so
 *.swp
 *.tgz
+chk-*
 compat.h
 config.status
 cov
@@ -29,15 +30,10 @@ sucgi-*
 tests/*
 !tests/*.c
 !tests/*.h
-!tests/mock
-tests/mock/*
-!tests/mock/*.c
-!tests/mock/*.h
+!tests/libmock
+!tests/libutil
 !tests/scripts
-!tests/util
-tests/util/*
-!tests/util/*.c
-!tests/util/*.h
+!tests/utils
 utils/*
 !utils/*.c
 !utils/*.h

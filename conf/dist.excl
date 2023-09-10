@@ -18,12 +18,14 @@
 .DS_Store
 .git
 .vscode
+chk-*
 compat.h
 config.status
 cov
 conf/local.env
 cppcheck/build/*
 docs/*.pdf
+docs/callgraph.*
 gcov
 makefile
 sucgi
