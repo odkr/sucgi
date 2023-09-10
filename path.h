@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -66,7 +66,7 @@ Error path_suffix(const char *fname, const char **suffix);
  * lengths and should be canonical.
  */
 _read_only(2, 1) _read_only(4, 3) _nonnull(2, 4) _nodiscard
-bool path_within(size_t fnamelen, const char *fname,
+bool path_is_sub(size_t fnamelen, const char *fname,
                  size_t basedirlen, const char *basedir);
 
 #endif /* !defined(PATH_H) */

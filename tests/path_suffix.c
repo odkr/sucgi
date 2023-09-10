@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -34,8 +34,9 @@
 #include "../macros.h"
 #include "../params.h"
 #include "../path.h"
-#include "util/abort.h"
-#include "util/types.h"
+#include "libutil/abort.h"
+#include "libutil/str.h"
+#include "libutil/types.h"
 
 
 /*
@@ -66,11 +67,13 @@ main (void)
 #if !defined(NDEBUG)
 
     /* RATS: ignore; used safely. */
-    char hugefname[MAX_FNAME_LEN + 1U] = {0};
+    char hugefname[MAX_FNAME_LEN + 1U];
+    str_fill(sizeof(hugefname), hugefname, 'x');
 #endif
 
     /* RATS: ignore; used safely. */
-    char longfname[MAX_FNAME_LEN] = {0};
+    char longfname[MAX_FNAME_LEN];
+    str_fill(sizeof(longfname), longfname, 'x');
 
     const PathSuffixArgs cases[] = {
         /* Illegal arguments. */
@@ -739,45 +742,39 @@ main (void)
 
     volatile int result = PASS;
 
-#if !defined(NDEBUG)
-    (void) memset(hugefname, 'x', sizeof(hugefname) - 1U);
-#endif
-    (void) memset(longfname, 'x', sizeof(longfname) - 1U);
-
     for (volatile size_t i = 0; i < NELEMS(cases); ++i) {
         const PathSuffixArgs args = cases[i];
 
         if (sigsetjmp(abort_env, 1) == 0) {
-            const char *suffix = NULL;
-            Error retval;
-
             if (args.signal != 0) {
                 warnx("the next test should fail an assertion.");
             }
 
+            const char *suffix = NULL;
+
             (void) abort_catch(err);
-            retval = path_suffix(args.fname, &suffix);
+            const Error retval = path_suffix(args.fname, &suffix);
             (void) abort_reset(err);
 
             if (retval != args.retval) {
                 result = FAIL;
-                warnx("%zu: (%s, → %s) → %u [!]",
-                      i, args.fname, suffix, retval);
+                warnx("(%s, → %s) → %u [!]",
+                      args.fname, suffix, retval);
             }
 
             if (retval == OK &&
                 strncmp(args.suffix, suffix, MAX_SUFFIX_LEN) != 0)
             {
                 result = FAIL;
-                warnx("%zu: (%s, → %s [!]) → %u",
-                      i, args.fname, suffix, retval);
+                warnx("(%s, → %s [!]) → %u",
+                      args.fname, suffix, retval);
             }
         }
 
         if (abort_signal != args.signal) {
             result = FAIL;
-            warnx("%zu: (%s, → <suffix>) ↑ %s [!]",
-                  i, args.fname, strsignal(abort_signal));
+            warnx("(%s, → <suffix>) ↑ %s [!]",
+                  args.fname, strsignal(abort_signal));
         }
     }
 

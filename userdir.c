@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -47,11 +47,9 @@
 #endif
 
 Error
-userdir_exp(const char *const str, const struct passwd *const user,
+userdir_expand(const char *const str, const struct passwd *const user,
             const size_t size, size_t *const dirlen, char *const dir)
 {
-    int nchars;
-
     assert(str != NULL);
     assert(*str != '\0');
     assert(strnlen(str, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
@@ -62,13 +60,15 @@ userdir_exp(const char *const str, const struct passwd *const user,
     /* Some versions of snprintf fail to null-terminate strings. */
     (void) memset(dir, '\0', size);
 
+    int nchars = -1;
+
     errno = 0;
     if (*str != '/') {
         /* RATS: ignore; format is short and a literal. */
         nchars = snprintf(dir, size, "%s/%s", user->pw_dir, str);
     } else {
-        const char *spec;
-        size_t nspecs;
+        const char *spec = NULL;
+        size_t nspecs = 0U;
 
         if (str_fmtspecs(str, 1, &nspecs, &spec) != OK) {
             return ERR_BAD;

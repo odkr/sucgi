@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -38,14 +38,14 @@ pair_find(const size_t npairs, const Pair *const pairs,
           const size_t keylen, const char *const key,
           const char **const value)
 {
-    const size_t keysize = keylen + 1U;
-
     assert(pairs != NULL);
     assert(key != NULL);
-    assert(keysize <= (size_t) MAX_STR_LEN);
     assert(value != NULL);
     assert(strnlen(key, MAX_STR_LEN) == keylen);
     assert(keylen < MAX_STR_LEN);
+
+    const size_t keysize = keylen + 1U;
+    assert(keysize <= (size_t) MAX_STR_LEN);
 
     for (size_t i = 0; i < npairs; ++i) {
         const Pair *pair = &pairs[i];

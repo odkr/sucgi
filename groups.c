@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -38,66 +38,41 @@
 #include "groups.h"
 #include "macros.h"
 #include "params.h"
+#include "types.h"
 
-
-bool
-groups_sub(size_t ngroups, const gid_t *const groups)
+int
+groups_comp(const gid_t *const group1, const gid_t *const group2)
 {
-    gid_t pgroups[MAX_NGROUPS];
-    int npgroups;
+    assert(group1 != NULL);
+    assert(group2 != NULL);
 
-    npgroups = getgroups(MAX_NGROUPS, pgroups);
-    if (npgroups < 0) {
-        /* RATS: ignore; format string is short and a literal. */
-        syslog(LOG_ERR, "number of process groups exceeds MAX_NGROUPS.");
-        return false;
+    if (*group1 < *group2) {
+        return -1;
     }
 
-    for (int i = 0; i < npgroups; ++i) {
-        void *ptr;
+    if (*group1 > *group2) {
+        return 1;
+    }
 
-        ptr = lfind(&pgroups[i], groups, &ngroups, sizeof(gid_t),
-                    (int (*)(const void *, const void *)) groups_comp);
+    return 0;
+}
 
-        if (ptr == NULL) {
-            const struct group *grp;
+gid_t *
+group_find(const gid_t group, size_t ngroups, const gid_t *const groups)
+{
+    return (gid_t *) lfind(&group, groups, &ngroups, sizeof(*groups),
+                           (int (*)(const void *, const void *)) groups_comp);
+}
 
-            /* cppcheck-suppress getgrgidCalled; least bad option. */
-            grp = getgrgid(pgroups[i]);
-            if (grp != NULL) {
-                /* RATS: ignore; format string is short and a literal. */
-                syslog(LOG_ERR, "process belongs to group %s.",
-                       grp->gr_name);
-            } else if (ISSIGNED(gid_t)) {
-                /* RATS: ignore; format string is short and a literal. */
-                syslog(LOG_ERR, "process belongs to group %lld.",
-                       (long long) pgroups[i]);
-            } else {
-                /* RATS: ignore; format string is short and a literal. */
-                syslog(LOG_ERR, "process belongs to group %llu.",
-                       (unsigned long long) pgroups[i]);
-            }
-
+bool
+groups_are_subset(const size_t nsub, const gid_t *const sub,
+                  const size_t nsuper, const gid_t *const super)
+{
+    for (size_t i = 0; i < nsub; ++i) {
+        if (group_find(sub[i], nsuper, super) == NULL) {
             return false;
         }
     }
 
     return true;
-}
-
-int
-groups_comp(const gid_t *const gid1, const gid_t *const gid2)
-{
-    assert(gid1 != NULL);
-    assert(gid2 != NULL);
-
-    if (*gid1 < *gid2) {
-        return -1;
-    }
-
-    if (*gid1 > *gid2) {
-        return 1;
-    }
-
-    return 0;
 }

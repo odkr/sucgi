@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -44,6 +44,50 @@
 #include "priv.h"
 #include "types.h"
 
+
+/*
+ * Macros
+ */
+
+/* getgroups is unreliable on macOS. */
+#if !defined(__MACH__)
+#define SGROUPS_ARE_SUBSET(...) (sgroups_are_subset(__VA_ARGS__))
+#else
+#define SGROUPS_ARE_SUBSET(...) (true)
+#endif
+
+
+/*
+ * Prototypes
+ */
+
+/*
+ * Check whether the secondary groups are a subset of the given groups.
+ *
+ * Caveats:
+ *      Unreliable on macOS.
+ */
+static bool sgroups_are_subset(size_t ngroups, const gid_t *groups) _unused;
+
+
+/*
+ * Functions
+ */
+
+static bool
+sgroups_are_subset(size_t ngroups, const gid_t *const groups)
+{
+    ASSERT(MAX_NGROUPS < SIZE_MAX);
+
+    gid_t sgroups[MAX_NGROUPS];
+    int numsgroups = getgroups(MAX_NGROUPS, sgroups);
+    if (numsgroups < 0) {
+        return false;
+    }
+
+    return groups_are_subset((size_t) numsgroups, sgroups, ngroups, groups);
+}
+
 Error
 priv_drop(const uid_t uid, const gid_t gid,
           const NGRPS_T ngroups, const gid_t *const groups)
@@ -51,6 +95,7 @@ priv_drop(const uid_t uid, const gid_t gid,
     assert(uid > 0);
     assert(gid > 0);
     assert(ngroups > 0);
+    assert((uintmax_t) ngroups <= (uintmax_t) SIZE_MAX);
 
     errno = 0;
     if (setgroups(ngroups, groups) != 0) {
@@ -88,11 +133,7 @@ priv_drop(const uid_t uid, const gid_t gid,
     assert(getegid() == gid);
     assert(getuid() == uid);
     assert(getgid() == gid);
-
-/* getgroups is unreliable on macOS. */
-#if !defined(__MACH__)
-    assert(groups_sub((size_t) ngroups, groups));
-#endif
+    assert(SGROUPS_ARE_SUBSET((size_t) ngroups, groups));
 
     return OK;
 }
@@ -102,15 +143,21 @@ priv_suspend(void)
 {
     const uid_t uid = getuid();
     const gid_t gid = getgid();
-    const gid_t gids[] = {gid};
-    const bool super = getuid() == 0;
 
-    if (super) {
+    if (geteuid() == 0) {
+        const gid_t gids[] = {gid};
+        const size_t ngids = NELEMS(gids);
+
+        assert((uintmax_t) ngids < (uintmax_t) MAX_NGRPS_VAL);
+
         errno = 0;
-        if (setgroups(NELEMS(gids), gids) != 0) {
+        /* cppcheck-suppress misra-c2012-10.8; information cannot be lost. */
+        if (setgroups((NGRPS_T) NELEMS(gids), gids) != 0) {
             /* NOTREACHED */
             return ERR_SYS;
         }
+
+        assert(SGROUPS_ARE_SUBSET(ngids, gids));
     }
 
     errno = 0;
@@ -137,11 +184,6 @@ priv_suspend(void)
 
     assert(getuid() == geteuid());
     assert(getgid() == getegid());
-
-/* getgroups is unreliable on macOS. */
-#if !defined(__MACH__)
-    assert(!super || groups_sub(NELEMS(gids), (gids)));
-#endif /* !defined(__MACH__) */
 
     return OK;
 }

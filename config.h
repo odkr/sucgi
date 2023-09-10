@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -27,10 +27,9 @@
 /*
  * Just in case your C is rusty:
  *
- *  - #define statements are terminated with a linefeed, not a semicolon.
- *  - For a #define to span multiple lines,
- *    the linefeed must be escaped with a backslash.
- *  - Strings are given in double quotes ("..."), not single quotes ('...').
+ *  - #define statements are terminated with a linefeed, NOT a semicolon.
+ *  - To continue a #define on the next line, escape the linefeed with "\".
+ *  - Strings must be given in double quotes ("..."), NOT single ones ('...').
  */
 
 
@@ -97,7 +96,7 @@
  * The handler is looked up in $PATH if its name is relative (e.g., "php").
  * Keep in mind that $PATH is set to PATH (see below).
  *
- * If no handler can be found, suCGI will execute the CGI script itself.
+ * If no handler can be found, suCGI will execute the CGI script directly.
  */
 /*
 #define HANDLERS { \

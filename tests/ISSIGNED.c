@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -30,7 +30,7 @@
 #include <stdbool.h>
 
 #include "../macros.h"
-#include "util/types.h"
+#include "libutil/types.h"
 
 
 /*
@@ -40,7 +40,7 @@
 /* Test whether ISSIGNED returns "ret" for the given type. */
 #define TEST(type, ret)                                             \
     do {                                                            \
-        bool _test_ret = ISSIGNED(type);                            \
+        const bool _test_ret = ISSIGNED(type);                      \
         if (_test_ret != (ret)) {                                   \
             warnx("(" #type ") → %d [!]", _test_ret);               \
             result = FAIL;                                          \

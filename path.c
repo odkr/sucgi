@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -42,8 +42,6 @@ Error
 path_real(const size_t fnamelen, const char *const fname,
           size_t *const reallen, char **const real)
 {
-    size_t len;
-
     assert(fname != NULL);
     assert(*fname != '\0');
     assert(strnlen(fname, MAX_FNAME_LEN) == fnamelen);
@@ -63,7 +61,7 @@ path_real(const size_t fnamelen, const char *const fname,
         return ERR_SYS;
     }
 
-    len = strnlen(*real, MAX_FNAME_LEN);
+    size_t len = strnlen(*real, MAX_FNAME_LEN);
     if (reallen != NULL) {
         *reallen = len;
     }
@@ -80,8 +78,6 @@ path_real(const size_t fnamelen, const char *const fname,
 Error
 path_suffix(const char *const fname, const char **const suffix)
 {
-    const char *pathsep = NULL;
-
     assert(fname != NULL);
     assert(*fname != '\0');
     assert(strnlen(fname, MAX_FNAME_LEN) < (size_t) MAX_FNAME_LEN);
@@ -101,7 +97,7 @@ path_suffix(const char *const fname, const char **const suffix)
         return ERR_SUFFIX;
     }
 
-    pathsep = strchr(*suffix, '/');
+    const char *pathsep = strchr(*suffix, '/');
     if (pathsep == NULL) {
         return OK;
     }
@@ -114,7 +110,7 @@ path_suffix(const char *const fname, const char **const suffix)
 }
 
 bool
-path_within(const size_t fnamelen, const char *const fname,
+path_is_sub(const size_t fnamelen, const char *const fname,
             const size_t basedirlen, const char *const basedir)
 {
     assert(basedir != NULL);

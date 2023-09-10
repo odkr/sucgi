@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -27,8 +27,8 @@
 #include <stdlib.h>
 
 #include "../macros.h"
-#include "util/abort.h"
-#include "util/types.h"
+#include "libutil/abort.h"
+#include "libutil/types.h"
 
 
 /*
@@ -39,13 +39,13 @@
 #define TESTN(type, n)                                                      \
     do {                                                                    \
         for (volatile size_t _test_i = 1; _test_i < (n); ++_test_i) {       \
-            type _test_arr[_test_i];                                        \
-            size_t _test_n;                                                 \
                                                                             \
             if (sigsetjmp(abort_env, 1) == 0) {                             \
+                type _test_arr[_test_i];                                    \
+                                                                            \
                 (void) abort_catch(err);                                    \
                 abort_signal = 0;                                           \
-                _test_n = NELEMS(_test_arr);                                \
+                const size_t _test_n = NELEMS(_test_arr);                   \
                 (void) abort_reset(err);                                    \
                                                                             \
                 if (_test_n != _test_i) {                                   \

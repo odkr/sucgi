@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -36,8 +36,9 @@
 #include "../handler.h"
 #include "../macros.h"
 #include "../params.h"
-#include "util/abort.h"
-#include "util/types.h"
+#include "libutil/abort.h"
+#include "libutil/str.h"
+#include "libutil/types.h"
 
 
 /*
@@ -60,14 +61,13 @@ typedef struct {
 int
 main(void)
 {
-#if !defined(NDEBUG)
+    /* RATS: ignore; used safely. */
+    char hugefname[(size_t) MAX_FNAME_LEN + 1U] _unused;
+    str_fill(sizeof(hugefname), hugefname, 'x');
 
     /* RATS: ignore; used safely. */
-    char hugefname[MAX_FNAME_LEN + 1U] = {0};
-#endif
-
-    /* RATS: ignore; used safely. */
-    char longfname[MAX_FNAME_LEN] = {0};
+    char longfname[MAX_FNAME_LEN];
+    str_fill(sizeof(longfname), longfname, 'x');
 
     const HandlerFindArgs cases[] = {
 #if !defined(NDEBUG)
@@ -127,54 +127,48 @@ main(void)
 
     volatile int result = PASS;
 
-#if !defined(NDEBUG)
-    (void) memset(hugefname, 'x', sizeof(hugefname) - 1U);
-#endif
-    (void) memset(longfname, 'x', sizeof(longfname) - 1U);
-
     for (volatile size_t i = 0; i < NELEMS(cases); ++i) {
         const HandlerFindArgs args = cases[i];
 
         if (sigsetjmp(abort_env, 1) == 0) {
-            const char *handler = NULL;
-            size_t scriptlen;
-            Error retval;
-
-            scriptlen = strnlen(args.script, (size_t) MAX_FNAME_LEN + 1U);
+            size_t scriptlen = strnlen(args.script,
+                                       (size_t) MAX_FNAME_LEN + 1U);
             assert(scriptlen <= (size_t) MAX_FNAME_LEN);
 
             if (args.signal != 0) {
                 warnx("the next test should fail an assertion.");
             }
 
+            const char *handler = NULL;
+
             (void) abort_catch(err);
-            retval = handler_find(NELEMS(handlers), handlers,
-                                  scriptlen, args.script, &handler);
+            const Error retval = handler_find(NELEMS(handlers), handlers,
+                                              scriptlen, args.script, &handler);
             (void) abort_reset(err);
 
             if (args.retval != retval) {
-                warnx("%zu: (<handlers>, %s, → %s) → %u [!]",
-                      i, args.script, handler, retval);
+                warnx("(<handlers>, %s, → %s) → %u [!]",
+                      args.script, handler, retval);
                 result = FAIL;
             }
 
             if (retval == OK) {
                 if (handler == NULL) {
                     result = FAIL;
-                    warnx("%zu: (<handlers>, %s, → %p [!]) → %u",
-                          i, args.script, (const void *) handler, retval);
+                    warnx("(<handlers>, %s, → %p [!]) → %u",
+                          args.script, (const void *) handler, retval);
                 } else if (strncmp(handler, args.handler, MAX_STR_LEN) != 0) {
                     result = FAIL;
-                    warnx("%zu: (<handlers>, %s, → %s [!]) → %u",
-                          i, args.script, handler, retval);
+                    warnx("(<handlers>, %s, → %s [!]) → %u",
+                          args.script, handler, retval);
                 } /* cppcheck-suppress misra-c2012-15.7; no else needed. */
             }
         }
 
         if (abort_signal != args.signal) {
             result = FAIL;
-            warnx("%zu: (<handlers>, %s, → <handler>) ↑ %s [!]",
-                  i, args.script, strsignal(abort_signal));
+            warnx("(<handlers>, %s, → <handler>) ↑ %s [!]",
+                  args.script, strsignal(abort_signal));
         }
     }
 

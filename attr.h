@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -37,32 +37,32 @@
  * compile against some standard libraries, e.g., that of macOS.
  */
 #if !defined(NATTR) || !NATTR
-#define _attribute(...)     __attribute__((__VA_ARGS__))
+#define _attr(...)          __attribute__((__VA_ARGS__))
 #else
-#define _attribute(...)
+#define _attr(...)
 #endif
 
-#define _format(...)        _attribute(format(__VA_ARGS__))
-#define _noreturn           _attribute(noreturn)
-#define _unused             _attribute(unused)
+#define _format(...)        _attr(format(__VA_ARGS__))
+#define _noreturn           _attr(noreturn)
+#define _unused             _attr(unused)
 
 #if defined(__GNUC__) && \
     (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__  >= 3))
-#define _nonnull(...)       _attribute(nonnull(__VA_ARGS__))
+#define _nonnull(...)       _attr(nonnull(__VA_ARGS__))
 #else
 #define _nonnull(...)
 #endif
 
 #if defined(__GNUC__) && \
     (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__  >= 4))
-#define _nodiscard          _attribute(warn_unused_result)
+#define _nodiscard          _attr(warn_unused_result)
 #else
 #define _nodiscard
 #endif
 
 #if defined(__GNUC__) && __GNUC__ >= 10
-/* RATS: ignore; not a call to the function access. */
-#define _access(...)        _attribute(access(__VA_ARGS__))
+/* RATS: ignore; not a call to access. */
+#define _access(...)        _attr(access(__VA_ARGS__))
 #else
 #define _access(...)
 #endif

@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -33,10 +33,10 @@
 #include "../params.h"
 #include "../str.h"
 #include "../types.h"
-#include "util/abort.h"
-#include "util/array.h"
-#include "util/str.h"
-#include "util/types.h"
+#include "libutil/abort.h"
+#include "libutil/array.h"
+#include "libutil/str.h"
+#include "libutil/types.h"
 
 
 /*
@@ -73,11 +73,13 @@ main(void)
 #if !defined(NDEBUG)
 
     /* RATS: ignore; used safely. */
-    char hugestr[MAX_STR_LEN + 1U] = {0};
+    char hugestr[MAX_STR_LEN + 1U];
+    str_fill(sizeof(hugestr), hugestr, 'x');
 #endif
 
     /* RATS: ignore; used safely. */
-    char longstr[MAX_STR_LEN] = {0};
+    char longstr[MAX_STR_LEN];
+    str_fill(sizeof(longstr), longstr, 'x');
 
     /* cppcheck-suppress [misra-c2012-9.3, misra-c2012-9.4] */
     const StrFmtSpecsArgs cases[] = {
@@ -177,26 +179,21 @@ main(void)
 
     volatile int result = PASS;
 
-#if !defined(NDEBUG)
-    (void) memset(hugestr, 'x', sizeof(hugestr) - 1U);
-#endif
-    (void) memset(longstr, 'x', sizeof(longstr) - 1U);
-
     for (volatile size_t i = 0; i < NELEMS(cases); ++i) {
         const StrFmtSpecsArgs args = cases[i];
 
         if (sigsetjmp(abort_env, 1) == 0) {
-            /* RATS: ignore; used safely. */
-            const char *specs[MAX_ARRAY_LEN] = {0};
-            size_t nspecs = 0;
-            Error retval = OK;
-
             if (args.signal != 0) {
                 warnx("the next test should fail an assertion.");
             }
 
+            /* RATS: ignore; used safely. */
+            const char *specs[MAX_ARRAY_LEN];
+            size_t nspecs = 0;
+
             (void) abort_catch(err);
-            retval = str_fmtspecs(args.str, args.maxnspecs, &nspecs, specs);
+            const Error retval = str_fmtspecs(args.str, args.maxnspecs,
+                                              &nspecs, specs);
             (void) abort_reset(err);
 
             if (retval != args.retval) {
@@ -212,7 +209,7 @@ main(void)
                           i, args.str, args.maxnspecs, nspecs, retval);
                 }
 
-                if (!array_eq(args.specs, nspecs, sizeof(*args.specs),
+                if (!array_equals(args.specs, nspecs, sizeof(*args.specs),
                               specs, nspecs, sizeof(*specs),
                               (CompFn) str_cmp_ptrs))
                 {

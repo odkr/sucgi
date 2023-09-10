@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -42,7 +42,7 @@
  */
 _read_only(1) _read_only(2) _write_only(4) _write_only(5, 3)
     _format(printf, 1, 0) _nonnull(1, 2, 5) _nodiscard
-Error userdir_exp(const char *str, const struct passwd *user,
+Error userdir_expand(const char *str, const struct passwd *user,
                   size_t size, size_t *dirlen, char *dir);
 
 

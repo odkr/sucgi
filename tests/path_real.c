@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -42,13 +42,13 @@
 #include "../params.h"
 #include "../path.h"
 #include "../types.h"
-#include "util/abort.h"
-#include "util/array.h"
-#include "util/dir.h"
-#include "util/path.h"
-#include "util/sigs.h"
-#include "util/tmpdir.h"
-#include "util/types.h"
+#include "libutil/abort.h"
+#include "libutil/array.h"
+#include "libutil/dir.h"
+#include "libutil/path.h"
+#include "libutil/sigs.h"
+#include "libutil/tmpdir.h"
+#include "libutil/types.h"
 
 
 /*
@@ -195,11 +195,37 @@ static void cleanup(void);
 int
 main(void)
 {
-    /* RATS: ignore; used safely. */
-    char hugefname[MAX_FNAME_LEN + 1] = {0};
+    (void) sigs_handle(catch_sig, SIGS_NTERM, sigs_term, NULL, err);
+
+    /* RATS: ignore; umask is restrictive. */
+    (void) umask(S_ISUID | S_ISGID | S_ISVTX | S_IRWXG | S_IRWXO);
+
+    errno = 0;
+    if (atexit(cleanup) != 0) {
+        err(ERROR, "atexit");
+    }
+
+    (void) tmpdir_make("tmp-XXXXXX", &tmpdir, err);
+    assert(tmpdir != NULL);
+
+    const size_t tmpdirlen = strnlen(tmpdir, MAX_FNAME_LEN);
+
+    if (tmpdirlen >= (size_t) MAX_FNAME_LEN) {
+        errx(ERROR, "%s: filename too long", tmpdir);
+    }
+
+    if (chdir(tmpdir) != 0) {
+        err(ERROR, "chdir %s", tmpdir);
+    }
 
     /* RATS: ignore; used safely. */
-    char longfname[MAX_FNAME_LEN] = {0};
+    char hugefname[MAX_FNAME_LEN + 1];
+    path_gen(sizeof(hugefname) - 1U, hugefname);
+
+    /* RATS: ignore; used safely. */
+    char longfname[MAX_FNAME_LEN];
+    /* "- 2U" because of '/' and the terminating '\0'. */
+    path_gen(sizeof(longfname) - tmpdirlen - 2U, longfname);
 
     /* cppcheck-suppress [misra-c2012-9.3, misra-c2012-9.4] */
     const PathRealArgs cases[] = {
@@ -240,59 +266,12 @@ main(void)
     };
 
     volatile int result = PASS;
-    char *realtmpdir;
-    size_t tmpdirlen;
-
-    (void) sigs_handle(catch_sig, SIGS_NTERM, sigs_term, NULL, err);
-
-    /* RATS: ignore; umask is restrictive. */
-    (void) umask(S_ISUID | S_ISGID | S_ISVTX | S_IRWXG | S_IRWXO);
-
-    errno = 0;
-    if (atexit(cleanup) != 0) {
-        err(ERROR, "atexit");
-    }
-
-    (void) tmpdir_make("tmp-XXXXXX", &tmpdir, err);
-    assert(tmpdir != NULL);
-
-    if (strnlen(tmpdir, MAX_FNAME_LEN) >= (size_t) MAX_FNAME_LEN) {
-        errx(ERROR, "%s: filename too long", tmpdir);
-    }
-
-    errno = 0;
-    /* RATS: ignore; used safely. */
-    realtmpdir = realpath(tmpdir, NULL);
-    if (realtmpdir == NULL) {
-        err(ERROR, "realpath %s", tmpdir);
-    }
-
-    free(tmpdir);
-    tmpdir = realtmpdir;
-
-    if (chdir(tmpdir) != 0) {
-        err(ERROR, "chdir %s", tmpdir);
-    }
-
-    tmpdirlen = strnlen(tmpdir, MAX_FNAME_LEN);
-
-    path_gen(sizeof(hugefname) - 1U, hugefname);
-    /* "- 2U" because of '/' and the terminating '\0'. */
-    path_gen(sizeof(longfname) - tmpdirlen - 2U, longfname);
 
     for (volatile size_t i = 0; i < NELEMS(cases) && caught == 0; ++i) {
         const PathRealArgs args = cases[i];
-        char *topseg;
 
-        abort_signal = 0;
         if (sigsetjmp(abort_env, 1) == 0) {
-            char *real = NULL;
-            size_t fnamelen;
-            size_t reallen;
-            const Error *retvalp = NULL;
-            Error retval;
-
-            fnamelen = strnlen(args.fname, MAX_STR_LEN);
+            size_t fnamelen = strnlen(args.fname, MAX_STR_LEN);
             assert(fnamelen < MAX_STR_LEN);
 
             switch(args.type) {
@@ -316,18 +295,24 @@ main(void)
                 warnx("the next test should fail an assertion.");
             }
 
+            char *real = NULL;
+            size_t reallen = 0;
+
             (void) abort_catch(err);
-            retval = path_real(fnamelen, args.fname, &reallen, &real);
+            const Error retval = path_real(fnamelen, args.fname,
+                                           &reallen, &real);
             (void) abort_reset(err);
 
             /* cppcheck-suppress misra-c2012-11.5; this conversion is fine. */
-            retvalp = array_find(&retval, args.retvals, args.nretvals,
-                                sizeof(*args.retvals), (CompFn) cmp_errs);
+            const Error *const retvalp = array_find(
+                &retval, args.retvals, args.nretvals,
+                sizeof(*args.retvals), (CompFn) cmp_errs
+            );
 
             if (retvalp == NULL) {
                 result = FAIL;
-                warnx("%zu: (<fnamelen>, %s, → %zu, → %s) → %u [!]",
-                      i, args.fname, reallen, real, retval);
+                warnx("(<fnamelen>, %s, → %zu, → %s) → %u [!]",
+                      args.fname, reallen, real, retval);
             }
 
             if (retval == OK) {
@@ -335,14 +320,14 @@ main(void)
                     reallen >= (size_t) MAX_FNAME_LEN)
                 {
                     result = FAIL;
-                    warnx("%zu: (<fnamelen>, %s, → %zu [!], → %s) → %u",
-                          i, args.fname, reallen, real, retval);
+                    warnx("(<fnamelen>, %s, → %zu [!], → %s) → %u",
+                          args.fname, reallen, real, retval);
                 }
 
                 if (strcmp(args.real, &real[tmpdirlen + 1U]) != 0) {
                     result = FAIL;
-                    warnx("%zu: (<fnamelen>, %s, → %zu, → %s [!]) → %u",
-                          i, args.fname, reallen, real, retval);
+                    warnx("(<fnamelen>, %s, → %zu, → %s [!]) → %u",
+                          args.fname, reallen, real, retval);
                 }
             }
 
@@ -353,9 +338,11 @@ main(void)
 
         if (abort_signal != args.signal) {
             result = FAIL;
-            warnx("%zu: (<fnamelen>, %s, → <reallen>, → <real>) ↑ %s [!]",
-                  i, args.fname, strsignal(abort_signal));
+            warnx("(<fnamelen>, %s, → <reallen>, → <real>) ↑ %s [!]",
+                  args.fname, strsignal(abort_signal));
         }
+
+        char *topseg;
 
         switch(args.type) {
         case FT_LINK_FILE:
@@ -544,7 +531,7 @@ cmp_errs(const void *const ptr1, const void *const ptr2)
 
     /*
      * Cast to pointer-to-object is safe because cmp_errs is only called by
-     * array_is_sub, which only calls cmp_errs for an array of Errors.
+     * array_is_subset, which only calls cmp_errs for an array of Errors.
      */
     err1 = *((const Error *) ptr1); /* cppcheck-suppress misra-c2012-11.5 */
     err2 = *((const Error *) ptr2); /* cppcheck-suppress misra-c2012-11.5 */

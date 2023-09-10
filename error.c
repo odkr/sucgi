@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -47,12 +47,11 @@
 void
 error(const char *const message, ...)
 {
-    va_list argp;
-
     assert(message != NULL);
     assert(*message != '\0');
     assert(strnlen(message, MAX_ERRMSG_LEN) < MAX_ERRMSG_LEN);
 
+    va_list argp;
     va_start(argp, message);
     vsyslog(LOG_ERR, message, argp);
     va_end(argp);

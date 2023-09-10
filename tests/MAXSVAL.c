@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -29,8 +29,8 @@
 #include <stdlib.h>
 
 #include "../macros.h"
-#include "util/abort.h"
-#include "util/types.h"
+#include "libutil/abort.h"
+#include "libutil/types.h"
 
 
 /*
@@ -38,25 +38,23 @@
  */
 
 /* Check whether MAXSVAL returns "n" for the given type. */
-#define TEST(type, n)                                       \
-    do {                                                    \
-        unsigned long long _test_n = (n);                   \
-                                                            \
-        if (sigsetjmp(abort_env, 1) == 0) {                 \
-            unsigned long long _test_m;                     \
-                                                            \
-            (void) abort_catch(err);                        \
-            abort_signal = 0;                               \
-            _test_m = MAXSVAL(type);                        \
-            (void) abort_reset(err);                        \
-                                                            \
-            if (_test_m != _test_n) {                       \
-                result = FAIL;                              \
-                warnx("(" #type ") → %llu [!]", _test_m);   \
-            }                                               \
-        } else {                                            \
-            warnx("(" #type ") ↑ %d [!]", abort_signal);    \
-        }                                                   \
+#define TEST(type, n)                                           \
+    do {                                                        \
+        const unsigned long long _test_n = (n);                 \
+                                                                \
+        if (sigsetjmp(abort_env, 1) == 0) {                     \
+                                                                \
+            (void) abort_catch(err);                            \
+            const unsigned long long _test_m = MAXSVAL(type);   \
+            (void) abort_reset(err);                            \
+                                                                \
+            if (_test_m != _test_n) {                           \
+                result = FAIL;                                  \
+                warnx("(" #type ") → %llu [!]", _test_m);       \
+            }                                                   \
+        } else {                                                \
+            warnx("(" #type ") ↑ %d [!]", abort_signal);        \
+        }                                                       \
     } while (false)
 
 
@@ -75,9 +73,7 @@ static int result = PASS;
 int
 main(void)
 {
-    /*
-     * These tests will fail on systems that pad integer types.
-     */
+    warnx("the following tests will fail for types with padding bits.");
 
     TEST(signed char, CHAR_MAX);
     TEST(unsigned char, CHAR_MAX);

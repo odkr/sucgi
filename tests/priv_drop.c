@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -48,9 +48,9 @@
 #include "../macros.h"
 #include "../params.h"
 #include "../priv.h"
-#include "util/array.h"
-#include "util/user.h"
-#include "util/types.h"
+#include "libutil/array.h"
+#include "libutil/user.h"
+#include "libutil/types.h"
 
 
 /*
@@ -105,7 +105,7 @@ main(void)
     ASSERT((NGRPS_T) MAX_NGRPS_VAL == MAX_NGRPS_VAL);
 
     const uid_t superuid = 0;
-    const gid_t supergid = 0;
+    const gid_t supergid _unused = 0;
     uid_t regularuid;
     uid_t regulargid;
 
@@ -184,12 +184,10 @@ main(void)
 
     for (size_t i = 0; i < NELEMS(cases); ++i) {
         const PrivDropArgs args = cases[i];
-        struct passwd *targetuser;
-        pid_t pid;
 
         errno = 0;
         /* cppcheck-suppress getpwuidCalled; used safely. */
-        targetuser = getpwuid(args.targetuid);
+        const struct passwd *const targetuser = getpwuid(args.targetuid);
         if (targetuser == NULL) {
             /* cppcheck-suppress misra-c2012-22.10; getpwuid sets errno. */
             if (errno == 0) {
@@ -201,27 +199,16 @@ main(void)
         }
 
         /* RATS: ignore; fork is used safely. */
-        pid = fork();
+        const pid_t pid = fork();
         if (pid == 0) {
-            gid_t targetgids[MAX_NGROUPS];
-            gid_t gids[MAX_NGROUPS];
-            uid_t ruid;
-            uid_t euid;
-            gid_t rgid;
-            gid_t egid;
-            int ntargetgids = NELEMS(targetgids);
-            int ngids;
-            Error retval;
-
             if (geteuid() == 0) {
-                gid_t args_rgid;
                 gid_t args_egid;
-
                 if (user_get_gid(args.euid, &args_egid, err) != 0) {
                     errx(ERROR, "UID %s: no such user",
                          user_id_to_str(args.euid, err));
                 }
 
+                gid_t args_rgid;
                 if (user_get_gid(args.ruid, &args_rgid, err) != 0) {
                     errx(ERROR, "UID %s: no such user",
                          user_id_to_str(args.ruid, err));
@@ -242,6 +229,8 @@ main(void)
                 }
             }
 
+            gid_t targetgids[MAX_NGROUPS];
+            int ntargetgids = NELEMS(targetgids);
             if (getgrouplist(targetuser->pw_name, (GRP_T) args.targetgid,
                              (GRP_T *) targetgids, &ntargetgids) < 0)
             {
@@ -253,8 +242,8 @@ main(void)
                 warnx("the next test should fail an assertion.");
             }
 
-            retval = priv_drop(args.targetuid, args.targetgid,
-                              (NGRPS_T) ntargetgids, targetgids);
+            const Error retval = priv_drop(args.targetuid, args.targetgid,
+                                           (NGRPS_T) ntargetgids, targetgids);
             if (retval != args.retval) {
                 errx(FAIL, "%s → %u [!]", fnsig_to_str(&args), retval);
             }
@@ -263,39 +252,40 @@ main(void)
                 exit(0);
             }
 
-            ruid = getuid();
+            const uid_t ruid = getuid();
             if (ruid != args.targetuid) {
                 errx(FAIL, "%s ─→ <ruid> = %s [!]",
                      fnsig_to_str(&args), user_id_to_str(ruid, err));
             }
 
-            euid = geteuid();
+            const uid_t euid = geteuid();
             if (euid != args.targetuid) {
                 errx(FAIL, "%s ─→ <euid> = %s [!]",
                      fnsig_to_str(&args), user_id_to_str(euid, err));
             }
 
-            rgid = getgid();
+            const gid_t rgid = getgid();
             if (rgid != args.targetgid) {
                 errx(FAIL, "%s ─→ <rgid> = %s [!]",
                      fnsig_to_str(&args), user_id_to_str(rgid, err));
             }
 
-            egid = getegid();
+            const gid_t egid = getegid();
             if (egid != args.targetgid) {
                 errx(FAIL, "%s ─→ <egid> = %s [!]",
                      fnsig_to_str(&args), user_id_to_str(egid, err));
             }
 
+            gid_t gids[MAX_NGROUPS];
             errno = 0;
-            ngids = getgroups(MAX_NGROUPS, gids);
+            const int ngids = getgroups(MAX_NGROUPS, gids);
             if (ngids == -1) {
                 err(ERROR, "getgroups");
             }
 
             if (ntargetgids == ngids) {
                 if (
-                    !array_eq(
+                    !array_equals(
                         gids, (size_t) ngids, sizeof(*gids),
                         targetgids, (size_t) ntargetgids, sizeof(*targetgids),
                         (CompFn) groups_comp
@@ -306,7 +296,7 @@ main(void)
                 }
             } else if (ntargetgids > ngids) {
                 if (
-                    !array_is_sub(
+                    !array_is_subset(
                         gids, (size_t) ngids, sizeof(*gids),
                         targetgids, (size_t) ntargetgids, sizeof(*targetgids),
                         (CompFn) groups_comp

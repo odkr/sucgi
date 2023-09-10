@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -26,6 +26,7 @@
 #endif
 
 #include <assert.h>
+#include <stddef.h>
 #include <string.h>
 
 #include "handler.h"
@@ -40,11 +41,6 @@ handler_find(const size_t nhandlers, const Pair *const handlerdb,
              const size_t fnamelen, const char *const fname,
              const char **const handler)
 {
-    const char *suffix;
-    size_t basenamelen;
-    size_t suffixlen;
-    Error ret;
-
     assert(handlerdb != NULL);
     assert(fname != NULL);
     assert(*fname != '\0');
@@ -53,7 +49,8 @@ handler_find(const size_t nhandlers, const Pair *const handlerdb,
 
     *handler = NULL;
 
-    ret = path_suffix(fname, &suffix);
+    const char *suffix = NULL;
+    Error ret = path_suffix(fname, &suffix);
     if (ret != OK) {
         return ret;
     }
@@ -61,16 +58,13 @@ handler_find(const size_t nhandlers, const Pair *const handlerdb,
     assert(suffix != NULL);
     assert(suffix >= fname);
 
-    /*
-     * The cast is safe and portable.
-     * And MISRA C permits pointer subtraction.
-     */
-    basenamelen = (size_t)          /* cppcheck-suppress misra-c2012-10.8 */
-                  (suffix - fname); /* cppcheck-suppress misra-c2012-18.4 */
+    /* cppcheck-suppress misra-c2012-18.4; safe pointer subtraction. */
+    ptrdiff_t basenamelen = suffix - fname;
+    assert(basenamelen >= 0);
+    /* fnamelen must be smaller than SIZE_MAX. */
+    assert((uintmax_t) basenamelen < (uintmax_t) fnamelen);
 
-    assert(fnamelen > basenamelen);
-
-    suffixlen = fnamelen - basenamelen;
+    size_t suffixlen = fnamelen - (size_t) basenamelen;
 
     assert(strnlen(suffix, MAX_STR_LEN) == suffixlen);
 

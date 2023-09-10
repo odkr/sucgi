@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -157,8 +157,6 @@ config(void)
 
     (void) printf("\n# Limits\n");
 
-    (void) printf("INVALID_GID=%llu\n",
-                  (unsigned long long) INVALID_GID);
     (void) printf("MAX_STR_LEN=%llu\n",
                   (unsigned long long) MAX_STR_LEN);
     (void) printf("MAX_ERRMSG_LEN=%llu\n",
@@ -246,7 +244,7 @@ usage(void)
 
 int
 main(int argc, char **argv) {
-    Error ret;
+    Error retval;
 
 
     /*
@@ -314,11 +312,9 @@ main(int argc, char **argv) {
      * > info. Bad news if MALLOC_DEBUG_FILE is set to /etc/passwd.)
      */
 
-    char *const *vars;
-    char *null;
+    char *const *vars = environ;
+    char *null = NULL;
 
-    null = NULL;
-    vars = environ;
     environ = &null;
 
 
@@ -340,10 +336,10 @@ main(int argc, char **argv) {
      * Drop privileges temporarily.
      */
 
-    ret = priv_suspend();
-    if (ret != OK) {
+    retval = priv_suspend();
+    if (retval != OK) {
         /* NOTREACHED */
-        BUG("priv_suspend() -> %d [!]", ret);
+        BUG("priv_suspend(): returned %d.", retval);
     }
 
 
@@ -365,10 +361,10 @@ main(int argc, char **argv) {
 
         if (arg == NULL) {
             /* NOTREACHED */
-            error("argument no. %d is the null pointer.", i);
+            error("argument %d is the null pointer.", i);
         }
 
-        if (strnlen(arg, 3U) == 2U && arg[0] == '-') {
+        if (strnlen(arg, sizeof("-X")) == 2U && arg[0] == '-') {
             switch (arg[1]) {
             case 'C':
                 config();
@@ -392,12 +388,9 @@ main(int argc, char **argv) {
      */
 
     regex_t safe_var_pregs[NELEMS(safe_var_patterns)];
-
     for (size_t i = 0; i < NELEMS(safe_var_patterns); ++i) {
-        int err;
-
-        err = regcomp(&safe_var_pregs[i], safe_var_patterns[i],
-                      REG_EXTENDED | REG_NOSUB);
+        int err = regcomp(&safe_var_pregs[i], safe_var_patterns[i],
+                          REG_EXTENDED | REG_NOSUB);
         if (err != 0) {
             /* RATS: ignore; regerror respects the size of errmsg. */
             char errmsg[MAX_ERRMSG_LEN];
@@ -408,22 +401,24 @@ main(int argc, char **argv) {
         }
     }
 
-    ret = env_init();
-    switch (ret) {
+    retval = env_init();
+    switch (retval) {
     case OK:
         break;
+    case ERR_BAD:
+        error("minimal conforming environment is malformed.");
     case ERR_LEN:
-        error("minimal conforming environment is too large.");
+        error("minimal conforming environment contains too many variables.");
     case ERR_SYS:
         error("setenv: %m.");
     default:
         /* NOTREACHED */
-        BUG("env_init() -> %d [!]", ret);
+        BUG("env_init(): returned %d.", retval);
     }
 
-    ret = env_restore((const char *const *) vars,
-                      NELEMS(safe_var_pregs), safe_var_pregs);
-    switch (ret) {
+    retval = env_restore((const char *const *) vars,
+                         NELEMS(safe_var_pregs), safe_var_pregs);
+    switch (retval) {
     case OK:
         break;
     case ERR_LEN:
@@ -432,8 +427,8 @@ main(int argc, char **argv) {
         error("setenv: %m.");
     default:
         /* NOTREACHED */
-        BUG("env_restore(%p, %zu, %p) -> %d [!]",
-            vars, NELEMS(safe_var_pregs), safe_var_pregs, ret);
+        BUG("env_restore(%p, %zu, %p): returned %d.",
+            vars, NELEMS(safe_var_pregs), safe_var_pregs, retval);
     }
 
 
@@ -441,16 +436,12 @@ main(int argc, char **argv) {
      * Get the script's filename and filesystem metadata.
      */
 
-    /* RATS: ignore; env_copy_var respects the size of scriptname. */
+    /* RATS: ignore; env_get respects the size of scriptname. */
     char scriptname[MAX_VAR_LEN];
-    char *realscriptname;
-    struct stat scriptstatus;
-    size_t scriptnamelen;
-    size_t realscriptnamelen;
-
-    ret = env_copy_var("PATH_TRANSLATED", sizeof(scriptname) - 1U,
-                       &scriptnamelen, scriptname);
-    switch (ret) {
+    size_t scriptnamelen = 0;
+    retval = env_get("PATH_TRANSLATED", sizeof(scriptname),
+                     scriptname, &scriptnamelen);
+    switch (retval) {
     case OK:
         break;
     case ERR_LEN:
@@ -459,28 +450,31 @@ main(int argc, char **argv) {
         error("$PATH_TRANSLATED: not set.");
     default:
         /* NOTREACHED */
-        BUG("env_copy_var(PATH_TRANSLATED, %zu, -> %zu, -> %s) -> %d [!]",
-            sizeof(scriptname) - 1U, scriptnamelen, scriptname, ret);
+        BUG("env_get(PATH_TRANSLATED, %zu, %s, %zu): returned %d.",
+            sizeof(scriptname) - 1U, scriptname, scriptnamelen, retval);
     }
 
     if (*scriptname == '\0') {
         error("$PATH_TRANSLATED: empty.");
     }
 
-    ret = path_real(scriptnamelen, scriptname,
-                    &realscriptnamelen, &realscriptname);
-    switch (ret) {
+    char *realscriptname = NULL;
+    size_t realscriptnamelen = 0;
+    retval = path_real(scriptnamelen, scriptname,
+                       &realscriptnamelen, &realscriptname);
+    switch (retval) {
     case OK:
         break;
     case ERR_SYS:
         error("realpath %s: %m.", scriptname);
     default:
         /* NOTREACHED */
-        BUG("path_real(%zu, %s, -> %zu, -> %s) -> %d [!]",
+        BUG("path_real(%zu, %s, %zu, %s): returned %d.",
             scriptnamelen, scriptname,
-            realscriptnamelen, realscriptname, ret);
+            realscriptnamelen, realscriptname, retval);
     }
 
+    struct stat scriptstatus;
     if (stat(realscriptname, &scriptstatus) != 0) {
         error("stat %s: %m.", scriptname);
     }
@@ -494,14 +488,9 @@ main(int argc, char **argv) {
      * Check if the script is owned by a non-system user.
      */
 
-    const struct passwd *owner;
-    const char *logname;
-    uid_t uid;
-    gid_t gid;
-
     errno = 0;
     /* cppcheck-suppress getpwuidCalled; used safely. */
-    owner = getpwuid(scriptstatus.st_uid);
+    const struct passwd *owner = getpwuid(scriptstatus.st_uid);
     if (owner == NULL) {
         /* cppcheck-suppress misra-c2012-22.10; getpwuid sets errno. */
         if (errno == 0) {
@@ -517,9 +506,9 @@ main(int argc, char **argv) {
         error("script %s: owned by a non-system user.", scriptname);
     }
 
-    logname = owner->pw_name;
-    uid = owner->pw_uid;
-    gid = owner->pw_gid;
+    const char *const logname = owner->pw_name;
+    const uid_t uid = owner->pw_uid;
+    const gid_t gid = owner->pw_gid;
 
 
     /*
@@ -527,17 +516,11 @@ main(int argc, char **argv) {
      */
 
     gid_t groups[MAX_NGROUPS];
-    long maxngroups;
-    int ngroups;
-
     for (size_t i = 0; i < NELEMS(groups); ++i) {
-        groups[i] = (gid_t) INVALID_GID;
+        groups[i] = (gid_t) NOGROUP;
     }
 
-    maxngroups = sysconf(_SC_NGROUPS_MAX);
-    if (maxngroups < 0L || (uintmax_t) maxngroups > (uintmax_t) MAX_NGROUPS) {
-        maxngroups = (long) MAX_NGROUPS;
-    }
+    int ngroups = NELEMS(groups);
 
     /*
      * GRP_T names the data type that getgrouplist takes and returns GIDs as.
@@ -556,18 +539,22 @@ main(int argc, char **argv) {
      * (2) STOP_GID > the highest value that both gid_t and GRP_T
      *     can represent - 1 (so values cannot overflow).
      */
-    ngroups = MAX_NGROUPS;
     (void) getgrouplist(logname, (GRP_T) gid, (GRP_T *) groups, &ngroups);
 
     if (ngroups < 0) {
         /* NOTREACHED */
         if (ISSIGNED(gid_t)) {
-            BUG("getgrouplist(%s, %lld, -> %p, -> %d [!])",
+            BUG("getgrouplist(%s, %lld, %p, %d): ngroups is negative.",
                 logname, (long long) gid, groups, ngroups);
         } else {
-            BUG("getgrouplist(%s, %llu, -> %p, -> %d [!])",
+            BUG("getgrouplist(%s, %llu, %p, %d): ngroups is negative.",
                 logname, (unsigned long long) gid, groups, ngroups);
         }
+    }
+
+    long maxngroups = sysconf(_SC_NGROUPS_MAX);
+    if (maxngroups < 0L || (uintmax_t) maxngroups > (uintmax_t) MAX_NGROUPS) {
+        maxngroups = (long) MAX_NGROUPS;
     }
 
     if (maxngroups < ngroups) {
@@ -583,10 +570,8 @@ main(int argc, char **argv) {
 
     for (int i = 0; i < ngroups; ++i) {
         if (groups[i] < START_GID || groups[i] > STOP_GID) {
-            const struct group *grp;
-
             /* cppcheck-suppress getgrgidCalled; used safely. */
-            grp = getgrgid(groups[i]);
+            const struct group *const grp = getgrgid(groups[i]);
             if (grp != NULL) {
                 error("user %s: member of system group %s.",
                       logname, grp->gr_name);
@@ -620,8 +605,8 @@ main(int argc, char **argv) {
      *     is raised if MAX_NGROUPS > INT_MAX or NGRPS_T cannot represent
      *     INT_MAX (so values cannot overflow).
      */
-    ret = priv_drop(uid, gid, (NGRPS_T) ngroups, groups);
-    switch (ret) {
+    retval = priv_drop(uid, gid, (NGRPS_T) ngroups, groups);
+    switch (retval) {
     case OK:
         break;
     case ERR_SYS:
@@ -629,13 +614,13 @@ main(int argc, char **argv) {
     default:
         /* NOTREACHED */
         if (ISSIGNED(id_t)) {
-            BUG("priv_drop(%lld, %lld, %d, %p) -> %d [!]",
+            BUG("priv_drop(%lld, %lld, %d, %p): returned %d.",
                 (long long) uid, (long long) gid,
-                (int) ngroups, groups, ret);
+                (int) ngroups, groups, retval);
         } else {
-            BUG("priv_drop(%llu, %llu, %d, %p) -> %d [!]",
+            BUG("priv_drop(%llu, %llu, %d, %p): returned %d.",
                 (unsigned long long) uid, (unsigned long long) gid,
-                (int) ngroups, groups, ret);
+                (int) ngroups, groups, retval);
         }
     }
 
@@ -644,14 +629,12 @@ main(int argc, char **argv) {
      * Check whether the script is within the user directory.
      */
 
-    /* RATS: ignore; userdir_exp respects the size of userdir. */
+    /* RATS: ignore; userdir_expand respects the size of userdir. */
     char userdir[MAX_FNAME_LEN];
-    char *realuserdir;
-    size_t userdirlen;
-    size_t realuserdirlen;
-
-    ret = userdir_exp(USER_DIR, owner, sizeof(userdir), &userdirlen, userdir);
-    switch (ret) {
+    size_t userdirlen = 0;
+    retval = userdir_expand(USER_DIR, owner, sizeof(userdir),
+                            &userdirlen, userdir);
+    switch (retval) {
     case OK:
         break;
     case ERR_LEN:
@@ -660,12 +643,14 @@ main(int argc, char **argv) {
         error("snprintf: %m.");
     default:
         /* NOTREACHED */
-        BUG("userdir_exp(%s, %s -> %zu, -> %p) -> %d [!]",
-            USER_DIR, owner->pw_name, userdirlen, userdir, ret);
+        BUG("userdir_expand(%s, %s %zu, %p): returned %d.",
+            USER_DIR, owner->pw_name, userdirlen, userdir, retval);
     }
 
-    ret = path_real(userdirlen, userdir, &realuserdirlen, &realuserdir);
-    switch (ret) {
+    char *realuserdir = NULL;
+    size_t realuserdirlen = 0;
+    retval = path_real(userdirlen, userdir, &realuserdirlen, &realuserdir);
+    switch (retval) {
     case OK:
         break;
     case ERR_LEN:
@@ -674,11 +659,11 @@ main(int argc, char **argv) {
         error("realpath %s: %m.", userdir);
     default:
         /* NOTREACHED */
-        BUG("path_real(%zu, %s, -> %zu, -> %s) -> %d [!]",
-            userdirlen, userdir, realuserdirlen, realuserdir, ret);
+        BUG("path_real(%zu, %s, %zu, %s): returned %d.",
+            userdirlen, userdir, realuserdirlen, realuserdir, retval);
     }
 
-    if (!path_within(realscriptnamelen, realscriptname,
+    if (!path_is_sub(realscriptnamelen, realscriptname,
                      realuserdirlen, realuserdir))
     {
         error("script %s: not in %s's user directory.", scriptname, logname);
@@ -758,11 +743,10 @@ main(int argc, char **argv) {
      * Run the script.
      */
 
-    const char *handler;
-
-    ret = handler_find(NELEMS(handlers), handlers,
-                       realscriptnamelen, realscriptname, &handler);
-    switch (ret) {
+    const char *handler = NULL;
+    retval = handler_find(NELEMS(handlers), handlers,
+                          realscriptnamelen, realscriptname, &handler);
+    switch (retval) {
     case OK:
         errno = 0;
         /* RATS: ignore; suCGI's whole point is to do this safely. */
@@ -779,8 +763,8 @@ main(int argc, char **argv) {
         break;
     default:
         /* NOTREACHED */
-        BUG("handler_find(%zu, %p, %s, -> %p) -> %d [!]",
-            NELEMS(handlers), handlers, realscriptname, handler, ret);
+        BUG("handler_find(%zu, %p, %s, %p): returned %d.",
+            NELEMS(handlers), handlers, realscriptname, handler, retval);
     }
 
     errno = 0;

@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -33,8 +33,9 @@
 
 #include "../env.h"
 #include "../macros.h"
-#include "util/abort.h"
-#include "util/types.h"
+#include "libutil/abort.h"
+#include "libutil/str.h"
+#include "libutil/types.h"
 
 
 /*
@@ -59,11 +60,13 @@ main(void)
 #if !defined(NDEBUG)
 
     /* RATS: ignore; used safely. */
-    char hugename[MAX_VARNAME_LEN + 1] = {0};
+    char hugename[MAX_VARNAME_LEN + 1];
+    str_fill(sizeof(hugename), hugename, 'x');
 #endif
 
     /* RATS: ignore; used safely. */
-    char longname[MAX_VARNAME_LEN] = {0};
+    char longname[MAX_VARNAME_LEN];
+    str_fill(sizeof(longname), longname, 'x');
 
     const EnvIsNameArgs cases[] = {
 #if !defined(NDEBUG)
@@ -222,34 +225,27 @@ main(void)
 
     volatile int result = PASS;
 
-#if !defined(NDEBUG)
-    (void) memset(hugename, 'x', sizeof(hugename) - 1U);
-#endif
-    (void) memset(longname, 'x', sizeof(longname) - 1U);
-
     for (volatile size_t i = 0; i < NELEMS(cases); ++i) {
         const EnvIsNameArgs args = cases[i];
 
         if (sigsetjmp(abort_env, 1) == 0) {
-            bool retval;
-
             if (args.signal != 0) {
                 warnx("the next test should fail an assertion.");
             }
 
             (void) abort_catch(err);
-            retval = env_is_name(args.str);
+            const bool retval = env_is_name(args.str);
             (void) abort_reset(err);
 
             if (retval != args.retval) {
                 result = FAIL;
-                warnx("%zu: (%s) → %d [!]", i, args.str, retval);
+                warnx("(%s) → %d [!]", args.str, retval);
             }
         }
 
         if (abort_signal != args.signal) {
             result = FAIL;
-            warnx("%zu: (%s) ↑ %s [!]", i, args.str, strsignal(abort_signal));
+            warnx("(%s) ↑ %s [!]", args.str, strsignal(abort_signal));
         }
     }
 

@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -27,6 +27,7 @@
 
 #include <assert.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -39,37 +40,30 @@ Error
 str_copy(const size_t nbytes, const char *const src,
          size_t *const destlen, char *const dest)
 {
-    const char *end;
-    size_t len;
-
     assert(src != NULL);
     assert(nbytes <= MAX_STR_LEN);
     assert(strnlen(src, MAX_STR_LEN) < MAX_STR_LEN);
     assert(dest != NULL);
 
-    end = stpncpy(dest, src, nbytes);
-
+    const char *end = stpncpy(dest, src, nbytes);
     assert(end != NULL);
     assert(end >= dest);
 
-    /*
-     * The cast is safe and portable.
-     * And MISRA C permits pointer subtraction.
-     */
-    len = (size_t)          /* cppcheck-suppress misra-c2012-10.8 */
-          (end - dest);     /* cppcheck-suppress misra-c2012-18.4 */
+    /* cppcheck-suppress misra-c2012-18.4; safe pointer subtraction. */
+    ptrdiff_t len = end - dest;
+    assert(len >= 0);
+    /* nbytes must be smaller than SIZE_MAX. */
+    assert((uintmax_t) len <= (uintmax_t) nbytes);
 
-    assert(len <= nbytes);
-
-    /* null-terminate regardless of the return value. */
+    /* Null-terminate regardless of the return value. */
     dest[len] = '\0';
 
     if (destlen != NULL) {
-        *destlen = len;
+        *destlen = (size_t) len;
     }
 
-    assert(strnlen(dest, nbytes) == len);
-    assert(strnlen(src, MAX_STR_LEN) >= len);
+    assert(strnlen(dest, nbytes) == (size_t) len);
+    assert(strnlen(src, MAX_STR_LEN) >= (size_t) len);
     assert(strncmp(src, dest, nbytes) == 0);
 
     if (src[len] != '\0') {
@@ -83,9 +77,6 @@ Error
 str_fmtspecs(const char *const str, const size_t maxnspecs,
             size_t *const nspecs, const char **const fmtchars)
 {
-    const char *ptr;
-    const char *fmtchar;
-
     assert(str != NULL);
     assert(strnlen(str, MAX_STR_LEN) < MAX_STR_LEN);
     assert(nspecs != NULL);
@@ -93,17 +84,14 @@ str_fmtspecs(const char *const str, const size_t maxnspecs,
 
     *nspecs = 0;
 
-    for (ptr = strchr(str, '%'); ptr != NULL; ptr = strchr(fmtchar, '%')) {
+    const char *fmtchar = NULL;
+    for (const char *ptr = strchr(str, '%'); ptr != NULL; ptr = strchr(fmtchar, '%')) {
         size_t npercents;
 
         npercents = strspn(ptr, "%");
         fmtchar = &ptr[npercents];
 
-        /*
-         * If there was an even number of '%' signs before the character,
-         * then those '%' signs are literal '%'s, and the whole expression
-         * is not a format specifier.
-         */
+        /* If the number of '%' signs is even, they are literal '%' signs. */
         if (npercents % 2U != 0U) {
             if (*nspecs >= maxnspecs) {
                 return ERR_LEN;
@@ -121,8 +109,6 @@ Error
 str_split(const char *const str, const char *const sep,
           const size_t size, char *const head, const char **const tail)
 {
-    size_t len;
-
     assert(str != NULL);
     assert(size <= MAX_STR_LEN);
     assert(strnlen(str, MAX_STR_LEN) < MAX_STR_LEN);
@@ -142,18 +128,16 @@ str_split(const char *const str, const char *const sep,
 
     assert(*tail >= str);
 
-    /*
-     * The cast is safe and portable.
-     * And MISRA C permits pointer subtraction.
-     */
-    len = (size_t)          /* cppcheck-suppress misra-c2012-10.8 */
-          (*tail - str);    /* cppcheck-suppress misra-c2012-18.4 */
+    /* cppcheck-suppress misra-c2012-18.4; safe pointer subtraction. */
+    ptrdiff_t len = *tail - str;
+    assert(len >= 0);
+    assert((uintmax_t) len < (uintmax_t) SIZE_MAX);
 
-    if (len >= size) {
+    if ((size_t) len >= size) {
         return ERR_LEN;
     }
 
-    (void) str_copy(len, str, NULL, head);
+    (void) str_copy((size_t) len, str, NULL, head);
     ++(*tail);
 
     return OK;

@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -34,8 +34,8 @@
 #include "../env.h"
 #include "../groups.h"
 #include "../macros.h"
-#include "util/abort.h"
-#include "util/types.h"
+#include "libutil/abort.h"
+#include "libutil/types.h"
 
 
 /*
@@ -73,10 +73,8 @@ main(void)
         const GroupsCompArgs args = cases[i];
 
         if (sigsetjmp(abort_env, 1) == 0) {
-            int retval;
-
             (void) abort_catch(err);
-            retval = groups_comp(&args.gid1, &args.gid2);
+            const int retval = groups_comp(&args.gid1, &args.gid2);
             (void) abort_reset(err);
 
             if (retval != args.retval) {

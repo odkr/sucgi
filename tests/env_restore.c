@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -38,10 +38,10 @@
 #include "../macros.h"
 #include "../params.h"
 #include "../str.h"
-#include "util/abort.h"
-#include "util/array.h"
-#include "util/str.h"
-#include "util/types.h"
+#include "libutil/abort.h"
+#include "libutil/array.h"
+#include "libutil/str.h"
+#include "libutil/types.h"
 
 
 /*
@@ -83,19 +83,58 @@ main(void)
         SAFE_ENV_VARS;
 
     /* RATS: ignore; used safely. */
-    const char *too_many_vars[MAX_NVARS + 1U] = {0};
+    const char *hugenvars[MAX_NVARS + 1U];
+    size_t nvars = NELEMS(hugenvars) - 1U;
+    for (size_t i = 0; i < nvars; ++i) {
+        errno = 0;
+        /* cppcheck-suppress [misra-c2012-11.5]; bad advice for malloc. */
+        char *var = malloc(MAX_VAR_LEN);
+        if (var == NULL) {
+            err(ERROR, "malloc");
+        }
+
+        errno = 0;
+        /* RATS: ignore; format is a literal and expansion is bounded. */
+        int nbytes = snprintf(var, MAX_VAR_LEN, "var%zu=", i);
+        if (nbytes < 1) {
+            err(ERROR, "snprintf");
+        }
+
+        hugenvars[i] = var;
+    }
+    hugenvars[nvars] = NULL;
+
+/* strncpy is intended to truncate those strings. */
+#if defined(__GNUC__) && __GNUC__ >= 8
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-truncation"
+#endif
 
     /* RATS: ignore; used safely. */
-    char long_var[MAX_VAR_LEN] = {0};
+    char long_var[MAX_VAR_LEN];
+    str_fill(sizeof(long_var), long_var, 'x');
+    /* RATS: ignore; the buffer is large enough. */
+    (void) strncpy(long_var, "var=", 4);
 
     /* RATS: ignore; used safely. */
-    char huge_var[MAX_VAR_LEN + 1] = {0};
+    char huge_var[MAX_VAR_LEN + 1];
+    str_fill(sizeof(huge_var), huge_var, 'x');
+    /* RATS: ignore; the buffer is large enough. */
+    (void) strncpy(huge_var, "var=", 4);
+
+#if defined(__GNUC__) && __GNUC__ >= 8
+#pragma GCC diagnostic pop
+#endif
 
     /* RATS: ignore; used safely. */
-    char long_name[MAX_VAR_LEN] = {0};
+    char long_name[MAX_VAR_LEN];
+    str_fill(sizeof(long_name), long_name, 'x');
+    long_name[MAX_VARNAME_LEN - 1U] = '=';
 
     /* RATS: ignore; used safely. */
-    char huge_name[MAX_VAR_LEN] = {0};
+    char huge_name[MAX_VAR_LEN];
+    str_fill(sizeof(huge_name), huge_name, 'x');
+    huge_name[MAX_VARNAME_LEN] = '=';
 
     const EnvRestoreArgs cases[] = {
         /* Null tests. */
@@ -112,7 +151,7 @@ main(void)
 
         /* Too many variables. */
         {
-            too_many_vars,
+            hugenvars,
             1, (const char *const []) {"."},
             (const char *const []) {NULL}, ERR_LEN, 0
         },
@@ -394,126 +433,72 @@ main(void)
         }
     };
 
-
     volatile int result = PASS;
     char *null = NULL;
-    size_t nvars = NELEMS(too_many_vars) - 1U;
-
-    /* Initialise dynamic test cases. */
-    for (size_t i = 0; i < nvars; ++i) {
-        char *var;
-        int nbytes;
-
-        errno = 0;
-        /* cppcheck-suppress [misra-c2012-11.5]; bad advice for malloc. */
-        var = malloc(MAX_VAR_LEN);
-        if (var == NULL) {
-            err(EXIT_FAILURE, "malloc");
-        }
-
-        errno = 0;
-        /* RATS: ignore; format is a literal and expansion is bounded. */
-        nbytes = snprintf(var, MAX_VAR_LEN, "var%zu=", i);
-        if (nbytes < 1) {
-            err(EXIT_FAILURE, "snprintf");
-        }
-
-        too_many_vars[i] = var;
-    }
-    too_many_vars[nvars] = NULL;
-
-    (void) memset(long_var, 'x', sizeof(long_var) - 1U);
-    (void) memset(huge_var, 'x', sizeof(huge_var) - 1U);
-
-/* I want to truncate those strings. */
-#if defined(__GNUC__) && __GNUC__ >= 8
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wstringop-truncation"
-#endif
-
-    /* RATS: ignore; the buffer is large enough. */
-    (void) strncpy(long_var, "var=", 4);
-    /* RATS: ignore; the buffer is large enough. */
-    (void) strncpy(huge_var, "var=", 4);
-
-#if defined(__GNUC__) && __GNUC__ >= 8
-#pragma GCC diagnostic pop
-#endif
-
-    (void) memset(long_name, 'x', sizeof(long_name) - 1U);
-    long_name[MAX_VARNAME_LEN - 1U] = '=';
-
-    (void) memset(huge_name, 'x', sizeof(huge_name) - 1U);
-    huge_name[MAX_VARNAME_LEN] = '=';
 
     /* Run tests. */
     for (volatile size_t i = 0; i < NELEMS(cases); ++i) {
         const EnvRestoreArgs args = cases[i];
 
         if (sigsetjmp(abort_env, 1) == 0) {
-            regex_t pregs[MAX_TEST_NVARS];
-            Error retval;
-
             environ = &null;
 
+            regex_t pregs[MAX_TEST_NVARS];
             for (size_t j = 0; j < args.npatterns; ++j) {
-                int err;
-
-                err = regcomp(&pregs[j], args.patterns[j],
-                              REG_EXTENDED | REG_NOSUB);
+                const int err = regcomp(&pregs[j], args.patterns[j],
+                                        REG_EXTENDED | REG_NOSUB);
 
                 if (err != 0) {
                     /* RATS: ignore; used safely. */
                     char errmsg[MAX_ERRMSG_LEN];
 
                     (void) regerror(err, &pregs[j], errmsg, sizeof(errmsg));
-                    errx(EXIT_FAILURE, "%s:%d: regcomp: %s",
+                    errx(ERROR, "%s:%d: regcomp: %s",
                          __FILE__, __LINE__, errmsg);
                 }
             }
 
             (void) abort_catch(err);
-            retval = env_restore(args.vars, args.npatterns, pregs);
+            const Error retval = env_restore(args.vars, args.npatterns, pregs);
             (void) abort_reset(err);
 
             if (retval != args.retval) {
                 result = FAIL;
-                warnx("%zu: (<vars>, %zu, <pregs>) → %u [!]",
-                      i, args.npatterns, retval);
+                warnx("(<vars>, %zu, <pregs>) → %u [!]",
+                      args.npatterns, retval);
             }
 
             if (retval == OK) {
                 volatile size_t nexpected = 0;
-                volatile size_t nactual = 0;
-
                 while (args.env[nexpected] != NULL) {
                     assert(nexpected < SIZE_MAX);
                     ++nexpected;
                 }
 
+                volatile size_t nactual = 0;
                 while (environ[nactual] != NULL) {
                     assert(nexpected < SIZE_MAX);
                     ++nactual;
                 }
 
                 if (
-                    !array_eq(
+                    !array_equals(
                         args.env, nexpected, sizeof(*args.env),
                         environ, nactual, sizeof(*environ),
                         (CompFn) str_cmp_ptrs
                     )
                 ) {
                     result = FAIL;
-                    warnx("%zu: (<vars>, %zu, <pregs>) ─→ <environ> [!]",
-                          i, args.npatterns);
+                    warnx("(<vars>, %zu, <pregs>) ─→ <environ> [!]",
+                          args.npatterns);
                 }
             }
         }
 
         if (abort_signal != args.signal) {
             result = FAIL;
-            warnx("%zu: (<vars>, %zu, <pregs>) ↑ %s [!]",
-                  i, args.npatterns, strerror(abort_signal));
+            warnx("(<vars>, %zu, <pregs>) ↑ %s [!]",
+                  args.npatterns, strerror(abort_signal));
         }
     }
 

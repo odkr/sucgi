@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -43,24 +43,21 @@
 
 
 Error
-env_copy_var(const char *const name, const size_t maxlen,
-             size_t *const len, char *const value)
+env_get(const char *const name, const size_t size,
+        char *const value, size_t *const len)
 {
-    const char *var;
-    Error ret;
-
     assert(name != NULL);
     assert(*name != '\0');
     assert(strchr(name, '=') == NULL);
     assert(strnlen(name, MAX_VARNAME_LEN) < MAX_VARNAME_LEN);
     assert(value != NULL);
 
-    /* Return an empty string if an error occurs. */
-    (void) memset(value, '\0', maxlen);
+    /* Return the empty string if an error occurs. */
+    (void) memset(value, '\0', size);
 
     errno = 0;
     /* RATS: ignore; CGI requires reading environment variables. */
-    var = getenv(name);
+    const char *var = getenv(name);
     if (var == NULL) {
         /* cppcheck-suppress misra-c2012-22.10; getenv sets errno. */
         if (errno == 0) {
@@ -70,9 +67,9 @@ env_copy_var(const char *const name, const size_t maxlen,
         return ERR_SYS;
     }
 
-    ret = str_copy(maxlen, var, len, value);
-    if (ret != OK) {
-        return ret;
+    const Error retval = str_copy(size - 1U, var, len, value);
+    if (retval != OK) {
+        return retval;
     }
 
     assert(value != NULL);
@@ -80,29 +77,26 @@ env_copy_var(const char *const name, const size_t maxlen,
     assert(*len < MAX_VAR_LEN);
     assert(value[*len] == '\0');
 
-    return ret;
+    return OK;
 }
 
-/*
- * ENV_CONFSTR is an alias for _CS_V7_ENV or _CS_V6_ENV.
- * It is only defined if _CS_V7_ENV or _CS_V6_ENV is.
- */
-#if defined(ENV_CONFSTR)
+
+/* Some systems do not define _CS_V7_ENV at all. */
+#if defined(_CS_V7_ENV)
 
 Error
 env_init(void)
 {
-    /* RATS: ignore; confstr should respect the size of the buffer. */
+    /* RATS: ignore; confstr is bounded by the size of the buffer. */
     char buf[MAX_STR_LEN];
-
-    if (confstr(ENV_CONFSTR, buf, sizeof(buf)) > sizeof(buf)) {
+    if (confstr(_CS_V7_ENV, buf, sizeof(buf)) > sizeof(buf)) {
         return ERR_LEN;
     }
 
-    return env_set_vars(buf);
+    return env_setn(buf);
 }
 
-#else /* !defined(ENV_CONFSTR) */
+#else
 
 Error
 env_init(void)
@@ -110,8 +104,7 @@ env_init(void)
     return OK;
 }
 
-#endif /* defined(ENV_CONFSTR) */
-
+#endif /* defined(_CS_V7_ENV) */
 
 
 bool
@@ -137,18 +130,15 @@ Error
 env_restore(const char *const *const vars, const size_t npregs,
             const regex_t *const pregs)
 {
-    size_t varidx;
-
     assert(vars != NULL);
     assert(pregs != NULL);
 
+    size_t varidx;
     for (varidx = 0; vars[varidx] != NULL; ++varidx) {
-        /* RATS: ignore; str_split respects MAX_VARNAME_LEN. */
+        /* RATS: ignore; str_split is bounded by the size of name. */
         char name[MAX_VARNAME_LEN];
-        const char *value;
-        const char *var;
-
-        var = vars[varidx];
+        const char *value = NULL;
+        const char *var = vars[varidx];
 
         if (strnlen(var, MAX_VAR_LEN) >= (size_t) MAX_VAR_LEN) {
             /* RATS: ignore; format is short and a literal. */
@@ -164,7 +154,6 @@ env_restore(const char *const *const vars, const size_t npregs,
             syslog(LOG_INFO, "$%s: no value.", name);
         } else {
             size_t pregidx;
-
             for (pregidx = 0; pregidx < npregs; ++pregidx) {
                 if (regexec(&pregs[pregidx], name, 0, NULL, 0) == 0) {
                     errno = 0;
@@ -193,37 +182,43 @@ env_restore(const char *const *const vars, const size_t npregs,
 }
 
 Error
-env_set_vars(const char *const vars)
+env_setn(const char *const vars)
 {
     assert(vars != NULL);
     assert(strnlen(vars, MAX_STR_LEN) < MAX_STR_LEN);
 
-    /* cppcheck-suppress misra-c2012-14.2; least bad solution. */
-    for (const char *ptr = vars; ptr != NULL; /* see str_split below. */) {
-        char var[MAX_VAR_LEN];          /* RATS: ignore; str_split is safe. */
-        char name[MAX_VARNAME_LEN];     /* RATS: ignore; str_split is safe. */
-        const char *value;
+    const char *ptr = vars;
+    for (size_t i = 0; i < (size_t) MAX_NVARS; ++i) {
+        if (ptr == NULL || *ptr == '\0') {
+            return OK;
+        }
 
-        /* cppcheck-suppress nullPointerRedundantCheck; loop condition. */
+        /* RATS: ignore; str_split is bounded by the size of var. */
+        char var[MAX_VAR_LEN];
         if (str_split(ptr, " ", sizeof(var), var, &ptr) != OK) {
-            /* RATS: ignore; format is short and a literal. */
-            syslog(LOG_INFO, "discarding variable that is too long.");
-        } else if (str_split(var, "=", sizeof(name), name, &value) != OK) {
-            /* RATS: ignore; format is short and a literal. */
-            syslog(LOG_INFO, "discarding variable with too long a name.");
-        } else if (!env_is_name(name)) {
-            /* RATS: ignore; format is short and a literal. */
-            syslog(LOG_INFO, "$%s: bad name.", name);
-        } else if (value == NULL) {
-            /* RATS: ignore; format is short and a literal. */
-            syslog(LOG_INFO, "$%s: no value.", name);
-        } else {
-            errno = 0;
-            if (setenv(name, value, true) != 0) {
-                return ERR_SYS;
-            }
+            return ERR_BAD;
+        }
+
+        /* RATS: ignore; str_split is bounded by the size of name. */
+        char name[MAX_VARNAME_LEN];
+        const char *value = NULL;
+        if (str_split(var, "=", sizeof(name), name, &value) != OK) {
+            return ERR_BAD;
+        }
+
+        if (!env_is_name(name)) {
+            return ERR_BAD;
+        }
+
+        if (value == NULL) {
+            return ERR_BAD;
+        }
+
+        errno = 0;
+        if (setenv(name, value, true) != 0) {
+            return ERR_SYS;
         }
     }
 
-    return OK;
+    return ERR_LEN;
 }

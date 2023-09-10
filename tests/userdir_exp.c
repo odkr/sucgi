@@ -1,16 +1,16 @@
 /*
- * Test userdir_exp.
+ * Test userdir_expand.
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -36,8 +36,9 @@
 #include "../params.h"
 #include "../str.h"
 #include "../userdir.h"
-#include "util/abort.h"
-#include "util/types.h"
+#include "libutil/abort.h"
+#include "libutil/str.h"
+#include "libutil/types.h"
 
 
 /*
@@ -75,17 +76,25 @@ main(void)
 #if !defined(NDEBUG)
 
     /* RATS: ignore; used safely. */
-    char hugefname[MAX_FNAME_LEN + 1U] = {0};
+    char hugefname[MAX_FNAME_LEN + 1U];
+    str_fill(sizeof(hugefname), hugefname, 'x');
 #endif
 
     /* RATS: ignore; used safely. */
-    char longrelfname[MAX_FNAME_LEN] = {0};
+    char longrelfname[MAX_FNAME_LEN];
+    str_fill(sizeof(longrelfname), longrelfname, 'x');
 
     /* RATS: ignore; used safely. */
-    char longabsname[MAX_FNAME_LEN] = {0};
+    char longabsname[MAX_FNAME_LEN];
+    str_fill(sizeof(longabsname), longabsname, 'x');
+    longabsname[0] = '/';
 
     /* RATS: ignore; used safely. */
-    char longpattern[MAX_FNAME_LEN] = {0};
+    char longpattern[MAX_FNAME_LEN];
+    str_fill(sizeof(longpattern), longpattern, 'x');
+    /* RATS: ignore; the buffer is large enough. */
+    (void) strncpy(&longpattern[sizeof(longpattern) - 4U], "/%s", 4);
+    longpattern[0] = '/';
 
     /* RATS: ignore; used safely. */
     char logname[MAX_LOGNAME_LEN] = "jdoe";
@@ -144,35 +153,19 @@ main(void)
         {longpattern, &user, NULL, ERR_LEN, 0}
     };
 
-    /* Test result. */
     volatile int result = PASS;
-
-#if !defined(NDEBUG)
-    (void) memset(hugefname, 'x', sizeof(hugefname) - 1U);
-#endif
-    (void) memset(longrelfname, 'x', sizeof(longrelfname) - 1U);
-    (void) memset(longabsname, 'x', sizeof(longabsname) - 1U);
-    longabsname[0] = '/';
-
-    (void) memset(longpattern, 'x', sizeof(longpattern) - 1U);
-    /* RATS: ignore; the buffer is large enough. */
-    (void) strncpy(&longpattern[sizeof(longpattern) - 4U], "/%s", 4);
-    longpattern[0] = '/';
 
     for (volatile size_t i = 0; i < NELEMS(cases); ++i) {
         const UserDirExpArgs args = cases[i];
 
         if (sigsetjmp(abort_env, 1) == 0) {
-            /* RATS: ignore; used safely. */
-            char dir[MAX_FNAME_LEN];
-            size_t dirlen;
-            Error retval;
-
-            (void) memset(dir, '\0', MAX_FNAME_LEN);
-
             if (args.signal != 0) {
                 warnx("the next test should fail an assertion.");
             }
+
+            /* RATS: ignore; used safely. */
+            char dir[MAX_FNAME_LEN];
+            size_t dirlen = 0;
 
 /* args.str is not a literal, but that's okay. */
 #if defined(__GNUC__) && __GNUC__ >= 3
@@ -181,8 +174,8 @@ main(void)
 #endif
 
             (void) abort_catch(err);
-            retval = userdir_exp(args.str, args.user, sizeof(dir),
-                                 &dirlen, dir);
+            const Error retval = userdir_expand(args.str, args.user, sizeof(dir),
+                                             &dirlen, dir);
             (void) abort_reset(err);
 
 #if defined(__GNUC__) && __GNUC__ >= 3
@@ -191,8 +184,8 @@ main(void)
 
             if (retval != args.retval) {
                 result = FAIL;
-                warnx("%zu: (%s, %s, %zu, → %zu, → %s) → %u [!]",
-                      i, args.str, args.user->pw_name, sizeof(dir),
+                warnx("(%s, %s, %zu, → %zu, → %s) → %u [!]",
+                      args.str, args.user->pw_name, sizeof(dir),
                       dirlen, dir, retval);
             }
 
@@ -203,16 +196,16 @@ main(void)
                     dirlen >= (size_t) MAX_FNAME_LEN)
                 {
                     result = FAIL;
-                    warnx("%zu: (%s, %s, %zu, → %zu [!], → %s) → %u",
-                          i, args.str, args.user->pw_name, sizeof(dir),
+                    warnx("(%s, %s, %zu, → %zu [!], → %s) → %u",
+                          args.str, args.user->pw_name, sizeof(dir),
                           dirlen, dir, retval);
                 }
 
 
                 if (strcmp(args.dir, dir) != 0) {
                     result = FAIL;
-                    warnx("%zu: (%s, %s, %zu, → %zu, → %s [!]) → %u",
-                          i, args.str, args.user->pw_name, sizeof(dir),
+                    warnx("(%s, %s, %zu, → %zu, → %s [!]) → %u",
+                          args.str, args.user->pw_name, sizeof(dir),
                           dirlen, dir, retval);
                 }
             }
@@ -221,8 +214,8 @@ main(void)
 
         if (abort_signal != args.signal) {
             result = FAIL;
-            warnx("%zu: (%s, %s, → <dir>) ↑ %s [!]",
-                  i, args.str, args.user->pw_name, strsignal(abort_signal));
+            warnx("(%s, %s, → <dir>) ↑ %s [!]",
+                  args.str, args.user->pw_name, strsignal(abort_signal));
         }
     }
 

@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -44,9 +44,9 @@
 #include "../macros.h"
 #include "../params.h"
 #include "../priv.h"
-#include "util/abort.h"
-#include "util/user.h"
-#include "util/types.h"
+#include "libutil/abort.h"
+#include "libutil/user.h"
+#include "libutil/types.h"
 
 #if HAVE_SYS_PARAM_H
 #include <sys/param.h>
@@ -125,8 +125,8 @@ main(void)
 
     for (volatile size_t i = 0; i < NELEMS(cases); ++i) {
         const PrivSuspendArgs args = cases[i];
-        gid_t rgid;
 
+        gid_t rgid;
         if (user_get_gid(args.ruid, &rgid, err) != 0) {
             errx(ERROR, "UID %s: no such user",
                  user_id_to_str(args.ruid, err));
@@ -134,7 +134,6 @@ main(void)
 
         if (geteuid() == 0) {
             gid_t egid;
-
             if (user_get_gid(args.euid, &egid, err) != 0) {
                 errx(ERROR, "UID %s: no such user",
                      user_id_to_str(args.euid, err));
@@ -144,74 +143,76 @@ main(void)
             if (setregid(rgid, egid) != 0) {
                 err(ERROR, "setregid");
             }
+
             if (setreuid(args.ruid, args.euid) != 0) {
                 err(ERROR, "setreuid");
             }
         } else {
             if (getuid() != args.ruid || geteuid() != args.euid) {
-                result = SKIP;
+                /* cppcheck-suppress misra-c2012-10.4; false positive. */
+                if (result == PASS) {
+                    result = SKIP;
+                }
+
                 warnx("skipping %s ...", fnsig_to_str(&args));
                 continue;
             }
         }
 
         if (sigsetjmp(abort_env, 1) == 0) {
-            const bool issuper = (geteuid() == 0);
-            Error retval;
+            const bool issuper = geteuid() == 0;
 
             (void) abort_catch(err);
-            retval = priv_suspend();
+            const Error retval = priv_suspend();
             (void) abort_reset(err);
 
             if (retval != OK) {
                 result = FAIL;
-                warnx("%zu: %s → %u [!]", i, fnsig_to_str(&args), retval);
+                warnx("%s → %u [!]", fnsig_to_str(&args), retval);
             }
 
             if (getuid() != args.ruid) {
                 result = FAIL;
-                warnx("%zu: %s ─→ <ruid> = %s [!]",
-                      i, fnsig_to_str(&args), user_id_to_str(getuid(), err));
+                warnx("%s ─→ <ruid> = %s [!]",
+                      fnsig_to_str(&args), user_id_to_str(getuid(), err));
             }
 
             if (geteuid() != args.ruid) {
                 result = FAIL;
-                warnx("%zu: %s ─→ <euid> = %s [!]",
-                      i, fnsig_to_str(&args), user_id_to_str(geteuid(), err));
+                warnx("%s ─→ <euid> = %s [!]",
+                      fnsig_to_str(&args), user_id_to_str(geteuid(), err));
             }
 
             if (getgid() != rgid) {
                 result = FAIL;
-                warnx("%zu: %s ─→ <rgid> = %s [!]",
-                      i, fnsig_to_str(&args), user_id_to_str(getgid(), err));
+                warnx("%s ─→ <rgid> = %s [!]",
+                      fnsig_to_str(&args), user_id_to_str(getgid(), err));
             }
 
             if (getegid() != rgid) {
                 result = FAIL;
-                warnx("%zu: %s ─→ <egid> = %s [!]",
-                      i, fnsig_to_str(&args), user_id_to_str(getegid(), err));
+                warnx("%s ─→ <egid> = %s [!]",
+                      fnsig_to_str(&args), user_id_to_str(getegid(), err));
             }
 
             if (issuper) {
                 gid_t groups[MAX_NGROUPS];
-                int ngroups;
-
                 errno = 0;
-                ngroups = getgroups(MAX_NGROUPS, groups);
+                const int ngroups = getgroups(MAX_NGROUPS, groups);
                 if (ngroups == -1) {
                     err(ERROR, "getgroups");
                 }
 
                 if (ngroups != 1) {
                     result = FAIL;
-                    warnx("%zu: %s ─→ <ngroups> = %d [!]",
-                          i, fnsig_to_str(&args), ngroups);
+                    warnx("%s ─→ <ngroups> = %d [!]",
+                          fnsig_to_str(&args), ngroups);
                 }
 
                 if (groups[0] != rgid) {
                     result = FAIL;
-                    warnx("%zu: %s ─→ <groups[0]> = %s [!]",
-                          i, fnsig_to_str(&args),
+                    warnx("%s ─→ <groups[0]> = %s [!]",
+                          fnsig_to_str(&args),
                           user_id_to_str(groups[0], err));
                 }
 
@@ -224,7 +225,7 @@ main(void)
 
         if (abort_signal != 0) {
             result = FAIL;
-            warnx("%zu: %s ↑ %d [!]", i, fnsig_to_str(&args), abort_signal);
+            warnx("%s ↑ %d [!]", fnsig_to_str(&args), abort_signal);
         }
     }
 

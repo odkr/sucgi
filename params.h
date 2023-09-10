@@ -8,12 +8,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -30,19 +30,20 @@
 #include <syslog.h>
 
 #include "compat.h"
-#include "config.h"
 
 
 /*
- * Testing
+ * Configuration
  */
 
-#if defined(TESTING) && TESTING
+#if !defined(TESTING) || !TESTING
 
-#undef USER_DIR
+#include "config.h"
+
+#else
+
 #define USER_DIR "/tmp/sucgi-check/%s"
 
-#undef SAFE_ENV_VARS
 #define SAFE_ENV_VARS { \
     "^GCOV_PREFIX$", \
     "^GCOV_PREFIX_STRIP$", \
@@ -164,16 +165,12 @@
     "^TZ$" \
 }
 
-#undef HANDLERS
 #define HANDLERS {{".sh", "sh"}, {".empty", ""}}
 
-#undef SYSLOG_FACILITY
 #define SYSLOG_FACILITY LOG_USER
 
-#undef SYSLOG_MASK
 #define SYSLOG_MASK LOG_UPTO(LOG_DEBUG)
 
-#undef SYSLOG_OPTS
 #ifdef LOG_PERROR
 #define SYSLOG_OPTS (LOG_CONS | LOG_PERROR)
 #else
@@ -322,7 +319,7 @@
  * The handler is looked up in $PATH if its name is relative (e.g., "php").
  * Keep in mind that $PATH is set to PATH (see below).
  *
- * If no handler can be found, suCGI will execute the CGI script itself.
+ * If no handler can be found, suCGI will execute the CGI script directly.
  */
 #if !defined(HANDLERS)
 #define HANDLERS { \
@@ -535,18 +532,6 @@
  */
 
 /*
- * An invalid GID to initialise memory with.
- */
-
-/*FIXME: maybe just set NOGROUP, its non-standard anyway. */
-#if defined(NOGROUP)
-#define INVALID_GID NOGROUP
-#else
-#define INVALID_GID MAX_GID_VAL
-#endif
-
-
-/*
  * Maximum length for strings, including the null terminator. Unsigned integer.
  * Upper limit for all other character limits.
  */
@@ -724,6 +709,11 @@
  * System
  */
 
+/* Invalid GID to initialise memory with. */
+#if !defined(NOGROUP)
+#define NOGROUP MAX_GID_VAL
+#endif
+
 /* Name of the standard library. */
 #if defined(__GLIBC__) || defined(__GNU_LIBRARY__)
 #define LIBC "glibc"
@@ -741,13 +731,6 @@
 #define LIBC "OpenBSD"
 #elif defined(__MACH__)
 #define LIBC "Apple"
-#endif
-
-/* Name of configuration string for a conforming environment. */
-#if defined(_CS_V7_ENV)
-#define ENV_CONFSTR _CS_V7_ENV
-#elif defined(_CS_V6_ENV)
-#define ENV_CONFSTR _CS_V6_ENV
 #endif
 
 

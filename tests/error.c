@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -39,16 +39,13 @@
 int
 main(int argc, char **argv)
 {
-    const char *format;
-    const char *arg;
-
     if (argc < 2) {
         (void) fputs("usage: error FORMAT [ARG]\n", stderr);
         return EXIT_FAILURE;
     }
 
-    format = argv[1];
-    arg = argv[2];
+    const char *const format = argv[1];
+    const char *const arg = argv[2];
 
     errno = 0;
     if (atexit(closelog) != 0) {

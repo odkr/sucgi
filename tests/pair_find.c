@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -35,8 +35,9 @@
 #include "../macros.h"
 #include "../params.h"
 #include "../pair.h"
-#include "util/abort.h"
-#include "util/types.h"
+#include "libutil/abort.h"
+#include "libutil/str.h"
+#include "libutil/types.h"
 
 
 /*
@@ -59,14 +60,13 @@ typedef struct {
 int
 main(void)
 {
-#if !defined(NDEBUG)
+    /* RATS: ignore; used safely. */
+    char hugekey[MAX_STR_LEN + 1U] _unused;
+    str_fill(sizeof(hugekey), hugekey, 'x');
 
     /* RATS: ignore; used safely. */
-    char hugekey[MAX_STR_LEN + 1U] = {0};
-#endif
-
-    /* RATS: ignore; used safely. */
-    char longkey[MAX_STR_LEN] = {0};
+    char longkey[MAX_STR_LEN];
+    str_fill(sizeof(longkey), longkey, 'x');
 
     const PairFindArgs cases[] = {
         /* Illegal argument. */
@@ -107,20 +107,13 @@ main(void)
     const size_t npairs = NELEMS(pairs);
     int volatile result = PASS;
 
-#if !defined(NDEBUG)
-    (void) memset(hugekey, 'x', sizeof(hugekey) - 1U);
-#endif
-    (void) memset(longkey, 'x', sizeof(longkey) - 1U);
-
     for (volatile size_t i = 0; i < NELEMS(cases); ++i) {
         const PairFindArgs args = cases[i];
 
         if (sigsetjmp(abort_env, 1) == 0) {
             const char *value = NULL;
-            size_t keylen;
-            Error retval;
 
-            keylen = strnlen(args.key, MAX_STR_LEN);
+            const size_t keylen = strnlen(args.key, MAX_STR_LEN);
             assert(keylen < MAX_STR_LEN + 1U);
 
             if (args.signal != 0) {
@@ -128,7 +121,8 @@ main(void)
             }
 
             (void) abort_catch(err);
-            retval = pair_find(npairs, pairs, keylen, args.key, &value);
+            const Error retval = pair_find(npairs, pairs,
+                                           keylen, args.key, &value);
             (void) abort_reset(err);
 
             if (args.retval != retval) {

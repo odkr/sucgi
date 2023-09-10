@@ -5,12 +5,12 @@
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -44,25 +44,25 @@ extern char **environ;
  */
 
 /*
- * Copy each byte of the given environment variable to the memory area the
- * parameter "value" points to, but stop when a null byte is encountered or
- * the the given maximum length has been reached, then terminate the copied
- * value with a null byte and return the length of the value in the variable
- * pointed to by "len".
- *
- * The given memory area must be large enough to hold the result; that is,
- * it must be at least one byte larger than the given number of bytes.
+ * Copy the given environment variable to the memory area pointed to by
+ * the parameter "buf" and return the number of bytes copied, excluding
+ * the terminating null byte, in the variable pointed to by "len".
  *
  * Return value:
- *     OK          Success.
- *     ERR_LEN     The variable is longer than the given number of bytes.
- *     ERR_SEARCH  There is no variable with the given name.
- *     ERR_SYS     getenv failed.
+ *      OK          Success.
+ *      ERR_LEN     The variable is larger than the buffer.
+ *      ERR_SEARCH  There is no variable of the given name.
+ *      ERR_SYS     getenv failed.
  */
-_read_only(1) _write_only(3) _write_only(4, 2) _nonnull(1, 3, 4) _nodiscard
-Error env_copy_var(const char *name, size_t maxlen, size_t *len, char *value);
+_read_only(1) _write_only(3, 2) _write_only(4) _nonnull(1, 3, 4) _nodiscard
+Error env_get(const char *name, size_t bufsize, char *buf, size_t *len);
 
-/* FIXME: Untested, undocumented. */
+/*
+ * Set up the minimal conforming environment.
+ *
+ * Return value:
+ *      See env_setn.
+ */
 _nodiscard
 Error env_init(void);
 
@@ -75,33 +75,45 @@ _read_only(1) _nonnull(1) _nodiscard
 bool env_is_name(const char *str);
 
 /*
- * Set each of the given environment variables that matches one of the given
- * POSIX extended regular expressions. The array of variables must contain at
- * most MAX_NVARS elements and must be terminated by a null pointer. Variables
- * may at most be MAX_VAR_LEN bytes long, including the terminating null byte;
- * variable names must pass env_is_name and be at most MAX_VAR_LEN bytes
- * long, including the null terminator. At least "npregs" regular expressions
- * must be given; supernumery expressions are ignored.
+ * Set each given name=value pair the name of which matches one of the
+ * given POSIX extended regular expressions as environment variable.
  *
- * Note, an attacker may populate the environment with variables that are
- * not null-terminated. If the memory area after such a variable contains
- * a null byte within MAX_VAR_LEN - 1 bytes, env_restore will overshoot
- * and dump the contents of that memory area into the environment.
+ * "vars" must be terminated by a null pointer. "pregs" must contain at
+ * least "npregs" expressions; supernumery expressions are ignored.
+ *
+ * If a variable name is longer than MAX_VARNAME_LEN, does not pass
+ * env_is_name, or does not match any of the given regular expressions,
+ * or if the variable as a whole, including the null terminator, is
+ * longer than MAX_VAR_LEN, then the variable is ignored.
+ *
+ * Note, if a variable is NOT null-terminated but there is a null byte
+ * within MAX_VAR_LEN - 1 bytes after its starting address, then env_restore
+ * will either segfault or overshoot and dump the contents of that memory
+ * area up to the address of the null byte into the environment.
  *
  * Return value:
- *     OK        Success.
- *     ERR_LEN   There are more than MAX_NVARS variables.
- *     ERR_SYS   setenv failed.
+ *      OK          Success.
+ *      ERR_LEN     "vars" contains more than MAX_NVARS variables.
+ *      ERR_SYS     setenv failed.
  *
  * Side-effects:
- *     Logs which variables are kept and which are discarded.
+ *      Logs which variables are kept and which are discarded.
  */
 _read_only(1) _read_only(3, 2) _nonnull(1, 3) _nodiscard
 Error env_restore(const char *const *vars,
                   size_t npregs, const regex_t *pregs);
 
-/* FIXME: untested, undocumented. */
+/*
+ * Take a space-separated list of name=value pairs and
+ * set each of them as environment variable.
+ *
+ * Return value:
+ *      OK          Success.
+ *      ERR_BAD     Malformed variables given.
+ *      ERR_LEN     More than MAX_NVARS variables were given.
+ *      ERR_SYS     setenv failed.
+ */
 _read_only(1) _nonnull(1) _nodiscard
-Error env_set_vars(const char *vars);
+Error env_setn(const char *vars);
 
 #endif /* !defined(ENV_H) */
