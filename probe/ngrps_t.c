@@ -1,16 +1,16 @@
 /*
- * Detect the type getgrouplist takes GIDs as at compile-time.
+ * Detect the type setgroups takes the number of groups as at compile-time.
  *
  * Copyright 2023 Odin Kroeger
  *
  * This file is part of suCGI.
  *
- * SuCGI is free software: you can redistribute it and/or modify it
+ * suCGI is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Affero General Public License as published
  * by the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  *
- * SuCGI is distributed in the hope that it will be useful, but WITHOUT
+ * suCGI is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
  * Public License for more details.
@@ -24,18 +24,17 @@
 #define _DEFAULT_SOURCE
 #define _GNU_SOURCE
 
+#include <sys/types.h>
 #include <grp.h>
-#include <inttypes.h>
 #include <unistd.h>
 
 int
 main(void)
 {
-    GRP_T basegid = 0;
-    GRP_T groups[1] = {0};
-    int n = 1;
+    NGRPS_T ngroups = 0;
+    gid_t gidset[1] = {0};
 
-    getgrouplist("dummy", basegid, groups, &n);
+    (void) setgroups(ngroups, gidset);
 
     return 0;
 }
