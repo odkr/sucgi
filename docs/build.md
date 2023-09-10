@@ -370,6 +370,8 @@ If *configure* fails, a fallback build configuration can be created by:
 
     m4 makefile.m4 >makefile
 
+**compat.h** will be created by `make`.
+
 The resulting build configuration is roughly equivalent to **[posix.env]**
 (see "Default build configurations" above).
 
