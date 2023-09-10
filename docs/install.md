@@ -68,7 +68,7 @@ Use a non-default prefix when installing:
 | M4          | __DESTDIR           |
 | Make        | DESTDIR             |
 
-> **[!WARNING]**
+> [!WARNING]
 > Must *not* contain whitespace or shell meta characters.
 
 Defaults to the empty string.
