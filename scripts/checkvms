@@ -357,13 +357,13 @@ do
 	remote_branch_restore "$host" "$dir" "$oldbranch"
 	oldbranch=
 	catch=y
-	[ "$catch" ] && kill -s "$caught" "$pid"
+	[ "$caught" ] && kill -s "$caught" "$$"
 
 	catch='' caught=''
 	[ "$started_vm" ] && utm_stop_vm "$started_vm"
 	started_vm=
 	catch=y
-	[ "$catch" ] && kill -s "$caught" "$pid"
+	[ "$caught" ] && kill -s "$caught" "$pid"
 done
 
 if [ "$failures" ]
