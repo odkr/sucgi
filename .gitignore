@@ -1,5 +1,4 @@
-.DS_Store
-.vscode
+*/.*
 *.a
 *.asc
 *.bak
@@ -17,6 +16,10 @@
 *.so
 *.swp
 *.tgz
+.*.*
+._*
+.DS_Store
+.vscode
 chk-*
 compat.h
 config.status

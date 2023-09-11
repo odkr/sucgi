@@ -15,6 +15,9 @@
 *.so
 *.swp
 *.tgz
+*/.*
+.*.*
+._*
 .DS_Store
 .git
 chk-*
