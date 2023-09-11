@@ -92,6 +92,7 @@ user_get_gid(const uid_t uid, gid_t *const gid, const ErrorFn errh)
     errno = 0;
     long bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
     if (bufsize < 0) {
+        /* cppcheck-suppress misra-c2012-22.10; sysconf may set errno. */
         if (errno == 0) {
             bufsize = BUFSIZE;
         } else {
@@ -105,6 +106,7 @@ user_get_gid(const uid_t uid, gid_t *const gid, const ErrorFn errh)
 
     do {
         assert((uintmax_t) bufsize <= (uintmax_t) SIZE_MAX);
+
         errno = 0;
         /* cppcheck-suppress misra-c2012-11.5; bad advice for malloc. */
         char *buf = malloc((size_t) bufsize);
@@ -119,9 +121,11 @@ user_get_gid(const uid_t uid, gid_t *const gid, const ErrorFn errh)
         struct passwd pwd;
         struct passwd *result = NULL;
         errno = getpwuid_r(uid, &pwd, buf, (size_t) bufsize, &result);
+
         free(buf);
 
         if (result == NULL) {
+            /* cppcheck-suppress misra-c2012-16.6; there are > 2 clauses. */
             switch (errno) {
             case 0:
                 break;
@@ -130,7 +134,7 @@ user_get_gid(const uid_t uid, gid_t *const gid, const ErrorFn errh)
                     bufsize *= bufsize;
                     continue;
                 }
-                /* Falls through. */
+            /* cppcheck-suppress misra-c2012-16.3; falls through. */
             default:
                 if (errh != NULL) {
                     errh(EXIT_FAILURE, "getpwuid");
