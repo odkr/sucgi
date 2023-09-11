@@ -463,17 +463,14 @@ then
 
 	if [ "${SUCGI_PIE-x}" = x ] && [ "${SUCGI_PIE-}" != x ]
 	then
-		for cflag in -static-pie -pie
+		for flag in -fPIE -fpie
 		do
-			for ldflag in -fPIE -fpie
-			do
-				# shellcheck disable=2086
-				if testflags $CFLAGS $cflag $ldflag
-				then
-					SUCGI_PIE="$cflag $ldflag"
-					break 2
-				fi
-			done
+			# shellcheck disable=2086
+			if testflags $CFLAGS -pie $ldflag
+			then
+				SUCGI_PIE="-pie $ldflag"
+				break 2
+			fi
 		done
 	fi
 
@@ -518,36 +515,6 @@ then
 	fi
 fi
 : "${SUCGI_SHARED-=}"
-
-
-#
-# Static linking
-#
-
-printf 'Static linking: '
-
-case $CFLAGS in
-(*-static-pie*) :
-(*)
-	if ! [ "${SUCGI_STATIC-x}" = x ] && [ "${SUCGI_STATIC-}" != x ]
-	then
-		SUCGI_STATIC=
-		for flag in -static
-		do
-			# shellcheck disable=2086
-			if testflags $CFLAGS $flag
-			then
-				SUCGI_STATIC="$SUCGI_STATIC $flag"
-				break 2
-			fi
-		done
-	fi
-esac
-
-if [ "${SUCGI_STATIC-}" ]
-then printf '%s\n' "$SUCGI_STATIC"
-else printf 'unsupported\n'
-fi
 
 
 #
