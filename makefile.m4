@@ -285,11 +285,8 @@ check_utils_dir = $(check_dir)/utils
 check_utils_bin = $(check_utils_dir)/badenv $(check_utils_dir)/badexec \
 	$(check_utils_dir)/runas
 
-check_utils_bin:
-	$(CC) $(LDFLAGS) $(CFLAGS) $(pie) -o$@ main.c $(libs) $(LDLIBS)
-
 # Scripted tests
-check_script_flags = $(CFLAGS) $(pie) -DTESTING
+check_flags = $(CFLAGS) $(pie) -DTESTING
 
 check_script_dir = $(check_dir)/scripts
 
@@ -297,16 +294,6 @@ check_scripts = $(check_script_dir)/BUG $(check_script_dir)/error \
 	$(check_script_dir)/main
 
 check_script_bins = $(check_dir)/BUG $(check_dir)/error $(check_dir)/main
-
-$(check_scripts): $(check_dir)/main $(check_script_dir)/libutil.sh
-
-$(check_script_dir)/BUG: $(check_dir)/BUG
-
-$(check_script_dir)/error: $(check_dir)/error
-
-$(check_script_dir)/main: $(uids) $(check_utils_bin)
-
-$(check_script_dir)/libutil.sh: $(scripts_dir)/libutil.sh
 
 $(check_dir)/BUG: $(check_dir)/BUG.c
 
@@ -317,15 +304,13 @@ $(check_dir)/main: main.c
 $(check_script_bins): $(libs) $(hdrs) $(libutil_dir)/types.h
 
 $(check_dir)/main:
-	$(CC) $(LDFLAGS) $(check_script_flags) -o$@ main.c $(libs) $(LDLIBS)
+	$(CC) $(LDFLAGS) $(check_flags) -o$@ main.c $(libs) $(LDLIBS)
 
 $(check_dir)/BUG $(check_dir)/error:
-	$(CC) $(LDFLAGS) $(check_script_flags) -o$@ $@.c $(libs) $(LDLIBS)
+	$(CC) $(LDFLAGS) $(check_flags) -o$@ $@.c $(libs) $(LDLIBS)
 
 # Execution
-check_bins = $(unit_bins) $(check_script_bins)
-
-checks = $(check_scripts) $(unit_bins)
+checks = $(unit_bins) $(check_scripts)
 
 ifelse(__UNAME, `Darwin', `dnl
 preload = DYLD_INSERT_LIBRARIES
@@ -339,12 +324,12 @@ environ =
 
 runpara_flags = -ci75 -j8
 
-checks: $(checks)
+checks: $(unit_bins) $(check_scripts)
 
 ifnempty(`__SHARED', `dnl
-check: $(runpara) $(checks) $(libmock)
+check: $(runpara) $(checks) $(check_utils) $(check_script_bins) $(libmock)
 ', `dnl
-check: $(runpara) $(checks)
+check: $(runpara) $(checks) $(check_utils) $(check_script_bins)
 ')dnl
 
 check:
@@ -361,7 +346,7 @@ ifnempty(`__SHARED', `dnl
 # Cleanup
 #
 
-bins = sucgi $(utils) $(check_utils_bin) $(check_bins) $(check_utils)
+bins = sucgi $(utils) $(check_utils) $(check_script_bins) $(check_bins)
 
 tidy:
 	rm -f $(dist_name).tgz
@@ -482,7 +467,7 @@ distcheck:
 # Code analysis
 #
 
-srcs = *.h *.c $(check_dir)/*.h $(check_dir)/*.c \
+srcs = *.h *.c $(check_dir)/*.c \
 	$(libutil_dir)/*.h $(libutil_dir)/*.c \
 	$(libmock_dir/*.h $(libmock_dir)/libmock/*.c
 
