@@ -224,8 +224,8 @@ main(void)
 
     /* RATS: ignore; used safely. */
     char longfname[MAX_FNAME_LEN];
-    /* "- 2U" because of '/' and the terminating '\0'. */
-    path_gen(sizeof(longfname) - tmpdirlen - 2U, longfname);
+    /* "- 3U" because of '/', '\0', and musl (which seems off-by-one). */
+    path_gen(sizeof(longfname) - tmpdirlen - 3U, longfname);
 
     /* cppcheck-suppress [misra-c2012-9.3, misra-c2012-9.4] */
     const PathRealArgs cases[] = {
@@ -262,7 +262,7 @@ main(void)
 
         /* Links to filenames that are too long. */
         {FT_LINK_NOFILE, "hugelink", hugefname, 1, {ERR_SYS}, 0},
-        {FT_LINK_FILE, "hugelink", hugefname, 2, {ERR_LEN, ERR_SYS}, 0}
+        {FT_LINK_FILE, "hugelink", hugefname, 2, {ERR_LEN}, 0}
     };
 
     volatile int result = PASS;
