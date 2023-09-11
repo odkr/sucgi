@@ -460,8 +460,8 @@ main(int argc, char **argv) {
 
     char *realscriptname = NULL;
     size_t realscriptnamelen = 0;
-    retval = path_real(scriptnamelen, scriptname,
-                       &realscriptnamelen, &realscriptname);
+    retval = path_get_real(scriptnamelen, scriptname,
+                           &realscriptnamelen, &realscriptname);
     switch (retval) {
     case OK:
         break;
@@ -469,7 +469,7 @@ main(int argc, char **argv) {
         error("realpath %s: %m.", scriptname);
     default:
         /* NOTREACHED */
-        BUG("path_real(%zu, %s, %zu, %s): returned %d.",
+        BUG("path_get_real(%zu, %s, %zu, %s): returned %d.",
             scriptnamelen, scriptname,
             realscriptnamelen, realscriptname, retval);
     }
@@ -649,7 +649,8 @@ main(int argc, char **argv) {
 
     char *realuserdir = NULL;
     size_t realuserdirlen = 0;
-    retval = path_real(userdirlen, userdir, &realuserdirlen, &realuserdir);
+    retval = path_get_real(userdirlen, userdir,
+                           &realuserdirlen, &realuserdir);
     switch (retval) {
     case OK:
         break;
@@ -659,7 +660,7 @@ main(int argc, char **argv) {
         error("realpath %s: %m.", userdir);
     default:
         /* NOTREACHED */
-        BUG("path_real(%zu, %s, %zu, %s): returned %d.",
+        BUG("path_get_real(%zu, %s, %zu, %s): returned %d.",
             userdirlen, userdir, realuserdirlen, realuserdir, retval);
     }
 
