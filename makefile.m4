@@ -282,7 +282,7 @@ $(unit_bins):
 # Utilities for scripted tests
 check_utils_dir = $(check_dir)/utils
 
-check_utils_bin = $(check_utils_dir)/badenv $(check_utils_dir)/badexec \
+check_utils = $(check_utils_dir)/badenv $(check_utils_dir)/badexec \
 	$(check_utils_dir)/runas
 
 # Scripted tests
