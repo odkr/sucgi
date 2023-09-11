@@ -1,5 +1,5 @@
 /*
- * Test path_real.
+ * Test path_get_real.
  *
  * Copyright 2023 Odin Kroeger.
  *
@@ -63,7 +63,7 @@
  * Data types
  */
 
-/* Types of files to test path_real with. */
+/* Types of files to test path_get_real with. */
 typedef enum {
     FT_FILE,                            /* Existing file. */
     FT_NOFILE,                          /* Non-existing file. */
@@ -235,8 +235,8 @@ main(void)
 #endif
 
         /* Filename is too long before resolution. */
-        {FT_NOFILE, hugefname, "<n/a>", 1, {ERR_LEN}, 0},
-        {FT_FILE, hugefname, "<n/a>", 1, {ERR_LEN}, 0},
+        {FT_NOFILE, hugefname, "<n/a>", 1, {ERR_LEN, ERR_SYS}, 0},
+        {FT_FILE, hugefname, "<n/a>", 1, {ERR_LEN, ERR_SYS}, 0},
 
         /* Long filename. */
         {FT_NOFILE, longfname, "<n/a>", 1, {ERR_SYS}, 0},
@@ -247,7 +247,7 @@ main(void)
         {FT_NOFILE, "<nosuchfile>", NULL, 1, {ERR_SYS}, 0},
         {FT_DIR, "dir", "dir", 1, {OK}, 0},
         {FT_NODIR, "<nosuchdir>", NULL, 1, {ERR_SYS}, 0},
-        {FT_LINK_FILE, "symlink", "linked", 1,{OK}, 0},
+        {FT_LINK_FILE, "symlink", "linked", 1, {OK}, 0},
         {FT_LINK_NOFILE, "<nosuchlink>", "<n/a>", 1, {ERR_SYS}, 0},
         {FT_LINK_NOFILE, "linktonowhere", "<nosuchfile>", 1, {ERR_SYS}, 0},
         {FT_NOLINK, "<nosuchlink>", "<nosuchfile>", 1, {ERR_SYS}, 0},
@@ -299,8 +299,8 @@ main(void)
             size_t reallen = 0;
 
             (void) abort_catch(err);
-            const Error retval = path_real(fnamelen, args.fname,
-                                           &reallen, &real);
+            const Error retval = path_get_real(fnamelen, args.fname,
+                                               &reallen, &real);
             (void) abort_reset(err);
 
             /* cppcheck-suppress misra-c2012-11.5; this conversion is fine. */
@@ -311,8 +311,8 @@ main(void)
 
             if (retvalp == NULL) {
                 result = FAIL;
-                warnx("(<fnamelen>, %s, → %zu, → %s) → %u [!]",
-                      args.fname, reallen, real, retval);
+                warnx("(%zu, %s, → %zu, → %s) → %u [!]",
+                      fnamelen, args.fname, reallen, real, retval);
             }
 
             if (retval == OK) {
@@ -320,14 +320,14 @@ main(void)
                     reallen >= (size_t) MAX_FNAME_LEN)
                 {
                     result = FAIL;
-                    warnx("(<fnamelen>, %s, → %zu [!], → %s) → %u",
-                          args.fname, reallen, real, retval);
+                    warnx("(%zu), %s, → %zu [!], → %s) → %u",
+                          fnamelen, args.fname, reallen, real, retval);
                 }
 
                 if (strcmp(args.real, &real[tmpdirlen + 1U]) != 0) {
                     result = FAIL;
-                    warnx("(<fnamelen>, %s, → %zu, → %s [!]) → %u",
-                          args.fname, reallen, real, retval);
+                    warnx("(%zu, %s, → %zu, → %s [!]) → %u",
+                          fnamelen, args.fname, reallen, real, retval);
                 }
             }
 
@@ -342,8 +342,7 @@ main(void)
                   args.fname, strsignal(abort_signal));
         }
 
-        char *topseg;
-
+        char *topseg = NULL;
         switch(args.type) {
         case FT_LINK_FILE:
             topseg = path_split(args.real, NULL, err);

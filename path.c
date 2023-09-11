@@ -39,8 +39,8 @@
 #include "types.h"
 
 Error
-path_real(const size_t fnamelen, const char *const fname,
-          size_t *const reallen, char **const real)
+path_get_real(const size_t fnamelen, const char *const fname,
+              size_t *const reallen, char **const real)
 {
     assert(fname != NULL);
     assert(*fname != '\0');

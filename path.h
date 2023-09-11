@@ -47,8 +47,8 @@
  *     ERR_SYS  realpath failed.
  */
 _read_only(2, 1) _write_only(3) _write_only(4) _nonnull(2, 4) _nodiscard
-Error path_real(size_t fnamelen, const char *fname,
-                size_t *reallen, char **real);
+Error path_get_real(size_t fnamelen, const char *fname,
+                    size_t *reallen, char **real);
 
 /*
  * Return a pointer to the suffix of the given filename in "suffix".
