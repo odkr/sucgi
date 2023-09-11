@@ -26,6 +26,7 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <pwd.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -37,6 +38,14 @@
 #include "../../macros.h"
 #include "user.h"
 #include "types.h"
+
+
+/*
+ * Macros
+ */
+
+/* Default buffer size. */
+#define BUFSIZE 8192
 
 
 /*
@@ -83,47 +92,59 @@ user_get_gid(const uid_t uid, gid_t *const gid, const ErrorFn errh)
     errno = 0;
     long bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
     if (bufsize < 0) {
-        if (errh != NULL) {
-            errh(EXIT_FAILURE, "sysconf");
-        }
-
-        return -1;
-    }
-
-    assert((uintmax_t) bufsize <= (uintmax_t) SIZE_MAX);
-
-    errno = 0;
-    /* cppcheck-suppress misra-c2012-11.5; bad advice for malloc. */
-    char *buf = malloc((size_t) bufsize);
-    if (buf == NULL) {
-        if (errh != NULL) {
-            errh(EXIT_FAILURE, "malloc");
-        }
-
-        return -1;
-    }
-
-    struct passwd pwd;
-    struct passwd *result = NULL;
-    errno = getpwuid_r(uid, &pwd, buf, (size_t) bufsize, &result);
-    free(buf);
-
-    if (result == NULL) {
-        /* cppcheck-suppress misra-c2012-22.10; errno was just set. */
-        if (errno != 0) {
+        if (errno == 0) {
+            bufsize = BUFSIZE;
+        } else {
             if (errh != NULL) {
-                errh(EXIT_FAILURE, "getpwuid");
+                errh(EXIT_FAILURE, "sysconf");
+            }
+
+            return -1;
+        }
+    }
+
+    do {
+        assert((uintmax_t) bufsize <= (uintmax_t) SIZE_MAX);
+        errno = 0;
+        /* cppcheck-suppress misra-c2012-11.5; bad advice for malloc. */
+        char *buf = malloc((size_t) bufsize);
+        if (buf == NULL) {
+            if (errh != NULL) {
+                errh(EXIT_FAILURE, "malloc");
             }
 
             return -1;
         }
 
-        return -1;
-    }
+        struct passwd pwd;
+        struct passwd *result = NULL;
+        errno = getpwuid_r(uid, &pwd, buf, (size_t) bufsize, &result);
+        free(buf);
 
-    *gid = pwd.pw_gid;
+        if (result == NULL) {
+            switch (errno) {
+            case 0:
+                break;
+            case ERANGE:
+                if (LONG_MAX / bufsize <= 2) {
+                    bufsize *= bufsize;
+                    continue;
+                }
+                /* Falls through. */
+            default:
+                if (errh != NULL) {
+                    errh(EXIT_FAILURE, "getpwuid");
+                }
+            }
 
-    return 0;
+            return -1;
+        }
+
+        *gid = pwd.pw_gid;
+        return 0;
+    } while (true);
+
+    /* NOTREACHED */
 }
 
 
