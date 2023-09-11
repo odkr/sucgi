@@ -35,14 +35,7 @@ readonly systems='aristides diotima phaedo phaedrus'
 branch=devel
 
 # Check command to run.
-check="
-	if command -v sudo >/dev/null
-	then sudo scripts/checkall -v
-	elif command -v doas >/dev/null
-	then doas scripts/checkall -v
-	else scripts/checkall -v
-	fi
-"
+check="scripts/checkall -v"
 
 # Repository directory on the virtual machine.
 dir='repos/sucgi'
@@ -85,18 +78,35 @@ tmpdir chk "$src_dir"		|| exit
 
 # Current working directory
 cwd="$(pwd)" || exit
+: "${cwd:?}"
 readonly cwd
+
+# User who should own the logs.
+if [ "$(id -u)" -eq 0 ]
+then user="$(owner "$src_dir")"
+else user="$(id -un)"
+fi
+: "${user:?}"
+readonly user
+
+# The primary group of that user.
+group="$(id -gn "$user")"
+: "${group:?}"
+readonly group
 
 
 #
 # Globals
 #
 
-# Checked out branch on the remote system.
-oldbranch=
+# Host most recently connected to.
+host=
 
 # The most recently start VM, if any.
 started_vm=
+
+# Temporary directory created on the host.
+tmpdir=
 
 # Whether UTM has been started by this script.
 utm_started=
@@ -105,6 +115,15 @@ utm_started=
 #
 # Functions
 #
+
+my_logged() {
+	: "${1:?}"
+
+	case $1 in
+	(-*) logged -d"$cwd" -u"$user" -g"$group" "$@" ;;
+	(*)  logged -d"$cwd" -u"$user" -g"$group" -- "$@" ;;
+	esac
+}
 
 utm_is_running() {
 	ps -A -ocomm= | xargs basename | grep -q UTM
@@ -262,12 +281,22 @@ esac
 # shellcheck disable=2086
 [ $# -eq 0 ] && set -- $systems
 
-readonly comm="
-	set -ex
-	cd \"$dir\"
-	git checkout \"$branch\"
-	$check
-"
+
+#
+# Distribution
+#
+
+warn -q 'making distribution tarball ...'
+cd "$src_dir" || exit
+m4 ./makefile.m4 >"$TMPDIR/makefile"
+distdir="$TMPDIR/dist" tarball="sucgi-cur.tgz"
+my_logged make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir"
+
+(
+	cd "$distdir" || exit
+	m4 ./makefile.m4 >makefile
+	my_logged make dist_ar="$TMPDIR/$tarball" version=cur distcheck
+)
 
 
 #
@@ -275,11 +304,8 @@ readonly comm="
 #
 
 cleanup="
-	[ \"\$oldbranch\" ] && [ \"${host-}\" ] &&
-	remote_branch_restore \"\$host\" \"\$dir\" \"\$oldbranch\"
-
+	[ \"\$host\" ] && [ \"\$tmpdir\" ] && ssh \"\$host\" \"rm -rf '\$tmpdir'\"
 	[ \"\$started_vm\" ] && utm_stop_vm \"\$started_vm\"
-
 	[ \"\$utm_started\" ] && utm_quit
 	${cleanup-}
 "
@@ -328,18 +354,27 @@ do
 	(*)    kill -s "$caught" "$$"
 	esac
 
-	warn -qv 'updating remote repository ...'
+	warn -qv 'copying distribution tarball ...'
 
-	oldbranch="$(remote_branch_stash "$host" "$dir" main)" ||
-	err 'failed to stash current branch.'
-	logged git push --all --prune --quiet "ssh://$host/~/$dir"
+	tmpdir="$progname-$$"
+	ssh -q "$host" "mkdir -m0755 '$tmpdir'"
+	scp -q "$TMPDIR/$tarball" "$host:$tmpdir/$tarball"
+	ssh -q "$host" "
+		cd '$tmpdir' &&
+		tar -xzf '$tarball' &&
+		find . -name '._*' -exec rm '{}' +
+	"
 
 	logfile="$TMPDIR/$sys.log"
 	if ! (
 		[ "$verbose" ] || exec >"$logfile" 2>&1
 
 		# shellcheck disable=2029
-		ssh "$host" "$comm"
+		ssh "$host" "
+			set -ex
+			cd \"$tmpdir/sucgi-cur\"
+			$check
+		"
 	)
 	then
 		if ! [ "$verbose" ]
@@ -351,13 +386,11 @@ do
 		failures="$failures $sys"
 	fi
 
-	warn -qv 'restoring stashed changes ...'
-
 	catch='' caught=''
-	remote_branch_restore "$host" "$dir" "$oldbranch"
-	oldbranch=
+	ssh "$host" "rm -rf '$tmpdir'"
+	host='' tmpdir=''
 	catch=y
-	[ "$caught" ] && kill -s "$caught" "$$"
+	[ "$caught" ] && kill -s "$caught" "$pid"
 
 	catch='' caught=''
 	[ "$started_vm" ] && utm_stop_vm "$started_vm"
