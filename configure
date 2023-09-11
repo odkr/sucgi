@@ -466,9 +466,9 @@ then
 		for flag in -fPIE -fpie
 		do
 			# shellcheck disable=2086
-			if testflags $CFLAGS -pie $ldflag
+			if testflags $CFLAGS -pie $flag
 			then
-				SUCGI_PIE="-pie $ldflag"
+				SUCGI_PIE="-pie $flag"
 				break 2
 			fi
 		done
