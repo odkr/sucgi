@@ -428,32 +428,6 @@ unset cflags
 
 
 #
-# Static linking
-#
-
-printf 'Static linking: '
-
-if ! [ "${SUCGI_STATIC-}" ]
-then
-	SUCGI_STATIC=
-	for flag in -static -Wl,-no-dynamic-linker
-	do
-		# shellcheck disable=2086
-		if testflags $CFLAGS $flag
-		then
-			SUCGI_STATIC="$SUCGI_STATIC $flag"
-			break 2
-		fi
-	done
-fi
-
-if [ "$SUCGI_STATIC" ]
-then printf '%s\n' "$SUCGI_STATIC"
-else printf 'unsupported\n'
-fi
-
-
-#
 # Position-independent code
 #
 
@@ -544,6 +518,36 @@ then
 	fi
 fi
 : "${SUCGI_SHARED-=}"
+
+
+#
+# Static linking
+#
+
+printf 'Static linking: '
+
+case $CFLAGS in
+(*-static-pie*) :
+(*)
+	if ! [ "${SUCGI_STATIC-x}" = x ] && [ "${SUCGI_STATIC-}" != x ]
+	then
+		SUCGI_STATIC=
+		for flag in -static
+		do
+			# shellcheck disable=2086
+			if testflags $CFLAGS $flag
+			then
+				SUCGI_STATIC="$SUCGI_STATIC $flag"
+				break 2
+			fi
+		done
+	fi
+esac
+
+if [ "${SUCGI_STATIC-}" ]
+then printf '%s\n' "$SUCGI_STATIC"
+else printf 'unsupported\n'
+fi
 
 
 #
