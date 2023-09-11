@@ -23,29 +23,30 @@ The test suite is less portable that suCGI itself; it requires
 
 In addition, `make distcheck` requires:
 
-* [pandoc](https://pandoc.org/)
+* [Pandoc](https://pandoc.org/)
 * tar
 
 
 ## Security
 
-`make check` will compile the test suite and the utilities used by tests.
-Two of these utilities, *badenv* and *badexec*, may have security implications.
-*badenv* calls applications with maliciously crafted environment variables.
-*badexec* calls applications with an arbitrary *argv[0]*. If the system is
-set up so that users either cannot compile applications or cannot run the
-applications they compiled, then compiling *badenv* or *badexec* may
-open up attacks vectors that had previously been foreclosed.
+`make check` will compile the test suite and utilities used by tests.
+However, two of these utilities, *badenv* and *badexec*, have security
+implications. *badenv* permits to call applications with maliciously
+crafted environment variables. *badexec* calls applications with an
+arbitrary *argv[0]*. If the system is set up so that users either
+cannot compile applications or cannot run applications they compiled,
+then compiling *badenv* or *badexec* may open up attacks vectors that
+had previously been foreclosed.
 
 
 ## Exit statuses
 
 | Status        | Meaning               |
 | ------------- | --------------------- |
-| 0             | Test passed.          |
-| 70            | Test failed.          |
-| 75            | Test was skipped.     |
+| 0             | Tests passed.         |
 | 69            | Something went wrong. |
+| 70            | Tests failed.         |
+| 75            | Tests was skipped.    |
 
 Any other exit status indicates a bug in the test suite.
 
