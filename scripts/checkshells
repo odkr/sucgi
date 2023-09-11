@@ -154,15 +154,20 @@ fi
 
 
 #
-# Main
+# Workspace
 #
 
-warn -q 'copying sources ...'
+warn -q 'creating workspace ...'
 cd "$src_dir" || exit
 m4 makefile.m4 >"$TMPDIR/makefile"
 distdir="$TMPDIR/dist"
-mylogged make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir"
-cd "$distdir" || exit
+make -f "$TMPDIR/makefile" dist_name="$distdir" "$distdir" >/dev/null
+cd -P "$distdir" || exit
+
+
+#
+# Main
+#
 
 warn -q 'compiling binaries ...'
 CFLAGS='' mylogged ./configure
