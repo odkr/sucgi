@@ -74,8 +74,6 @@ hdrs = attr.h compat.h config.h macros.h params.h types.h
 
 objs = env.o error.o groups.o handler.o pair.o path.o priv.o str.o userdir.o
 
-flags = $(CFLAGS) default(`__STATIC') $(pie)
-
 sucgi: main.c $(hdrs) $(libs)
 
 libsucgi.a: $(objs)
@@ -101,7 +99,7 @@ userdir.o: userdir.c userdir.h
 $(objs): $(hdrs)
 
 sucgi:
-	$(CC) $(LDFLAGS) $(flags) -o$@ main.c $(libs) $(LDLIBS)
+	$(CC) $(LDFLAGS) $(CFLAGS) $(pie) -o$@ main.c $(libs) $(LDLIBS)
 
 libsucgi.a: $(objs)
 	$(AR) $(ARFLAGS) $@ $?
@@ -145,6 +143,9 @@ runpara = $(utils_dir)/runpara
 uids = $(utils_dir)/uids
 
 utils = $(runpara) $(uids)
+
+utils:
+	$(CC) $(LDFLAGS) $(CFLAGS) $(pie) -o$@ main.c $(libs) $(LDLIBS)
 
 
 #
@@ -276,7 +277,7 @@ $(check_dir)/userdir_exp: $(check_dir)/userdir_exp.c
 $(unit_bins): $(unit_libs)
 
 $(unit_bins):
-	$(CC) $(LDFLAGS) $(CFLAGS) -o$@ $@.c $(unit_libs) $(LDLIBS)
+	$(CC) $(LDFLAGS) $(CFLAGS) $(pie) -o$@ $@.c $(unit_libs) $(LDLIBS)
 
 # Utilities for scripted tests
 check_utils_dir = $(check_dir)/utils
@@ -284,8 +285,11 @@ check_utils_dir = $(check_dir)/utils
 check_utils_bin = $(check_utils_dir)/badenv $(check_utils_dir)/badexec \
 	$(check_utils_dir)/runas
 
+check_utils_bin:
+	$(CC) $(LDFLAGS) $(CFLAGS) $(pie) -o$@ main.c $(libs) $(LDLIBS)
+
 # Scripted tests
-check_script_flags = $(CFLAGS) -DTESTING
+check_script_flags = $(CFLAGS) $(pie) -DTESTING
 
 check_script_dir = $(check_dir)/scripts
 
