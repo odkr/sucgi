@@ -27,8 +27,8 @@ Compiling suCGI requires:
 * M4 (e.g., [GNU M4] or a BSD M4)
 * The header files of your system's standard library
 
-suCGI comes with a script that installs versions of these applications
-that are appropriate for your system if needed (see below).
+suCGI comes with a script that installs
+these applications if needed (see below).
 
 [4.4BSD]: https://docs-legacy.freebsd.org/44doc/
 
@@ -66,8 +66,9 @@ Install the missing components of the C build toolchain:
 
     sudo ./installc
 
-*intallc* uses the package manager of your operating system, if possible.
-The installed packages can be removed with `installc -r`.
+*intallc* installs the tools that are missing from the C build toolchain;
+it uses the system's package manager if possible; if so, then packages
+installed with *installc* can be removed with `installc -r`.
 
 Generate the build configuration by:
 
