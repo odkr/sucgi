@@ -49,7 +49,7 @@ int groups_comp(const gid_t *group1, const gid_t *group2);
  * FIXME: Not unit-tested.
  */
 _read_only(3, 2) _nonnull(3) _nodiscard _unused
-gid_t *group_find(gid_t group, size_t ngroups, const gid_t *groups);
+gid_t *groups_find(gid_t group, size_t ngroups, const gid_t *groups);
 
 /*
  * Check whether one set of groups is a subset of another set of groups.

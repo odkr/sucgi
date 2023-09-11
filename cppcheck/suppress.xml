@@ -39,7 +39,7 @@
     -->
     <suppress>
         <id>nullPointer</id>
-        <fileName>tests/util/user.c</fileName>
+        <fileName>tests/libutil/user.c</fileName>
         <symbolName>str</symbolName>
     </suppress>
 
@@ -211,17 +211,17 @@
     -->
     <suppress>
         <id>misra-c2012-8.2</id>
-        <fileName>tests/util/dir.*</fileName>
+        <fileName>tests/libutil/dir.*</fileName>
     </suppress>
 
     <suppress>
         <id>misra-c2012-8.2</id>
-        <fileName>tests/util/path.*</fileName>
+        <fileName>tests/libutil/path.*</fileName>
     </suppress>
 
     <suppress>
         <id>misra-c2012-8.2</id>
-        <fileName>tests/util/sigs.*</fileName>
+        <fileName>tests/libutil/sigs.*</fileName>
     </suppress>
 
     <!--
@@ -232,7 +232,7 @@
 
     <suppress>
         <id>misra-c2012-8.4</id>
-        <fileName>tests/mock/*</fileName>
+        <fileName>tests/libmock/*</fileName>
     </suppress>
 
     <!--
@@ -252,7 +252,7 @@
     -->
     <suppress>
         <id>misra-c2012-11.4</id>
-        <fileName>tests/util/dir.*</fileName>
+        <fileName>tests/libutil/dir.*</fileName>
     </suppress>
 
     <!--
@@ -263,7 +263,7 @@
     -->
     <suppress>
         <id>misra-c2012-15.1</id>
-        <fileName>tests/util/*</fileName>
+        <fileName>tests/libutil/*</fileName>
     </suppress>
 
     <!-- Some callbacks would be hard to implement without stdarg.h. -->
@@ -330,7 +330,7 @@
 
     <suppress>
         <id>misra-c2012-21.4</id>
-        <fileName>tests/util/abort.*</fileName>
+        <fileName>tests/libutil/abort.*</fileName>
     </suppress>
 
     <!--
@@ -357,13 +357,13 @@
     <!-- tmpdirmake must read $TMPDIR. -->
     <suppress>
         <id>misra-c2012-21.8</id>
-        <fileName>tests/util/tmpdir.c</fileName>
+        <fileName>tests/libutil/tmpdir.c</fileName>
     </suppress>
 
     <!-- libmock.so uses environment variables for setting up tests. -->
     <suppress>
         <id>misra-c2012-21.8</id>
-        <fileName>tests/mock/*</fileName>
+        <fileName>tests/libmock/*</fileName>
     </suppress>
 
     <!-- privdrop forks and must call exit to quit the child process -->.

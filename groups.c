@@ -58,8 +58,9 @@ groups_comp(const gid_t *const group1, const gid_t *const group2)
 }
 
 gid_t *
-group_find(const gid_t group, size_t ngroups, const gid_t *const groups)
+groups_find(const gid_t group, size_t ngroups, const gid_t *const groups)
 {
+    /* cppcheck-suppress misra-c2012-11.5; cast is safe. */
     return (gid_t *) lfind(&group, groups, &ngroups, sizeof(*groups),
                            (int (*)(const void *, const void *)) groups_comp);
 }
@@ -69,7 +70,7 @@ groups_are_subset(const size_t nsub, const gid_t *const sub,
                   const size_t nsuper, const gid_t *const super)
 {
     for (size_t i = 0; i < nsub; ++i) {
-        if (group_find(sub[i], nsuper, super) == NULL) {
+        if (groups_find(sub[i], nsuper, super) == NULL) {
             return false;
         }
     }
