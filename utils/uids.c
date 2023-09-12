@@ -159,6 +159,9 @@ main(int argc, char **argv)
         }
     }
 
+    /* Superfluous, but some versions of ASan think otherwise. */
+    free(seen);
+
     if (errno != 0) {
         err(EXIT_FAILURE, "getpwsent");
     }

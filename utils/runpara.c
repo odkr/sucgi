@@ -649,6 +649,17 @@ main (int argc, char **argv)
 
     clearln(stderr);
 
+    /* Superfluous, but some versions of ASan think otherwise. */
+    for (size_t i = 0; i < NELEMS(comms); ++i) {
+        wordfree(&comms[i]);
+    }
+
+    /* Also superfluous, but see above. */
+    errno = 0;
+    if (posix_spawn_file_actions_destroy(&fileacts) < 0) {
+        err(EXIT_FAILURE, "posix_spawn_file_actions_destroy");
+    }
+
     if (waitpiderr > 0) {
         /* NOTREACHED */
         errx(EXIT_FAILURE, "waitpid: %s", strerror((int) waitpiderr));
