@@ -111,11 +111,14 @@ Enable [mod_action]:
 
 Add the following lines to your Apache configuration::
 
-    <Directory "/home">
-        Action application/x-httpd-php /cgi-bin/sucgi
+    <Directory "/home/*/public_html">
+        AddHandler php-scripts .php
+        Action php-scripts /cgi-bin/sucgi
     </Directory>
 
 The directory should correspond to USER_DIR in **config.h**.
+
+Do *not* enable mod_php.
 
 Restart Apache:
 
