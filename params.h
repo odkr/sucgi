@@ -30,6 +30,7 @@
 #include <syslog.h>
 
 #include "compat.h"
+#include "config.h"
 
 
 /*
@@ -38,12 +39,10 @@
 
 #if !defined(TESTING) || !TESTING
 
-#include "config.h"
-
-#else
-
+#undef USER_DIR
 #define USER_DIR "/tmp/sucgi-check/%s"
 
+#undef SAFE_ENV_VARS
 #define SAFE_ENV_VARS { \
     "^GCOV_PREFIX$", \
     "^GCOV_PREFIX_STRIP$", \
@@ -165,10 +164,13 @@
     "^TZ$" \
 }
 
+#undef HANDLERS
 #define HANDLERS {{".sh", "sh"}, {".empty", ""}}
 
+#undef SYSLOG_FACILITY
 #define SYSLOG_FACILITY LOG_USER
 
+#undef SYSLOG_MASK
 #define SYSLOG_MASK LOG_UPTO(LOG_DEBUG)
 
 #ifdef LOG_PERROR
