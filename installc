@@ -140,10 +140,6 @@ case $mode in
 	fi
 
 	case $os in
-	(Darwin)
-		exec xcode-select --install
-		;;
-
 	(Linux)
 		if	[ -e /etc/alpine-release ]
 		then

@@ -55,20 +55,21 @@ these applications if needed (see below).
 
 **Do NOT use suCGI!**
 
-suCGI is work in progress, does not yet validate users,
-and has *not* been reviewed, let alone audited.
+suCGI is work in progress, fails to run many CGI applications,
+does not yet validate users, and has *not* been reviewed,
+let alone audited.
 
 Download the repository and unpack it.
 
 Please take the time to read and evaluate the source code.
 
-Install the missing components of the C build toolchain:
+Install a C build toolchain:
 
     sudo ./installc
 
-*intallc* installs the tools that are missing from the C build toolchain;
-it uses the system's package manager if possible; if so, then packages
-installed with *installc* can be removed with `installc -r`.
+> [!INFO]
+> *installc* uses the system's package manger.
+> `sudo ./installc -r` removes the packages that were added to the system.
 
 Generate the build configuration by:
 
@@ -76,7 +77,8 @@ Generate the build configuration by:
 
 See **[docs/build.md]** for details and troubleshooting.
 
-suCGI is configured at compile-time. Adapt **config.h** to your needs.
+suCGI is configured at compile-time.
+Adapt **[config.h](config.h)** to your needs.
 
 Compile suCGI by:
 
@@ -143,7 +145,7 @@ See the **docs** sub-directory and the source code.
 If there's something wrong with suCGI, please
 [open an issue](https://github.com/odkr/sucgi/issues).
 
-You are welcome to write an email if you do not have a GitHub account.
+You are welcome to write an email if you don't have a GitHub account.
 
 
 ## License
