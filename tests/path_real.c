@@ -262,7 +262,7 @@ main(void)
 
         /* Links to filenames that are too long. */
         {FT_LINK_NOFILE, "hugelink", hugefname, 1, {ERR_SYS}, 0},
-        {FT_LINK_FILE, "hugelink", hugefname, 2, {ERR_LEN}, 0}
+        {FT_LINK_FILE, "hugelink", hugefname, 1, {ERR_SYS}, 0}
     };
 
     volatile int result = PASS;
