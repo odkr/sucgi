@@ -211,7 +211,11 @@ libmock_dir = $(check_dir)/libmock
 
 libmock_objs = $(libmock_dir)/mockstd.o
 
-libmock_flags = $(CFLAGS) __PIC
+ifcflag(`-fsanitize=', `dnl
+# ASan breaks pre-loading on some systems.
+libmock_flags = $(CFLAGS) default(`__PIC') -fno-sanitize=all', `dnl
+libmock_flags = $(CFLAGS) default(`__PIC')
+')
 
 $(libmock): $(libmock_objs)
 

@@ -19,3 +19,5 @@ dnl License along with suCGI. If not, see <https://www.gnu.org/licenses/>.
 changecom()dnl
 define(`ifnempty', `ifdef(`$1', `ifelse(`$1', `', `ifdef(`$3', `$3', `')', `$2')', `$3')')dnl
 define(`default', `ifnempty(`$1', `$1', `$2')')dnl
+define(`ifcontains', `ifelse(index(`$1', `$2'), `-1', `$4', `$3')')dnl
+define(`ifcflag', `ifcontains(default(`__CFLAGS'), `$1', `$2', `$3')')dnl
