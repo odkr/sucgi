@@ -31,6 +31,20 @@
 
 
 /*
+ * Macros
+ */
+
+/* Number of signals on the system. */
+#if !defined(NSIG)
+#if defined(_NSIG)
+#define NSIG _NSIG
+#else
+#define NSIG 128
+#endif
+#endif
+
+
+/*
  * Global variables
  */
 
@@ -83,9 +97,9 @@ sigs_trap(const size_t ntraps, const Trap *const traps, Trap *const old,
     }
 
     for (size_t i = 0; i < ntraps; ++i) {
-        struct sigaction act = traps[i].action;
+        const struct sigaction *const act = &traps[i].action;
         struct sigaction *ptr = NULL;
-        int sig = traps[i].signal;
+        const int sig = traps[i].signal;
 
         if (old != NULL) {
             ptr = &old[i].action;
@@ -93,7 +107,7 @@ sigs_trap(const size_t ntraps, const Trap *const traps, Trap *const old,
         }
 
         errno = 0;
-        retval = sigaction(sig, &act, ptr);
+        retval = sigaction(sig, act, ptr);
         if (retval != 0) {
             fatalerr = errno;
             break;
@@ -128,24 +142,12 @@ sigs_action(const struct sigaction action,
 {
     int retval = -1;
 
-    Trap *traps;
-    errno = 0;
-    /* cppcheck-suppress misra-c2012-11.5; bad advice for malloc. */
-    traps = calloc(nsignals, sizeof(*traps));
-    if (traps == NULL) {
-        if (errh != NULL) {
-            errh(EXIT_FAILURE, "calloc");
-        }
-        return retval;
-    }
-
+    Trap traps[NSIG];
     for (size_t i = 0; i < nsignals; ++i) {
         traps[i] = (Trap) {.signal = signals[i], .action = action};
     }
 
     retval = sigs_trap(nsignals, traps, old, errh);
-
-    free(traps);
 
     return retval;
 }
