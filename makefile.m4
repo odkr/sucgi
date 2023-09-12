@@ -324,12 +324,12 @@ environ =
 
 runpara_flags = -ci75 -j8
 
-checks: $(unit_bins) $(check_scripts)
+checks: $(checks) $(check_utils) $(check_script_bins)
 
 ifnempty(`__SHARED', `dnl
-check: $(runpara) $(checks) $(check_utils) $(check_script_bins) $(libmock)
+check: checks $(runpara) $(libmock)
 ', `dnl
-check: $(runpara) $(checks) $(check_utils) $(check_script_bins)
+check: checks $(runpara)
 ')dnl
 
 check:
