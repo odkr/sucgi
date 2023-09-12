@@ -37,7 +37,7 @@
  * Configuration
  */
 
-#if !defined(TESTING) || !TESTING
+#if defined(TESTING) && TESTING
 
 #undef USER_DIR
 #define USER_DIR "/tmp/sucgi-check/%s"
