@@ -331,7 +331,7 @@ main(void)
                 }
             }
 
-            if (retval != OK && real != NULL) {
+            if (real != NULL) {
                 free(real);
             }
         }
