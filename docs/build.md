@@ -31,21 +31,26 @@ in a shell script named **config.status**; running that script re-creates the
 
 *configure* is controlled by:
 
-* A configuration file (see "Configuration files" below)
-* Environment variables (see "Variables and macros" below)
-* Command line arguments (see `./configure -h`)
+* A configuration file
+  (see "Configuration files" below)
+* Environment variables
+  (see "Variables and macros" below)
+* Command line arguments
+  (see `./configure -h` and the [GNU Coding Standard], chap. 7)
 
 suCGI does *not* use [Autoconf]; *configure* and its configuration files
 are hand-written shell scripts; so you can debug them if you need to.
 
 The same goes for the **makefile**. However, be careful to edit the
-**makefile**'s M4 template, **makefile.m4**, *not* the **makefile** itself;
+**makefile**'s M4 template, **makefile.in*, *not* the **makefile** itself;
 the **makefile** may get overwritten when you call *make*.
 
 You can override any macro in **[compat.h]** or **[params.h]**
 by defining a macro of the same name in **[config.h]**.
 
 [Autoconf]: https://www.gnu.org/software/autoconf
+
+[GNU Coding Standard]: https://www.gnu.org/prep/standards/
 
 
 ## Configuration files
@@ -78,12 +83,12 @@ all safety checks. It is intended for testing only.
 ## Configuration variables
 
 *configure*, M4, the **makefile**, and suCGI itself are configured using
-environment variables and M4, Make, or C preprocessor macros respectively.
+variables and M4, Make, or C preprocessor macros respectively.
 
 ```mermaid
 graph TD
 
-Environment --> |overrides| Configuration
+Variables --> |control| configure
 Configuration --> |controls| configure
 
 configure --> |calls| M4
@@ -91,16 +96,16 @@ configure --> |calls| M4
 M4 --> |generates| makefile
 M4 --> |generates| compat.h
 
-makefile -->
-
 config.h --> |overrides| compat.h
 config.h --> |overrides| params.h
 ```
 
-Setting environment variables or changing configuration files changes
-the values that are used to generate the **makefile** and **compat.h**.
-Defining Make or Preprocessor macros on the command line will override
-the values in those files.
+Setting variables or changing configuration files changes the values
+that are used to generate the **makefile** and **compat.h**. Defining
+Make or Preprocessor macros on the command line will override the
+values in those files for that invocation of Make/the compiler.
+
+The **makefile** follows the [GNU Coding Standard] (chap. 7).
 
 M4 macros are used by *configure*. They only need to, and only can,
 be given on the command line if the **makefile** and **compat.h** are
@@ -118,11 +123,11 @@ created by calling M4 directly, rather than via  *configure*
 
 Set the default compiler when generating the **makefile** with *configure*:
 
-    CC=/usr/local/bin/obscurecc ./configure
+    ./configure CC=/usr/local/bin/obscurecc
 
 Set the default compiler when generating the **makefile** with M4:
 
-    m4 -D__CC=/usr/local/bin/obscurecc makefile.m4 >makefile
+    m4 -D__CC=/usr/local/bin/obscurecc makefile.in >makefile
 
 Use a non-default compiler when compiling:
 
@@ -138,17 +143,17 @@ Use a non-default compiler when compiling:
 | Preprocessor | -                        |
 
 
-Add flags to test for or macros with *configure*:
+Add macros or flags to test for with *configure*:
 
-    ./configure -F-fstack-protector-all -DNDEBUG
+    ./configure -DNDEBUG -O2
 
 Set the default compiler flags in the **makefile** with *configure*:
 
-    CFLAGS="-DNDEBUG -O2" ./configure
+    ./configure CFLAGS="-DNDEBUG -O2"
 
 Set the default compiler flags when generating the **makefile** with M4:
 
-    m4 -D"__CFLAGS=-DNDEBUG -O2" makefile.m4 >makefile
+    m4 -D"__CFLAGS=-DNDEBUG -O2" makefile.in >makefile
 
 Use non-default flags when compiling:
 
@@ -190,48 +195,48 @@ Use non-default flags when compiling:
 | Make         | LDLIBS                   |
 | Preprocessor | -                        |
 
-### Compiler flags for position-independent code (space-separated list of flags)
+### Compiler flags for position-independent code (list of flags)
 
 | Tool         | Variable/macro name      |
 | ------------ | ------------------------ |
-| *configure*  | SUCGI_PIC                |
-| M4           | __PIC                    |
-| Make         | pic                      |
+| *configure*  | picflags                 |
+| M4           | __picflags               |
+| Make         | picflags                 |
 | Preprocessor | -                        |
 
 Set to the empty string if the compiler does not support
 position-independent code.
 
-### Compiler flags for position-independent executables (space-separated list of flags)
+### Compiler flags for position-independent executables (list of flags)
 
 | Tool         | Variable/macro name      |
 | ------------ | ------------------------ |
-| *configure*  | SUCGI_PIE                |
-| M4           | __PIE                    |
-| Make         | pie                      |
+| *configure*  | pieflags                 |
+| M4           | __pieflags               |
+| Make         | pieflags                 |
 | Preprocessor | -                        |
 
 Set to the empty string if the compiler does not support
 position-independent executables.
 
-### Compiler flags for compiling shared objects (string)
+### Compiler flags for compiling shared objects (flags)
 
 | Tool         | Variable/macro name      |
 | ------------ | ------------------------ |
-| *configure*  | SUCGI_SHARED             |
-| M4           | __SHARED                 |
-| Make         | -                        |
+| *configure*  | sharedflag               |
+| M4           | __sharedflag             |
+| Make         | sharedflag               |
 | Preprocessor | -                        |
 
 Set to the empty string if the compiler does not support shared objects.
-Should only be set if __PIC is set, too.
+Should only be set if __picflags is set, too.
 
 ### *getgrouplist*() group ID type (C data type)
 
 | Tool         | Variable/macro name      |
 | ------------ | ------------------------ |
-| *configure*  | SUCGI_GRP_T              |
-| M4           | __GRP_T                  |
+| *configure*  | grouptype                |
+| M4           | __grouptype              |
 | Make         | -                        |
 | Preprocessor | GRP_T                    |
 
@@ -242,8 +247,8 @@ On older systems and macOS this is **int**, on modern systems **gid_t**.
 
 | Tool         | Variable/macro name      |
 | ------------ | ------------------------ |
-| *configure*  | SUCGI_NGRPS_T            |
-| M4           | __NGRPS_T                |
+| *configure*  | ngroupstype              |
+| M4           | __ngroupstype            |
 | Make         | -                        |
 | Preprocessor | NGRPS_T                  |
 
@@ -255,35 +260,44 @@ systems **int**.
 
 | Tool         | Variable/macro name      |
 | ------------ | ------------------------ |
-| *configure*  | SUCGI_MAX_UID_VAL        |
-| M4           | __MAX_UID_VAL            |
+| *configure*  | maxuidval                |
+| M4           | __maxuidval              |
 | Make         | -                        |
 | Preprocessor | MAX_UID_VAL              |
+
+This is the largest value representable by **uid_t**,
+*not* the largest user ID.
 
 ### **gid_t** maximum (integer)
 
 | Tool         | Variable/macro name      |
 | ------------ | ------------------------ |
-| *configure*  | SUCGI_MAX_GID_VAL        |
-| M4           | __MAX_GID_VAL            |
+| *configure*  | maxgidval                |
+| M4           | __maxgidval              |
 | Make         | -                        |
 | Preprocessor | MAX_GID_VAL              |
+
+This is the largest value representable by **gid_t**,
+*not* the largest group ID.
 
 ### GRP_T maximum (integer)
 
 | Tool         | Variable/macro name      |
 | ------------ | ------------------------ |
-| *configure*  | SUCGI_MAX_GRP_VAL        |
-| M4           | __MAX_GRP_VAL            |
+| *configure*  | maxgroupval              |
+| M4           | __maxgroupval            |
 | Make         | -                        |
 | Preprocessor | MAX_GRP_VAL              |
+
+This is the largest value representable by GRP_T,
+*not* the largest group ID.
 
 ### NGRPS_T maximum (integer)
 
 | Tool         | Variable/macro name      |
 | ------------ | ------------------------ |
-| *configure*  | SUCGI_MAX_NGRPS_VAL      |
-| M4           | __MAX_NGRPS_VAL          |
+| *configure*  | maxngroupsval            |
+| M4           | __maxngroupsval          |
 | Make         | -                        |
 | Preprocessor | MAX_NGRPS_VAL            |
 
@@ -291,8 +305,8 @@ systems **int**.
 
 | Tool         | Variable/macro name      |
 | ------------ | ------------------------ |
-| *configure*  | SUCGI_HAVE_SYS_PARAMS_H  |
-| M4           | __HAVE_SYS_PARAMS_H      |
+| *configure*  | have_sys_params_h        |
+| M4           | __have_sys_params_h      |
 | Make         | -                        |
 | Preprocessor | HAVE_SYS_PARAMS_H        |
 
@@ -302,8 +316,8 @@ Any non-zero integer value means true.
 
 | Tool         | Variable/macro name      |
 | ------------ | ------------------------ |
-| *configure*  | SUCGI_HAVE_FEATURES_H    |
-| M4           | __HAVE_FEATURES_H        |
+| *configure*  | have_features_h          |
+| M4           | __have_features_h        |
 | Make         | -                        |
 | Preprocessor | HAVE_FEATURES_H          |
 
@@ -368,7 +382,7 @@ name in **config.h**.
 
 If *configure* fails, a fallback build configuration can be created by:
 
-    m4 makefile.m4 >makefile
+    m4 makefile.in >makefile
 
 **compat.h** will be created by `make`.
 
@@ -442,6 +456,14 @@ indicates that the macro USER_DIR expands to a string that is too short.
 Try using another archiver. *ar* is good enough on most systems:
 
     AR=ar ./configure
+
+### Disable automatic makefile re-generation
+
+The [GNU Coding Standard] requires that the makefile is automatically
+updated if one of the files it depends on changes. However, if you would
+rather debug the **makefile** than **makefile.in**, this may overwrite
+your changes. You can disable this 'feature' by renaming **config.status**
+to **config.noauto**.
 
 
 [install.md]: install.md

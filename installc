@@ -25,14 +25,12 @@
 #
 
 set -Ceu
-src_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
-: "${src_dir:?}"
-readonly src_dir
-readonly scripts_dir="$src_dir/scripts"
-cd -P "$src_dir"		|| exit
+scriptdir="$(cd -P "$(dirname -- "$0")" && pwd)"
+: "${scriptdir:?}"
+readonly scriptdir
 # shellcheck disable=1091
-. "$scripts_dir/libutil.sh"	|| exit
-init				|| exit
+. "$scriptdir/scripts/libutil.sh"	|| exit
+init					|| exit
 
 
 #

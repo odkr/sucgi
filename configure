@@ -23,6 +23,18 @@
 
 # shellcheck disable=2015
 
+#
+# Initialiation
+#
+
+set -Cefu
+scriptdir="$(cd -P "$(dirname -- "$0")" && pwd)"
+: "${scriptdir:?}"
+readonly scriptdir
+# shellcheck disable=1091
+. "$scriptdir/scripts/libutil.sh"	|| exit
+init					|| exit
+
 
 #
 # Defaults
@@ -35,7 +47,7 @@ cflags=
 compilers='gcc clang tcc icx icc c99 cc'
 
 # Configuration file.
-conf=conf/prod.env
+conf="conf/prod.env"
 
 # Files to generate. Space-separated list.
 files='compat.h makefile'
@@ -57,62 +69,57 @@ quiet=
 # Constants
 #
 
+# Variables to set as M4 Macros. Whitespace-separated list.
+readonly macros='
+	CC CFLAGS AR ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
+	prefix srcdir cgidir exec_prefix libexecdir datarootdir
+	mandir man8dir manext
+	grouptype ngroupstype maxuidval maxgidval maxgroupval maxngroupsval
+	have_sys_param_h have_features_h picflags pieflags sharedflag uname
+'
+
+# Files by which to identify the source directory. Whitespace-separated list.
+readonly srcfiles='
+	main.c
+	makefile.in
+	compat.h.in
+	conf/prod.env
+	conf/devel.env
+'
+
 # Flags for testing compiler features. Space-separated list of flags.
 readonly feattestflags='-std=c99 -pipe'
 
 # Flags for testing conversions. Space-separated list of flags.
 readonly wconvflags='-Wconversion'
 
-
-#
-# Initialiation
-#
-
-set -Cefu
-src_dir="$(cd -P "$(dirname -- "$0")" && pwd)"
-: "${src_dir:?}"
-readonly src_dir
-readonly scripts_dir="$src_dir/scripts"
-cd -P "$src_dir"		|| exit
-# shellcheck disable=1091
-. "$scripts_dir/libutil.sh"	|| exit
-init				|| exit
-tmpdir tmp .			|| exit
-
-
-#
-# Constants
-#
-
-# Variables to set as M4 Macros.
-readonly macros='
-	CC CFLAGS AR ARFLAGS LDFLAGS LDLIBS DESTDIR PREFIX
-	SUCGI_GRP_T SUCGI_NGRPS_T SUCGI_MAX_UID_VAL SUCGI_MAX_GID_VAL
-	SUCGI_MAX_GRP_VAL SUCGI_MAX_NGRPS_VAL SUCGI_HAVE_SYS_PARAM_H
-	SUCGI_HAVE_FEATURES_H SUCGI_UNAME SUCGI_STATIC SUCGI_PIC SUCGI_PIE
-	SUCGI_SHARED SUCGI_CGI_DIR SUCGI_WWW_GRP
-'
-
 # Where to save the configuration.
-readonly confsave=config.status
+if [ -e config.noauto ]
+then confsave=config.noauto
+else confsave=config.status
+fi
+readonly confsave
 
 # Integer types that may be used for IDs and sizes. Colon-separated list.
-inttypes=''
-for base in 'int' 'long' 'long long'
+integertypes=''
+for integerbase in 'int' 'long' 'long long'
 do
-	for prefix in '' 'unsigned '
-	do inttypes="$inttypes:$prefix$base"
+	for integerprefix in '' 'unsigned '
+	do integertypes="$integertypes:$integerprefix$integerbase"
 	done
 done
-inttypes="$inttypes:intmax_t:uintmax_t"
-unset base
-readonly inttypes
+integertypes="$integertypes:intmax_t:uintmax_t"
+unset integerbasen integerprefix
+readonly integertypes
 
 # Possible data types for group IDs. Colon-separated list.
-readonly grouptypes="gid_t:$inttypes"
+readonly grouptypes="gid_t:$integertypes"
 
 # Possible data types for sizes. Colon-separated list.
-readonly sizetypes="size_t:$inttypes"
+readonly sizetypes="size_t:$integertypes"
+
+# Probe source directory.
+readonly probesdir="$scriptdir/probes"
 
 
 #
@@ -150,7 +157,7 @@ addflags() {
 
 # Get a function prototype.
 getprototype() {
-	"$CC" -E -DHDR="<$1>" probe/header.h 2>/dev/null |
+	"$CC" -E -DHDR="<$1>" "$probesdir/header.h" 2>/dev/null |
 	awk -vRS=';' -vfn="${2:?}" '
 		$0 !~ /^ *#/ && $0 ~  "[^ ] *" fn " *[\\($]" {
 			gsub("[\n\r\t\v ]+", " ");
@@ -202,7 +209,7 @@ testcc() (
 
 # Test compiler flags.
 testflags() {
-	testcc "$@" probe/noop.c
+	testcc "$@" "$probesdir/noop.c"
 }
 
 
@@ -210,85 +217,241 @@ testflags() {
 # Options
 #
 
-OPTIND=1 OPTARG='' opt=''
-while getopts F:D:U:Xc:dfhj:p:qs opt
+for macro in $macros
 do
-	# shellcheck disable=2154
-	case $opt in
-	(h) exec cat <<EOF >&2
-configure - generate a build configuration
+	case $macro in (*[a-z]*)
+		unset "$macro"
+	esac
+done
 
-Usage:    configure [-F FLAG] [-D|-U MACRO ...]
-                    [-cFILE|-d] [-f] [-jN] [-q] [FILE ...]
-          configure -h
+nfiles=0
+while [ "$#" -gt 0 ]
+do
+	opt="$1" optopt='' suffix=''
+	case $1 in
+	(--)	shift
+		break
+		;;
+	(--*)	case $1 in
+		(*=*)	optopt="${1%%=*}" suffix="${1#*=}" ;;
+		(*)	optopt="$1"       suffix= ;;
+		esac
+		shift
+		;;
+	(-*)	suffix="${1#-?}"
+		optopt="${1%$suffix}"
+		shift
+		;;
+	(*)	break
+	esac
+
+	optarg=''
+	case $optopt in
+	(--enable-*)
+		[ "$suffix" ] || shift
+		;;
+	(-h|--debug|--dev|--force|--help|--quiet|--with-*)
+		[ "$suffix" ] && err -s64 '%s: takes no argument.' "$optopt"
+		;;
+	(*)
+		if [ "$suffix" ]
+		then
+			optarg="$suffix"
+		else
+			optarg="${1-}"
+			shift
+		fi
+		[ "$optarg" ] || err -s64 '%s: no argument given.' "$optopt"
+		;;
+	esac
+	unset suffix
+
+	case $optopt in
+	(-h|--help)	exec cat <<EOF >&2
+$progname - generate a build configuration
+
+Usage:  $progname [-D|-U MACRO ...] [--conf=FILE|--dev]
+                  [--gen=FILE ...] [--force] [--quiet]
+                  [<GNU options> ...] [CFLAGS ...] [VAR=VALUE]
+        $progname -h|--help
 
 Operands:
-    FILE  A file to generate (default: $files).
+    VAR          Configuration variable.
+    VALUE        Value for that variable. Use the empty string to disable.
 
 Options:
-    -F FLAG   Add FLAG to \$CFLAGS if supported by the compiler.
-    -D MACRO  Short for "-F -DMACRO".
-    -U MACRO  Short for "-F -UMACRO".
-    -c FILE   Read build configuration from FILE (default: $conf).
-    -d        Short for "-c conf/devel.env".
-    -f        Overwrite existing files.
-    -q        Be quiet.
-    -h        Show this help screen.
+    -D MACRO     Add "-DMACRO" to \$CFLAGS.
+    -U MACRO     Add "-UMACRO" to \$CFLAGS.
+    --gen FILE   Only generate FILE (default: $files).
+    --conf FILE  Read build configuration from FILE (default: $conf).
+    --dev        Short for "--conf=conf/devel.env".
+    --force      Overwrite existing files.
+    --quiet      Be quiet.
+    -h, --help   Show this help screen.
 
-See docs/build.rst for details.
+$progname aims to conform to the GNU Coding Standard (chap. 7), but
+does not support cross-compiling (i.e., --build, --host, and --target).
+
+All unrecognised options are passed on to the C compiler,
+but only if the compiler supports them.
+
+See docs/build.md for details.
 
 Copyright 2022 and 2023 Odin Kroeger.
 Released under the GNU Affero General Public License.
 This programme comes with ABSOLUTELY NO WARRANTY.
 EOF
-	    ;;
-	(X) set -x ;;
-	(D) addflags "-D$OPTARG" ;;
-	(U) addflags "-U$OPTARG" ;;
-	(F) addflags "$OPTARG" ;;
-	(c) conf="$OPTARG" ;;
-	(d) conf=conf/devel.env ;;
-	(f) force=y ;;
-	(q) quiet=y ;;
-	(*) exit 1
+			;;
+	(--build|--host|--target|--enable-*|--with-*)
+			warn '%s: not supported.' "$optopt" ;;
+	(--gen)		eval "file_$nfiles"='"$optarg"'
+			nfiles=$((nfiles + 1))
+			;;
+	(--debug)	set -x ;;
+	(--conf)	conf="$optarg" ;;
+	(--dev)		conf="$scriptdir/conf/devel.env" ;;
+	(--prefix)	prefix="$optarg" ;;
+	(--exec-prefix)	exec_prefix="$optarg" ;;
+	(--libexecdir)	libexecdir="$optarg" ;;
+	(--datarootdir)	datarootdir="$optarg" ;;
+	(--mandir)	mandir="$optarg" ;;
+	(--man8dir)	man8dir="$optarg" ;;
+	(--manext)	manext="$optarg" ;;
+	(--cgidir)	cgidir="$optarg" ;;
+	(--wwwgrp)	wwwgrp="$optarg" ;;
+	(--force)	force=y ;;
+	(--quiet)	quiet=y ;;
+	(-D)		addflags "-D$optarg" ;;
+	(-U)		addflags "-U$optarg" ;;
+	(-*)		addflags "$opt" ;;
+	(*)		break
 	esac
 done
-shift $((OPTIND - 1))
-unset opt
+unset opt optopt optarg
 
-[ "$conf" ]	|| err '-c: no filename given.'
-[ -e "$conf" ]	|| err '%s: no such file.' "$conf"
+while [ "$#" -gt 0 ]
+do
+	case $1 in
+	(*=*)	: ;;
+	(*)	break
+	esac
 
-# shellcheck disable=1090
-case $conf in ([!/.]*)
-	conf="./$conf"
+	key="${1%%=*}" value="${1#*=}"
+	if inlist '=' "$key" $macros
+	then eval "$key"='"$value"'
+	else warn '%s: not a supported variable.' "$key"
+	fi
+
+	shift
+done
+
+[ $# -gt 0 ] && warn 'ignoring operands: %s' "$*"
+
+conffile=
+case $conf in
+	([./]*) conffile="$conf" ;;
+	(*)	for dir in . .. "$scriptdir" ./conf ../conf "$scriptdir/conf"
+		do
+			for suffix in '' '.env'
+			do
+				fname="$dir/$conf$suffix"
+				if [ -e "$fname" ]
+				then
+					conffile="$fname"
+					break 2
+				fi
+			done
+		done
 esac
+unset dir file suffix
+
+[ "$conffile" ] || err '%s: no such configuration.' "$conf"
 
 # shellcheck source=conf/devel.env
-. "$conf" || exit
-unset conf
+. "$conffile" || exit
+unset conf conffile
 
-# shellcheck disable=2154
-if [ "$progname" = "$confsave" ]
+for fname in		\
+	${DESTDIR-}	\
+	${PREFIX-}	\
+	${prefix-}	\
+	${srcdir-}	\
+	${cgidir-}	\
+	${exec_prefix-}	\
+	${libexecdir-}	\
+	${datarootdir-}	\
+	${mandir-}	\
+	${man8dir-}	\
+	${manext-}
+do
+	case $fname in (*[!./A-Za-z0-9_-]*)
+		err -s64 '%s: bad characters.' "$fname"
+	esac
+done
+
+if [ "$nfiles" -eq 0 ]
 then
-	exec >/dev/null
-	force=y
+	for file in $files
+	do
+		eval "file_$nfiles"='"$file"'
+		nfiles=$((nfiles + 1))
+	done
 fi
-
-# shellcheck disable=2086
-[ $# -eq 0 ] && set -- $files
 unset files
 
-nfiles=0
-for file
-do
-	eval "file_$nfiles"='"$file"'
-	nfiles=$((nfiles + 1))
-done
-shift $#
+if ! [ "$force" ]
+then
+	[ -e "$confsave" ] &&
+	err '%s: exists, use --force to overwrite.' "$confsave"
+
+	i=0
+	while [ "$i" -lt "$nfiles" ]
+	do
+		eval file=\"\${file_$i}\"
+		i=$((i + 1))
+		if [ -e "$file" ]
+		then err '%s: exists, use --force to overwrite.' "$file"
+		fi
+	done
+	unset i file
+fi
+
+[ "$quiet" ] && exec >/dev/null
 
 # shellcheck disable=2034
 readonly force quiet nfiles
+
+
+#
+# Temporary directory.
+#
+
+tmpdir tmp . || exit
+
+
+#
+# Source directory
+#
+
+if [ "${srcdir-x}" = x ] && [ "${srcdir-}" != x ]
+then
+	# The GNU Coding Standard says . and .. need to be checked.
+	for dir in . .. "$scriptdir"
+	do
+		for file in $srcfiles
+		do
+			if ! [ -e "$dir/$file" ]
+			then
+				continue 2
+			fi
+		done
+
+		srcdir="$dir"
+		break
+	done
+fi
+
+[ "$srcdir" ] || err 'cannot locate source directory.'
 
 
 #
@@ -297,9 +460,9 @@ readonly force quiet nfiles
 
 printf 'System: '
 
-: "${SUCGI_UNAME:="$(uname)"}"
+: "${uname:="$(uname)"}"
 
-printf '%s\n' "$SUCGI_UNAME"
+printf '%s\n' "$uname"
 
 
 #
@@ -342,7 +505,7 @@ then
 	exit 2
 fi
 
-# Compiler path.
+# Absolute path.
 ccpath="${CC:?}"
 readonly ccpath
 
@@ -433,88 +596,79 @@ unset cflags
 
 printf 'Position-independent code: '
 
-if [ "${SUCGI_PIC-x}" = x ] && [ "${SUCGI_PIC-}" != x ]
+if [ "${picflags-x}" = x ] && [ "${picflags-}" != x ]
 then
 	for flag in -fPIC -fpic
 	do
 		# shellcheck disable=2086
 		if testflags $CFLAGS $flag
 		then
-			SUCGI_PIC="$flag"
+			picflags="$flag"
 			break 2
 		fi
 	done
 fi
-: "${SUCGI_PIC:=}"
+: "${picflags:=}"
 
-if [ "$SUCGI_PIC" ]
-then printf '%s\n' "$SUCGI_PIC"
-else printf 'unsupported\n'
-fi
+printf '%s\n' "${picflags:-unsupported}"
 
 
 #
 # Position-independent executables
 #
 
-if [ "$SUCGI_PIC" ]
+if [ "$picflags" ]
 then
 	printf 'Position-independent executables: '
 
-	if [ "${SUCGI_PIE-x}" = x ] && [ "${SUCGI_PIE-}" != x ]
+	if [ "${pieflags-x}" = x ] && [ "${pieflags-}" != x ]
 	then
 		for flag in -fPIE -fpie
 		do
 			# shellcheck disable=2086
 			if testflags $CFLAGS -pie $flag
 			then
-				SUCGI_PIE="-pie $flag"
+				pieflags="-pie $flag"
 				break 2
 			fi
 		done
 	fi
 
-	if [ "${SUCGI_PIE-}" ]
-	then printf '%s\n' "$SUCGI_PIE"
-	else printf 'unsupported\n'
-	fi
+	printf '%s\n' "${pieflags:-unsupported}"
 fi
-: "${SUCGI_PIE-=}"
+: "${pieflags:=}"
 
 
 #
 # Shared objects
 #
 
-if [ "$SUCGI_PIC" ]
+if [ "$picflags" ]
 then
 	printf 'Shared objects: '
 
-	if [ "${SUCGI_SHARED-x}" = x ] && [ "${SUCGI_SHARED-}" != x ]
+	if [ "${sharedflag-x}" = x ] && [ "${sharedflag-}" != x ]
 	then
-		SUCGI_SHARED=
-		case $SUCGI_UNAME in
-		(Darwin) shared_flags='-dynamiclib -shared' ;;
-		(*)      shared_flags=-shared ;;
+		sharedflag=
+		case $uname in
+		(Darwin) sharedflags='-dynamiclib -shared' ;;
+		(*)      sharedflags=-shared ;;
 		esac
 
 		# shellcheck disable=2086
-		for flag in $shared_flags
+		for flag in $sharedflags
 		do
-			if testflags "$SUCGI_PIC" "$flag"
+			if testflags "$picflags" "$flag"
 			then
-				SUCGI_SHARED="$flag"
+				sharedflag="$flag"
 				break
 			fi
 		done
 	fi
 
-	if [ "$SUCGI_SHARED" ]
-	then printf '%s\n' "$SUCGI_SHARED"
-	else printf 'unsupported\n'
-	fi
+	printf '%s\n' "${sharedflag:-unsupported}"
 fi
-: "${SUCGI_SHARED-=}"
+: "${sharedflags-=}"
 
 
 #
@@ -577,34 +731,34 @@ printf 'Headers:'
 nheaders=0
 for header in $headers
 do
-	headervar="SUCGI_HAVE_$(
-		printf '%s\n' "$header"	|
-		sed 's/[^a-z]/_/g'	|
-		tr '[:lower:]' '[:upper:]'
-	)"
+	headervar="have_$(printf '%s\n' "$header" | sed 's/[^a-z]/_/g')"
 
-	case $headervar in (SUCGI_HAVE_|*[!A-Z0-9_]*)
-		warn '%s: could not derive header name.' "$header"
+	if [ "$headervar" = have_ ]
+	then
+		'%s: could not derive header name.' "$header"
 		continue
-	esac
+	fi
 
 	eval headeravail="\${$headervar-}"
 
 	# shellcheck disable=2154
 	case $headeravail in
 	(0)
-		eval "$headervar=0"
+		:
 		;;
 	(1)
-		eval "$headervar=1"
 		nheaders=$((nheaders + 1))
 		printf ' %s' "$header"
 		;;
 	(*)
-		if "$CC" -D"HDR=<$header>" -E probe/header.h >/dev/null 2>&1
+		if	"$CC" -D"HDR=<$header>" -E "$probesdir/header.h" \
+			>/dev/null 2>&1
 		then
+			eval "$headervar=1"
 			nheaders=$((nheaders + 1))
 			printf -- ' %s' "$header"
+		else
+			eval "$headervar=0"
 		fi
 	esac
 
@@ -748,55 +902,46 @@ unset nheaders
 
 printf 'getgrouplist GID type: '
 
-: "${SUCGI_GRP_T=}"
+: "${grouptype=}"
 # shellcheck disable=2086
-if	! [ "$SUCGI_GRP_T" ] &&
-	[ "$ccwconv" ]       &&
+if	! [ "$grouptype" ] &&
+	[ "$ccwconv" ] &&
 	testflags -Wincompatible-pointer-types
 then
 	IFS=:
-	for grptype in $grouptypes
+	for candidate in $grouptypes
 	do
-		unset IFS || :
-		[ "$grptype" ] || continue
+		unset IFS
+		[ "$candidate" ] || continue
 
 		# shellcheck disable=2086
 		if	testcc $wconvflags -Wincompatible-pointer-types \
-			       -DGRP_T="$grptype" probe/grp_t.c
+			       -DGRP_T="$candidate" "$probesdir/grouptype.c"
 		then
-			SUCGI_GRP_T="$grptype"
+			grouptype="$candidate"
 			break
 		fi
 	done
+	unset candidate
 fi
-
-if	! [ "$SUCGI_GRP_T" ]                                               &&
-	grptype="$(getparamtype unistd.h getgrouplist 3 | sed 's/ *\*//')" &&
-	[ "$grptype" ]
-then	SUCGI_GRP_T="$grptype"
-fi
-
-unset grptype
+: "${grouptype:="$(getparamtype unistd.h getgrouplist 3 | sed 's/ *\*//')"}"
 
 # shellcheck disable=2034
-case $SUCGI_GRP_T in
-("short")              SUCGI_MAX_GRP_VAL=SHRT_MAX ;;
-("unsigned short")     SUCGI_MAX_GRP_VAL=USHRT_MAX ;;
-("int")                SUCGI_MAX_GRP_VAL=INT_MAX ;;
-("unsigned int")       SUCGI_MAX_GRP_VAL=UINT_MAX ;;
-("long")               SUCGI_MAX_GRP_VAL=LONG_MAX ;;
-("unsigned long")      SUCGI_MAX_GRP_VAL=ULONG_MAX ;;
-("long long")          SUCGI_MAX_GRP_VAL=LLONG_MAX ;;
-("unsigned long long") SUCGI_MAX_GRP_VAL=ULLONG_MAX ;;
-("intmax_t")           SUCGI_MAX_GRP_VAL=INTMAX_MAX ;;
-("uintmax_t")          SUCGI_MAX_GRP_VAL=UINTMAX_MAX ;;
-("gid_t")              SUCGI_MAX_GRP=MAX_GID_VAL
+case $grouptype in
+("short")              maxgroupval=SHRT_MAX ;;
+("unsigned short")     maxgroupval=USHRT_MAX ;;
+("int")                maxgroupval=INT_MAX ;;
+("unsigned int")       maxgroupval=UINT_MAX ;;
+("long")               maxgroupval=LONG_MAX ;;
+("unsigned long")      maxgroupval=ULONG_MAX ;;
+("long long")          maxgroupval=LLONG_MAX ;;
+("unsigned long long") maxgroupval=ULLONG_MAX ;;
+("intmax_t")           maxgroupval=INTMAX_MAX ;;
+("uintmax_t")          maxgroupval=UINTMAX_MAX ;;
+("gid_t")              maxgroupval=MAX_GID_VAL
 esac
 
-if [ "$SUCGI_GRP_T" ]
-then printf '%s\n' "$SUCGI_GRP_T"
-else printf 'guess at compile-time\n'
-fi
+printf '%s\n' "${grouptype:-guess at compile-time}"
 
 
 #
@@ -805,51 +950,43 @@ fi
 
 printf 'setgroups count type: '
 
-: "${SUCGI_NGRPS_T=}"
+: "${ngroupstype=}"
 # shellcheck disable=2086
-if ! [ "$SUCGI_NGRPS_T" ] && [ "$ccwconv" ]
+if ! [ "$ngroupstype" ] && [ "$ccwconv" ]
 then
 	IFS=:
-	for sztype in $sizetypes
+	for candidate in $sizetypes
 	do
-		unset IFS || :
-		[ "$sztype" ] || continue
+		unset IFS
+		[ "$candidate" ] || continue
 
 		# shellcheck disable=2086
-		if testcc $wconvflags -DNGRPS_T="$sztype" probe/ngrps_t.c
+		if 	testcc $wconvflags -DNGRPS_T="$candidate" \
+			       "$probesdir/ngroupstype.c"
 		then
-			SUCGI_NGRPS_T="$sztype"
+			ngroupstype="$candidate"
 			break
 		fi
 	done
+	unset candidate
 fi
-
-if	! [ "$SUCGI_NGRPS_T" ]                                         &&
-	sztype="$(getparamtype unistd.h setgroups 1 | sed 's/ *\*//')" &&
-	[ "$sztype" ]
-then	SUCGI_NGRPS_T="$sztype"
-fi
-
-unset sztype
+: "${ngroupstype:="$(getparamtype unistd.h setgroups 1 | sed 's/ *\*//')"}"
 
 # shellcheck disable=2034
-case $SUCGI_NGRPS_T in
-("short")              SUCGI_MAX_NGRPS_VAL=SHRT_MAX ;;
-("unsigned short")     SUCGI_MAX_NGRPS_VAL=USHRT_MAX ;;
-("int")                SUCGI_MAX_NGRPS_VAL=INT_MAX ;;
-("unsigned int")       SUCGI_MAX_NGRPS_VAL=UINT_MAX ;;
-("long")               SUCGI_MAX_NGRPS_VAL=LONG_MAX ;;
-("unsigned long")      SUCGI_MAX_NGRPS_VAL=ULONG_MAX ;;
-("long long")          SUCGI_MAX_NGRPS_VAL=LLONG_MAX ;;
-("unsigned long long") SUCGI_MAX_NGRPS_VAL=ULLONG_MAX ;;
-("intmax_t")           SUCGI_MAX_NGRPS_VAL=INTMAX_MAX ;;
-("uintmax_t")          SUCGI_MAX_NGRPS_VAL=UINTMAX_MAX ;;
+case $ngroupstype in
+("short")              maxngroupsval=SHRT_MAX ;;
+("unsigned short")     maxngroupsval=USHRT_MAX ;;
+("int")                maxngroupsval=INT_MAX ;;
+("unsigned int")       maxngroupsval=UINT_MAX ;;
+("long")               maxngroupsval=LONG_MAX ;;
+("unsigned long")      maxngroupsval=ULONG_MAX ;;
+("long long")          maxngroupsval=LLONG_MAX ;;
+("unsigned long long") maxngroupsval=ULLONG_MAX ;;
+("intmax_t")           maxngroupsval=INTMAX_MAX ;;
+("uintmax_t")          maxngroupsval=UINTMAX_MAX ;;
 esac
 
-if [ "$SUCGI_NGRPS_T" ]
-then printf '%s\n' "$SUCGI_NGRPS_T"
-else printf 'guess at compile-time\n'
-fi
+printf '%s\n' "${ngroupstype:-guess at compile-time}"
 
 
 #
@@ -861,37 +998,45 @@ do
 	printf '%s maximum: ' "$idtype"
 
 	case $idtype in
-	(uid_t) idvar=SUCGI_MAX_UID_VAL ;;
-	(gid_t) idvar=SUCGI_MAX_GID_VAL ;;
+	(uid_t) idmaxvar=maxuidval ;;
+	(gid_t) idmaxvar=maxgidval ;;
 	(*)     err -s70 'line %d: %s: unknown type.' ${LINENO-?} "$idtype"
 	esac
 
-	if eval "! [ \"\${$idvar-}\" ]"
+	if eval "! [ \"\${$idmaxvar-}\" ]"
 	then
-		"$CC" -o"$TMPDIR/${idtype}_max" -D"T=$idtype" \
-		      probe/typemax_rt.c >/dev/null 2>&1     &&
-		idmax="$("$TMPDIR/${idtype}_max" | tail -n1)"  &&
-		eval "$idvar=\"\$idmax\""
+		maxvalbin="$TMPDIR/${idtype}max"
 
-		unset idmax
+		"$CC" -o"$maxvalbin" -D"T=$idtype" "$probesdir/typemax_rt.c" \
+		      >/dev/null 2>&1		&&
+		idmaxval="$("$maxvalbin" | tail -n1)"	&&
+		eval "$idmaxvar=\"\$idmaxval\""
+
+		unset maxvalbin idmaxval
 	fi
 
-	# The working directory may be mounted noexec.
-	if eval "! [ \"\${$idvar-}\" ]" && [ "$ccwconv" ]
+	# The working directory could be mounted noexec.
+	if eval "! [ \"\${$idmaxvar-}\" ]" && [ "$ccwconv" ]
 	then
-		for idmax in                                         \
-			SHRT_MAX  USHRT_MAX  INT_MAX    UINT_MAX     \
-			LONG_MAX  ULONG_MAX  LLONG_MAX  ULLONG_MAX
+		for idmax in		\
+			SHRT_MAX	\
+			USHRT_MAX	\
+			INT_MAX		\
+			UINT_MAX	\
+			LONG_MAX	\
+			ULONG_MAX	\
+			LLONG_MAX	\
+			ULLONG_MAX
 		do
 			# shellcheck disable=2086
 			testcc $wconvflags -D"T=$idtype" -D"V=$idmax" \
-			       probe/typemax_ct.c || break
-			eval "$idvar=\"\$idmax\""
+			       "$probesdir/typemax_ct.c" || break
+			eval "$idmaxvar=\"\$idmax\""
 		done
 		unset idmax
 	fi
 
-	eval "printf '%s\n' \"\${$idvar-\"guess at compile-time\"}\""
+	eval "printf '%s\n' \"\${$idmaxvar-\"guess at compile-time\"}\""
 
 	unset idvar
 done
@@ -906,13 +1051,7 @@ shift "$#"
 for key in $macros
 do
 	eval "value=\"\${$key-}\""
-	if [ "$value" ]
-	then
-		case $# in
-		(0) set -- "-D__${key#SUCGI_}=\`${value# }'" ;;
-		(*) set -- "$@" "-D__${key#SUCGI_}=\`${value# }'" ;;
-		esac
-	fi
+	[ "$value" ] && set -- "$@" "-D__$key=\`${value# }'"
 done
 unset key value
 
@@ -930,29 +1069,24 @@ if [ "$progname" != "$confsave" ]
 then
 	if [ "$exists" ] && ! [ "$force" ]
 	then
-		err '%s exists, give -f to overwrite.' "$confsave"
+		err '%s exists, use --force to overwrite.' "$confsave"
 	else
 		swap="$TMPDIR/$confsave"
 
-		cat <<-'EOF' >"$swap"
+		cat <<-EOF >"$swap"
 		#!/bin/sh
-		# Last configuration detected by ./configure.
+		# Last configuration detected by $srcdir/configure.
 
+		'$srcdir/configure' --force --quiet "\$@" \\
 		EOF
 
 		for key in $macros
 		do
 			eval "value=\"\${$key--}\""
-			[ "$value" = - ] && continue
-			# shellcheck disable=2016
-			printf ': "${%s="%s"}"\n' "$key" "${value# }" >>"$swap"
+			! [ "$value" = - ] &&
+			printf "\t'%s=%s' \\\\\n" "$key" "$value" >>"$swap"
 		done
 		unset key value
-
-		cat <<-'EOF' >>"$swap"
-
-		. ./configure
-		EOF
 
 		chmod +x "$swap"
 
@@ -962,11 +1096,11 @@ then
 			then
 				warn -q 'no changes to %s.' "$confsave"
 			else
-				warn -q 'updating %s ...' "$confsave"
+				warn 'updating %s ...' "$confsave"
 				mv -f "$swap" "$confsave"
 			fi
 		else
-			warn -q 'creating %s ...' "$confsave"
+			warn 'storing configuration in %s ...' "$confsave"
 			mv -f "$swap" "$confsave"
 		fi
 	fi
@@ -980,19 +1114,20 @@ fi
 i=0
 while [ "$i" -lt "$nfiles" ]
 do
-	eval file="\${file_$i}"
-	template="$file.m4" i=$((i + 1))
+	eval file="\${file_$i:?}"
+	i=$((i + 1))
 
+	template="$srcdir/$file.in"
 	exists=
 	# shellcheck disable=2154
 	if [ -e "$file" ]
 	then
-		exists=x
 		if ! [ "$force" ]
 		then
-			warn '%s exists.' "$file"
+			warn '%s exists, use --force to overwrite.' "$file"
 			continue
 		fi
+		exists=x
 	fi
 
 	swap="$TMPDIR/$file"
@@ -1002,13 +1137,13 @@ do
 		then
 			if cmp "$swap" "$file" >/dev/null 2>&1
 			then
-				warn -q 'no changes to %s.' "$file"
+				warn 'no changes to %s.' "$file"
 				continue
 			else
-				warn -q 'updating %s ...' "$file"
+				warn 'updating %s ...' "$file"
 			fi
 		else
-			warn -q 'creating %s ...' "$file"
+			warn 'creating %s ...' "$file"
 		fi
 
 		mv -f "$swap" "$file"

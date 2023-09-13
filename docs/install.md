@@ -17,9 +17,9 @@ variables and M4 or Make macros respectively.
 ```mermaid
 graph TD
 
-configure -- calls --> M4
+configure --> |calls| M4
 
-M4 -- generates --> makefile
+M4 --> |generates| makefile
 ```
 
 > [!WARNING]
@@ -27,22 +27,22 @@ M4 -- generates --> makefile
 > command line when you install suCGI, you *must* define the same macros
 > with the same values when you call `make uninstall`!
 
+> [!WARNING]
+> Filenames must *not* contain whitespace or shell meta characters.
+
 M4 macros are used by *configure*. They only need to, and only can,
 be given on the command line if the **makefile** and **compat.h** are
 created by calling M4 directly, rather than via  *configure*
 (see "Creating a configuration without *configure*" in [build.md]).
 
 
-### Directory prefix (path)
+### Directory prefix (filename)
 
 | Tool        | Variable/macro name |
 | ----------- | ------------------- |
 | *configure* | PREFIX              |
 | M4          | __PREFIX            |
-| Make        | PREFIX              |
-
-> [!WARNING]
-> Must *not* contain whitespace or shell meta characters.
+| Make        | prefix              |
 
 Defaults to **/usr/local**.
 
@@ -50,17 +50,17 @@ Defaults to **/usr/local**.
 
 Set the default prefix in the **makefile** using *configure*:
 
-    PREFIX=/usr ./configure
+    ./configure PREFIX=/usr
 
 Set the default prefix when generating the **makefile** with M4:
 
-    m4 -D__PREFIX=/usr makefile.m4 >makefile
+    m4 -D__PREFIX=/usr makefile.in >makefile
 
 Use a non-default prefix when installing:
 
-    make PREFIX=/usr install
+    make prefix=/usr install
 
-### Destination directory (path)
+### Destination directory (filename)
 
 | Tool        | Variable/macro name |
 | ----------- | ------------------- |
@@ -68,37 +68,38 @@ Use a non-default prefix when installing:
 | M4          | __DESTDIR           |
 | Make        | DESTDIR             |
 
-> [!WARNING]
-> Must *not* contain whitespace or shell meta characters.
 
 Defaults to the empty string.
 
 `make install` copies the suCGI binary to **$DESTDIR$PREFIX/libexec/sucgi**.
 
-### **/cgi-bin** directory (path)
+### **/cgi-bin** directory (filename)
 
 | Tool        | Variable/macro name |
 | ----------- | ------------------- |
-| *configure* | SUCGI_CGI_DIR       |
-| M4          | __SUCGI_CGI_DIR     |
-| Make        | cgi_dir             |
+| *configure* | cgidir              |
+| M4          | __cgidir            |
+| Make        | cgidir              |
 
-`make install` links the suCGI binary into this directory.
+`make install` symlinks the suCGI binary into this directory.
 
-Defaults to **$DESTDIR$PREFIX/lib/cgi-bin**.
+Defaults to **$DESTDIR/usr/lib/cgi-bin**.
 
 ### Group the webserver runs as (group name)
 
 | Tool        | Variable/macro name |
 | ----------- | ------------------- |
-| *configure* | SUCGI_WWW_GRP       |
-| M4          | __SUCGI_WWW_GRP     |
-| Make        | www_grp             |
+| *configure* | wwwgrp              |
+| M4          | __wwwgrp            |
+| Make        | wwwgrp              |
 
 `make install` changes the group of the suCGI binary to this group.
 
 Defaults to "www-data".
 
+### Other installation variables
+
+See <https://www.gnu.org/prep/standards/html_node/Makefile-Conventions.html>.
 
 ### Build and run-time configuration
 
