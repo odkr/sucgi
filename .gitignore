@@ -50,4 +50,5 @@ tests/utils/*
 utils/*
 !utils/*.c
 !utils/*.h
+!utils/check*
 tmp-*

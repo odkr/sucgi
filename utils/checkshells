@@ -1,0 +1,220 @@
+#!/bin/sh
+
+#
+# Check different shells.
+#
+# Copyright 2023 Odin Kroeger.
+#
+# This file is part of suCGI.
+#
+# suCGI is free software: you can redistribute it and/or modify it
+# under the terms of the GNU Affero General Public License as published
+# by the Free Software Foundation, either version 3 of the License,
+# or (at your option) any later version.
+#
+# suCGI is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General
+# Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public
+# License along with suCGI. If not, see <https://www.gnu.org/licenses/>.
+#
+
+# shellcheck disable=2015
+
+
+#
+# Defaults
+#
+
+# Shells to test.
+shells='sh bash dash ksh mksh oksh posh yash zsh'
+
+# Be quiet?
+quiet=
+
+# Be verbose?
+verbose=
+
+
+#
+# Initialiation
+#
+
+set -Cefu
+scriptsdir="$(cd -P "$(dirname -- "$0")" && pwd)"
+: "${scriptsdir:?}"
+readonly scriptsdir
+
+srcdir="$(dirname -- "$scriptsdir")"
+: "${srcdir:?}"
+readonly srcdir
+
+# shellcheck disable=1091
+. "$scriptsdir/../libutil.sh"	|| exit
+init				|| exit
+tmpdir chk "$srcdir"		|| exit
+
+
+#
+# Constants
+#
+
+# Files that ./configure should create.
+readonly files='config.status makefile compat.h'
+
+# Current working directory
+cwd="$(pwd)" || exit
+: "${cwd:?}"
+readonly cwd
+
+# User who should own the logs.
+if [ "$(id -u)" -eq 0 ]
+then user="$(owner "$srcdir")"
+else user="$(id -un)"
+fi
+: "${user:?}"
+readonly user
+
+# The primary group of that user.
+group="$(id -gn "$user")"
+: "${group:?}"
+readonly group
+
+
+#
+# Functions
+#
+
+mylogged() {
+	: "${1:?}"
+
+	case $1 in
+	(-*) logged -d"$cwd" -u"$user" -g"$group" "$@" ;;
+	(*)  logged -d"$cwd" -u"$user" -g"$group" -- "$@" ;;
+	esac
+}
+
+
+#
+# Options
+#
+
+OPTIND=1 OPTARG='' opt=''
+# shellcheck disable=2034
+while getopts Dc:hqv opt; do
+	# shellcheck disable=2154
+	case $opt in
+	(h) exec cat <<EOF
+$progname - run scripts with different shells
+
+Usage:     $progname [SH ...]
+           $progname -h
+
+Operands:
+    SH     A shell.
+
+Options:
+    -c CC  Use CC as C compiler.
+    -q     Be quieter.
+    -v     Be verbose, but do not log runs.
+    -h     Show this help screen.
+
+Must be called from a directory with a makefile.
+The makefile must provide the standard Autoconf targets.
+EOF
+	    ;;
+	(D) set -x ;;
+	(c) CC="$OPTARG" ;;
+	(q) quiet=y ;;
+	(v) verbose=y ;;
+	(*) exit 1
+	esac
+done
+shift $((OPTIND - 1))
+unset opt
+
+# shellcheck disable=2086
+[ $# -eq 0 ] && set -- $shells
+
+# Use a fast compiler, if one is available.
+if ! [ "${CC-}" ]
+then
+	for cc in cc c99 tcc clang
+	do
+		if command -v "$cc" >/dev/null
+		then
+			CC="$cc"
+			break
+		fi
+	done
+fi
+[ "${CC-}" ] && export CC
+
+
+#
+# Workspace
+#
+
+warn -q 'creating workspace ...'
+cd "$srcdir" || exit
+m4 makefile.in >"$TMPDIR/makefile"
+distdir="$TMPDIR/dist"
+make -f "$TMPDIR/makefile" distname="$distdir" "$distdir" >/dev/null
+cd -P "$distdir" || exit
+
+
+#
+# Main
+#
+
+warn -q 'compiling binaries ...'
+CFLAGS='' mylogged ./configure
+mylogged make all utils checks
+
+failures=
+for shell
+do
+	command -v "$shell" >/dev/null 2>&1 || continue
+
+	warn 'checking %s ... ' "$shell"
+
+	# shellcheck disable=2086
+	rm -- $files
+
+	CFLAGS=-O1 mylogged "$shell" ./configure
+
+	for file in $files
+	do
+		if ! [ -e "$file" ]
+		then
+			warn '%s ./configure: did not generate %s.' \
+			     "$shell" "$file"
+			failures="$failures$shell ./configure, "
+		fi
+	done
+
+	check -s0 "$shell" utils/samefile.sh "$0" "$0"
+	check -s1 "$shell" utils/samefile.sh "$0" utils/samefile.sh
+	check -s2 "$shell" utils/samefile.sh "$0" nosuchfile
+	check -s2 "$shell" utils/samefile.sh "$0" ''
+	check -s2 "$shell" utils/samefile.sh '' nosuchfile
+
+	for script in tests/*.sh
+	do
+		[ "$script" = 'tests/*.sh' ] && break
+		[ "$script" = 'tests/funcs.sh' ] && continue
+
+		retval=0
+		mylogged -i75 -l"$shell-$(basename "$script").log" -- \
+		         "$shell" "$script" || retval=$?
+		inlist -eq "$retval" 0 75 ||
+		failures="$failures$shell $script, "
+	done
+done
+
+if [ "$failures" ]
+then err -s70 'failures: %s' "${failures%, }"
+else warn -q 'all shells passed.'
+fi
