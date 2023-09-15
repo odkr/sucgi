@@ -53,11 +53,10 @@ these applications if needed (see below).
 
 ## Installation
 
-**Do NOT use suCGI!**
-
-suCGI is work in progress, fails to run many CGI applications,
-does not yet validate users, and has *not* been reviewed,
-let alone audited.
+> [!WARNING]
+> suCGI is work in progress, fails to run many CGI applications,
+> does not yet validate users, and has *not* been reviewed,
+> let alone audited. **Do not use it yet.**
 
 Download the repository and unpack it.
 
@@ -69,7 +68,6 @@ Install a C build toolchain:
 
 > [!NOTE]
 > *installc* uses the system's package manger.
-> `sudo ./installc -r` removes the packages that were installed.
 
 Generate the build configuration by:
 
@@ -92,6 +90,11 @@ Install suCGI by:
     sudo make install
 
 See **[docs/install.md]** and **[docs/uninstall.md]** for details.
+
+You can remove packates installed with *installc* by:
+
+    sudo ./installc -r
+
 
 [docs/build.md]: docs/build.md
 
