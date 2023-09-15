@@ -69,7 +69,7 @@ Install a C build toolchain:
 
 > [!INFO]
 > *installc* uses the system's package manger.
-> `sudo ./installc -r` removes the packages that were added to the system.
+> `sudo ./installc -r` removes the packages that were installed.
 
 Generate the build configuration by:
 
