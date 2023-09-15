@@ -242,20 +242,12 @@ $(utilsdir)/samefile:
 libutil.sh:
 	cp -p "$(srcdir)"/libutil.sh .
 
-$(utilsdir)/.sentinel:
-	mkdir -p "$$(dirname $@)"
-	touch $@
-
 
 #
 # Tests
 #
 
 checkdir = tests
-
-$(checkdir)/.sentinel:
-	mkdir -p "$$(dirname $@)"
-	touch $@
 
 # tests/libutil.a
 libutil = $(checkdir)/libutil.a
@@ -296,10 +288,6 @@ $(libutil):
 $(libutilobjs):
 	$(CC) $(LDFLAGS) $(CFLAGS) -c -o$@ $(srcdir)/$*.c $(LDLIBS)
 
-$(libutildir)/.sentinel:
-	mkdir -p "$$(dirname $@)"
-	touch $@
-
 ifnempty(`__sharedflag', `dnl
 ifelse(__sharedflag, `-dynamiclib', `dnl
 # tests/libmock.dylib
@@ -331,16 +319,14 @@ $(libmockdir)/mockstd.o: $(libmocksrcdir)/mockstd.c $(libmocksrcdir)/mockstd.h
 
 $(libmockobjs): $(libmockdir)/.sentinel
 
+$(libmockdir)/.sentinel: $(checkdir)/.sentinel
+
 $(libmock):
 	$(CC) $(LDFLAGS) $(libmockflags) $(sharedflag) -o$@ \
 $(libmockobjs) $(LDLIBS)
 
 $(libmockobjs):
 	$(CC) $(LDFLAGS) $(libmockflags) -c -o$@ $(srcdir)/$*.c $(LDLIBS)
-
-$(libmockdir)/.sentinel: $(checkdir)/.sentinel
-	mkdir -p "$$(dirname $@)"
-	touch $@
 
 ')dnl
 
@@ -412,12 +398,10 @@ checkutils = $(checkutilsdir)/badenv $(checkutilsdir)/badexec \
 
 $(checkutils): $(checkutilsdir)/.sentinel
 
+$(checkutilsdir)/.sentinel: $(checkdir)/.sentinel
+
 $(checkutils):
 	$(CC) $(LDFLAGS) $(CFLAGS) $(pieflags) -o$@ $(srcdir)/$@.c $(LDLIBS)
-
-$(checkutilsdir)/.sentinel: $(checkdir)/.sentinel
-	mkdir -p "$$(dirname $@)"
-	touch $@
 
 # Wrappers for scripted tests
 wrappersdir = $(checkdir)/wrappers
@@ -440,10 +424,6 @@ $(wrappersdir)/.sentinel: $(checkdir)/.sentinel
 $(wrappers):
 	$(CC) $(LDFLAGS) $(wrapperflags) -o$@ $(srcdir)/$@.c $(libs) $(LDLIBS)
 
-$(wrappersdir)/.sentinel:
-	mkdir -p $$(dirname $@)
-	touch $@
-
 # Fake binaries
 fakesdir = $(checkdir)/fakes
 
@@ -457,10 +437,6 @@ $(fakesdir)/.sentinel: $(checkdir)/.sentinel
 
 $(fakesdir)/fakesucgi:
 	$(CC) $(LDFLAGS) $(fakeflags) -o$@ $(srcdir)/main.c $(libs) $(LDLIBS)
-
-$(fakesdir)/.sentinel:
-	mkdir -p $$(dirname $@)
-	touch $@
 
 # Scripted tests
 checkscripts = $(checkdir)/BUG $(checkdir)/error $(checkdir)/main
@@ -560,8 +536,18 @@ analysis:
 shellcheck:
 	$(SHELLCHECK) $(SHELLCHECKFLAGS) $(scripts)
 
-$(cppcheckbuilddir)/.sentinel:
-	mkdir -p $$(dirname $@)
+
+#
+# Directory sentinels
+#
+
+dirsentinels = $(utilsdir)/.sentinel $(checkdir)/.sentinel \
+	$(libutildir)/.sentinel $(libmockdir)/.sentinel \
+	$(checkutilsdir)/.sentinel $(wrappersdir)/.sentinel \
+	$(fakesdir)/.sentinel $(cppcheckbuilddir)/.sentinel
+
+$(dirsentinels):
+	mkdir -p "$$(dirname $@)"
 	touch $@
 
 
@@ -627,6 +613,20 @@ tidy:
 # Distribution
 #
 
+ifhascmd(`tar', `dnl
+ARCHIVE = tar -c
+EXTRACT = tar -x
+', `dnl
+ARCHIVE = pax -w -xustar
+EXTRACT = pax -r
+')dnl
+ifhascmd(`gzip', `dnl
+COMPRESS = gzip
+UNCOMPRESS = gzip -d
+', `dnl
+COMPRESS = compress
+UNCOMPRESS = zcat
+')dnl
 package = sucgi
 version = syscmd(
 	`awk "
@@ -640,7 +640,9 @@ version = syscmd(
 distname = $(package)-$(version)
 distar = $(distname).tgz
 dnl Add sucgi.8
-distfiles = $(srcdir)/*.c $(srcdir)/*.h $(srcdir)/*.in $(srcdir)/*.m4 \
+distfiles = $(srcdir)/*.c $(srcdir)/*.h \
+	$(srcdir)/compat.h.in $(srcdir)/makefile.in \
+	$(srcdir)/macros.m4 $(srcdir)/config.h.tpl \
 	$(srcdir)/README.md $(srcdir)/LICENSE.txt \
 	$(srcdir)/configure $(srcdir)/installc $(srcdir)/libutil.sh \
 	$(srcdir)/dist.excl $(srcdir)/conf \
@@ -659,23 +661,25 @@ $(distar): $(distname)
 
 $(distar).asc: $(distar)
 
-$(distname): distclean #sucgi.8
+$(distname): distclean #sucgi.$(manext)
 
 dist: $(distar)
 	rm -rf $(distname)
 
 distcheck:
-	tar -xzf $(distar)
+	$(UNCOMPRESS) <$(distar) | $(EXTRACT)
+	cp -p config.h.tpl $(distname)/config.h
 	cd $(distname) && ./configure && $(MAKE) -e all check dist
 	rm -rf $(distname)
 
 $(distname):
-	find $(distfiles) -exec pathchk -Pp '{}' +
+	find . '(' -name git -prune ')' -exec pathchk -Pp '{}' +
 	mkdir $(distname)
 	cp -Rp $(distfiles) $(distname)
 
 $(distar):
-	tar -X $(srcdir)/dist.excl -czf $(distar) $(distname)
+	find $(distname) -type f | grep -vfdist.excl | \
+	xargs -E '' $(ARCHIVE) | $(COMPRESS) >$(distar)
 
 $(distar).asc:
 	gpg -qab --batch --yes $(distar)
