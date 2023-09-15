@@ -495,9 +495,9 @@ RUNPARAFLAGS = -ci75 -j8
 checks: $(checks)
 
 ifnempty(`__sharedflag', `dnl
-check: checks $(RUNPARA) $(libmock)
+check: $(checks) $(RUNPARA) $(libmock)
 ', `dnl
-check: checks $(RUNPARA)
+check: $(checks) $(RUNPARA)
 ')dnl
 
 check:
