@@ -492,10 +492,12 @@ environ =
 
 RUNPARAFLAGS = -ci75 -j8
 
+checks: $(checks)
+
 ifnempty(`__sharedflag', `dnl
-check: $(checks) $(RUNPARA) $(libmock)
+check: checks $(RUNPARA) $(libmock)
 ', `dnl
-check: $(checks) $(RUNPARA)
+check: checks $(RUNPARA)
 ')dnl
 
 check:
@@ -604,7 +606,8 @@ clean:
 	while read -r x; do [ "$$(ls -A "$$x")" ] || rmdir "$$x"; done
 
 mostlyclean: $(utilsdir)/samefile
-	$(utilsdir)/samefile libutil.sh '$(srcdir)/libutil.sh' || rm libutil.sh
+	$(utilsdir)/samefile libutil.sh '$(srcdir)/libutil.sh'; \
+	if [ "$$?" -eq 1 ]; then rm libutil.sh; fi
 	rm -f $(binaries)
 	find . -name .sentinel -exec rm '{}' +
 
