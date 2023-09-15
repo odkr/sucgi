@@ -93,7 +93,7 @@ cleanup() {
 	# shellcheck disable=2319
 	_cleanup_retval=$?
 	set +e
-	trap '' EXIT ALRM HUP INT PIPE TERM
+	trap '' EXIT ALRM HUP INT TERM USR1 USR2
 	# shellcheck disable=2046
 	kill -- $(jobs -p 2>/dev/null) -$$ >/dev/null 2>&1
 	wait
@@ -140,7 +140,7 @@ init() {
 
 	# Trap signals that would terminate the script.
 	catch='' caught=
-	for _init_sig in ALRM HUP INT PIPE TERM
+	for _init_sig in ALRM HUP INT TERM USR1 USR2
 	do
 		# shellcheck disable=2064
 		trap "catch $_init_sig" "$_init_sig"
