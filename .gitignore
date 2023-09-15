@@ -16,13 +16,13 @@
 *.so
 *.swp
 *.tgz
-*.tpl
 .*.*
 ._*
 .DS_Store
 .vscode
 chk-*
 compat.h
+config.h
 config.status
 cov
 cppcheck/build/*

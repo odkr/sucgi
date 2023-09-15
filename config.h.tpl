@@ -17,11 +17,18 @@
  * Syntax
  * ------
  *
- * Just in case your C is rusty:
+ * This is a C header file.
  *
  * - #define statements are terminated with a linefeed, NOT a semicolon.
  * - * To continue a #define on the next line, escape the linefeed with "\".
- * - * Strings must be given in double quotes ("..."), NOT single ones ('...').
+ * - * Strings are given in double quotes ("..."), NOT single ones ('...').
+ *
+ * FAQ:
+ * - <https://c-faq.com/>
+ *
+ * References:
+ * - <https://en.cppreference.com/> and
+ * - <https://www.gnu.org/software/gnu-c-manual/>
  *
  *
  * Copyright
@@ -149,5 +156,6 @@
 /*
 #define SYSLOG_MASK LOG_UPTO(LOG_ERR)
  */
+
 
 #endif /* !defined(CONFIG_H) */
