@@ -78,8 +78,10 @@ See **[docs/build.md]** for details and troubleshooting.
 suCGI is configured at compile-time.
 Adapt **[config.h](config.h)** to your needs.
 
-    # Read config.h.tpl, but write to config.h.
     vi -c'read config.h.tpl' config.h
+
+> [!NOTE]
+> The above command opens **config.h** and reads its template **config.h.tpl**.
 
 Compile suCGI by:
 
