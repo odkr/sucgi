@@ -55,8 +55,8 @@ these applications if needed (see below).
 
 > [!WARNING]
 > suCGI is work in progress, fails to run many CGI applications,
-> does not yet validate users, and has *not* been reviewed,
-> let alone audited. **Do not use it yet.**
+> does not validate users, and has *not* been reviewed,
+> let alone audited. **Do not use it!**
 
 Download the repository and unpack it.
 
@@ -78,8 +78,8 @@ See **[docs/build.md]** for details and troubleshooting.
 suCGI is configured at compile-time.
 Adapt **[config.h](config.h)** to your needs.
 
-    cp config.h.tpl config.h
-    nano config.h
+    # Read config.h.tpl, but write to config.h.
+    vi -c'read config.h.tpl' config.h
 
 Compile suCGI by:
 
