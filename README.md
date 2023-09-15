@@ -81,7 +81,8 @@ Adapt **[config.h](config.h)** to your needs.
     vi -c'read config.h.tpl' config.h
 
 > [!NOTE]
-> The above command opens **config.h** and reads its template **config.h.tpl**.
+> The command above reads the template **config.h.tpl**
+> and writes it out to **config.h**.
 
 Compile suCGI by:
 
