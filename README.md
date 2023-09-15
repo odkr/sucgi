@@ -66,8 +66,7 @@ Install a C build toolchain:
 
     sudo ./installc
 
-> [!NOTE]
-> *installc* uses the system's package manger.
+*installc* uses the system's package manger.
 
 Generate the build configuration by:
 
@@ -80,10 +79,6 @@ Adapt **[config.h](config.h)** to your needs.
 
     vi -c'read config.h.tpl' config.h
 
-> [!NOTE]
-> The command above reads the template **config.h.tpl**,
-> but writes your changes to **config.h**.
-
 Compile suCGI by:
 
     make
@@ -94,7 +89,7 @@ Install suCGI by:
 
 See **[docs/install.md]** and **[docs/uninstall.md]** for details.
 
-You can remove packates installed with *installc* by:
+Optionally, remove the packages installed via *installc* by:
 
     sudo ./installc -r
 
