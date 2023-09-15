@@ -37,7 +37,6 @@
 #include <stdint.h>
 #include <unistd.h>
 
-#include "compat.h"
 #include "groups.h"
 #include "macros.h"
 #include "params.h"

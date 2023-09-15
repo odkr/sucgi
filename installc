@@ -29,8 +29,8 @@ scriptdir="$(cd -P "$(dirname -- "$0")" && pwd)"
 : "${scriptdir:?}"
 readonly scriptdir
 # shellcheck disable=1091
-. "$scriptdir/scripts/libutil.sh"	|| exit
-init					|| exit
+. "$scriptdir/libutil.sh"	|| exit
+init				|| exit
 
 
 #
@@ -116,9 +116,9 @@ case $mode in
 			hascomp=y
 
 			# shellcheck disable=2038
-			sed -n '/^[ \t]*#[ \t]*include[ \t]*</p' -- *.c *.h |
-			grep -Fve'<features.h>' -e'<sys/params.h>'          |
-			sort -u                                             |
+			sed -n '/^[ \t]*#[ \t]*include[ \t]*</p' *.c *.h |
+			grep -Fve'<features.h>' -e'<sys/params.h>'       |
+			sort -u                                          |
 			"$cc" -E - >/dev/null 2>&1 && hashdrs=y
 
 			break

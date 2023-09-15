@@ -1,5 +1,31 @@
 /*
- * suCGI configuration.
+ * suCGI configuration
+ * ===================
+ *
+ * Defaults
+ * --------
+ *
+ * Defaults can be found in:
+ *
+ *      params.h    Configuration and limits
+ *      compat.h    System-dependent values
+ *
+ * Any macro in compat.h and params.h can be overriden
+ * by defining a macro of the same name in this file.
+ *
+ *
+ * Syntax
+ * ------
+ *
+ * Just in case your C is rusty:
+ *
+ * - #define statements are terminated with a linefeed, NOT a semicolon.
+ * - * To continue a #define on the next line, escape the linefeed with "\".
+ * - * Strings must be given in double quotes ("..."), NOT single ones ('...').
+ *
+ *
+ * Copyright
+ * ---------
  *
  * Copyright 2022 and 2023 Odin Kroeger.
  *
@@ -22,15 +48,6 @@
 /* This is config.h's include guard. Leave it alone. It's on duty. */
 #if !defined(CONFIG_H)
 #define CONFIG_H
-
-
-/*
- * Just in case your C is rusty:
- *
- *  - #define statements are terminated with a linefeed, NOT a semicolon.
- *  - To continue a #define on the next line, escape the linefeed with "\".
- *  - Strings must be given in double quotes ("..."), NOT single ones ('...').
- */
 
 
 /*
@@ -117,8 +134,8 @@
  * Secure file permission mask. Unsigned integer.
  *
  * Permission masks are often given as octal numbers (e.g., 022 for go-w).
- * For a number to be interpreted as octal by the C compiler, it must be
- * prefixed with a zero (i.e., match the regular expression /^0[0-9]+/).
+ * For a number to be interpreted as octal by the C compiler,
+ * it must be prefixed with a zero (e.g., 022).
  */
 /*
 #define UMASK (S_ISUID | S_ISGID | S_ISVTX | S_IRWXG | S_IRWXO)
@@ -132,6 +149,5 @@
 /*
 #define SYSLOG_MASK LOG_UPTO(LOG_ERR)
  */
-
 
 #endif /* !defined(CONFIG_H) */

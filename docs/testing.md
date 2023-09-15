@@ -21,10 +21,8 @@ The test suite is less portable that suCGI itself; it requires
 * the **<err.h>** header file, and
 * a GNU- or BSD-like *getpwent_r*() function.
 
-In addition, `make distcheck` requires:
-
-* [Pandoc](https://pandoc.org/)
-* tar
+In addition, `make distcheck` requires *tar*.
+It may also require [Pandoc](https://pandoc.org/).
 
 
 ## Security
@@ -73,7 +71,7 @@ a whitespace-separated lists of filenames.
 
 ## Testing different compilers, makes, and shells
 
-* **scripts/checkcomps** tests different compilers.
-* **scripts/checkmakes** tests different makes.
-* **scripts/checkshells** tests different shells.
-* **scripts/checkall** does all of the above.
+* **utils/checkcomps** tests different compilers.
+* **utils/checkmakes** tests different makes.
+* **utils/checkshells** tests different shells.
+* **utils/checkall** does all of the above.

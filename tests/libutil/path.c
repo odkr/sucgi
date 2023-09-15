@@ -37,7 +37,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "../../compat.h"
+#include "../../params.h"
 #include "path.h"
 #include "sigs.h"
 #include "types.h"

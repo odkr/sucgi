@@ -46,7 +46,6 @@
 #include <unistd.h>
 
 #include "attr.h"
-#include "compat.h"
 #include "env.h"
 #include "error.h"
 #include "handler.h"
@@ -107,14 +106,14 @@ static void usage(void);
 static void
 help(void)
 {
-    (void) puts(
+    (void) printf(
 "suCGI - run CGI scripts with the permissions of their owner\n\n"
-"Usage:  sucgi\n"
-"        sucgi [-C|-V|-h]\n\n"
+"Usage:  sucgi [-C|-V|-h]\n\n"
 "Options:\n"
 "    -C  Print the build configuration.\n"
 "    -V  Print version and license information.\n"
-"    -h  Print this help screen."
+"    -h  Print this help screen.\n\n"
+"Homepage: <https://github.com/odkr/sucgi>\n"
     );
 
     /* cppcheck-suppress misra-c2012-21.8; least bad option. */
@@ -126,11 +125,11 @@ config(void)
 {
     (void) printf("# Configuration\n");
 
-    (void) printf("USER_DIR='%s'\n", USER_DIR);
-    (void) printf("START_UID=%d\n",  START_UID);
-    (void) printf("STOP_UID=%d\n",   STOP_UID);
-    (void) printf("START_GID=%d\n",  START_GID);
-    (void) printf("STOP_GID=%d\n",   STOP_GID);
+    (void) printf("USER_DIR='%s'\n",   USER_DIR);
+    (void) printf("START_UID=%llu\n",  (unsigned long long) START_UID);
+    (void) printf("STOP_UID=%llu\n",   (unsigned long long) STOP_UID);
+    (void) printf("START_GID=%llu\n",  (unsigned long long) START_GID);
+    (void) printf("STOP_GID=%llu\n",   (unsigned long long) STOP_GID);
 
     (void) printf("HANDLERS='");
     for (size_t i = 0; i < NELEMS(handlers); ++i) {
@@ -218,11 +217,11 @@ static void
 version(void)
 {
     (void) printf(
-"suCGI v%s.\n"
+"suCGI %s\n"
 "Copyright 2022 and 2023 Odin Kroeger.\n"
 "Released under the GNU General Public License.\n"
 "This programme comes with ABSOLUTELY NO WARRANTY.\n",
-           VERSION);
+    VERSION);
 
     /* cppcheck-suppress misra-c2012-21.8; least bad option. */
     exit(EXIT_SUCCESS);
@@ -231,7 +230,7 @@ version(void)
 static void
 usage(void)
 {
-    (void) fputs("usage: sucgi [-C|-V|-h]\n", stderr);
+    (void) fprintf(stderr, "usage: sucgi [-C|-V|-h]\n");
 
     /* cppcheck-suppress misra-c2012-21.8; least bad option. */
     exit(EXIT_FAILURE);
@@ -364,20 +363,21 @@ main(int argc, char **argv) {
             error("argument %d is the null pointer.", i);
         }
 
-        if (strnlen(arg, sizeof("-X")) == 2U && arg[0] == '-') {
-            switch (arg[1]) {
-            case 'C':
-                config();
-            case 'V':
-                version();
-            case 'h':
-                help();
-            default:
-                ; /* Empty on purpose. */
-            }
+        if (strnlen(arg, MAX_STR_LEN) >= MAX_STR_LEN) {
+            error("argument %d is too long.", i);
         }
 
-        usage();
+        if          (strncmp(arg, "-C", sizeof("-C")) == 0) {
+            config();
+        } else if   (strncmp(arg, "-V", sizeof("-V")) == 0 ||
+                     strncmp(arg, "--version", sizeof("--version")) == 0) {
+            version();
+        } else if   (strncmp(arg, "-h", sizeof("-h")) == 0 ||
+                     strncmp(arg, "--help", sizeof("--help")) == 0) {
+            help();
+        } else {
+            usage();
+        }
 
         /* NOTREACHED */
     }
@@ -665,8 +665,7 @@ main(int argc, char **argv) {
     }
 
     if (!path_is_sub(realscriptnamelen, realscriptname,
-                     realuserdirlen, realuserdir))
-    {
+                     realuserdirlen, realuserdir)) {
         error("script %s: not in %s's user directory.", scriptname, logname);
     }
 

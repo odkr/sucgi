@@ -43,7 +43,6 @@
 #include <unistd.h>
 
 #include "../attr.h"
-#include "../compat.h"
 #include "../groups.h"
 #include "../macros.h"
 #include "../params.h"

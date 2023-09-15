@@ -16,6 +16,7 @@
 *.so
 *.swp
 *.tgz
+*.tpl
 .*.*
 ._*
 .DS_Store

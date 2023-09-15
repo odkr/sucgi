@@ -28,12 +28,12 @@
 #
 
 set -Cefu
-scriptdir="$(cd -P "$(dirname -- "$0")" && pwd)"
-: "${scriptdir:?}"
-readonly scriptdir
+repodir="$(cd -P "$(dirname -- "$0")" && pwd)"
+: "${repodir:?}"
+readonly repodir
 # shellcheck disable=1091
-. "$scriptdir/scripts/libutil.sh"	|| exit
-init					|| exit
+. "$repodir/libutil.sh"	|| exit
+init			|| exit
 
 
 #
@@ -94,11 +94,7 @@ readonly feattestflags='-std=c99 -pipe'
 readonly wconvflags='-Wconversion'
 
 # Where to save the configuration.
-if [ -e config.noauto ]
-then confsave=config.noauto
-else confsave=config.status
-fi
-readonly confsave
+readonly confsave=config.status
 
 # Integer types that may be used for IDs and sizes. Colon-separated list.
 integertypes=''
@@ -119,7 +115,7 @@ readonly grouptypes="gid_t:$integertypes"
 readonly sizetypes="size_t:$integertypes"
 
 # Probe source directory.
-readonly probesdir="$scriptdir/probes"
+readonly probesdir="$repodir/conf/probes"
 
 
 #
@@ -309,7 +305,7 @@ EOF
 			;;
 	(--debug)	set -x ;;
 	(--conf)	conf="$optarg" ;;
-	(--dev)		conf="$scriptdir/conf/devel.env" ;;
+	(--dev)		conf="$repodir/conf/devel.env" ;;
 	(--prefix)	prefix="$optarg" ;;
 	(--exec-prefix)	exec_prefix="$optarg" ;;
 	(--libexecdir)	libexecdir="$optarg" ;;
@@ -345,12 +341,12 @@ do
 	shift
 done
 
-[ $# -gt 0 ] && warn 'ignoring operands: %s' "$*"
+[ $# -gt 0 ] && warn 'ignoring operand(s): %s' "$*"
 
 conffile=
 case $conf in
 	([./]*) conffile="$conf" ;;
-	(*)	for dir in . .. "$scriptdir" ./conf ../conf "$scriptdir/conf"
+	(*)	for dir in . .. "$repodir" ./conf ../conf "$repodir/conf"
 		do
 			for suffix in '' '.env'
 			do
@@ -436,7 +432,7 @@ tmpdir tmp . || exit
 if [ "${srcdir-x}" = x ] && [ "${srcdir-}" != x ]
 then
 	# The GNU Coding Standard says . and .. need to be checked.
-	for dir in . .. "$scriptdir"
+	for dir in . .. "$repodir"
 	do
 		for file in $srcfiles
 		do
@@ -1005,10 +1001,10 @@ do
 
 	if eval "! [ \"\${$idmaxvar-}\" ]"
 	then
-		maxvalbin="$TMPDIR/${idtype}max"
+		maxvalbin="$TMPDIR/max${idtype}val"
 
-		"$CC" -o"$maxvalbin" -D"T=$idtype" "$probesdir/typemax_rt.c" \
-		      >/dev/null 2>&1		&&
+		"$CC" -o"$maxvalbin" -D"T=$idtype" "$probesdir/maxval.c" \
+		      >/dev/null 2>&1			&&
 		idmaxval="$("$maxvalbin" | tail -n1)"	&&
 		eval "$idmaxvar=\"\$idmaxval\""
 
@@ -1030,7 +1026,7 @@ do
 		do
 			# shellcheck disable=2086
 			testcc $wconvflags -D"T=$idtype" -D"V=$idmax" \
-			       "$probesdir/typemax_ct.c" || break
+			       "$probesdir/assign.c" || break
 			eval "$idmaxvar=\"\$idmax\""
 		done
 		unset idmax

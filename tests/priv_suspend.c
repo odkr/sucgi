@@ -40,7 +40,6 @@
 #include <unistd.h>
 
 #include "../attr.h"
-#include "../compat.h"
 #include "../macros.h"
 #include "../params.h"
 #include "../priv.h"

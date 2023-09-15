@@ -47,6 +47,10 @@ ifdef(`__srcdir', `include(__srcdir/macros.m4)', `include(`macros.m4')')dnl
 #if !defined(COMPAT_H)
 #define COMPAT_H
 
+#if !defined(PARAMS_H)
+#error compat.h must not be included directly; include params.h instead.
+#endif
+
 #include <stdint.h>
 
 #include "config.h"

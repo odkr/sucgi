@@ -80,6 +80,9 @@ See **[docs/build.md]** for details and troubleshooting.
 suCGI is configured at compile-time.
 Adapt **[config.h](config.h)** to your needs.
 
+    cp config.h.tpl config.h
+    nano config.h
+
 Compile suCGI by:
 
     make

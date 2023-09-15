@@ -400,20 +400,22 @@ The resulting build configuration is roughly equivalent to **[posix.env]**
 
 The **makefile** supports the following 'phony' targets:
 
-| Target       | Description                                           |
-| ------------ | ----------------------------------------------------- |
-| all          | Alias for "sucgi" and the default target.             |
-| check        | Compile and run tests (see [testing.md]).             |
-| tidy         | Delete archives, backups, logs, temporary files, etc. |
-| clean        | Delete compiled binaries and `make tidy`.             |
-| mrproper     | Delete caches, coverage data, and `make clean`.       |
-| dist         | Make a distribution tarball.                          |
-| distcheck    | Run `make check` from a distribution tarball.         |
-| distclean    | Delete the build configuration and `make mrproper`.   |
-| sigdist      | Make a signed distribution tarball.                   |
-| sigdistcheck | `make sigdist` and `make distcheck`                   |
-| install      | Install suCGI (see [install.md]).                     |
-| uninstall    | Uninstall suCGI (see [uninstall.md]).                 |
+| Target           | Description                                            |
+| ---------------- | ------------------------------------------------------ |
+| all              | Alias for "sucgi" and the default target.              |
+| check            | Compile and run tests (see [testing.md]).              |
+| tidy             | Delete archives, backups, logs, temporary files, etc.  |
+| mostlyclean      | `make tidy` and then delete the compiled binaries.     |
+| clean            | `make mostlyclean` and then delete empty directories.  |
+| mrproper         | `make clean` and then delete caches and coverage data. |
+| distclean        | `make mrproper` and delete the build configuration.    |
+| maintainer-clean | `make distclean` and delete the manual and callgraphs. |
+| dist             | Make a distribution tarball.                           |
+| distcheck        | Run `make check` from a distribution tarball.          |
+| sigdist          | Make a signed distribution tarball.                    |
+| sigdistcheck     | `make distcheck` and `make sigdist`                    |
+| install          | Install suCGI (see [install.md]).                      |
+| uninstall        | Uninstall suCGI (see [uninstall.md]).                  |
 
 
 ## Troubleshooting
@@ -460,10 +462,8 @@ Try using another archiver. *ar* is good enough on most systems:
 ### Disable automatic makefile re-generation
 
 The [GNU Coding Standard] requires that the makefile is automatically
-updated if one of the files it depends on changes. However, if you would
-rather debug the **makefile** than **makefile.in**, this may overwrite
-your changes. You can disable this 'feature' by renaming **config.status**
-to **config.noauto**.
+updated if one of the files it depends on changes. This behaviour can
+be disabled by renaming **config.status**.
 
 
 [install.md]: install.md
