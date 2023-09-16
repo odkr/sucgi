@@ -21,7 +21,7 @@ ifdef(`__srcdir', `include(__srcdir/macros.m4)', `include(`macros.m4')')dnl
 
 all: sucgi
 
-.PHONY: all dist distcheck distclean \
+.PHONY: all dist distcheck distclean man \
 	install install-strip installdirs uninstall \
 	tidy mostlyclean clean mrproper maintainer-clean \
 	check analysis shellcheck
@@ -67,12 +67,8 @@ makefile: $(srcdir)/makefile.in
 
 compat.h: $(srcdir)/compat.h.in
 
-makefile:
+makefile compat.h:
 	if [ -e config.status ]; then ./config.status --gen=$@; fi
-
-compat.h:
-	./config.status --gen=$@ 2>/dev/null || \
-	m4 -D__srcdir=$(srcdir) $(srcdir)/$@.in >$@
 
 
 #
@@ -121,7 +117,7 @@ libsucgi.a: $(objs)
 	$(AR) $(ARFLAGS) $@ $?
 
 $(objs):
-	$(CC) $(LDFLAGS) $(CFLAGS) -c -o$@ $(srcdir)/$*.c $(LDLIBS)
+	$(CC) $(LDFLAGS) $(CFLAGS) -c -o$@ $(srcdir)/$(@:.o=.c) $(LDLIBS)
 
 
 #
@@ -129,20 +125,19 @@ $(objs):
 #
 
 manext = default(`__manext', `8')
-
 manpages = sucgi.$(manext)
 
 DOT = dot
 
 EGYPT = egypt
-
 EGYPTCFLAGS = -DNDEBUG -O0 -fno-inline-functions
 
 PANDOC = pandoc
-
 PANDOCFLAGS = -Mdate="$$(date +"%B %d, %Y")"
 
 .SUFFIXES: .gv .pdf .svg
+
+man: sucgi.$(manext)
 
 sucgi.$(manext): docs/sucgi.md
 
@@ -153,7 +148,7 @@ sucgi.$(manext): docs/sucgi.md
 	$(DOT) $(DOTFLAGS) -Tpdf -o$@ $<
 
 $(manpages):
-	$(PANDOC) $(PANDOCFLAGS) -stman -o$@ docs/$*.md
+	$(PANDOC) $(PANDOCFLAGS) -stman -o$@ docs/$(@:.$(manext)=.md)
 
 docs/callgraph.gv: $(srcdir)/main.c $(objs:.o=.c)
 	$(MAKE) -e CFLAGS="-fdump-rtl-expand $(EGYPTCFLAGS)" clean all
@@ -177,7 +172,9 @@ INSTALL_PROGRAM = $(INSTALL)
 ')dnl
 ifnempty(`__DESTDIR', `DESTDIR = __DESTDIR
 ')dnl
+
 PREFIX = default(`__PREFIX', `/usr/local')
+
 wwwgrp = default(`__wwwgrp', `www-data')
 cgidir = default(`__cgidir', `/usr/lib/cgi-bin')
 prefix = default(`__prefix', `$(PREFIX)')
@@ -222,22 +219,16 @@ utilssrcdir = $(srcdir)/$(utilsdir)
 
 RUNPARA = $(utilsdir)/runpara
 
-utils = $(RUNPARA) $(utilsdir)/uids $(utilsdir)/samefile
+utils = $(RUNPARA) $(utilsdir)/uids
 
 $(RUNPARA): $(utilssrcdir)/runpara.c
 
 $(utilsdir)/uids: $(utilssrcdir)/uids.c
 
-$(utilsdir)/samefile: $(utilssrcdir)/samefile.sh
-
 $(utils): $(utilsdir)/.sentinel
 
 $(RUNPARA) $(utilsdir)/uids:
 	$(CC) $(LDFLAGS) $(CFLAGS) $(pieflags) -o$@ $(srcdir)/$@.c $(LDLIBS)
-
-$(utilsdir)/samefile:
-	cp -p $(srcdir)/$@.sh $@
-	chmod a+x $@
 
 libutil.sh:
 	cp -p "$(srcdir)"/libutil.sh .
@@ -286,7 +277,7 @@ $(libutil):
 	$(AR) $(ARFLAGS) $@ $?
 
 $(libutilobjs):
-	$(CC) $(LDFLAGS) $(CFLAGS) -c -o$@ $(srcdir)/$*.c $(LDLIBS)
+	$(CC) $(LDFLAGS) $(CFLAGS) -c -o$@ $(srcdir)/$(@:.o=.c) $(LDLIBS)
 
 ifnempty(`__sharedflag', `dnl
 ifelse(__sharedflag, `-dynamiclib', `dnl
@@ -326,7 +317,7 @@ $(libmock):
 $(libmockobjs) $(LDLIBS)
 
 $(libmockobjs):
-	$(CC) $(LDFLAGS) $(libmockflags) -c -o$@ $(srcdir)/$*.c $(LDLIBS)
+	$(CC) $(LDFLAGS) $(libmockflags) -c -o$@ $(srcdir)/$(@.o=.c) $(LDLIBS)
 
 ')dnl
 
@@ -458,8 +449,11 @@ checks = $(unittests) $(checkscripts)
 
 ifelse(__uname, `Darwin', `dnl
 preload = DYLD_INSERT_LIBRARIES
+ifcflag(`-fsanitize=address', `dnl
 
 environ = MallocNanoZone=0
+')dnl
+
 ', `dnl
 preload = LD_PRELOAD
 
@@ -498,11 +492,9 @@ scripts = $(srcdir)/configure $(srcdir)/installc \
 	$(utils)/check* $(checksrcdir)/*.sh
 
 CLANGTIDY = command -v clang-tidy >/dev/null 2>&1 && clang-tidy
-
 CLANGTIDYflags = --quiet
 
 CPPCHECK = command -v cppcheck >/dev/null 2>&1 && cppcheck
-
 CPPCHECKFLAGS = --quiet --force --language=c --std=c99 \
 	--project=cppcheck/sucgi.cppcheck --library=posix \
 	--library=cppcheck/c99.cfg --library=cppcheck/gnuc.cfg \
@@ -514,15 +506,12 @@ CPPCHECKFLAGS = --quiet --force --language=c --std=c99 \
 cppcheckbuilddir = cppcheck/build
 
 FLAWFINDER = command -v flawfinder >/dev/null 2>&1 && flawfinder
-
 FLAWFINDERFLAGS = --falsepositive --dataonly --quiet
 
 RATS = command -v rats >/dev/null 2>&1 && rats
-
 RATSFLAGS = --resultsonly --quiet --warning 3
 
 SHELLCHECK = command -v shellcheck >/dev/null 2>&1 && shellcheck
-
 SHELLCHECKFLAGS = -x
 
 analysis: compat.h $(cppcheckbuilddir)/.sentinel
@@ -541,10 +530,11 @@ shellcheck:
 # Directory sentinels
 #
 
-dirsentinels = $(utilsdir)/.sentinel $(checkdir)/.sentinel \
-	$(libutildir)/.sentinel $(libmockdir)/.sentinel \
-	$(checkutilsdir)/.sentinel $(wrappersdir)/.sentinel \
-	$(fakesdir)/.sentinel $(cppcheckbuilddir)/.sentinel
+# Sub-directories must be placed before their parent directories.
+dirsentinels = $(libmockdir)/.sentinel $(libutildir)/.sentinel \
+	$(fakesdir)/.sentinel $(checkutilsdir)/.sentinel \
+	$(wrappersdir)/.sentinel $(checkdir)/.sentinel \
+	$(utilsdir)/.sentinel $(cppcheckbuilddir)/.sentinel
 
 $(dirsentinels):
 	mkdir -p "$$(dirname $@)"
@@ -570,42 +560,39 @@ clean: mostlyclean
 mostlyclean: tidy
 
 maintainer-clean: distclean
+	@printf '%s is intended for maintainers only.\n' "$@"
+	@printf 'It deletes files that require special tools to rebuild.\n'
 	rm -f sucgi.$(manext) docs/callgraph.*
 	find . -type d -name 'chk-*' -exec rm '{}' +
 
 distclean:
-	rm -f compat.h config.status makefile $(distar)
-	rm -rf $(distname) $(cppcheckbuilddir)
+	rm -f compat.h config.status makefile
 
 mrproper: clean
-	rm -f $(cppcheckbuilddir)/*
-	find . '(' \
-	-name '*.gcda' -o \
-	-name '*.gcno' -o \
-	-name '*.gcov' -o \
-	-name '*.info' \
-	')' -exec rm -f '{}' +
+	find . '(' -name '*.gc*' -o -name '*.info' ')' -exec rm -f '{}' +
 
 clean:
-	find . -type d ! -name . | \
-	sort -r | \
-	while read -r x; do [ "$$(ls -A "$$x")" ] || rmdir "$$x"; done
+	find . -type d -name '$(package)-*' -exec rm -rf '{}' +
+	rm -f $(distar) $(dirsentinels)
+	myinode="$$(ls -i libutil.sh | cut -d' ' -f1)"; \
+srcinode="$$(ls -i '$(srcdir)/libutil.sh' | cut -d' ' -f1)"; \
+if [ "$$myinode" ] && [ "$$srcinode" ] && [ "$$myinode" -ne "$$srcinode" ]; \
+then rm -f libutil.sh; \
+fi
+	rm -rf $(cppcheckbuilddir)
+	for dir in $(dirsentinels:/.sentinel=); \
+	do \
+		if [ -e "$$dir" ] && [ -z "$$(ls -A "$$dir")" ]; \
+		then rmdir "$$dir"; \
+		fi; \
+	done
 
-mostlyclean: $(utilsdir)/samefile
-	$(utilsdir)/samefile libutil.sh '$(srcdir)/libutil.sh'; \
-	if [ "$$?" -eq 1 ]; then rm libutil.sh; fi
+mostlyclean:
 	rm -f $(binaries)
-	find . -name .sentinel -exec rm '{}' +
 
 tidy:
-	find . '(' \
-	-name '*.bak' -o \
-	-name '*.ctu-info' -o \
-	-name '*.expand' -o \
-	-name '*.dump' -o \
-	-name '*.log' -o \
-	-name '*.tgz' \
-	')' -exec rm -f '{}' +
+	find . '(' -name '*.bak' -o -name '*.expand' -o -name '*.log' ')' \
+		-exec rm -f '{}' +
 	find . -type d -name 'tmp-*' -exec rm -rf '{}' +
 
 
@@ -614,29 +601,32 @@ tidy:
 #
 
 ifhascmd(`tar', `dnl
-ARCHIVE = tar -c
-EXTRACT = tar -x
+TAR = tar -c
+UNTAR = tar -x
 ', `dnl
-ARCHIVE = pax -w -xustar
-EXTRACT = pax -r
+TAR = pax -w -xustar
+UNTAR = pax -r -pamp
 ')dnl
+
 ifhascmd(`gzip', `dnl
-COMPRESS = gzip
-UNCOMPRESS = gzip -d
+ZIP = gzip
+UNZIP = gunzip
 ', `dnl
-COMPRESS = compress
-UNCOMPRESS = zcat
+ZIP = compress
+UNZIP = uncompress
 ')dnl
+
 package = sucgi
 version = syscmd(
 	`awk "
 		\$1 == \"#define\" && \$2 == \"VERSION\" {
 			gsub(/[^0-9.]/, \"\", \$3);
-			print \$3;
-			exit;
+			print(\$3);
+			exit(0);
 		}
 	"' default(`__srcdir', `.')/main.c
 )dnl
+
 distname = $(package)-$(version)
 distar = $(distname).tgz
 dnl Add sucgi.8
@@ -661,26 +651,32 @@ $(distar): $(distname)
 
 $(distar).asc: $(distar)
 
-$(distname): distclean #sucgi.$(manext)
+$(distname): clean #sucgi.$(manext)
 
 dist: $(distar)
 	rm -rf $(distname)
 
 distcheck:
-	$(UNCOMPRESS) <$(distar) | $(EXTRACT)
+	$(UNZIP) <$(distar) | $(UNTAR)
 	cp -p config.h.tpl $(distname)/config.h
 	cd $(distname) && ./configure && $(MAKE) -e all check dist
 	rm -rf $(distname)
 
 $(distname):
-	find . '(' -name git -prune ')' -exec pathchk -Pp '{}' +
-	mkdir $(distname)
-	cp -Rp $(distfiles) $(distname)
+ifhascmd(`pathchk', `dnl
+	find . "(" -name ".git*" -prune ")" -o -exec pathchk -Pp "{}" +
+')dnl
+	mkdir -m0700 $(distname)
+	printf '%s\n' $(distfiles) | grep -Evfdist.excl | \
+		xargs -E '' -I '{}' cp -r '{}' $(distname)
+ifelse(default(`__uname'), `Darwin', `dnl
+ifhascmd(`xattr', `dnl
+	xattr -cr $(distname)
+')dnl
+')dnl
 
 $(distar):
-	find $(distname) -type f | grep -vfdist.excl | \
-	xargs -E '' $(ARCHIVE) | $(COMPRESS) >$(distar)
+	$(TAR) $(distname) | $(ZIP) >$(distar)
 
 $(distar).asc:
 	gpg -qab --batch --yes $(distar)
-

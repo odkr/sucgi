@@ -193,11 +193,13 @@ do
 	warn 'checking with %s ... ' "$cc"
 
 	[ -e makefile ] && mylogged make distclean
-	[ -e makefile ] && rm -f makefile
+	rm -f makefile compat.h
 
 	eval "cflags=\${${cc%%[!a-z]*}_flags-}"
 	# shellcheck disable=2154
 	m4 -D__CC="$cc" -D__CFLAGS="$cflags" makefile.in >makefile
+	m4 compat.h.in >compat.h
+	cp config.h.tpl config.h
 
 	mylogged -l"$cc.log" make clean all check ||
 	failures="$failures$cc (w/o configuration), "

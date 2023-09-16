@@ -40,6 +40,9 @@ init			|| exit
 # Defaults
 #
 
+# FIXME
+buildtype=
+
 # Compiler flags to test for. Space-separated list.
 cflags=
 
@@ -215,8 +218,9 @@ testflags() {
 
 for macro in $macros
 do
-	case $macro in (*[a-z]*)
-		unset "$macro"
+	case $macro in
+	(*[!a-z]*) : ;;
+	(*)        unset "$macro"
 	esac
 done
 
@@ -224,7 +228,7 @@ nfiles=0
 while [ "$#" -gt 0 ]
 do
 	opt="$1" optopt='' suffix=''
-	case $1 in
+	case $opt in
 	(--)	shift
 		break
 		;;
@@ -232,10 +236,6 @@ do
 		(*=*)	optopt="${1%%=*}" suffix="${1#*=}" ;;
 		(*)	optopt="$1"       suffix= ;;
 		esac
-		shift
-		;;
-	(-*)	suffix="${1#-?}"
-		optopt="${1%$suffix}"
 		shift
 		;;
 	(*)	break
@@ -246,8 +246,8 @@ do
 	(--enable-*)
 		[ "$suffix" ] || shift
 		;;
-	(-h|--debug|--dev|--force|--help|--quiet|--with-*)
-		[ "$suffix" ] && err -s64 '%s: takes no argument.' "$optopt"
+	(-h|--debug|--devel|--force|--help|--quiet|--with-*)
+		[ "$suffix" ] && err -s64 '%s: takes no argument.' "$opt"
 		;;
 	(*)
 		if [ "$suffix" ]
@@ -257,7 +257,7 @@ do
 			optarg="${1-}"
 			shift
 		fi
-		[ "$optarg" ] || err -s64 '%s: no argument given.' "$optopt"
+		[ "$optarg" ] || err -s64 '%s: no argument given.' "$opt"
 		;;
 	esac
 	unset suffix
@@ -266,21 +266,18 @@ do
 	(-h|--help)	exec cat <<EOF >&2
 $progname - generate a build configuration
 
-Usage:  $progname [-D|-U MACRO ...] [--conf=FILE|--dev]
-                  [--gen=FILE ...] [--force] [--quiet]
-                  [<GNU options> ...] [CFLAGS ...] [VAR=VALUE]
+Usage:  $progname [--conf=FILE|--dev] [--gen=FILE ...] [--force] [--quiet]
+                  [<GNU option> ...] [<cflag> ...] [VARIABLE=VALUE]
         $progname -h|--help
 
 Operands:
-    VAR          Configuration variable.
-    VALUE        Value for that variable. Use the empty string to disable.
+    VARIABLE     Configuration variable.
+    VALUE        Value of the variable.
 
 Options:
-    -D MACRO     Add "-DMACRO" to \$CFLAGS.
-    -U MACRO     Add "-UMACRO" to \$CFLAGS.
-    --gen FILE   Only generate FILE (default: $files).
-    --conf FILE  Read build configuration from FILE (default: $conf).
-    --dev        Short for "--conf=conf/devel.env".
+    --gen=FILE   Only generate FILE (default: $files).
+    --conf=FILE  Read build configuration from FILE (default: $conf).
+    --devel      Short for "--conf=conf/devel.env".
     --force      Overwrite existing files.
     --quiet      Be quiet.
     -h, --help   Show this help screen.
@@ -288,8 +285,8 @@ Options:
 $progname aims to conform to the GNU Coding Standard (chap. 7), but
 does not support cross-compiling (i.e., --build, --host, and --target).
 
-All unrecognised options are passed on to the C compiler,
-but only if the compiler supports them.
+Unrecognised options are passed on to the C compiler,
+but only if the C compiler supports them.
 
 See docs/build.md for details.
 
@@ -305,7 +302,7 @@ EOF
 			;;
 	(--debug)	set -x ;;
 	(--conf)	conf="$optarg" ;;
-	(--dev)		conf="$repodir/conf/devel.env" ;;
+	(--devel)	conf="$repodir/conf/devel.env" ;;
 	(--prefix)	prefix="$optarg" ;;
 	(--exec-prefix)	exec_prefix="$optarg" ;;
 	(--libexecdir)	libexecdir="$optarg" ;;
@@ -317,8 +314,6 @@ EOF
 	(--wwwgrp)	wwwgrp="$optarg" ;;
 	(--force)	force=y ;;
 	(--quiet)	quiet=y ;;
-	(-D)		addflags "-D$optarg" ;;
-	(-U)		addflags "-U$optarg" ;;
 	(-*)		addflags "$opt" ;;
 	(*)		break
 	esac
@@ -332,31 +327,36 @@ do
 	(*)	break
 	esac
 
-	key="${1%%=*}" value="${1#*=}"
-	if inlist '=' "$key" $macros
-	then eval "$key"='"$value"'
-	else warn '%s: not a supported variable.' "$key"
+	variable="${1%%=*}" value="${1#*=}"
+	if inlist '=' "$variable" $macros
+	then eval "$variable"='"$value"'
+	else warn '%s: not a supported variable.' "$variable"
 	fi
 
 	shift
 done
 
-[ $# -gt 0 ] && warn 'ignoring operand(s): %s' "$*"
+case $# in
+(0) : ;;
+(1) warn "ignoring build type $1." ;;
+(*) err -s64 'too many operands.'
+esac
 
 conffile=
 case $conf in
 	([./]*) conffile="$conf" ;;
-	(*)	for dir in . .. "$repodir" ./conf ../conf "$repodir/conf"
+	(*)	for dir in . ./conf .. ../conf "$repodir" "$repodir/conf"
 		do
-			for suffix in '' '.env'
-			do
-				fname="$dir/$conf$suffix"
-				if [ -e "$fname" ]
-				then
-					conffile="$fname"
-					break 2
-				fi
-			done
+			case $conf in
+			(*.env) fname="$dir/$conf" ;;
+			(*)     fname="$dir/$conf.env" ;;
+			esac
+			
+			if [ -e "$fname" ]
+			then
+				conffile="$fname"
+				break 2
+			fi
 		done
 esac
 unset dir file suffix

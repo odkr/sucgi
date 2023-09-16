@@ -101,7 +101,6 @@ mylogged() {
 # Options
 #
 
-
 OPTIND=1 OPTARG='' opt=''
 # shellcheck disable=2034
 while getopts Dc:hqv opt; do
@@ -161,6 +160,7 @@ m4 ./makefile.in >"$TMPDIR/makefile"
 distdir="$TMPDIR/dist"
 mylogged make -f"$TMPDIR/makefile" distname="$distdir" "$distdir"
 cd "$distdir" || exit
+cp config.h.tpl config.h
 
 
 #
@@ -173,8 +173,9 @@ do
 	command -v "$make" >/dev/null 2>&1 || continue
 	warn 'checking %s ... ' "$make"
 	m4 makefile.in >makefile
+	m4 compat.h.in >compat.h
 	mylogged "$make" distcheck || failures="$failures$make, "
-	rm -f makefile >/dev/null 2>&1 || :
+	rm -f makefile compat.h >/dev/null 2>&1 || :
 done
 
 if [ "$failures" ]

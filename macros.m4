@@ -21,4 +21,4 @@ define(`ifnempty', `ifdef(`$1', `ifelse(`$1', `', `ifdef(`$3', `$3', `')', `$2')
 define(`default', `ifnempty(`$1', `$1', `$2')')dnl
 define(`ifcontains', `ifelse(index(`$1', `$2'), `-1', `$4', `$3')')dnl
 define(`ifcflag', `ifcontains(default(`__CFLAGS'), `$1', `$2', `$3')')dnl
-define(`ifhascmd', `syscmd(`command -v "$1" >/dev/null 2>&1')ifelse(sysval, `0', `$2', `$3')')dnl
+define(`ifhascmd', `syscmd(`command -v "$1" >/dev/null 2>&1' || :)ifelse(sysval, `0', `$2', `$3')')dnl

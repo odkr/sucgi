@@ -170,8 +170,10 @@ cd -P "$distdir" || exit
 #
 
 warn -q 'compiling binaries ...'
-CFLAGS='' mylogged ./configure
-mylogged make all utils checks
+m4 makefile.in >makefile
+m4 compat.h.in >compat.h || bash
+cp config.h.tpl config.h
+mylogged make all checks
 
 failures=
 for shell
@@ -181,7 +183,7 @@ do
 	warn 'checking %s ... ' "$shell"
 
 	# shellcheck disable=2086
-	rm -- $files
+	rm -f -- $files
 
 	CFLAGS=-O1 mylogged "$shell" ./configure
 
@@ -194,12 +196,6 @@ do
 			failures="$failures$shell ./configure, "
 		fi
 	done
-
-	check -s0 "$shell" utils/samefile.sh "$0" "$0"
-	check -s1 "$shell" utils/samefile.sh "$0" utils/samefile.sh
-	check -s2 "$shell" utils/samefile.sh "$0" nosuchfile
-	check -s2 "$shell" utils/samefile.sh "$0" ''
-	check -s2 "$shell" utils/samefile.sh '' nosuchfile
 
 	for script in tests/*.sh
 	do
