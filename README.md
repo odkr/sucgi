@@ -13,10 +13,10 @@ and then runs the script with the permissions of that user.
 
 ## System requirements
 
-suCGI should work on any recent-ish Unix-like system. More precisely,
-it should work on any system that complies with [POSIX.1-2008], including
-its X/Open System Interface extension, and is compatible with [4.4BSD],
-that is, supports *getgrouplist*(), *setgroups*(), and *vsyslog*().
+suCGI should work on any recent-ish Unix-like system. More precisely, it
+should work on any system that complies with [POSIX.1-2008], including its
+X/Open System Interface extension, and is compatible with [4.4BSD], that is,
+supports *getgrouplist*(), *setgroups*(), *vsyslog*(), and *LOG_UPTO*().
 
 Compiling suCGI requires:
 
