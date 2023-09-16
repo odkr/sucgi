@@ -271,11 +271,14 @@ main(int argc, char **argv) {
 
     /* NOLINTBEGIN(bugprone-sizeof-expression); nothing bug-prone about it. */
 
-    /* Are configuration values are within bounds? */
+    /* Are configuration values within bounds? */
     ASSERT(sizeof(USER_DIR) > 1U);
     ASSERT(sizeof(USER_DIR) <= (size_t) MAX_FNAME_LEN);
     ASSERT(sizeof(PATH) > 0U);
     ASSERT(sizeof(PATH) <= (size_t) MAX_FNAME_LEN);
+#if defined(ARG_MAX) && ARG_MAX > -1
+    ASSERT(sizeof(PATH) <= ARG_MAX);
+#endif
 
     /* NOLINTEND(bugprone-sizeof-expression). */
 
@@ -711,8 +714,10 @@ main(int argc, char **argv) {
     }
 
     errno = 0;
-    if (setenv("PATH", PATH, true) != 0) {
-        error("setenv: %m.");
+    if (*PATH != '\0') {
+        if (setenv("PATH", PATH, true) != 0) {
+            error("setenv: %m.");
+        }
     }
 
     errno = 0;
