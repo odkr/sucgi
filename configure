@@ -40,9 +40,6 @@ init			|| exit
 # Defaults
 #
 
-# FIXME
-buildtype=
-
 # Compiler flags to test for. Space-separated list.
 cflags=
 
@@ -311,7 +308,8 @@ EOF
 	(--man8dir)	man8dir="$optarg" ;;
 	(--manext)	manext="$optarg" ;;
 	(--cgidir)	cgidir="$optarg" ;;
-	(--wwwgrp)	wwwgrp="$optarg" ;;
+	(--wwwgrp)	# shellcheck disable=2034
+			wwwgrp="$optarg" ;;
 	(--force)	force=y ;;
 	(--quiet)	quiet=y ;;
 	(-*)		addflags "$opt" ;;
@@ -328,6 +326,7 @@ do
 	esac
 
 	variable="${1%%=*}" value="${1#*=}"
+	# shellcheck disable=2086
 	if inlist '=' "$variable" $macros
 	then eval "$variable"='"$value"'
 	else warn '%s: not a supported variable.' "$variable"
@@ -351,7 +350,7 @@ case $conf in
 			(*.env) fname="$dir/$conf" ;;
 			(*)     fname="$dir/$conf.env" ;;
 			esac
-			
+
 			if [ -e "$fname" ]
 			then
 				conffile="$fname"
@@ -403,6 +402,7 @@ then
 	i=0
 	while [ "$i" -lt "$nfiles" ]
 	do
+		# shellcheck disable=1083
 		eval file=\"\${file_$i}\"
 		i=$((i + 1))
 		if [ -e "$file" ]
@@ -730,9 +730,7 @@ do
 	headervar="have_$(printf '%s\n' "$header" | sed 's/[^a-z]/_/g')"
 
 	if [ "$headervar" = have_ ]
-	then
-		'%s: could not derive header name.' "$header"
-		continue
+	then err '%s: could not derive header name.' "$header"
 	fi
 
 	eval headeravail="\${$headervar-}"
@@ -1003,6 +1001,7 @@ do
 	then
 		maxvalbin="$TMPDIR/max${idtype}val"
 
+		# shellcheck disable=2034
 		"$CC" -o"$maxvalbin" -D"T=$idtype" "$probesdir/maxval.c" \
 		      >/dev/null 2>&1			&&
 		idmaxval="$("$maxvalbin" | tail -n1)"	&&

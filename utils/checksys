@@ -109,6 +109,7 @@ started_vm=
 tmpdir=
 
 # Whether UTM has been started by this script.
+# shellcheck disable=2034
 utm_started=
 
 
@@ -130,17 +131,20 @@ utm_is_running() {
 }
 
 utm_get_ip() {
+	# shellcheck disable=2034
 	utm_is_running || utm_started=y
 	utmctl ip-address "${1:?}" 2>/dev/null | grep -Ev ^fe80: | head -n1
 }
 
 utm_is_vm() {
+	# shellcheck disable=2034
 	utm_is_running || utm_started=y
 	# shellcheck disable=2046
 	inlist '=' "${1:?}" $(utmctl list | awk 'NR > 1 {print $3}')
 }
 
 utm_vm_started() {
+	# shellcheck disable=2034
 	utm_is_running || utm_started=y
 	[ "$(utm_status "$1")" = started ] >/dev/null 2>&1
 }
@@ -181,6 +185,7 @@ utm_quit() (
 )
 
 utm_status() {
+	# shellcheck disable=2034
 	utm_is_running || utm_started=y
 	utmctl status "${1:?}" 2>/dev/null
 }
@@ -188,6 +193,7 @@ utm_status() {
 utm_start_vm() {
 	: "${1:?}"
 
+	# shellcheck disable=2034
 	utm_is_running || utm_started=y
 	if ! utm_vm_started "$1"
 	then
@@ -199,6 +205,7 @@ utm_start_vm() {
 utm_stop_vm() {
 	: "${1:?}"
 
+	# shellcheck disable=2034
 	utm_is_running || utm_started=y
 	if utm_vm_started "$1"
 	then
@@ -236,7 +243,6 @@ remote_branch_restore() {
 #
 
 OPTIND=1 OPTARG='' opt=''
-# shellcheck disable=2034
 while getopts Db:c:d:hqt:v opt; do
 	# shellcheck disable=2154
 	case $opt in
@@ -264,7 +270,8 @@ EOF
 	(c) check="$OPTARG" ;;
 	(d) dir="$OPTARG" ;;
 	(t) timeout="$OPTARG" ;;
-	(q) quiet=y ;;
+	(q) # shellcheck disable=2034
+	    quiet=y ;;
 	(v) verbose=y ;;
 	(*) exit 1
 	esac
@@ -272,6 +279,7 @@ done
 shift $((OPTIND - 1))
 unset opt
 
+# shellcheck disable=2034
 readonly branch check dir timeout quiet verbose
 
 case $timeout in (*[!0-9]*)
@@ -387,6 +395,7 @@ do
 	fi
 
 	catch='' caught=''
+	# shellcheck disable=2029
 	ssh "$host" "rm -rf '$tmpdir'"
 	host='' tmpdir=''
 	catch=y
@@ -395,6 +404,7 @@ do
 	catch='' caught=''
 	[ "$started_vm" ] && utm_stop_vm "$started_vm"
 	started_vm=
+	# shellcheck disable=2034
 	catch=y
 	[ "$caught" ] && kill -s "$caught" "$pid"
 done

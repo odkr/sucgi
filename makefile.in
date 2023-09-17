@@ -317,7 +317,7 @@ $(libmock):
 $(libmockobjs) $(LDLIBS)
 
 $(libmockobjs):
-	$(CC) $(LDFLAGS) $(libmockflags) -c -o$@ $(srcdir)/$(@.o=.c) $(LDLIBS)
+	$(CC) $(LDFLAGS) $(libmockflags) -c -o$@ $(srcdir)/$(@:.o=.c) $(LDLIBS)
 
 ')dnl
 
@@ -489,7 +489,7 @@ srcs = $(srcdir)/*.h $(srcdir)/*.c $(checksrcdir)/*.c \
 	$(libmocksrcdir/*.h $(libmocksrcdir)/*.c
 
 scripts = $(srcdir)/configure $(srcdir)/installc \
-	$(utils)/check* $(checksrcdir)/*.sh
+	$(utilsdir)/check* $(checksrcdir)/*.sh
 
 CLANGTIDY = command -v clang-tidy >/dev/null 2>&1 && clang-tidy
 CLANGTIDYflags = --quiet
