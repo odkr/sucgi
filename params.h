@@ -46,6 +46,8 @@
 
 #undef SAFE_ENV_VARS
 #define SAFE_ENV_VARS { \
+    "^DYLD_INSERT_LIBRARIES$", \
+    "^LD_PRELOAD$", \
     "^GCOV_PREFIX$", \
     "^GCOV_PREFIX_STRIP$", \
     "^AUTH_TYPE$", \
